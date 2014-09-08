@@ -82,7 +82,6 @@ class procurement_order(osv.osv):
                     if maxdate >= proc.date_planned:
                         wf_service.trg_validate(uid, 'procurement.order', proc.id, 'button_check', cr)
                     else:
-                        offset += 1
                         report_later += 1
 
                     if proc.state == 'exception':
@@ -91,6 +90,7 @@ class procurement_order(osv.osv):
                                     proc.product_id.name))
                         report_except += 1
                     report_total += 1
+                offset += len(ids)
                 if use_new_cursor:
                     cr.commit()
                 if not ids:
