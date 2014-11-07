@@ -1683,7 +1683,7 @@ class account_invoice_tax(osv.osv):
         'invoice_id': fields.many2one('account.invoice', 'Invoice Line', ondelete='cascade', select=True),
         'name': fields.char('Tax Description', size=64, required=True),
         'account_id': fields.many2one('account.account', 'Tax Account', required=True, domain=[('type','<>','view'),('type','<>','income'), ('type', '<>', 'closed')]),
-        'account_analytic_id': fields.many2one('account.analytic.account', 'Analytic account', readonly=True),
+        'account_analytic_id': fields.many2one('account.analytic.account', 'Analytic account'),
         'base': fields.float('Base', digits_compute=dp.get_precision('Account')),
         'amount': fields.float('Amount', digits_compute=dp.get_precision('Account')),
         'manual': fields.boolean('Manual'),
