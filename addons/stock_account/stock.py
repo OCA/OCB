@@ -72,7 +72,7 @@ class procurement_order(osv.osv):
         invoice_state = 'none'
         if procurement.invoice_state:
             invoice_state = procurement.invoice_state
-        elif rocurement.rule_id.invoice_state:
+        elif procurement.rule_id.invoice_state:
             invoice_state = rocurement.rule_id.invoice_state
         res.update({'invoice_state': invoice_state})
         return res
