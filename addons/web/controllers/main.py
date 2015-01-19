@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import unicodedata
 import ast
 import base64
 import csv
@@ -152,30 +153,30 @@ def module_topological_sort(modules):
     # outgoing edge: other module depending on this one
 
     # [Tarjan 1976], http://en.wikipedia.org/wiki/Topological_sorting#Algorithms
-    #L ← Empty list that will contain the sorted nodes
+    # L ← Empty list that will contain the sorted nodes
     L = []
-    #S ← Set of all nodes with no outgoing edges (modules on which no other
+    # S ← Set of all nodes with no outgoing edges (modules on which no other
     #    module depends)
     S = set(module for module in modules if module not in dependencies)
 
     visited = set()
-    #function visit(node n)
+    # function visit(node n)
     def visit(n):
-        #if n has not been visited yet then
+        # if n has not been visited yet then
         if n not in visited:
-            #mark n as visited
+            # mark n as visited
             visited.add(n)
-            #change: n not web module, can not be resolved, ignore
+            # change: n not web module, can not be resolved, ignore
             if n not in modules: return
-            #for each node m with an edge from m to n do (dependencies of n)
+            # for each node m with an edge from m to n do (dependencies of n)
             for m in modules[n]:
-                #visit(m)
+                # visit(m)
                 visit(m)
-            #add n to L
+            # add n to L
             L.append(n)
-    #for each node n in S do
+    # for each node n in S do
     for n in S:
-        #visit(n)
+        # visit(n)
         visit(n)
     return L
 
@@ -187,7 +188,7 @@ def module_installed(req):
     # Retrieve database installed modules
     # TODO The following code should move to ir.module.module.list_installed_modules()
     Modules = req.session.model('ir.module.module')
-    domain = [('state','=','installed'), ('name','in', loadable)]
+    domain = [('state', '=', 'installed'), ('name', 'in', loadable)]
     for module in Modules.search_read(domain, ['name', 'dependencies_id']):
         modules[module['name']] = []
         deps = module.get('dependencies_id')
@@ -207,8 +208,8 @@ def module_installed_bypass_session(dbname):
         with registry.cursor() as cr:
             m = registry.get('ir.module.module')
             # TODO The following code should move to ir.module.module.list_installed_modules()
-            domain = [('state','=','installed'), ('name','in', loadable)]
-            ids = m.search(cr, 1, [('state','=','installed'), ('name','in', loadable)])
+            domain = [('state', '=', 'installed'), ('name', 'in', loadable)]
+            ids = m.search(cr, 1, [('state', '=', 'installed'), ('name', 'in', loadable)])
             for module in m.read(cr, 1, ids, ['name', 'dependencies_id']):
                 modules[module['name']] = []
                 deps = module.get('dependencies_id')
@@ -216,7 +217,7 @@ def module_installed_bypass_session(dbname):
                     deps_read = registry.get('ir.module.module.dependency').read(cr, 1, deps, ['name'])
                     dependencies = [i['name'] for i in deps_read]
                     modules[module['name']] = dependencies
-    except Exception,e:
+    except Exception, e:
         pass
     sorted_modules = module_topological_sort(modules)
     return sorted_modules
@@ -256,7 +257,7 @@ def concat_xml(file_list):
 
         if root is None:
             root = ElementTree.Element(xml.tag)
-        #elif root.tag != xml.tag:
+        # elif root.tag != xml.tag:
         #    raise ValueError("Root tags missmatch: %r != %r" % (root.tag, xml.tag))
 
         for child in xml.getchildren():
@@ -716,12 +717,12 @@ class WebClient(openerpweb.Controller):
         # done server-side when the language is loaded, so we only need to load the user's lang.
         ir_translation = req.session.model('ir.translation')
         translations_per_module = {}
-        messages = ir_translation.search_read([('module','in',mods),('lang','=',lang),
-                                               ('comments','like','openerp-web'),('value','!=',False),
-                                               ('value','!=','')],
-                                              ['module','src','value','lang'], order='module')
+        messages = ir_translation.search_read([('module', 'in', mods), ('lang', '=', lang),
+                                               ('comments', 'like', 'openerp-web'), ('value', '!=', False),
+                                               ('value', '!=', '')],
+                                              ['module', 'src', 'value', 'lang'], order='module')
         for mod, msg_group in itertools.groupby(messages, key=operator.itemgetter('module')):
-            translations_per_module.setdefault(mod,{'messages':[]})
+            translations_per_module.setdefault(mod, {'messages':[]})
             translations_per_module[mod]['messages'].extend({'id': m['src'],
                                                              'string': m['value']} \
                                                                 for m in msg_group)
@@ -790,7 +791,7 @@ class Database(openerpweb.Controller):
         password, db = operator.itemgetter(
             'drop_pwd', 'drop_db')(
                 dict(map(operator.itemgetter('name', 'value'), fields)))
-        
+
         try:
             if req.session.proxy("db").drop(password, db):return True
         except xmlrpclib.Fault, e:
@@ -814,7 +815,7 @@ class Database(openerpweb.Controller):
                {'fileToken': token}
             )
         except xmlrpclib.Fault, e:
-            return simplejson.dumps([[],[{'error': e.faultCode, 'title': _('Backup Database')}]])
+            return simplejson.dumps([[], [{'error': e.faultCode, 'title': _('Backup Database')}]])
 
     @openerpweb.httprequest
     def restore(self, req, db_file, restore_pwd, new_db):
@@ -868,13 +869,13 @@ class Session(openerpweb.Controller):
         return self.session_info(req)
 
     @openerpweb.jsonrequest
-    def change_password (self,req,fields):
-        old_password, new_password,confirm_password = operator.itemgetter('old_pwd', 'new_password','confirm_pwd')(
+    def change_password (self, req, fields):
+        old_password, new_password, confirm_password = operator.itemgetter('old_pwd', 'new_password', 'confirm_pwd')(
                 dict(map(operator.itemgetter('name', 'value'), fields)))
         if not (old_password.strip() and new_password.strip() and confirm_password.strip()):
-            return {'error':_('You cannot leave any password empty.'),'title': _('Change Password')}
+            return {'error':_('You cannot leave any password empty.'), 'title': _('Change Password')}
         if new_password != confirm_password:
-            return {'error': _('The new password and its confirmation must be identical.'),'title': _('Change Password')}
+            return {'error': _('The new password and its confirmation must be identical.'), 'title': _('Change Password')}
         try:
             if req.session.model('res.users').change_password(
                 old_password, new_password):
@@ -970,7 +971,7 @@ class Menu(openerpweb.Controller):
         menu_domain = [('parent_id', '=', False)]
         if user_menu_id:
             domain_string = s.model('ir.actions.act_window').read(
-                [user_menu_id[0]], ['domain'],req.context)[0]['domain']
+                [user_menu_id[0]], ['domain'], req.context)[0]['domain']
             if domain_string:
                 menu_domain = ast.literal_eval(domain_string)
 
@@ -1008,7 +1009,7 @@ class Menu(openerpweb.Controller):
         # equivalent menu items from full menu read when put into id:item
         # mapping, resulting in children being correctly set on the roots.
         menu_items.extend(menu_roots)
-        menu_root['all_menu_ids'] = menu_ids # includes menu_root_ids!
+        menu_root['all_menu_ids'] = menu_ids  # includes menu_root_ids!
 
         # make a tree using parent_id
         menu_items_map = dict(
@@ -1041,7 +1042,7 @@ class Menu(openerpweb.Controller):
     @openerpweb.jsonrequest
     def action(self, req, menu_id):
         # still used by web_shortcut
-        actions = load_actions_from_ir_values(req,'action', 'tree_but_open',
+        actions = load_actions_from_ir_values(req, 'action', 'tree_but_open',
                                              [('ir.ui.menu', menu_id)], False)
         return {"action": actions}
 
@@ -1182,7 +1183,7 @@ class View(openerpweb.Controller):
     @openerpweb.jsonrequest
     def undo_custom(self, req, view_id, reset=False):
         CustomView = req.session.model('ir.ui.view.custom')
-        vcustom = CustomView.search([('user_id', '=', req.session._uid), ('ref_id' ,'=', view_id)],
+        vcustom = CustomView.search([('user_id', '=', req.session._uid), ('ref_id' , '=', view_id)],
                                     0, False, False, req.context)
         if vcustom:
             if reset:
@@ -1198,7 +1199,7 @@ class TreeView(View):
     @openerpweb.jsonrequest
     def action(self, req, model, id):
         return load_actions_from_ir_values(
-            req,'action', 'tree_but_open',[(model, id)],
+            req, 'action', 'tree_but_open', [(model, id)],
             False)
 
 class Binary(openerpweb.Controller):
@@ -1213,7 +1214,7 @@ class Binary(openerpweb.Controller):
         hashed_session = hashlib.md5(req.session_id).hexdigest()
         id = None if not id else simplejson.loads(id)
         if type(id) is list:
-            id = id[0] # m2o
+            id = id[0]  # m2o
         if etag:
             if not id and hashed_session == etag:
                 return werkzeug.wrappers.Response(status=304)
@@ -1430,7 +1431,7 @@ class Action(openerpweb.Controller):
                 model, action_id = req.session.model('ir.model.data').get_object_reference(module, xmlid)
                 assert model.startswith('ir.actions.')
             except Exception:
-                action_id = 0   # force failed read
+                action_id = 0  # force failed read
 
         base_action = Actions.read([action_id], ['type'], req.context)
         if base_action:
@@ -1476,7 +1477,7 @@ class Export(openerpweb.Controller):
         return fields
 
     @openerpweb.jsonrequest
-    def get_fields(self, req, model, prefix='', parent_name= '',
+    def get_fields(self, req, model, prefix='', parent_name='',
                    import_compat=True, parent_field_type=None,
                    exclude=None):
 
@@ -1527,7 +1528,7 @@ class Export(openerpweb.Controller):
         return records
 
     @openerpweb.jsonrequest
-    def namelist(self,req,  model, export_id):
+    def namelist(self, req, model, export_id):
         # TODO: namelist really has no reason to be in Python (although itertools.groupby helps)
         export = req.session.model("ir.exports").read([export_id])[0]
         export_fields_list = req.session.model("ir.exports.line").read(
@@ -1577,12 +1578,14 @@ class Export(openerpweb.Controller):
         # there's a single fields_get to execute)
         for (base, length), subfields in itertools.groupby(
                 sorted(export_fields),
-                lambda field: (field.split('/', 1)[0], len(field.split('/', 1)))):
+                lambda field: (field.split('/', 1)[0],
+                    len(field.split('/', 1)))):
             subfields = list(subfields)
             if length == 2:
                 # subfields is a seq of $base/*rest, and not loaded yet
                 info.update(self.graft_subfields(
-                    req, fields[base]['relation'], base, fields[base]['string'],
+                    req, fields[base]['relation'],
+                    base, fields[base]['string'],
                     subfields
                 ))
             elif base in fields:
@@ -1632,7 +1635,7 @@ class ExportFormat(object):
         ids = ids or Model.search(domain, 0, False, False, context)
 
         field_names = map(operator.itemgetter('name'), fields)
-        import_data = Model.export_data(ids, field_names, context).get('datas',[])
+        import_data = Model.export_data(ids, field_names, context).get('datas', [])
 
         if import_compat:
             columns_headers = field_names
@@ -1667,7 +1670,7 @@ class CSVExport(ExportFormat, http.Controller):
             row = []
             for d in data:
                 if isinstance(d, basestring):
-                    d = d.replace('\n',' ').replace('\t',' ')
+                    d = d.replace('\n', ' ').replace('\t', ' ')
                     try:
                         d = d.encode('utf-8')
                     except UnicodeError:
@@ -1702,7 +1705,7 @@ class ExcelExport(ExportFormat, http.Controller):
 
         for i, fieldname in enumerate(fields):
             worksheet.write(0, i, fieldname)
-            worksheet.col(i).width = 8000 # around 220 pixels
+            worksheet.col(i).width = 8000  # around 220 pixels
 
         style = xlwt.easyxf('align: wrap yes')
 
@@ -1780,8 +1783,8 @@ class Reports(openerpweb.Controller):
                 try:
                     r = m.name_get(action_context['active_ids'], context)
                 except xmlrpclib.Fault:
-                    #we assume this went wrong because of incorrect/missing
-                    #_rec_name. We don't have access to _columns here to do
+                    # we assume this went wrong because of incorrect/missing
+                    # _rec_name. We don't have access to _columns here to do
                     # a proper check
                     pass
                 # Parse result to create a better filename
@@ -1792,14 +1795,15 @@ class Reports(openerpweb.Controller):
                     file_name = '-'.join(item_names)[:251]
         file_name = '%s.%s' % (file_name, report_struct['format'])
         # Create safe filename
-        p = re.compile('[/:(")<>|?*]|(\\\)')
-        file_name = p.sub('_', file_name)
+        clean_name = unicodedata.normalize("NFKD", file_name)
+        file_name = clean_name.encode("ascii", "ignore")
 
-        return req.make_response(report,
-             headers=[
-                 ('Content-Disposition', content_disposition(file_name, req)),
-                 ('Content-Type', report_mimetype),
-                 ('Content-Length', len(report))],
-             cookies={'fileToken': token})
+        return req.make_response(
+            report, headers=[
+                ('Content-Disposition', content_disposition(file_name, req)),
+                ('Content-Type', report_mimetype),
+                ('Content-Length', len(report))
+            ], cookies={'fileToken': token}
+        )
 
 # vim:expandtab:tabstop=4:softtabstop=4:shiftwidth=4:
