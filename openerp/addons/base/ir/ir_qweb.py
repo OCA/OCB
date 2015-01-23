@@ -59,7 +59,7 @@ def raise_qweb_exception(etype=None, **kw):
             e.qweb[k] = v
         # Will use `raise foo from bar` in python 3 and rename cause to __cause__
         e.qweb['cause'] = original
-        raise
+        raise etype(e.qweb.items)
 
 class QWebContext(dict):
     def __init__(self, cr, uid, data, loader=None, templates=None, context=None):
@@ -222,7 +222,7 @@ class QWeb(orm.AbstractModel):
             return str(expr % qwebcontext)
         except Exception:
             template = qwebcontext.get('__template__')
-            raise_qweb_exception(message="Format error for expression %r" % expr, expression=expr, template=template)
+            raise_qweb_exception(message="Format error for expression %r" % expr, expression=expr, template_attributes=template_attributes)
 
     def eval_bool(self, expr, qwebcontext):
         return int(bool(self.eval(expr, qwebcontext)))
