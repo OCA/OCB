@@ -1794,6 +1794,8 @@ class Reports(openerpweb.Controller):
                 if item_names:
                     file_name = '-'.join(item_names)[:251]
         file_name = '%s.%s' % (file_name, report_struct['format'])
+        if isinstance(file_name, str):
+            file_name = unicode(file_name, 'utf-8')
         # Create safe filename
         clean_name = unicodedata.normalize("NFKD", file_name)
         file_name = clean_name.encode("ascii", "ignore")
