@@ -142,7 +142,7 @@
         <record id="trans_router_invoice" model="workflow.transition">
             <field name="act_from" ref="act_router"/>
             <field name="act_to" ref="act_invoice"/>
-            <field name="condition">invoice_method=='order'</field>
+            <field name="condition">invoice_method=='order' or has_service_in_picking()</field>
         </record>
         <record id="trans_router_invoice_no_order" model="workflow.transition">
             <field name="act_from" ref="act_router"/>

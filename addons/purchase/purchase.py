@@ -560,6 +560,13 @@ class purchase_order(osv.osv):
             # generate invoice line correspond to PO line and link that to created invoice (inv_id) and PO line
             inv_lines = []
             for po_line in order.order_line:
+                # skip stockable lines when invoice method is picking
+                if (
+                    order.invoice_method == 'picking'
+                    and po_line.product_id
+                    and po_line.product_id.type in ('product', 'consu')
+                ):
+                    continue
                 acc_id = self._choose_account_from_po_line(cr, uid, po_line, context=context)
                 inv_line_data = self._prepare_inv_line(cr, uid, acc_id, po_line, context=context)
                 inv_line_id = inv_line_obj.create(cr, uid, inv_line_data, context=context)
@@ -601,6 +608,14 @@ class purchase_order(osv.osv):
             for order_line in order.order_line:
                 if order_line.product_id and order_line.product_id.type in ('product', 'consu'):
                     return True
+        return False
+    
+    def has_service_in_picking(self, cr, uid, ids):
+        for order in self.browse(cr, uid, ids):
+            if order.invoice_method == 'picking':
+                for order_line in order.order_line:
+                    if order_line.product_id and order_line.product_id.type in ('service'):
+                        return True
         return False
 
     def wkf_action_cancel(self, cr, uid, ids, context=None):
