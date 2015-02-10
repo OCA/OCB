@@ -21,6 +21,7 @@
 
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
+from openerp import SUPERUSER_ID
 
 class procurement_order(osv.osv):
     _name = "procurement.order"
@@ -70,7 +71,7 @@ class procurement_order(osv.osv):
         if not context:
             context = {}
         project_task = self.pool.get('project.task')
-        for procurement in self.browse(cr, uid, ids, context=context):
+        for procurement in self.browse(cr, SUPERUSER_ID, ids, context=context):
             project = self._get_project(cr, uid, procurement, context=context)
             planned_hours = self._convert_qty_company_hours(cr, uid, procurement, context=context)
             manager = procurement.product_id.product_manager
