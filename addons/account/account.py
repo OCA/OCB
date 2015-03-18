@@ -1259,22 +1259,93 @@ class account_move(osv.osv):
     _columns = {
         'name': fields.char('Number', size=64, required=True),
         'ref': fields.char('Reference', size=64),
-        'period_id': fields.many2one('account.period', 'Period', required=True, states={'posted':[('readonly',True)]}),
-        'journal_id': fields.many2one('account.journal', 'Journal', required=True, states={'posted':[('readonly',True)]}),
-        'state': fields.selection([('draft','Unposted'), ('posted','Posted')], 'Status', required=True, readonly=True,
-            help='All manually created new journal entries are usually in the status \'Unposted\', but you can set the option to skip that status on the related journal. In that case, they will behave as journal entries automatically created by the system on document validation (invoices, bank statements...) and will be created in \'Posted\' status.'),
-        'line_id': fields.one2many('account.move.line', 'move_id', 'Entries', states={'posted':[('readonly',True)]}),
-        'to_check': fields.boolean('To Review', help='Check this box if you are unsure of that journal entry and if you want to note it as \'to be reviewed\' by an accounting expert.'),
-        'partner_id': fields.related('line_id', 'partner_id', type="many2one", relation="res.partner", string="Partner", store={
-            _name: (lambda self, cr,uid,ids,c: ids, ['line_id'], 10),
-            'account.move.line': (_get_move_from_lines, ['partner_id'],10)
-            }),
-        'amount': fields.function(_amount_compute, string='Amount', digits_compute=dp.get_precision('Account'), type='float', fnct_search=_search_amount),
-        'date': fields.date('Date', required=True, states={'posted':[('readonly',True)]}, select=True),
+        'period_id': fields.many2one(
+            'account.period', 
+            'Period', 
+            required=True, 
+            states={'posted':[('readonly',True)]}
+        ),
+        'journal_id': fields.many2one(
+            'account.journal', 
+            'Journal', 
+            required=True, states={'posted':[('readonly',True)]}
+        ),
+        'state': fields.selection(
+            [
+                ('draft','Unposted'), ('posted','Posted')
+            ], 
+            'Status', required=True, readonly=True,
+            help='All manually created new journal'
+            ' entries are usually in the status \'Unposted\', '
+            'but you can set the option to skip that status on'
+            ' the related journal. In that case, they will behave'
+            ' as journal entries automatically created by the system'
+            ' on document validation (invoices, bank statements...)' 
+            'and will be created in \'Posted\' status.'
+        ),
+        'line_id': fields.one2many(
+            'account.move.line', 
+            'move_id', 
+            'Entries', 
+            states={'posted':[('readonly',True)]}
+        ),
+        'to_check': fields.boolean(
+            'To Review', 
+            help='Check this box if you are unsure of'
+            ' that journal entry and if you want to note'
+            ' it as \'to be reviewed\' by an accounting expert.'
+        ),
+        'partner_id': fields.related(
+            'line_id', 
+            'partner_id', 
+            type="many2one",
+            relation="res.partner", 
+            string="Partner", 
+            store={
+                _name: (
+                    lambda self, cr,uid,ids,c: ids, ['line_id'], 10
+                ),
+                'account.move.line': (_get_move_from_lines, ['partner_id'],10)
+            }
+        ),
+        'amount': fields.function(
+            _amount_compute, 
+            string='Amount', 
+            digits_compute=dp.get_precision('Account'), 
+            type='float', 
+            fnct_search=_search_amount
+        ),
+        'date': fields.date(
+            'Date', 
+            required=True, 
+            states={'posted':[('readonly',True)]}, 
+            select=True
+        ),
         'narration':fields.text('Internal Note'),
-        'company_id': fields.related('journal_id','company_id',type='many2one',relation='res.company',string='Company', store=True, readonly=True),
-        'balance': fields.float('balance', digits_compute=dp.get_precision('Account'), help="This is a field only used for internal purpose and shouldn't be displayed"),
+        'company_id': fields.related(
+            'journal_id',
+            'company_id',type='many2one',
+            relation='res.company',
+            string='Company', 
+            store=True, 
+            readonly=True
+        ),
+        'balance': fields.float(
+            'balance', 
+            digits_compute=dp.get_precision('Account'), 
+            help="This is a field only used for internal"
+            " purpose and shouldn't be displayed"
+        ),
     }
+    
+    def period_get(self, cr, uid, ids, date, context=None):
+        if context == None:
+            context = {}
+        period_obj = self.pool.get('account.period')
+        ctx = dict(context, account_period_prefer_normal=True)
+        pids = period_obj.find(cr, uid, dt=date, context=ctx)
+        res = {'value': {'period_id': pids[0]}}
+        return res
 
     _defaults = {
         'name': '/',

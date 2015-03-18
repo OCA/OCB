@@ -1281,13 +1281,13 @@
                     <group>
                         <group>
                             <field name="journal_id"/>
-                            <field name="period_id"/>
+                            <field name="date" on_change="period_get(date)"/>                            
                             <field name="company_id" required="1" groups="base.group_multi_company"/>
                             <field name="partner_id" invisible="1"/>
                         </group>
                         <group>
                             <field name="ref"/>
-                            <field name="date"/>
+                            <field name="period_id"/>
                             <field name="to_check"/>
                             <field name="amount" invisible="1"/>
                         </group>
