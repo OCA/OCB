@@ -45,6 +45,7 @@ internal transfer document is needed.
     'test': [
         'test/cancellation_propagated.yml',
         'test/crossdock.yml',
+        'test/crossdock-check-generated-move.yml',
         'test/dropship.yml',
         'test/procurementexception.yml',
         'test/lifo_price.yml'
