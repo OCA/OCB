@@ -23,7 +23,7 @@ from openerp import SUPERUSER_ID
 from openerp.addons.web import http
 from openerp.addons.web.http import request
 from openerp.addons.website_event.controllers.main import website_event
-from openerp.addons.website_sale.controllers.main import get_pricelist
+from openerp.addons.website_sale.controllers.utils import get_pricelist
 from openerp.tools.translate import _
 
 
