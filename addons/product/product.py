@@ -423,7 +423,9 @@ class product_attribute_price(osv.osv):
 class product_attribute_line(osv.osv):
     _name = "product.attribute.line"
     _rec_name = 'attribute_id'
+    _order = "sequence"
     _columns = {
+        'sequence': fields.integer('Sequence'),
         'product_tmpl_id': fields.many2one('product.template', 'Product Template', required=True, ondelete='cascade'),
         'attribute_id': fields.many2one('product.attribute', 'Attribute', required=True, ondelete='restrict'),
         'value_ids': fields.many2many('product.attribute.value', id1='line_id', id2='val_id', string='Product Attribute Value'),
