@@ -344,6 +344,8 @@ instance.web_gantt.GanttView = instance.web.View.extend({
                 gantt.templates.task_cell_class = function(item, date) {};
                 break;
         }
+	// Save the requested scale so the view doesn't reset
+	this.fields_view.arch.attrs.scale_zoom = gantt.config.scale_unit;
     },
     on_task_changed: function(task_obj) {
         var self = this;
