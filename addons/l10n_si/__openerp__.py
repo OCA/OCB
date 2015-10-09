@@ -29,7 +29,6 @@
     "depends": ["account", "base_iban", "base_vat", "account_chart", "account_cancel"],
     "description": "Kontni načrt, davki in davčni obrazec za gospodarske družbe",
     "data": [
-        "data/account.account.type.xml",
         "data/account.account.template.xml",
         "data/account.tax.code.template.xml",
         "data/account.chart.template.xml",
