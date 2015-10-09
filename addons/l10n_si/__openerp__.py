@@ -21,7 +21,7 @@
 
 {
     "name": "Slovenian - Accounting",
-    "version": "1.0",
+    "version": "1.3.0",
     "author": "Mentis d.o.o.",
     "website": "http://www.mentis.si",
     "category": "Localization/Account Charts",
@@ -43,4 +43,3 @@
     'auto_install': False,
     "installable": True,
 }
-
