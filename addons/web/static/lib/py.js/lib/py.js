@@ -1315,8 +1315,11 @@ var py = {};
         switch (expr.id) {
         case '(name)':
             var val = context[expr.value];
-            if (val === undefined && expr.value in PY_builtins) {
-                return PY_builtins[expr.value];
+            if (val === undefined) {
+                if (expr.value in PY_builtins) {
+                    return PY_builtins[expr.value];
+                }
+                return py.False;
             }
             return PY_ensurepy(val, expr.value);
         case '(string)':
