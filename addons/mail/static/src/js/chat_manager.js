@@ -27,6 +27,42 @@ var emoji_substitutions = {};
 var needaction_counter = 0;
 var mention_partner_suggestions = [];
 var discuss_ids = {};
+var global_unread_counter = 0;
+
+// Window focus/unfocus, beep and title
+//----------------------------------------------------------------------------------
+var beep = (function () {
+    if (typeof(Audio) === "undefined") {
+        return function () {};
+    }
+    var audio = new Audio();
+    var ext = audio.canPlayType("audio/ogg; codecs=vorbis") ? ".ogg" : ".mp3";
+    audio.src = session.url("/mail/static/src/audio/ting" + ext);
+    return function () { audio.play(); };
+})();
+
+bus.on("window_focus", null, function() {
+    global_unread_counter = 0;
+    notify();
+});
+
+function increment_global_unread_counter () {
+    if (!bus.is_odoo_focused()) {
+        global_unread_counter++;
+        notify(bus.is_master);
+    }
+}
+
+function notify (play_sound) {
+    var title;
+    if (global_unread_counter > 0) {
+        title = _.str.sprintf(_t("%d Messages"), global_unread_counter);
+        if (play_sound) {
+            beep();
+        }
+    }
+    web_client.set_title_part("_chat", title);
+}
 
 // Message and channel manipulation helpers
 //----------------------------------------------------------------------------------
@@ -42,30 +78,36 @@ function add_message (data, options) {
         messages.splice(_.sortedIndex(messages, msg, 'id'), 0, msg);
         _.each(msg.channel_ids, function (channel_id) {
             var channel = chat_manager.get_channel(channel_id);
-
+            var is_chat = channel && !_.contains(["public", "private"], channel.type);
             if (channel) {
                 add_to_cache(msg, []);
                 if (options.domain && options.domain !== []) {
                     add_to_cache(msg, options.domain);
+                }
+                if (options.increment_unread) {
+                    update_channel_unread_counter(channel, channel.unread_counter+1);
                 }
             }
             if (channel && channel.hidden) {
                 channel.hidden = false;
                 chat_manager.bus.trigger('new_channel', channel);
             }
-            if (channel && !_.contains(["public", "private"], channel.type) && (options.show_notification)) {
+            if (is_chat && options.show_notification) {
                 var query = { is_displayed: false };
                 chat_manager.bus.trigger('anyone_listening', channel, query);
                 if (!query.is_displayed) {
                     var title = _t('New message');
                     if (msg.author_id[1]) {
-                        title += _t(' from ') + msg.author_id[1];
+                        title += _t(' from ') + _.escape(msg.author_id[1]);
                     }
                     var trunc_text = function (t, limit) {
                         return (t.length > limit) ? t.substr(0, limit-1)+'&hellip;' : t;
                     };
                     web_client.do_notify(title, trunc_text(msg.body, preview_msg_max_size));
                 }
+            }
+            if (is_chat && options.increment_unread && (!msg.author_id || msg.author_id[0] !== session.partner_id)) {
+                increment_global_unread_counter();
             }
         });
         if (!options.silent) {
@@ -380,13 +422,7 @@ function on_channel_notification (message) {
         def = $.when();
     }
     def.then(function () {
-        _.each(message.channel_ids, function (channel_id) {
-            var channel = chat_manager.get_channel(channel_id);
-            if (channel) {
-                update_channel_unread_counter(channel, channel.unread_counter+1);
-            }
-        });
-        add_message(message, { show_notification: true });
+        add_message(message, { show_notification: true, increment_unread: true });
         invalidate_caches(message.channel_ids);
     });
 }
@@ -414,6 +450,10 @@ function on_toggle_star_notification (data) {
             message.is_starred = data.starred;
             if (!message.is_starred) {
                 remove_message_from_channel("channel_starred", message);
+            } else {
+                add_to_cache(message, []);
+                var channel_starred = chat_manager.get_channel('channel_starred');
+                channel_starred.cache = _.pick(channel_starred.cache, "[]");
             }
             chat_manager.bus.trigger('update_message', message);
         }
@@ -451,8 +491,12 @@ function on_mark_as_unread_notification (data) {
         if (message) {
             invalidate_caches(message.channel_ids);
             add_channel_to_message(message, 'channel_inbox');
+            add_to_cache(message, []);
         }
     });
+    var channel_inbox = chat_manager.get_channel('channel_inbox');
+    channel_inbox.cache = _.pick(channel_inbox.cache, "[]");
+
     _.each(data.channel_ids, function (channel_id) {
         var channel = chat_manager.get_channel(channel_id);
         if (channel) {
@@ -702,13 +746,13 @@ var chat_manager = {
      */
     redirect: function (res_model, res_id, dm_redirection_callback) {
         var self = this;
-        var redirect_to_document = function (res_model, res_id) {
+        var redirect_to_document = function (res_model, res_id, view_id) {
             web_client.do_action({
                 type:'ir.actions.act_window',
                 view_type: 'form',
                 view_mode: 'form',
                 res_model: res_model,
-                views: [[false, 'form']],
+                views: [[view_id || false, 'form']],
                 res_id: res_id,
             });
         };
@@ -722,7 +766,9 @@ var chat_manager = {
                 }
             });
         } else {
-            redirect_to_document(res_model, res_id);
+            new Model(res_model).call('get_formview_id', [res_id, session.context]).then(function (view_id) {
+                redirect_to_document(res_model, res_id, view_id);
+            });
         }
     },
 };

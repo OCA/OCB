@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import time
 import uuid
 
 from openerp import _, api, fields, models, modules, tools
@@ -52,6 +51,7 @@ class Channel(models.Model):
     channel_last_seen_partner_ids = fields.One2many('mail.channel.partner', 'channel_id', string='Last Seen')
     channel_partner_ids = fields.Many2many('res.partner', 'mail_channel_partner', 'channel_id', 'partner_id', string='Listeners')
     channel_message_ids = fields.Many2many('mail.message', 'mail_message_mail_channel_rel')
+    is_member = fields.Boolean('Is a member', compute='_compute_is_member')
     # access
     public = fields.Selection([
         ('public', 'Everyone'),
@@ -83,6 +83,16 @@ class Channel(models.Model):
     alias_id = fields.Many2one(
         'mail.alias', 'Alias', ondelete="restrict", required=True,
         help="The email address associated with this group. New emails received will automatically create new topics.")
+
+    @api.multi
+    def _compute_is_member(self):
+        memberships = self.env['mail.channel.partner'].sudo().search([
+            ('channel_id', 'in', self.ids),
+            ('partner_id', '=', self.env.user.partner_id.id),
+            ])
+        membership_ids = memberships.mapped('channel_id')
+        for record in self:
+            record.is_member = record in membership_ids
 
     @api.one
     @api.depends('image')
@@ -159,11 +169,14 @@ class Channel(models.Model):
 
     @api.multi
     def action_unfollow(self):
-        result = self.write({'channel_partner_ids': [(3, self.env.user.partner_id.id)]})
-        self.env['bus.bus'].sendone((self._cr.dbname, 'res.partner', self.env.user.partner_id.id), self.channel_info('unsubscribe')[0])
+        partner_id = self.env.user.partner_id.id
+        channel_info = self.channel_info('unsubscribe')[0]  # must be computed before leaving the channel (access rights)
+        result = self.write({'channel_partner_ids': [(3, partner_id)]})
+        self.env['bus.bus'].sendone((self._cr.dbname, 'res.partner', partner_id), channel_info)
         if not self.email_send:
             notification = _('<div class="o_mail_notification">left <a href="#" class="o_channel_redirect" data-oe-id="%s">#%s</a></div>') % (self.id, self.name,)
-            self.message_post(body=notification, message_type="notification", subtype="mail.mt_comment")
+            # post 'channel left' message as root since the partner just unsubscribed from the channel
+            self.sudo().message_post(body=notification, message_type="notification", subtype="mail.mt_comment", author_id=partner_id)
         return result
 
     @api.multi
