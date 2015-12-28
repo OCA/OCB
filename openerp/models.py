@@ -5396,24 +5396,27 @@ class BaseModel(object):
         Returns a new version of this recordset attached to the provided
         user.
 
-        By default this returns a `SUPERUSER` recordset, where access control
-        and record rules are bypassed.
+        By default this returns a ``SUPERUSER`` recordset, where access
+        control and record rules are bypassed.
 
         .. note::
-            Using `sudo` could cause data access to cross the boundaries of
-            record rules, possibly mixing records that are meant to be
-            isolated (e.g. records from different companies in multi-company
-            environments).
+
+            Using ``sudo`` could cause data access to cross the
+            boundaries of record rules, possibly mixing records that
+            are meant to be isolated (e.g. records from different
+            companies in multi-company environments).
 
             It may lead to un-intuitive results in methods which select one
             record among many - for example getting the default company, or
             selecting a Bill of Materials.
 
         .. note::
+
             Because the record rules and access control will have to be
             re-evaluated, the new recordset will not benefit from the current
             environment's data cache, so later data access may incur extra
             delays while re-fetching from the database.
+
         """
         return self.with_env(self.env(user=user))
 
@@ -5986,14 +5989,14 @@ class BaseModel(object):
         # create a new record with values, and attach ``self`` to it
         with env.do_in_onchange():
             record = self.new(values)
+            values = dict(record._cache)
             # attach ``self`` with a different context (for cache consistency)
             record._origin = self.with_context(__onchange=True)
 
-        # load missing fields values, to avoid false changes
+        # load fields on secondary records, to avoid false changes
         with env.do_in_onchange():
-            for name in field_onchange:
-                record.mapped(name)
-        values = dict(record._cache)
+            for field_seq in secondary:
+                record.mapped(field_seq)
 
         # determine which field(s) should be triggered an onchange
         todo = list(names) or list(values)
