@@ -116,6 +116,14 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
                 chat_manager.undo_mark_as_read(msgs_ids, channel);
             });
         },
+        "click .o_mail_annoying_notification_bar .fa-close": function (event) {
+            this.$(".o_mail_annoying_notification_bar").slideUp();
+        },
+        "click .o_mail_request_permission": function (event) {
+            event.preventDefault();
+            this.$(".o_mail_annoying_notification_bar").slideUp();
+            window.Notification.requestPermission();
+        },
     },
 
     on_attach_callback: function () {
@@ -135,6 +143,7 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
         this.options = options || {};
         this.channels_scrolltop = {};
         this.throttled_render_sidebar = _.throttle(this.render_sidebar.bind(this), 100, { leading: false });
+        this.notification_bar = (window.Notification && window.Notification.permission === "default");
     },
 
     willStart: function () {
@@ -201,7 +210,7 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
         this.extended_composer.on('post_message', this, this.on_post_message);
         this.extended_composer.on('input_focused', this, this.on_composer_input_focused);
 
-        var def1 = this.thread.prependTo(this.$('.o_mail_chat_content'));
+        var def1 = this.thread.appendTo(this.$('.o_mail_chat_content'));
         var def2 = this.basic_composer.appendTo(this.$('.o_mail_chat_content'));
         var def3 = this.extended_composer.appendTo(this.$('.o_mail_chat_content'));
         var def4 = this.searchview.appendTo($("<div>"));
