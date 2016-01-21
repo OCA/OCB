@@ -122,6 +122,7 @@ class ir_values(osv.osv):
         record = self.browse(cursor, user, id, context=context)
         if record.key == 'default':
             # default values are pickled on the fly
+            value = value.encode('utf-8')
             value = pickle.dumps(value)
         self.write(cursor, user, id, {name[:-9]: value}, context=ctx)
 
@@ -239,7 +240,7 @@ class ir_values(osv.osv):
            :return: id of the newly created ir.values entry
         """
         if isinstance(value, unicode):
-            value = value.encode('utf8')
+            value = value.encode('utf-8')
         if company_id is True:
             # should be company-specific, need to get company id
             user = self.pool.get('res.users').browse(cr, uid, uid)
