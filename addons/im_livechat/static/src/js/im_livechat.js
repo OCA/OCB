@@ -64,14 +64,17 @@ var LivechatButton = Widget.extend({
                 this.auto_popup_timeout = setTimeout(this.open_chat.bind(this), this.rule.auto_popup_timer*1000);
             }
         }
-        bus.on('notification', this, function (notification) {
-            if (this.channel && (notification[0] === this.channel.uuid)) {
-                this.add_message(notification[1]);
-                this.render_messages();
-                if (this.chat_window.folded) {
-                    this.chat_window.update_unread(this.chat_window.unread_msgs+1);
+        bus.on('notification', this, function (notifications) {
+            var self = this;
+            _.each(notifications, function (notification) {
+                if (self.channel && (notification[0] === self.channel.uuid)) {
+                    self.add_message(notification[1]);
+                    self.render_messages();
+                    if (self.chat_window.folded || !self.chat_window.thread.is_at_bottom()) {
+                        self.chat_window.update_unread(self.chat_window.unread_msgs+1);
+                    }
                 }
-            }
+            });
         });
         return this._super();
     },
@@ -150,6 +153,11 @@ var LivechatButton = Widget.extend({
             this.channel.state = (this.channel.state === 'open') ? 'folded' : 'open';
             utils.set_cookie('im_livechat_session', JSON.stringify(this.channel), 60*60);
         });
+        this.chat_window.thread.$el.on("scroll", null, _.debounce(function () {
+            if (self.chat_window.thread.is_at_bottom()) {
+                self.chat_window.update_unread(0);
+            }
+        }, 100));
     },
 
     close_chat: function () {
@@ -158,7 +166,12 @@ var LivechatButton = Widget.extend({
     },
 
     send_message: function (message) {
-        return session.rpc("/mail/chat_post", {uuid: this.channel.uuid, message_content: message.content});
+        var self = this;
+        return session
+            .rpc("/mail/chat_post", {uuid: this.channel.uuid, message_content: message.content})
+            .then(function () {
+                self.chat_window.thread.scroll_to();
+            });
     },
 
     add_message: function (data, options) {
@@ -191,8 +204,11 @@ var LivechatButton = Widget.extend({
     },
 
     render_messages: function () {
+        var should_scroll = !this.chat_window.folded && this.chat_window.thread.is_at_bottom();
         this.chat_window.render(this.messages);
-        this.chat_window.scrollBottom();
+        if (should_scroll) {
+            this.chat_window.thread.scroll_to();
+        }
     },
 
     send_welcome_message: function () {
@@ -208,11 +224,10 @@ var LivechatButton = Widget.extend({
     },
 
     ask_feedback: function () {
-        this.chat_window.$(".o_chat_content").empty();
         this.chat_window.$(".o_chat_input input").prop('disabled', true);
 
         var feedback = new Feedback(this, this.channel.uuid);
-        feedback.appendTo(this.chat_window.$(".o_chat_content"));
+        feedback.replace(this.chat_window.thread.$el);
 
         feedback.on("send_message", this, this.send_message);
         feedback.on("feedback_sent", this, this.close_chat);

@@ -342,7 +342,6 @@ class BaseModel(object):
     _inherit_fields = {}
 
     _table = None
-    _log_create = False
     _sql_constraints = []
 
     # model dependencies, for models backed up by sql views:
@@ -674,7 +673,7 @@ class BaseModel(object):
                     (fnct, fields2, order) = spec
                     length = None
                 else:
-                    raise UserError(_('Invalid function definition %s in object %s !\nYou must use the definition: store={object:(fnct, fields, priority, time length)}.' % (fname, cls._name)))
+                    raise UserError(_('Invalid function definition %s in object %s !\nYou must use the definition: store={object:(fnct, fields, priority, time length)}.') % (fname, cls._name))
                 pool._store_function.setdefault(model, [])
                 t = (cls._name, fname, fnct, tuple(fields2) if fields2 else None, order, length)
                 if t not in pool._store_function[model]:
@@ -1267,7 +1266,7 @@ class BaseModel(object):
                     res_msg = trans._get_source(self._name, 'constraint', self.env.lang, msg)
                 if extra_error:
                     res_msg += "\n\n%s\n%s" % (_('Error details:'), extra_error)
-                errors.append(_(res_msg))
+                errors.append(res_msg)
         if errors:
             raise ValidationError('\n'.join(errors))
 
@@ -4342,13 +4341,6 @@ class BaseModel(object):
             # recompute new-style fields
             recs.recompute()
 
-        if self._log_create and recs.env.recompute and context.get('recompute', True):
-            message = self._description + \
-                " '" + \
-                self.name_get(cr, user, [id_new], context=context)[0][1] + \
-                "' " + _("created.")
-            self.log(cr, user, id_new, message, True, context=context)
-
         self.check_access_rule(cr, user, [id_new], 'create', context=context)
         self.create_workflow(cr, user, [id_new], context=context)
         return id_new
@@ -4595,11 +4587,24 @@ class BaseModel(object):
         """
         lang = self._context.get('lang')
         if lang and lang != 'en_US':
+            # Sub-select to return at most one translation per record.
+            # Even if it shoud probably not be the case,
+            # this is possible to have multiple translations for a same record in the same language.
+            # The parenthesis surrounding the select are important, as this is a sub-select.
+            # The quotes surrounding `ir_translation` are important as well.
+            unique_translation_subselect = """
+            (SELECT DISTINCT ON (res_id) res_id, value
+            FROM "ir_translation"
+            WHERE
+                name = %s AND
+                lang = %s AND
+                value != %s
+            ORDER BY res_id, id DESC)
+            """
             alias, alias_statement = query.add_join(
-                (table_alias, 'ir_translation', 'id', 'res_id', field),
+                (table_alias, unique_translation_subselect, 'id', 'res_id', field),
                 implicit=False,
                 outer=True,
-                extra='"{rhs}"."name" = %s AND "{rhs}"."lang" = %s AND "{rhs}"."value" != %s',
                 extra_params=["%s,%s" % (self._name, field), lang, ""],
             )
             return 'COALESCE("%s"."%s", "%s"."%s")' % (alias, 'value', table_alias, field)

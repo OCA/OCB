@@ -133,32 +133,6 @@ class sale_order_line(osv.Model):
         'discounted_price': fields.function(_fnct_get_discounted_price, string='Discounted price', type='float', digits_compute=dp.get_precision('Product Price')),
     }
 
-class sale_order_line(osv.Model):
-    _inherit = "sale.order.line"
-
-    def _fnct_get_discounted_price(self, cr, uid, ids, field_name, args, context=None):
-        res = dict.fromkeys(ids, False)
-        for line in self.browse(cr, uid, ids, context=context):
-            res[line.id] = (line.price_unit * (1.0 - (line.discount or 0.0) / 100.0))
-        return res
-
-    _columns = {
-        'discounted_price': fields.function(_fnct_get_discounted_price, string='Discounted price', type='float', digits_compute=dp.get_precision('Product Price')),
-    }
-
-class sale_order_line(osv.Model):
-    _inherit = "sale.order.line"
-
-    def _fnct_get_discounted_price(self, cr, uid, ids, field_name, args, context=None):
-        res = dict.fromkeys(ids, False)
-        for line in self.browse(cr, uid, ids, context=context):
-            res[line.id] = (line.price_unit * (1.0 - (line.discount or 0.0) / 100.0))
-        return res
-
-    _columns = {
-        'discounted_price': fields.function(_fnct_get_discounted_price, string='Discounted price', type='float', digits_compute=dp.get_precision('Product Price')),
-    }
-
 
 class website(orm.Model):
     _inherit = 'website'
@@ -250,7 +224,11 @@ class website(orm.Model):
         if pl_id:
             return self.pool['product.pricelist'].browse(cr, uid, [pl_id], context=context)[0]
         else:
-            pl = self.pool['res.users'].browse(cr, SUPERUSER_ID, uid, context=context).partner_id.property_product_pricelist
+            available_pricelists = self.get_pricelist_available(cr, uid, context=context)
+            if available_pricelists:
+                pl = available_pricelists[0]
+            else:
+                pl = self.pool['res.users'].browse(cr, SUPERUSER_ID, uid, context=context).partner_id.property_product_pricelist
             request.session['website_sale_current_pl'] = pl.id
             return pl
 
