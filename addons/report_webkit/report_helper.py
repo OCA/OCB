@@ -42,6 +42,7 @@ class WebKitHelper(object):
         self.uid = uid
         self.pool = pooler.get_pool(self.cursor.dbname)
         self.report_id = report_id
+        self.context = context
 
     def embed_image(self, type, img, width=0, height=0, unit="px"):
         "Transform a DB image into an embedded HTML image"
