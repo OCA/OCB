@@ -51,7 +51,8 @@ _logger = logging.getLogger(__name__)
 def memory_info(process):
     """ psutil < 2.0 does not have memory_info, >= 3.0 does not have
     get_memory_info """
-    return (getattr(process, 'memory_info', None) or process.get_memory_info)()
+    pmem = (getattr(process, 'memory_info', None) or process.get_memory_info)()
+    return (pmem.rss, pmem.vms)
 
 
 def close_socket(sock):
