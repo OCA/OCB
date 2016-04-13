@@ -140,7 +140,7 @@ from openerp.osv import fields
 from openerp.osv.orm import MAGIC_COLUMNS
 import openerp.tools as tools
 
-#.apidoc title: Domain Expressions
+# .apidoc title: Domain Expressions
 
 # Domain operators.
 NOT_OPERATOR = '!'
@@ -164,6 +164,13 @@ TERM_OPERATORS = ('=', '!=', '<=', '<', '>', '>=', '=?', '=like', '=ilike',
 # below, this doesn't necessarily mean that any of those NEGATIVE_TERM_OPERATORS is
 # legal in the processed term.
 NEGATIVE_TERM_OPERATORS = ('!=', 'not like', 'not ilike', 'not in')
+REVERSE_NEGATIVE_OPERATOR = {'!=': '=', 'not like': 'like', 'not ilike': 'ilike', 'not in': 'in'}
+
+
+def get_ids_operator(operator):
+    if operator in NEGATIVE_TERM_OPERATORS:
+        return 'not in'
+    return 'in'
 
 # Negation of domain expressions
 DOMAIN_OPERATORS_NEGATION = {
@@ -207,11 +214,11 @@ def normalize_domain(domain):
     if not domain:
         return TRUE_DOMAIN
     result = []
-    expected = 1                            # expected number of expressions
+    expected = 1  # expected number of expressions
     op_arity = {NOT_OPERATOR: 1, AND_OPERATOR: 2, OR_OPERATOR: 2}
     for token in domain:
-        if expected == 0:                   # more than expected, like in [A, B]
-            result[0:0] = [AND_OPERATOR]             # put an extra '&' in front
+        if expected == 0:  # more than expected, like in [A, B]
+            result[0:0] = [AND_OPERATOR]  # put an extra '&' in front
             expected = 1
         result.append(token)
         if isinstance(token, (list, tuple)):  # domain term
@@ -853,8 +860,10 @@ class expression(object):
 
             # Making search easier when there is a left operand as field.o2m or field.m2m
             elif len(field_path) > 1 and field._type in ['many2many', 'one2many']:
-                right_ids = relational_model.search(cr, uid, [(field_path[1], operator, right)], context=context)
-                table_ids = working_model.search(cr, uid, [(field_path[0], 'in', right_ids)], context=dict(context, active_test=False))
+                local_operator = REVERSE_NEGATIVE_OPERATOR.get(operator, operator)
+                right_ids = relational_model.search(cr, uid, [(field_path[1], local_operator, right)], context=context)
+                ids_operator = get_ids_operator(operator)
+                table_ids = working_model.search(cr, uid, [(field_path[0], ids_operator, right_ids)], context=dict(context, active_test=False))
                 leaf.leaf = ('id', 'in', table_ids)
                 push(leaf)
 
@@ -911,9 +920,9 @@ class expression(object):
 
                 if right is not False:
                     if isinstance(right, basestring):
-                        ids2 = [x[0] for x in relational_model.name_search(cr, uid, right, [], operator, context=context, limit=None)]
-                        if ids2:
-                            operator = 'in'
+                        local_operator = REVERSE_NEGATIVE_OPERATOR.get(operator, operator)
+                        operator = get_ids_operator(operator)
+                        ids2 = [x[0] for x in relational_model.name_search(cr, uid, right, [], local_operator, context=context, limit=None)]
                     else:
                         if not isinstance(right, list):
                             ids2 = [right]
@@ -921,7 +930,7 @@ class expression(object):
                             ids2 = right
                     if not ids2:
                         if operator in ['like', 'ilike', 'in', '=']:
-                            #no result found with given search criteria
+                            # no result found with given search criteria
                             call_null = False
                             push(create_substitution_leaf(leaf, FALSE_LEAF, working_model))
                     else:
@@ -941,7 +950,7 @@ class expression(object):
 
             elif field._type == 'many2many':
                 rel_table, rel_id1, rel_id2 = field._sql_names(working_model)
-                #FIXME
+                # FIXME
                 if operator == 'child_of':
                     def _rec_convert(ids):
                         if relational_model == working_model:
@@ -956,9 +965,9 @@ class expression(object):
                     call_null_m2m = True
                     if right is not False:
                         if isinstance(right, basestring):
-                            res_ids = [x[0] for x in relational_model.name_search(cr, uid, right, [], operator, context=context)]
-                            if res_ids:
-                                operator = 'in'
+                            local_operator = REVERSE_NEGATIVE_OPERATOR.get(operator, operator)
+                            operator = get_ids_operator(operator)
+                            res_ids = [x[0] for x in relational_model.name_search(cr, uid, right, [], local_operator, context=context)]
                         else:
                             if not isinstance(right, list):
                                 res_ids = [right]
@@ -966,14 +975,14 @@ class expression(object):
                                 res_ids = right
                         if not res_ids:
                             if operator in ['like', 'ilike', 'in', '=']:
-                                #no result found with given search criteria
+                                # no result found with given search criteria
                                 call_null_m2m = False
                                 push(create_substitution_leaf(leaf, FALSE_LEAF, working_model))
                             else:
-                                operator = 'in'  # operator changed because ids are directly related to main object
+                                push(create_substitution_leaf(leaf, TRUE_LEAF, working_model))
                         else:
                             call_null_m2m = False
-                            m2m_op = 'not in' if operator in NEGATIVE_TERM_OPERATORS else 'in'
+                            m2m_op = get_ids_operator(operator)
                             push(create_substitution_leaf(leaf, ('id', m2m_op, select_from_where(cr, rel_id1, rel_table, rel_id2, res_ids, operator) or [0]), working_model))
 
                     if call_null_m2m:
@@ -995,7 +1004,7 @@ class expression(object):
                             context = {}
                         c = context.copy()
                         c['active_test'] = False
-                        #Special treatment to ill-formed domains
+                        # Special treatment to ill-formed domains
                         operator = (operator in ['<', '>', '<=', '>=']) and 'in' or operator
 
                         dict_op = {'not in': '!=', 'in': '=', '=': 'in', '!=': 'not in'}
@@ -1062,7 +1071,7 @@ class expression(object):
                                         it.value != '')
                             ) 
                             SELECT id FROM temp_irt_current WHERE {name} {operator} {right} order by name
-                            """.format(current_table=working_model._table, quote_left=_quote(left), name=unaccent('name'), 
+                            """.format(current_table=working_model._table, quote_left=_quote(left), name=unaccent('name'),
                                        operator=sql_operator, right=instr)
 
                     params = (
