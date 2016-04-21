@@ -1055,6 +1055,7 @@ var One2ManyListView = X2ManyListView.extend({
 
         this.dataset.on('dataset_changed', this, function () {
             this._dataset_changed = true;
+            this.dataset.x2m._dirty_flag = true;
         });
         this.dataset.x2m.on('load_record', this, function () {
             this._dataset_changed = false;
@@ -1394,13 +1395,11 @@ var FieldMany2ManyTags = AbstractManyField.extend(common.CompletionFieldMixin, c
         this._super(field_manager, node);
         common.CompletionFieldMixin.init.call(this);
         this.set({"value": []});
-
+    },
+    willStart: function () {
         var self = this;
-        // We need to know if the field 'color' exists on the model
-        this.mutex.exec(function(){
-            return self.dataset.call('fields_get', []).then(function(fields) {
-               self.fields = fields;
-            });
+        return this.dataset.call('fields_get', []).then(function(fields) {
+           self.fields = fields;
         });
     },
     commit_value: function() {
@@ -1731,4 +1730,3 @@ return {
 };
 
 });
-

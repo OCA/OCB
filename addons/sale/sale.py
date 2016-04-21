@@ -142,6 +142,10 @@ class SaleOrder(models.Model):
 
     product_id = fields.Many2one('product.product', related='order_line.product_id', string='Product')
 
+    @api.model
+    def _get_customer_lead(self, product_tmpl_id):
+        return False
+
     @api.multi
     def button_dummy(self):
         return True
@@ -408,6 +412,7 @@ class SaleOrder(models.Model):
                         break
         if self.env['ir.values'].get_default('sale.config.settings', 'auto_done_setting'):
             self.action_done()
+        return True
 
     @api.multi
     def _create_analytic_account(self, prefix=None):
@@ -596,6 +601,13 @@ class SaleOrderLine(models.Model):
 
     @api.model
     def create(self, values):
+        onchange_fields = ['name', 'price_unit', 'product_uom', 'tax_id']
+        if values.get('order_id') and values.get('product_id') and any(f not in values for f in onchange_fields):
+            line = self.new(values)
+            line.product_id_change()
+            for field in onchange_fields:
+                if field not in values:
+                    values[field] = line._fields[field].convert_to_write(line[field])
         line = super(SaleOrderLine, self).create(values)
         if line.state == 'sale':
             if (not line.order_id.project_id and

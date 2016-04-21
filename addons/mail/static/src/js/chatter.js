@@ -440,7 +440,7 @@ var ChatterComposer = composer.BasicComposer.extend({
             internal_subtypes: [],
         });
         if (this.options.is_log) {
-            this.options.send_text = _('Log');
+            this.options.send_text = _t('Log');
         }
         this.events = _.extend(this.events, {
             'click .o_composer_button_full_composer': 'on_open_full_composer',
@@ -919,7 +919,7 @@ var Chatter = form_common.AbstractField.extend({
         this.mute_new_message_button(true);
     },
     close_composer: function (force) {
-        if (this.composer.is_empty() || force) {
+        if (this.composer && (this.composer.is_empty() || force)) {
             this.composer.do_hide();
             this.composer.$input.val('');
             this.mute_new_message_button(false);
