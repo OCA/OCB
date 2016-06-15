@@ -187,6 +187,16 @@ class PurchaseOrder(models.Model):
         return super(PurchaseOrder, self).unlink()
 
     @api.multi
+    def copy(self, default=None):
+        new_po = super(PurchaseOrder, self).copy(default=default)
+        for line in new_po.order_line:
+            seller = line.product_id._select_seller(
+                line.product_id, partner_id=line.partner_id, quantity=line.product_qty,
+                date=line.order_id.date_order and line.order_id.date_order[:10], uom_id=line.product_uom)
+            line.date_planned = line._get_date_planned(seller)
+        return new_po
+
+    @api.multi
     def _track_subtype(self, init_values):
         self.ensure_one()
         if 'state' in init_values and self.state == 'purchase':
@@ -197,14 +207,14 @@ class PurchaseOrder(models.Model):
             return 'purchase.mt_rfq_done'
         return super(PurchaseOrder, self)._track_subtype(init_values)
 
-    @api.onchange('partner_id')
+    @api.onchange('partner_id', 'company_id')
     def onchange_partner_id(self):
         if not self.partner_id:
             self.fiscal_position_id = False
             self.payment_term_id = False
             self.currency_id = False
         else:
-            self.fiscal_position_id = self.env['account.fiscal.position'].get_fiscal_position(self.partner_id.id)
+            self.fiscal_position_id = self.env['account.fiscal.position'].with_context(company_id=self.company_id.id).get_fiscal_position(self.partner_id.id)
             self.payment_term_id = self.partner_id.property_supplier_payment_term_id.id
             self.currency_id = self.partner_id.property_purchase_currency_id.id or self.env.user.company_id.currency_id.id
         return {}
@@ -256,14 +266,6 @@ class PurchaseOrder(models.Model):
     def print_quotation(self):
         self.write({'state': "sent"})
         return self.env['report'].get_action(self, 'purchase.report_purchasequotation')
-        for po in self.browse(cr, SUPERUSER_ID, ids, context=context):
-            for picking in po.picking_ids:
-                picking.move_lines.write({'purchase_line_id': False})
-            for invoice in po.invoice_ids:
-                po.write({'invoice_ids': [(3, invoice.id, _)]})
-            for po_line in po.order_line:
-                for invoice_line in po_line.invoice_lines:
-                    po_line.write({'invoice_lines': [(3, invoice_line.id, _)]})
 
     @api.multi
     def button_approve(self):
@@ -453,7 +455,8 @@ class PurchaseOrderLine(models.Model):
         for line in self:
             qty = 0.0
             for inv_line in line.invoice_lines:
-                qty += inv_line.uom_id._compute_qty_obj(inv_line.uom_id, inv_line.quantity, line.product_uom)
+                if inv_line.invoice_id.state not in ['cancel']:
+                    qty += inv_line.uom_id._compute_qty_obj(inv_line.uom_id, inv_line.quantity, line.product_uom)
             line.qty_invoiced = qty
 
     @api.depends('order_id.state', 'move_ids.state')
@@ -512,7 +515,7 @@ class PurchaseOrderLine(models.Model):
     name = fields.Text(string='Description', required=True)
     product_qty = fields.Float(string='Quantity', digits=dp.get_precision('Product Unit of Measure'), required=True)
     date_planned = fields.Datetime(string='Scheduled Date', required=True, select=True)
-    taxes_id = fields.Many2many('account.tax', string='Taxes')
+    taxes_id = fields.Many2many('account.tax', string='Taxes', domain=['|', ('active', '=', False), ('active', '=', True)])
     product_uom = fields.Many2one('product.uom', string='Product Unit of Measure', required=True)
     product_id = fields.Many2one('product.product', string='Product', domain=[('purchase_ok', '=', True)], change_default=True, required=True)
     move_ids = fields.One2many('stock.move', 'purchase_line_id', string='Reservation', readonly=True, ondelete='set null', copy=False)
@@ -859,7 +862,7 @@ class ProcurementOrder(models.Model):
         self.ensure_one()
         schedule_date = self._get_purchase_schedule_date()
         purchase_date = self._get_purchase_order_date(schedule_date)
-        fpos = self.env['account.fiscal.position'].get_fiscal_position(partner.id)
+        fpos = self.env['account.fiscal.position'].with_context(company_id=self.company_id.id).get_fiscal_position(partner.id)
 
         gpo = self.rule_id.group_propagation_option
         group = (gpo == 'fixed' and self.rule_id.group_id.id) or \

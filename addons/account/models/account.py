@@ -251,7 +251,7 @@ class AccountJournal(models.Model):
     loss_account_id = fields.Many2one('account.account', string='Loss Account', domain=[('deprecated', '=', False)], help="Used to register a loss when the ending balance of a cash register differs from what the system computes")
 
     # Bank journals fields
-    bank_account_id = fields.Many2one('res.partner.bank', string="Bank Account", ondelete='restrict')
+    bank_account_id = fields.Many2one('res.partner.bank', string="Bank Account", ondelete='restrict', copy=False)
     display_on_footer = fields.Boolean("Show in Invoices Footer", help="Display this bank account on the footer of printed documents like invoices and sales orders.")
     bank_statements_source = fields.Selection([('manual', 'Record Manually')], string='Bank Feeds')
     bank_acc_number = fields.Char(related='bank_account_id.acc_number')
@@ -293,7 +293,11 @@ class AccountJournal(models.Model):
 
     @api.multi
     def unlink(self):
-        bank_accounts = self.mapped('bank_account_id')
+        bank_accounts = self.env['res.partner.bank'].browse()
+        for bank_account in self.mapped('bank_account_id'):
+            accounts = self.search([('bank_account_id', '=', bank_account.id)])
+            if accounts <= self:
+                bank_accounts += bank_account
         ret = super(AccountJournal, self).unlink()
         bank_accounts.unlink()
         return ret
@@ -529,6 +533,20 @@ class AccountTax(models.Model):
         ('name_company_uniq', 'unique(name, company_id, type_tax_use)', 'Tax names must be unique !'),
     ]
 
+    @api.multi
+    def unlink(self):
+        company_id = self.env.user.company_id.id
+        ir_values = self.env['ir.values']
+        supplier_taxes_id = set(ir_values.get_default('product.template', 'supplier_taxes_id', company_id=company_id))
+        deleted_sup_tax = self.filtered(lambda tax: tax.id in supplier_taxes_id)
+        if deleted_sup_tax:
+            ir_values.sudo().set_default('product.template', "supplier_taxes_id", list(supplier_taxes_id - set(deleted_sup_tax.ids)), for_all_users=True, company_id=company_id)
+        taxes_id = set(self.env['ir.values'].get_default('product.template', 'taxes_id', company_id=company_id))
+        deleted_tax = self.filtered(lambda tax: tax.id in taxes_id)
+        if deleted_tax:
+            ir_values.sudo().set_default('product.template', "taxes_id", list(taxes_id - set(deleted_tax.ids)), for_all_users=True, company_id=company_id)
+        return super(AccountTax, self).unlink()
+
     @api.one
     @api.constrains('children_tax_ids', 'type_tax_use')
     def _check_children_scope(self):
@@ -639,7 +657,11 @@ class AccountTax(models.Model):
             prec += 5
         total_excluded = total_included = base = round(price_unit * quantity, prec)
 
-        for tax in self:
+        # Sorting key is mandatory in this case. When no key is provided, sorted() will perform a
+        # search. However, the search method is overridden in account.tax in order to add a domain
+        # depending on the context. This domain might filter out some taxes from self, e.g. in the
+        # case of group taxes.
+        for tax in self.sorted(key=lambda r: r.sequence):
             if tax.amount_type == 'group':
                 ret = tax.children_tax_ids.compute_all(price_unit, currency, quantity, product, partner)
                 total_excluded = ret['total_excluded']

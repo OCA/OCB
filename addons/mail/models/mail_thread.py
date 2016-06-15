@@ -4,6 +4,7 @@ import base64
 import datetime
 import dateutil
 import email
+import json
 import lxml
 from lxml import etree
 import logging
@@ -560,7 +561,7 @@ class MailThread(models.AbstractModel):
             link = '/mail/workflow?%s' % url_encode(params)
         elif link_type == 'method':
             method = kwargs.pop('method')
-            params = dict(base_params, method=method, params=kwargs)
+            params = dict(base_params, method=method, params=json.dumps(kwargs))
             link = '/mail/method?%s' % url_encode(params)
         elif link_type == 'new':
             params = dict(base_params, action_id=kwargs.get('action_id'))
@@ -1691,7 +1692,7 @@ class MailThread(models.AbstractModel):
             partner_to_subscribe = partner_ids
             if self._context.get('mail_post_autofollow_partner_ids'):
                 partner_to_subscribe = filter(lambda item: item in self._context.get('mail_post_autofollow_partner_ids'), partner_ids)
-            self.message_subscribe(list(partner_to_subscribe))
+            self.message_subscribe(list(partner_to_subscribe), force=False)
 
         # _mail_flat_thread: automatically set free messages to the first posted message
         MailMessage = self.env['mail.message']
@@ -1743,7 +1744,7 @@ class MailThread(models.AbstractModel):
                 # done with SUPERUSER_ID, because on some models users can post only with read access, not necessarily write access
                 self.sudo().write({'message_last_post': fields.Datetime.now()})
         if new_message.author_id and model and self.ids and message_type != 'notification' and not self._context.get('mail_create_nosubscribe'):
-            self.message_subscribe([new_message.author_id.id])
+            self.message_subscribe([new_message.author_id.id], force=False)
         return new_message
 
     @api.multi
