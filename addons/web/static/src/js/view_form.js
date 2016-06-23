@@ -2275,7 +2275,7 @@ instance.web.form.ReinitializeFieldMixin =  _.extend({}, instance.web.form.Reini
 /**
     Some hack to make placeholders work in ie9.
 */
-if (!('placeholder' in document.createElement('input'))) {    
+if (!('placeholder' in document.createElement('input'))) {
     document.addEventListener("DOMNodeInserted",function(event){
         var nodename =  event.target.nodeName.toLowerCase();
         if ( nodename === "input" || nodename == "textarea" ) {
@@ -3066,13 +3066,13 @@ instance.web.form.FieldPercentPie = instance.web.form.AbstractField.extend({
                 .width(width)
                 .height(height)
                 .margin({top: 0, right: 0, bottom: 0, left: 0})
-                .donut(true) 
+                .donut(true)
                 .showLegend(false)
                 .showLabels(false)
                 .tooltips(false)
                 .color(['#7C7BAD','#DDD'])
                 .donutRatio(0.62);
-   
+
             d3.select(svg)
                 .datum([{'x': 'value', 'y': value}, {'x': 'complement', 'y': 100 - value}])
                 .transition()
@@ -3087,7 +3087,7 @@ instance.web.form.FieldPercentPie = instance.web.form.AbstractField.extend({
 
             return chart;
         });
-   
+
     }
 });
 
@@ -3114,7 +3114,7 @@ instance.web.form.FieldBarChart = instance.web.form.AbstractField.extend({
                 .transitionDuration(350)
                 .showXAxis(false)
                 .showYAxis(false);
-   
+
             d3.select(svg)
                 .datum([{key: 'values', values: value}])
                 .transition()
@@ -3125,7 +3125,7 @@ instance.web.form.FieldBarChart = instance.web.form.AbstractField.extend({
 
             return chart;
         });
-   
+
     }
 });
 
@@ -3360,7 +3360,7 @@ instance.web.form.FieldRadio = instance.web.form.AbstractField.extend(instance.w
 
 /**
     A mixin containing some useful methods to handle completion inputs.
-    
+
     The widget containing this option can have these arguments in its widget options:
     - no_quick_create: if true, it will disable the quick create
 */
@@ -3662,7 +3662,7 @@ instance.web.form.FieldMany2One = instance.web.form.AbstractField.extend(instanc
         this.$drop_down.click(function() {
             self.$input.focus();
             if (self.$input.autocomplete("widget").is(":visible")) {
-                self.$input.autocomplete("close");                
+                self.$input.autocomplete("close");
             } else {
                 if (self.get("value") && ! self.floating) {
                     self.$input.autocomplete("search", "");
@@ -4843,12 +4843,12 @@ instance.web.form.FieldMany2ManyTags = instance.web.form.AbstractField.extend(in
         return input ? input.focus() : false;
     },
     set_dimensions: function (height, width) {
-        this._super(height, width);        
+        this._super(height, width);
         this.$("textarea").css({
             width: width,
             minHeight: height
         });
-    },    
+    },
     _search_create_popup: function() {
         self.ignore_blur = true;
         return instance.web.form.CompletionFieldMixin._search_create_popup.apply(this, arguments);
@@ -6066,10 +6066,18 @@ instance.web.form.FieldStatus = instance.web.form.AbstractField.extend({
     render_value: function() {
         var self = this;
         var content = QWeb.render("FieldStatus.content", {
-            'widget': self, 
+            'widget': self,
             'value_folded': _.find(self.selection.folded, function(i){return i[0] === self.get('value');})
         });
         self.$el.html(content);
+        var statusbar_colors = JSON.parse((self.node.attrs || {}).statusbar_colors || "{}");
+        var color = statusbar_colors[self.get('value')];
+        if (color) {
+            var $color = $.Color(color);
+            var fr = $color.lightness(0.7);
+            var to = $color.lightness(0.4);
+            self.$(".oe_active, .oe_active > .arrow span").css("background-image", 'linear-gradient(to bottom, ' + fr.toHexString() + ', ' + to.toHexString() + ')');
+        }
     },
     calc_domain: function() {
         var d = instance.web.pyeval.eval('domain', this.build_domain());
@@ -6355,7 +6363,7 @@ instance.web.form.X2ManyCounter = instance.web.form.AbstractField.extend(instanc
 
 /**
     This widget is intended to be used on stat button numeric fields.  It will display
-    the value   many2many and one2many. It is a read-only field that will 
+    the value   many2many and one2many. It is a read-only field that will
     display a simple string "<value of field> <label of the field>"
 */
 instance.web.form.StatInfo = instance.web.form.AbstractField.extend({
