@@ -8,6 +8,23 @@ from openerp.exceptions import UserError
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
+    project_id = fields.Many2one(
+        comodel_name='account.analytic.account', string='Analytic Account',
+        related="order_id.project_id", readonly=True, store=True)
+
+    def init(self, cr):
+        cr.execute("""
+            SELECT indexname
+            FROM pg_indexes
+            WHERE indexname = 'sale_analytic_product_project_sale'
+        """)
+        if not cr.fetchone():
+            cr.execute("""
+                CREATE INDEX sale_analytic_product_project_sale
+                ON sale_order_line (product_id, project_id)
+                WHERE state = 'sale'
+            """)
+
     @api.multi
     def _compute_analytic(self, domain=None):
         lines = {}
@@ -43,8 +60,9 @@ class AccountAnalyticLine(models.Model):
         if self.unit_amount == 0.0:
             return 0.0
         price_unit = abs(self.amount / self.unit_amount)
-        if self.currency_id and self.currency_id != order.currency_id:
-            price_unit = self.currency_id.compute(price_unit, order.currency_id)
+        currency_id = self.company_id.currency_id
+        if currency_id and currency_id != order.currency_id:
+            price_unit = currency_id.compute(price_unit, order.currency_id)
         return price_unit
 
     def _get_sale_order_line_vals(self):
@@ -79,7 +97,7 @@ class AccountAnalyticLine(models.Model):
         so_line = result.get('so_line', False) or self.so_line
         if not so_line and self.account_id and self.product_id and self.product_id.invoice_policy in ('cost', 'order'):
             so_lines = self.env['sale.order.line'].search([
-                ('order_id.project_id', '=', self.account_id.id),
+                ('project_id', '=', self.account_id.id),
                 ('state', '=', 'sale'),
                 ('product_id', '=', self.product_id.id)])
             # Use the existing SO line only if the unit prices are the same, otherwise we create

@@ -154,7 +154,7 @@ class AccountAssetAsset(models.Model):
     def compute_depreciation_board(self):
         self.ensure_one()
 
-        posted_depreciation_line_ids = self.depreciation_line_ids.filtered(lambda x: x.move_check).sorted(key=lambda l: l.depreciation_date, reverse=True)
+        posted_depreciation_line_ids = self.depreciation_line_ids.filtered(lambda x: x.move_check).sorted(key=lambda l: l.depreciation_date)
         unposted_depreciation_line_ids = self.depreciation_line_ids.filtered(lambda x: not x.move_check)
 
         # Remove old unposted depreciation lines. We cannot use unlink() with One2many field
@@ -165,8 +165,12 @@ class AccountAssetAsset(models.Model):
             if self.prorata:
                 depreciation_date = datetime.strptime(self._get_last_depreciation_date()[self.id], DF).date()
             else:
-                # depreciation_date = 1st of January of purchase year
-                asset_date = datetime.strptime(self.date[:4] + '-01-01', DF).date()
+                # depreciation_date = 1st of January of purchase year if annual valuation, 1st of
+                # purchase month in other cases
+                if self.method_period >= 12:
+                    asset_date = datetime.strptime(self.date[:4] + '-01-01', DF).date()
+                else:
+                    asset_date = datetime.strptime(self.date[:7] + '-01', DF).date()
                 # if we already have some previous validated entries, starting date isn't 1st January but last entry + method period
                 if posted_depreciation_line_ids and posted_depreciation_line_ids[-1].depreciation_date:
                     last_depreciation_date = datetime.strptime(posted_depreciation_line_ids[-1].depreciation_date, DF).date()
@@ -360,7 +364,8 @@ class AccountAssetAsset(models.Model):
     def write(self, vals):
         res = super(AccountAssetAsset, self).write(vals)
         if 'depreciation_line_ids' not in vals and 'state' not in vals:
-            self.compute_depreciation_board()
+            for rec in self:
+                rec.compute_depreciation_board()
         return res
 
     @api.multi

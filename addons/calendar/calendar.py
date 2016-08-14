@@ -1236,7 +1236,7 @@ class calendar_event(osv.Model):
         """
         if data['interval'] and data['interval'] < 0:
             raise UserError(_('interval cannot be negative.'))
-        if data['count'] and data['count'] <= 0:
+        if data['end_type'] == 'count' and int(data['count']) <= 0:
             raise UserError(_('Event recurrence interval cannot be negative.'))
 
         def get_week_string(freq, data):
@@ -1407,6 +1407,11 @@ class calendar_event(osv.Model):
             event.message_needaction_counter = rec.message_needaction_counter
             event.message_needaction = rec.message_needaction
 
+    @api.multi
+    def get_metadata(self):
+        real = self.browse(set({x: calendar_id2real_id(x) for x in self.ids}.values()))
+        return super(calendar_event, real).get_metadata()
+
     @api.cr_uid_ids_context
     @api.returns('mail.message', lambda value: value.id)
     def message_post(self, cr, uid, thread_id, context=None, **kwargs):
@@ -1537,6 +1542,7 @@ class calendar_event(osv.Model):
                 recurrent_id=real_event_id,
                 recurrent_id_date=data.get('start'),
                 rrule_type=False,
+                end_type=False,
                 rrule='',
                 recurrency=False,
                 final_date=datetime.strptime(data.get('start'), DEFAULT_SERVER_DATETIME_FORMAT if data['allday'] else DEFAULT_SERVER_DATETIME_FORMAT) + timedelta(hours=values.get('duration', False) or data.get('duration'))

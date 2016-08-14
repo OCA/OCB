@@ -6,9 +6,11 @@
 # Alejandro Die Sanchis <marketing@domatix.com>, 2015
 # Alejandro Die Sanchis <marketing@domatix.com>, 2015
 # Eneldo Serrata <eneldoserrata@gmail.com>, 2015-2016
-# Jesus Alan Ramos Rodríguez <alan.ramos@jarsa.com.mx>, 2015
-# Jesus Alan Ramos Rodríguez <alan.ramos@jarsa.com.mx>, 2015
-# Jesus Alan Ramos Rodríguez <alan.ramos@jarsa.com.mx>, 2015
+# Gustavo Valverde, 2016
+# Gustavo Valverde, 2016
+# Jesús Alan Ramos Rodríguez <alan.ramos@jarsa.com.mx>, 2015
+# Jesús Alan Ramos Rodríguez <alan.ramos@jarsa.com.mx>, 2015
+# Jesús Alan Ramos Rodríguez <alan.ramos@jarsa.com.mx>, 2015
 # juani_aizean <juani@aizean.com>, 2015
 # Mateo Tibaquirá Palacios <nestormateo@gmail.com>, 2015
 # Mateo Tibaquirá Palacios <nestormateo@gmail.com>, 2015
@@ -20,8 +22,8 @@ msgstr ""
 "Project-Id-Version: Odoo 9.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-10-09 09:18+0000\n"
-"PO-Revision-Date: 2016-05-19 06:07+0000\n"
-"Last-Translator: Juliano Henriquez <juliano@consultoriahenca.com>\n"
+"PO-Revision-Date: 2016-07-21 00:18+0000\n"
+"Last-Translator: Gustavo Valverde\n"
 "Language-Team: Spanish (Dominican Republic) (http://www.transifex.com/odoo/odoo-9/language/es_DO/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -411,7 +413,7 @@ msgid ""
 "\n"
 "        This module is used for Online bank synchronization. It provides basic methods to synchronize bank statement.\n"
 "    "
-msgstr "\nEste módulo se usa para la sincronización en línea con el banco. Proporciona métodos básicos para sincronizar los apuntes bancarios.\n  "
+msgstr "\nEste módulo se usa para la sincronización en línea con el banco. Proporciona métodos básicos para sincronizar el estado de cuenta de banco.\n  "
 
 #. module: base
 #: model:ir.module.module,description:base.module_hr_equipment
@@ -425,7 +427,7 @@ msgstr "\nSupervisa el equipamiento de los empleados y gestiona peticiones de ma
 msgid ""
 "\n"
 "        Use Plaid.com to retrieve bank statements"
-msgstr "\nUsar Plaid.com para recuperar los extractos bancarios"
+msgstr "\nUsar Plaid.com para recuperar los estado de cuenta de banco"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_plaid
@@ -433,7 +435,7 @@ msgid ""
 "\n"
 "        Use Plaid.com to retrieve bank statements.\n"
 "    "
-msgstr "\nUsar Plaid.com para obtener los extractos bancarios."
+msgstr "\nUsar Plaid.com para obtener los estado de cuenta de banco."
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_multilang
@@ -4255,7 +4257,7 @@ msgstr "%A - Nombre completo del día de la semana."
 #. module: base
 #: model:ir.ui.view,arch_db:base.res_lang_form
 msgid "%B - Full month name."
-msgstr "%B - Nombre de mes completo."
+msgstr "%B - Nombre completo del mes."
 
 #. module: base
 #: model:ir.ui.view,arch_db:base.res_lang_form
@@ -4773,7 +4775,7 @@ msgstr "Tipo cuenta"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_company_user_ids
 msgid "Accepted Users"
-msgstr "Usuarios aceptados"
+msgstr "Usuarios Aceptados"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_model_access_ids
@@ -4784,7 +4786,7 @@ msgstr "Acceso"
 #. module: base
 #: model:ir.ui.view,arch_db:base.ir_access_view_search
 msgid "Access Control"
-msgstr "Control de acceso"
+msgstr "Control de Acceso"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups_model_access
@@ -4793,23 +4795,23 @@ msgstr "Control de acceso"
 #: model:ir.ui.view,arch_db:base.ir_access_view_tree
 #: model:ir.ui.view,arch_db:base.view_groups_form
 msgid "Access Controls"
-msgstr "Controles de acceso"
+msgstr "Controles de Acceso"
 
 #. module: base
 #: model:ir.actions.act_window,name:base.ir_access_act
 #: model:ir.ui.menu,name:base.menu_ir_access_act
 msgid "Access Controls List"
-msgstr "Lista controles de acceso"
+msgstr "Lista Controles de Acceso"
 
 #. module: base
 #: model:ir.model,name:base.model_res_groups
 msgid "Access Groups"
-msgstr "Grupos de acceso"
+msgstr "Grupos de Acceso"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups_menu_access
 msgid "Access Menu"
-msgstr "Acceso a menús"
+msgstr "Acceso a Menú"
 
 #. module: base
 #: model:ir.ui.view,arch_db:base.view_groups_form
@@ -4819,13 +4821,13 @@ msgstr "Acceso a menús"
 #: model:ir.ui.view,arch_db:base.view_users_simple_form
 #: model:res.groups,name:base.group_erp_manager
 msgid "Access Rights"
-msgstr "Permisos de acceso"
+msgstr "Permisos de Acceso"
 
 #. module: base
 #: model:ir.ui.view,arch_db:base.view_groups_form
 #: model:ir.ui.view,arch_db:base.view_model_form
 msgid "Access Rules"
-msgstr "Reglas de acceso"
+msgstr "Reglas de Acceso"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_analytic_default
@@ -4835,12 +4837,12 @@ msgstr "Valores por defecto en la contabilidad analítica"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_bank_statement_import
 msgid "Account Bank Statement Import"
-msgstr "Importar Estados de Cuentas Contables"
+msgstr "Importar Estado de Cuenta de Banco"
 
 #. module: base
 #: model:ir.module.category,name:base.module_category_localization_account_charts
 msgid "Account Charts"
-msgstr "Planes de cuentas"
+msgstr "Catálogos de Cuenta"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_contract_dashboard
@@ -4865,12 +4867,12 @@ msgstr "Interfaz de Manejo de Cuenta para sus Clientes"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_company_account_no
 msgid "Account No."
-msgstr "Nº de cuenta"
+msgstr "Nº de Cuenta"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_partner_bank_acc_number
 msgid "Account Number"
-msgstr "Número de cuenta"
+msgstr "Número de Cuenta"
 
 #. module: base
 #: sql_constraint:res.partner.bank:0
@@ -4880,12 +4882,12 @@ msgstr "El Número de Cuenta debe ser único"
 #. module: base
 #: model:ir.module.category,name:base.module_category_localization_account_report
 msgid "Account Report"
-msgstr "Informe financiero"
+msgstr "Informe de Cuenta"
 
 #. module: base
 #: model:ir.module.category,name:base.module_category_localization_account_reports
 msgid "Account Reports"
-msgstr "Informes financieros"
+msgstr "Informes de Cuenta"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_tax_cash_basis
@@ -4901,7 +4903,7 @@ msgstr "Contabilidad"
 #. module: base
 #: model:ir.module.category,name:base.module_category_accounting_and_finance
 msgid "Accounting & Finance"
-msgstr "Contabilidad y finanzas"
+msgstr "Contabilidad y Finanzas"
 
 #. module: base
 #: model:ir.module.category,name:base.module_category_accounting_andamp;_finance
@@ -4916,12 +4918,12 @@ msgstr "Tests de consistencia de contabilidad"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_reports
 msgid "Accounting Reports"
-msgstr "Informes contables"
+msgstr "Informes Contables"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_accountant
 msgid "Accounting and Finance"
-msgstr "Contabilidad y finanzas"
+msgstr "Contabilidad y Finanzas"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_act_window_view_act_window_id
@@ -4969,12 +4971,12 @@ msgstr "Referencia de la acción"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_act_url_target
 msgid "Action Target"
-msgstr "Destino acción"
+msgstr "Acción Objetivo"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_act_server_state
 msgid "Action To Do"
-msgstr "Acción a realizar"
+msgstr "Acción a Realizar"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_act_client_type
@@ -4986,7 +4988,7 @@ msgstr "Acción a realizar"
 #: model:ir.model.fields,field_description:base.field_ir_actions_type_306
 #: model:ir.ui.view,arch_db:base.view_server_action_search
 msgid "Action Type"
-msgstr "Tipo de acción"
+msgstr "Tipo de Acción"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_act_url_url
@@ -5260,7 +5262,7 @@ msgstr "Estado Islámico de Afganistán"
 #. module: base
 #: selection:res.currency,position:0
 msgid "After Amount"
-msgstr "Después del importe"
+msgstr "Después del Monto"
 
 #. module: base
 #: model:ir.ui.menu,name:base.menu_aftersale
@@ -5440,22 +5442,22 @@ msgstr "Aplicar actualizaciones programadas"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_rule_perm_create
 msgid "Apply for Create"
-msgstr "Aplicar para creación"
+msgstr "Aplicar para Creación"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_rule_perm_unlink
 msgid "Apply for Delete"
-msgstr "Aplicar para eliminación"
+msgstr "Aplicar para Borrado"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_rule_perm_read
 msgid "Apply for Read"
-msgstr "Aplicar para lectura"
+msgstr "Aplicar para Lectura"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_rule_perm_write
 msgid "Apply for Write"
-msgstr "Aplicar para escritura"
+msgstr "Aplicar para Escritura"
 
 #. module: base
 #: model:ir.actions.act_window,name:base.action_module_open_categ
@@ -5467,7 +5469,7 @@ msgstr "Aplicar para escritura"
 #: model:ir.ui.view,arch_db:base.module_tree
 #: model:ir.ui.view,arch_db:base.view_module_filter
 msgid "Apps"
-msgstr "Aplicaciones en línea"
+msgstr "Aplicaciones"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_base_language_export_modules
@@ -9153,7 +9155,7 @@ msgstr "Módulos Genéricos"
 msgid ""
 "Generic Wizard to Import Bank Statements. Includes the import of files in "
 ".OFX format"
-msgstr "Asistente Genérico para Importar Extractos Bancarios. Incluye la importación de archivos en formato .OFX"
+msgstr "Asistente para Importar Estados de Cuenta de Banco. Incluye la importación de archivos en formato .OFX"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_form
@@ -10004,12 +10006,12 @@ msgstr "Importar / Exportar"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_bank_statement_import_ofx
 msgid "Import OFX Bank Statement"
-msgstr "Importar Registros Bancarios OFX"
+msgstr "Importar Estado de Cuenta de Banco OFX"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_bank_statement_import_qif
 msgid "Import QIF Bank Statement"
-msgstr "Importar Registros Bancarios QIF"
+msgstr "Importar Estado de Cuenta de Banco QIF"
 
 #. module: base
 #: model:ir.actions.act_window,name:base.action_view_base_import_language
@@ -15280,7 +15282,7 @@ msgstr "Formato TGZ: este es un archivo comprimido que contiene un archivo PO, a
 #: model:ir.model.fields,field_description:base.field_res_users_vat
 #, python-format
 msgid "TIN"
-msgstr "NIF"
+msgstr "Rnc/Cédula:"
 
 #. module: base
 #: selection:ir.mail_server,smtp_encryption:0
