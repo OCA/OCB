@@ -7,6 +7,9 @@
 Report
         """,
     'depends': ['base', 'web'],
+    "external_dependencies": {
+        'python': ['elaphe']
+    },
     'data': [
         'views/layouts.xml',
         'views/views.xml',
