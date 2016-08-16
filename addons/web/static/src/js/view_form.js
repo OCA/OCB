@@ -6160,10 +6160,10 @@ instance.web.form.FieldStatus = instance.web.form.AbstractField.extend({
             return fields;
         });
     },
-    on_click_stage: function (ev) {
+    on_click_stage: _.debounce(function (ev) {
         var self = this;
         var $li = $(ev.currentTarget);
-        var ul = $li.parent('ul');
+        var ul = $li.closest('.oe_form_field_status');
         var val;
         if (ul.attr('disabled'))
             return;
@@ -6186,13 +6186,14 @@ instance.web.form.FieldStatus = instance.web.form.AbstractField.extend({
                     var change = {};
                     change[self.name] = val;
                     self.view.dataset.write(self.view.datarecord.id, change).done(function() {
-                        ul.removeAttr('disabled');
                         self.view.reload();
+                    }).always(function() {
+                        ul.removeAttr('disabled');
                     });
                 });
             }
         }
-    },
+    }, 300),
 });
 
 instance.web.form.FieldMonetary = instance.web.form.FieldFloat.extend({
