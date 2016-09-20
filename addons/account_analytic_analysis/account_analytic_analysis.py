@@ -703,6 +703,8 @@ class account_analytic_account(osv.osv):
            'origin': contract.code,
            'fiscal_position': fpos_id,
            'payment_term': partner_payment_term,
+           'payment_mode_id': partner.customer_payment_mode.id,
+           'partner_bank_id': partner.customer_payment_mode.bank_id.id,
            'company_id': contract.company_id.id or False,
            'user_id': contract.manager_id.id or uid,
            'comment': contract.description,
