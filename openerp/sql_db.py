@@ -546,7 +546,7 @@ class ConnectionPool(object):
                 self._connections.append((cnx, False))
                 _logger.info('%r: Free leaked connection to %r', self, cnx.dsn)
 
-        for i, (cnx, used) in enumerate(self._connections):
+        for i, (cnx, used) in tools.reverse_enumerate(self._connections):
             if not used and cnx._original_dsn == connection_info:
                 try:
                     cnx.reset()
