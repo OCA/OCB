@@ -10,6 +10,7 @@ the ORM does, in fact.
 
 from contextlib import contextmanager
 from functools import wraps
+from time import time
 import logging
 import urlparse
 import uuid
@@ -521,7 +522,7 @@ class ConnectionPool(object):
         self._lock = threading.Lock()
 
     def __repr__(self):
-        used = len([1 for c, u in self._connections[:] if u])
+        used = len([1 for c, u, _ in self._connections[:] if u])
         count = len(self._connections)
         return "ConnectionPool(used=%d/count=%d/max=%d)" % (used, count, self._maxconn)
 
@@ -535,7 +536,7 @@ class ConnectionPool(object):
         :rtype: PsycoConnection
         """
         # free dead and leaked connections
-        for i, (cnx, _) in tools.reverse_enumerate(self._connections):
+        for i, (cnx, _, _) in tools.reverse_enumerate(self._connections):
             if cnx.closed:
                 self._connections.pop(i)
                 self._debug('Removing closed connection at index %d: %r', i, cnx.dsn)
@@ -543,10 +544,10 @@ class ConnectionPool(object):
             if getattr(cnx, 'leaked', False):
                 delattr(cnx, 'leaked')
                 self._connections.pop(i)
-                self._connections.append((cnx, False))
+                self._connections.append((cnx, False, int(time())))
                 _logger.info('%r: Free leaked connection to %r', self, cnx.dsn)
 
-        for i, (cnx, used) in tools.reverse_enumerate(self._connections):
+        for i, (cnx, used, _) in tools.reverse_enumerate(self._connections):
             if not used and cnx._original_dsn == connection_info:
                 try:
                     cnx.reset()
@@ -557,14 +558,14 @@ class ConnectionPool(object):
                         cnx.close()
                     continue
                 self._connections.pop(i)
-                self._connections.append((cnx, True))
+                self._connections.append((cnx, True, None))
                 self._debug('Borrow existing connection to %r at index %d', cnx.dsn, i)
 
                 return cnx
 
         if len(self._connections) >= self._maxconn:
             # try to remove the oldest connection not used
-            for i, (cnx, used) in enumerate(self._connections):
+            for i, (cnx, used, _) in enumerate(self._connections):
                 if not used:
                     self._connections.pop(i)
                     if not cnx.closed:
@@ -583,18 +584,18 @@ class ConnectionPool(object):
             _logger.info('Connection to the database failed')
             raise
         result._original_dsn = connection_info
-        self._connections.append((result, True))
+        self._connections.append((result, True, None))
         self._debug('Create new connection')
         return result
 
     @locked
     def give_back(self, connection, keep_in_pool=True):
         self._debug('Give back connection to %r', connection.dsn)
-        for i, (cnx, used) in enumerate(self._connections):
+        for i, (cnx, used, _) in enumerate(self._connections):
             if cnx is connection:
                 self._connections.pop(i)
                 if keep_in_pool:
-                    self._connections.append((cnx, False))
+                    self._connections.append((cnx, False, int(time())))
                     self._debug('Put connection to %r in pool', cnx.dsn)
                 else:
                     self._debug('Forgot connection to %r', cnx.dsn)
@@ -607,7 +608,7 @@ class ConnectionPool(object):
     def close_all(self, dsn=None):
         count = 0
         last = None
-        for i, (cnx, used) in tools.reverse_enumerate(self._connections):
+        for i, (cnx, used, _) in tools.reverse_enumerate(self._connections):
             if dsn is None or cnx._original_dsn == dsn:
                 cnx.close()
                 last = self._connections.pop(i)[0]
