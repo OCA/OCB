@@ -616,6 +616,18 @@ class ConnectionPool(object):
         _logger.info('%r: Closed %d connections %s', self, count,
                     (dsn and last and 'to %r' % last.dsn) or '')
 
+    @locked
+    def cleanup(self, timeout=1800):
+        count = 0
+        now = int(time())
+        limit = now - timeout # Unused for 30m
+        for i, (cnx, used, since) in tools.reverse_enumerate(self._connections):
+            if since and since < limit:
+                cnx.close()
+                self._connections.pop(i)
+                count += 1
+        _logger.info('%r: Closed %d connections due to timeout', self, count)
+
 
 class Connection(object):
     """ A lightweight instance of a connection to postgres
@@ -700,3 +712,10 @@ def close_all():
     global _Pool
     if _Pool:
         _Pool.close_all()
+
+def cleanup():
+    global _Pool
+    if _Pool:
+        timeout = tools.config['db_cleanup_timeout']
+        if timeout:
+            _Pool.cleanup(int(timeout))

@@ -220,6 +220,7 @@ class ThreadedServer(CommonServer):
                     acquired = openerp.addons.base.ir.ir_cron.ir_cron._acquire_job(db_name)
                     if not acquired:
                         break
+            openerp.sql_db.cleanup()
 
     def cron_spawn(self):
         """ Start the above runner function in a daemon thread.
