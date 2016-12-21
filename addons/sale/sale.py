@@ -26,10 +26,21 @@ class SaleOrder(models.Model):
         Compute the total amounts of the SO.
         """
         for order in self:
-            amount_untaxed = amount_tax = 0.0
-            for line in order.order_line:
-                amount_untaxed += line.price_subtotal
-                amount_tax += line.price_tax
+            global_round = order.company_id.tax_calculation_rounding_method == 'round_globally'
+            if not global_round:
+                amount_untaxed = sum(order.mapped('order_line.price_subtotal'))
+                amount_tax = sum(order.mapped('order_line.price_tax'))
+            else:
+                amount_untaxed = amount_tax = 0.0
+                for line in order.order_line:
+                    price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+                    taxes = line.tax_id.with_context(round=False).compute_all(
+                        price, line.order_id.currency_id,
+                        line.product_uom_qty, product=line.product_id,
+                        partner=line.order_id.partner_id
+                    )
+                    amount_untaxed += taxes['total_excluded']
+                    amount_tax += (taxes['total_included'] - taxes['total_excluded'])
             order.update({
                 'amount_untaxed': order.pricelist_id.currency_id.round(amount_untaxed),
                 'amount_tax': order.pricelist_id.currency_id.round(amount_tax),
@@ -494,11 +505,7 @@ class SaleOrderLine(models.Model):
         """
         for line in self:
             price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-            if line.company_id.tax_calculation_rounding_method == 'round_globally':
-                obj = line.tax_id.with_context(round=False)
-            else:
-                obj = line.tax_id
-            taxes = obj.compute_all(price, line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_id)
+            taxes = line.tax_id.compute_all(price, line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_id)
             line.update({
                 'price_tax': taxes['total_included'] - taxes['total_excluded'],
                 'price_total': taxes['total_included'],
@@ -656,8 +663,8 @@ class SaleOrderLine(models.Model):
     price_unit = fields.Float('Unit Price', required=True, digits=dp.get_precision('Product Price'), default=0.0)
 
     price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal', readonly=True, store=True)
-    price_tax = fields.Float(compute='_compute_amount', string='Taxes', readonly=True, store=True)
-    price_total = fields.Float(compute='_compute_amount', string='Total', readonly=True, store=True)
+    price_tax = fields.Monetary(compute='_compute_amount', string='Taxes', readonly=True, store=True)
+    price_total = fields.Monetary(compute='_compute_amount', string='Total', readonly=True, store=True)
 
     price_reduce = fields.Monetary(compute='_get_price_reduce', string='Price Reduce', readonly=True, store=True)
     tax_id = fields.Many2many('account.tax', string='Taxes', domain=['|', ('active', '=', False), ('active', '=', True)])
