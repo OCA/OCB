@@ -26,10 +26,21 @@ class SaleOrder(models.Model):
         Compute the total amounts of the SO.
         """
         for order in self:
-            amount_untaxed = amount_tax = 0.0
-            for line in order.order_line:
-                amount_untaxed += line.price_subtotal
-                amount_tax += line.price_tax
+            global_round = order.company_id.tax_calculation_rounding_method == 'round_globally'
+            if not global_round:
+                amount_untaxed = sum(order.mapped('order_line.price_subtotal'))
+                amount_tax = sum(order.mapped('order_line.price_tax'))
+            else:
+                amount_untaxed = amount_tax = 0.0
+                for line in order.order_line:
+                    price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+                    taxes = line.tax_id.with_context(round=False).compute_all(
+                        price, line.order_id.currency_id,
+                        line.product_uom_qty, product=line.product_id,
+                        partner=line.order_id.partner_id
+                    )
+                    amount_untaxed += taxes['total_excluded']
+                    amount_tax += (taxes['total_included'] - taxes['total_excluded'])
             order.update({
                 'amount_untaxed': order.pricelist_id.currency_id.round(amount_untaxed),
                 'amount_tax': order.pricelist_id.currency_id.round(amount_tax),
