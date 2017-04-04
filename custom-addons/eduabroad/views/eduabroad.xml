@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="itinerary_form_view">
+            <field name="name">itinerary.form</field>
+            <field name="model">eduabroad.itinerary</field>
+            <field name="arch" type="xml">
+                <form string="Itinerary Form">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="date"/>
+                            <field name="transportation_id"/>
+                            <field name="activities_ids" widget="many2many_tags"/>
+                            <field name="accommodation_id"/>
+                            <field name="ag"/>
+                            <field name="ag_hr" attrs="{'invisible': ['|', ('ag', '=', False), ('ag', '=', '')]}"/>
+                            <field name="ag_num" attrs="{'invisible': ['|', ('ag', '=', False), ('ag', '=', '')]}"/>
+                        </group>
+                        <group>
+                            <field name="total_price"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+
+        <!-- window action -->
+        <!--
+            The following tag is an action definition for a "window action",
+            that is an action opening a view or a set of views
+        -->
+        <record model="ir.actions.act_window" id="itinerary_action">
+            <field name="name">Itinerary</field>
+            <field name="res_model">eduabroad.itinerary</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Create the first itinerary
+                </p>
+            </field>
+        </record>
+
+        <!-- top level menu: no parent -->
+        <menuitem id="main_eduabroad_menu" name="Quotation"/>
+        <!-- A first level in the left side menu is needed
+             before using action= attribute -->
+        <menuitem id="sales_menu" name="Sales"
+                  parent="main_eduabroad_menu"/>
+        <menuitem id="record_menu" name="Record"
+                  parent="main_eduabroad_menu"/>
+        <menuitem id="configurations_menu" name="Configurations"
+                  parent="main_eduabroad_menu"/>
+        <!-- the following menuitem should appear *after*
+             its parent openacademy_menu and *after* its
+             action course_list_action -->
+        <menuitem id="itinerary_menu" name="Itinerary" sequence="2" parent="configurations_menu"
+                  action="itinerary_action"/>
+        <!-- Full id location:
+             It is not required when it is the same module -->
+
+        <record model="ir.ui.view" id="transportation_form_view">
+            <field name="name">transportation.form</field>
+            <field name="model">eduabroad.transportation</field>
+            <field name="arch" type="xml">
+                <form string="Transportation Form">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="price"/>
+                        </group>
+                        <notebook>
+                            <page string="Internal Notes">
+                                <field name="description" placeholder="Internal note..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="transportation_tree_view">
+            <field name="name">transportation.tree</field>
+            <field name="model">eduabroad.transportation</field>
+            <field name="arch" type="xml">
+                <tree string="Transportation Tree" >
+                    <field name="name"/>
+                    <field name="price"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="transportation_action">
+            <field name="name">Transportation</field>
+            <field name="res_model">eduabroad.transportation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="transportation_menu" name="Transportation"
+                  parent="configurations_menu"
+                  action="transportation_action"/>
+
+        <record model="ir.ui.view" id="activities_form_view">
+            <field name="name">activities.form</field>
+            <field name="model">eduabroad.activities</field>
+            <field name="arch" type="xml">
+                <form string="Activities Form">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="price"/>
+
+                        </group>
+                        <notebook>
+                            <page string="Internal Notes">
+                                <field name="description" placeholder="Internal note..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="activities_tree_view">
+            <field name="name">activities.tree</field>
+            <field name="model">eduabroad.activities</field>
+            <field name="arch" type="xml">
+                <tree string="Activities Tree" >
+                    <field name="name"/>
+                    <field name="price"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="activities_action">
+            <field name="name">Activities</field>
+            <field name="res_model">eduabroad.activities</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="activities_menu" name="Activities"
+                  parent="configurations_menu"
+                  action="activities_action"/>
+
+        <record model="ir.ui.view" id="accommodation_form_view">
+            <field name="name">accommodation.form</field>
+            <field name="model">eduabroad.accommodation</field>
+            <field name="arch" type="xml">
+                <form string="Accommodation Form">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="price"/>
+
+                        </group>
+                        <notebook>
+                            <page string="Internal Notes">
+                                <field name="description" placeholder="Internal note..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="accommodation_tree_view">
+            <field name="name">accommodation.tree</field>
+            <field name="model">eduabroad.accommodation</field>
+            <field name="arch" type="xml">
+                <tree string="Accommodation Tree" >
+                    <field name="name"/>
+                    <field name="price"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record model="ir.actions.act_window" id="accommodation_action">
+            <field name="name">Accommodation</field>
+            <field name="res_model">eduabroad.accommodation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="accommodation_menu" name="Accommodation"
+                  parent="configurations_menu"
+                  action="accommodation_action"/>
+
+        <record model="ir.ui.view" id="quotation_form_view">
+            <field name="name">quotation.form</field>
+            <field name="model">eduabroad.quotation</field>
+            <field name="arch" type="xml">
+                <form string="Quotation Form">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="customer_ids"/>
+                        </group>
+                        <group>
+                            <field name="number_member"/>
+                            <field name="number_leader"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="total_days" />
+                            <field name="total_nights"/>
+                        </group>
+                        <group>
+                            <field name="total_cost"/>
+                        </group>
+                        <group>
+                            <field name="value"/>
+                            <field name="value2"/>
+                            <!--<field name="a_field"/>-->
+                        </group>
+                        <notebook>
+                            <page string="Itinerary">
+                                <field name="itinerary_ids">
+                                    <tree string="Itinerary Order Lines"  editable="bottom">
+                                        <field name="name"/>
+                                        <field name="date"/>
+                                        <field name="transportation_id"/>
+                                        <field name="activities_ids" widget="many2many_tags"/>
+                                        <field name="accommodation_id"/>
+                                        <field name="ag"/>
+                                        <field name="ag_hr" attrs="{'invisible': ['|', ('ag', '=', False), ('ag', '=', '')]}"/>
+                                        <field name="ag_num" attrs="{'invisible': ['|', ('ag', '=', False), ('ag', '=', '')]}"/>
+                                        <field name="total_price" sum="Total Price" widget="monetary"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+
+        <record model="ir.actions.act_window" id="quotation_action">
+            <field name="name">Quotation</field>
+            <field name="res_model">eduabroad.quotation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="quotation_menu" name="Quotation" sequence="3" parent="sales_menu"
+                  action="quotation_action"/>
+    </data>
+</odoo>

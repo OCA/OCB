@@ -1,0 +1,20 @@
+-
+  I called the 'assign_roll_no' wizard
+-
+  !record {model: assign.roll.no, id: assign_roll_no_0}:
+    class_id: demo_standard_standard_1
+    medium_id: demo_standard_medium_1
+    division_id: demo_standard_division_1
+ 
+-
+  I clicked on Finish Button
+
+-
+  !python {model: assign.roll.no}: |
+    self.assign_rollno(cr, uid, [ref("assign_roll_no_0")], {"lang": 'en_US',
+      "active_model": "student.student", "active_ids": [ref("school.demo_student_student_1"),ref("school.demo_student_student_2"),ref("school.demo_student_student_3"),ref("school.demo_student_student_4"),ref("school.demo_student_student_5")],
+      "tz": False, "active_id": ref("school.demo_student_student_1"), })
+
+
+
+

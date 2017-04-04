@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="customer_form_view">
+            <field name="name">partner.customer</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <!--<xpath expr="//field[@name='email']" position="after">-->
+                    <!--<field name="wechat" />-->
+                    <!--&lt;!&ndash;<field name="qq"/>&ndash;&gt;-->
+                <!--</xpath>-->
+                <notebook position="inside">
+                    <page string="Quotations">
+                        <field name="quotation_ids"/>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <!--<record model="ir.actions.act_window" id="customer_list_action">-->
+            <!--<field name="name">Customers</field>-->
+            <!--<field name="res_model">res.partner</field>-->
+            <!--<field name="view_mode">tree,form</field>-->
+        <!--</record>-->
+
+        <!--<menuitem id="customer_menu" name="Customers"-->
+                  <!--sequence="1"-->
+                  <!--parent="sales_menu"-->
+                  <!--action="customer_list_action"/>-->
+    </data>
+</odoo>
