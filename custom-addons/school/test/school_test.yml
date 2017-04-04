@@ -1,0 +1,103 @@
+-
+  I check '_check_academic_year' and '_check_duration' constraint
+-
+  !record {model: academic.year, id: academic_year_0}:
+    name: Academic Year 2011
+    code: 2011
+    date_start: 2012-01-01
+    date_stop: 2012-12-31
+-
+  I check '_check_year_limit' and '_check_duration' constraint
+-
+  !record {model: academic.month, id: academic_month_0}:
+    name: January
+    code: 1
+    date_start: 2012-01-01
+    date_stop: 2012-01-31
+    year_id: academic_year_0
+
+-
+  I Create School
+-
+  !record {model: school.school, id: school_demo_1}:
+    name: Swaminarayan Gurukul
+    code: GRL
+-
+  I called '_calc_age' function
+-
+  !record {model: student.student, id: student_student_0}:
+    year: demo_academic_year_1
+    class_id: demo_standard_standard_1
+    medium_id: demo_standard_medium_1
+    division_id: demo_standard_division_1
+    roll_no: 2
+    name: Divyesh
+    middle: J
+    last: Makwana
+    gender: male
+    date_of_birth: 1988-08-29
+    admission_date: 2011-08-09
+    school_id: school_demo_1
+    state: done
+
+-
+  I compute the age of a student
+-
+  !python {model: student.student}: |
+    self._calc_age(cr, uid, [ref("student_student_0")], 'age', None, {"lang": "en_US",
+      "tz": False, "active_model": "ir.ui.menu", "section_id":
+      False, "active_ids": ['active_ids'],
+      "active_id": ['active_id'], })
+-
+  I confirm 'admission' using Confirm button
+-
+  !python {model: student.student}: |
+    self.admission_confirm(cr, uid, [ref("student_student_0")], None)
+
+-
+  I done 'admission' using Done button
+-
+  !python {model: student.student}: |
+    self.admission_done(cr, uid, [ref("student_student_0")], None)
+
+-
+  I cancel 'admission' using Cancel button
+-
+  !python {model: student.student}: |
+    self.admission_cancel(cr, uid, [ref("student_student_0")], None)
+
+-
+  I Reset the 'admission' using Reset To Draft button
+-
+  !python {model: student.student}: |
+    self.admission_draft(cr, uid, [ref("student_student_0")], None)
+
+-
+  I computes the subjects related to particular teacher
+-
+  !python {model: hr.employee}: |
+    self._compute_subject(cr, uid, [ref("school.demo_student_student_6")], 'subject_ids', None, {"lang": "en_US",
+      "tz": False, "active_model": "ir.ui.menu", "section_id":
+      False, "active_ids": ['active_ids'],
+      "active_id": ['active_id'], })
+
+-
+  I computes the subjects related to particular standard
+-
+  !python {model: school.standard}: |
+    self._compute_subject(cr, uid, [ref("school.demo_school_standard_1")], 'subject_ids', None, {"lang": "en_US",
+      "tz": False, "active_model": "ir.ui.menu", "section_id":
+      False, "active_ids": ['active_ids'],
+      "active_id": ['active_id'], })
+
+-
+  I computes the student related to particular standard
+-
+  !python {model: school.standard}: |
+    self._compute_student(cr, uid, [ref("school.demo_student_student_1")], 'student_ids', None, {"lang": "en_US",
+      "tz": False, "active_model": "ir.ui.menu", "section_id":
+      False, "active_ids": ['active_ids'],
+      "active_id": ['active_id'], })
+
+
+

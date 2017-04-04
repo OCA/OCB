@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+
+<odoo>
+
+        <!-- Assign Roll Number Wizard Form View  -->
+
+        <record id="view_assign_roll_no_form" model="ir.ui.view">
+            <field name="name">assign.roll.no.form</field>
+            <field name="model">assign.roll.no</field>
+            <field name="arch" type="xml">
+                <form string="Assigning Roll Number">
+                    <separator string="Assign Roll Number" colspan="4"/>
+                    <group colspan="4" col="6">
+                        <field name="standard_id" widget="selection" />
+                        <field name="medium_id" widget="selection"  />
+                        <field name="division_id" widget="selection" />
+                    </group>
+                    <separator string="" colspan="4"/>
+                    <group colspan="4" col="6">
+                        <label string="" colspan="2"/>
+                        <button class="btn btn-sm btn-default fa fa-ban" special="cancel" string="Close"/>
+                        <button class="btn btn-sm btn-default fa fa-plus" name="assign_rollno" string="Finish" type="object"/>
+                   </group>
+               </form>
+            </field>
+        </record>
+
+        <!-- Assign Roll Number Wizard Action  -->
+
+        <act_window id="action_assign_roll_no_form"
+            multi="True"
+            key2="client_action_multi"
+            name="Assign Roll Number"
+            res_model="assign.roll.no"
+            src_model="student.student"
+            view_mode="form"
+            target="new"
+            view_type="form"/>
+
+</odoo>

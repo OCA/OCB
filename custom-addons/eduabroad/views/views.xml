@@ -1,0 +1,59 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+    <!--
+    <record model="ir.ui.view" id="eduabroad.list">
+      <field name="name">eduabroad list</field>
+      <field name="model">eduabroad.eduabroad</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </tree>
+      </field>
+    </record>
+    -->
+
+    <!-- actions opening views on models -->
+    <!--
+    <record model="ir.actions.act_window" id="eduabroad.action_window">
+      <field name="name">eduabroad window</field>
+      <field name="res_model">eduabroad.eduabroad</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    -->
+
+    <!-- server action to the one above -->
+    <!--
+    <record model="ir.actions.server" id="eduabroad.action_server">
+      <field name="name">eduabroad server</field>
+      <field name="model_id" ref="model_eduabroad_eduabroad"/>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": self._name,
+        }
+      </field>
+    </record>
+    -->
+
+    <!-- Top menu item -->
+    <!--
+    <menuitem name="eduabroad" id="eduabroad.menu_root"/>
+    -->
+    <!-- menu categories -->
+    <!--
+    <menuitem name="Menu 1" id="eduabroad.menu_1" parent="eduabroad.menu_root"/>
+    <menuitem name="Menu 2" id="eduabroad.menu_2" parent="eduabroad.menu_root"/>
+    -->
+    <!-- actions -->
+    <!--
+    <menuitem name="List" id="eduabroad.menu_1_list" parent="eduabroad.menu_1"
+              action="eduabroad.action_window"/>
+    <menuitem name="Server to list" id="eduabroad" parent="eduabroad.menu_2"
+              action="eduabroad.action_server"/>
+    -->
+  </data>
+</odoo>

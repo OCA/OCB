@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+
+<odoo>
+
+        <!-- Assign Roll Number Wizard Form View  -->
+
+        <record id="view_move_standards_form" model="ir.ui.view">
+            <field name="name">move_standards.form</field>
+            <field name="model">move.standards</field>
+            <field name="arch" type="xml">
+                <form string="Move Standards">
+                    <field name="academic_year_id"/>
+                    <separator string="" colspan="4"/>
+                    <group colspan="4" col="6">
+                        <label string="" colspan="2"/>
+                        <button class="btn btn-sm btn-default fa fa-ban" special="cancel" string="Close"/>
+                        <button class="btn btn-sm btn-default fa fa-plus" name="move_start" string="Move" type="object"/>
+                   </group>
+               </form>
+            </field>
+        </record>
+
+        <act_window id="action_move_standards_form"
+            key2="client_action_multi"
+            name="Move Standards"
+            res_model="move.standards"
+            src_model="school.standard"
+            view_mode="form"
+            target="new"
+            view_type="form"/>
+
+</odoo>

@@ -82,7 +82,7 @@ class Lead(FormatAddress, models.Model):
     description = fields.Text('Notes')
     create_date = fields.Datetime('Create Date', readonly=True)
     write_date = fields.Datetime('Update Date', readonly=True)
-    tag_ids = fields.Many2many('crm.lead.tag', 'crm_lead_tag_rel', 'lead_id', 'tag_id', string='Tags', help="Classify and analyze your lead/opportunity categories like: Training, Service")
+    tag_ids = fields.Many2many('crm.lead.tag', 'crm_lead_tag_rel', 'lead_id', 'tag_id', string='Tags', help="Classify and analyze your opportunity categories like: Long Term, Short Term...")
     contact_name = fields.Char('Contact Name')
     partner_name = fields.Char("Customer Name", index=True, help='The name of the future partner company that will be created while converting the lead into opportunity')
     opt_out = fields.Boolean(string='Opt-Out', oldname='optout',
