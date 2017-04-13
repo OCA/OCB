@@ -2499,7 +2499,6 @@ class stock_move(osv.osv):
                 users_model = self.pool.get('res.users')
                 user_record = users_model.read(
                     cr, uid, uid, ['company_id'], context=context)
-                assert user_record, _('User %d does not exist') % uid
                 local_context['force_company'] = (
                     user_record['company_id'][0])
             self._create_product_valuation_moves(
