@@ -685,9 +685,9 @@ class product_product(osv.osv):
             positive_operators = ['=', 'ilike', '=ilike', 'like', '=like']
             ids = []
             if operator in positive_operators:
-                ids = self.search(cr, user, [('default_code','=',name)]+ args, limit=limit, context=context)
+                ids = self.search(cr, user, args + [('default_code','=',name)], limit=limit, context=context)
                 if not ids:
-                    ids = self.search(cr, user, [('ean13','=',name)]+ args, limit=limit, context=context)
+                    ids = self.search(cr, user, args + [('ean13','=',name)], limit=limit, context=context)
             if not ids and operator not in expression.NEGATIVE_TERM_OPERATORS:
                 # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
                 # on a database with thousands of matching products, due to the huge merge+unique needed for the
@@ -705,7 +705,7 @@ class product_product(osv.osv):
                 ptrn = re.compile('(\[(.*?)\])')
                 res = ptrn.search(name)
                 if res:
-                    ids = self.search(cr, user, [('default_code','=', res.group(2))] + args, limit=limit, context=context)
+                    ids = self.search(cr, user, args + [('default_code','=', res.group(2))], limit=limit, context=context)
         else:
             ids = self.search(cr, user, args, limit=limit, context=context)
         result = self.name_get(cr, user, ids, context=context)
