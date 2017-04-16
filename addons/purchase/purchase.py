@@ -1000,13 +1000,12 @@ class purchase_order_line(osv.osv):
         product_pricelist = self.pool.get('product.pricelist')
         account_fiscal_position = self.pool.get('account.fiscal.position')
         account_tax = self.pool.get('account.tax')
-
+        ir_translation= self.pool.get('ir.translation')
         # - check for the presence of partner_id and pricelist_id
         #if not partner_id:
         #    raise osv.except_osv(_('No Partner!'), _('Select a partner in purchase order to choose a product.'))
         #if not pricelist_id:
         #    raise osv.except_osv(_('No Pricelist !'), _('Select a price list in the purchase order form before choosing a product.'))
-
         # - determine name and notes based on product in partner lang.
         context_partner = context.copy()
         if partner_id:
@@ -1018,7 +1017,11 @@ class purchase_order_line(osv.osv):
             # The 'or not uom_id' part of the above condition can be removed in master. See commit message of the rev. introducing this line.
             dummy, name = product_product.name_get(cr, uid, product_id, context=context_partner)[0]
             if product.description_purchase:
-                name += '\n' + product.description_purchase
+                desciption = ir_translation._get_source(
+                    cr, uid, 'description_purchase', 'model',
+                    lang, product.description_purchase
+                )
+                name += '\n' + desciption
             res['value'].update({'name': name})
 
         # - set a domain on product_uom
@@ -1245,7 +1248,7 @@ class procurement_order(osv.osv):
 
             name = product.partner_ref
             if product.description_purchase:
-                name += '\n'+ product.description_purchase
+                name += '\n' + product.description_purchase
             line_vals = {
                 'name': name,
                 'product_qty': qty,
