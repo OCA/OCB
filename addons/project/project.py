@@ -49,6 +49,7 @@ class project_task_type(osv.osv):
                             "For example, if a stage is related to the status 'Close', when your document reaches this stage, it is automatically closed."),
         'fold': fields.boolean('Folded by Default',
                         help="This stage is not visible, for example in status bar or kanban view, when there are no records in that stage to display."),
+        'active': fields.boolean('Active'),
     }
     def _get_default_project_id(self, cr, uid, ctx={}):
         proj = ctx.get('default_project_id', False)
@@ -57,6 +58,7 @@ class project_task_type(osv.osv):
         return proj
     _defaults = {
         'sequence': 1,
+        'active': True,
         'state': 'open',
         'fold': False,
         'case_default': False,
@@ -420,7 +422,7 @@ class project(osv.osv):
         default['tasks'] = []
 
         # Don't prepare (expensive) data to copy children (analytic accounts),
-        # they are discarded in analytic.copy(), and handled in duplicate_template() 
+        # they are discarded in analytic.copy(), and handled in duplicate_template()
         default['child_ids'] = []
 
         default.pop('alias_name', None)
