@@ -89,8 +89,11 @@ def db_list(req, force=False):
     proxy = req.session.proxy("db")
     dbs = proxy.list(force)
     h = req.httprequest.environ['HTTP_HOST'].split(':')[0]
+    _l = logging.getLogger(__name__)
+    _l.info('http request host: %s', h)
     d = h.split('.')[0]
     r = openerp.tools.config['dbfilter'].replace('%h', h).replace('%d', d)
+    _l.info("db filter: %r", r)
     dbs = [i for i in dbs if re.match(r, i)]
     return dbs
 

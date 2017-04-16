@@ -383,6 +383,7 @@ class db(netsvc.ExportService):
         finally:
             cr.close()
         res.sort()
+        _logger.info('db list found %s', res)
         return res
 
     def exp_change_admin_password(self, new_password):
