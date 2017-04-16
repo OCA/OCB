@@ -2100,10 +2100,7 @@ class stock_move(osv.osv):
                             old_pick_name = seq_obj.get(cr, uid, 'stock.picking.' + old_ptype)
                         self.pool.get('stock.picking').write(cr, uid, [picking.id], {'name': old_pick_name, 'type': old_ptype}, context=context)
                     # name of new picking according to its type
-                    if ptype == 'internal':
-                        new_pick_name = seq_obj.get(cr, uid,'stock.picking')
-                    else :
-                        new_pick_name = seq_obj.get(cr, uid, 'stock.picking.' + ptype)
+                    new_pick_name = seq_obj.get(cr, uid, 'stock.picking.' + ptype)
                     pickid = self._create_chained_picking(cr, uid, new_pick_name, picking, ptype, todo, context=context)
                 else:
                     pickid = False
