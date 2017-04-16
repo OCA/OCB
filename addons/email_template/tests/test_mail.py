@@ -37,7 +37,7 @@ class test_message_compose(TestMailBase):
         """ Tests designed for the mail.compose.message wizard updated by email_template. """
         cr, uid = self.cr, self.uid
         mail_compose = self.registry('mail.compose.message')
-        self.res_users.write(cr, uid, [uid], {'signature': 'Admin', 'email': 'a@a.a'})
+        self.res_users.write(cr, uid, [uid], {'signature': 'Admin', 'email': 'a@test'})
         user_admin = self.res_users.browse(cr, uid, uid)
         p_a_id = user_admin.partner_id.id
         group_pigs = self.mail_group.browse(cr, uid, self.group_pigs_id)
@@ -64,8 +64,8 @@ class test_message_compose(TestMailBase):
             'body_html': '${object.description}',
             'user_signature': True,
             'attachment_ids': [(0, 0, _attachments[0]), (0, 0, _attachments[1])],
-            'email_to': 'b@b.b, c@c.c',
-            'email_cc': 'd@d.d'
+            'email_to': 'b@test, c@test',
+            'email_cc': 'd@test'
             })
 
         # ----------------------------------------
@@ -111,7 +111,7 @@ class test_message_compose(TestMailBase):
         compose.refresh()
 
         message_pids = [partner.id for partner in compose.partner_ids]
-        partner_ids = self.res_partner.search(cr, uid, [('email', 'in', ['b@b.b', 'c@c.c', 'd@d.d'])])
+        partner_ids = self.res_partner.search(cr, uid, [('email', 'in', ['b@test', 'c@test', 'd@test'])])
         # Test: mail.compose.message: subject, body, partner_ids
         self.assertEqual(compose.subject, _subject1, 'mail.compose.message subject incorrect')
         self.assertIn(_body_html1, compose.body, 'mail.compose.message body incorrect')
@@ -173,7 +173,7 @@ class test_message_compose(TestMailBase):
         # Test: partner_ids: p_a_id (default) + 3 newly created partners
         message_pigs_pids = [partner.id for partner in message_pigs.notified_partner_ids]
         message_bird_pids = [partner.id for partner in message_bird.notified_partner_ids]
-        partner_ids = self.res_partner.search(cr, uid, [('email', 'in', ['b@b.b', 'c@c.c', 'd@d.d'])])
+        partner_ids = self.res_partner.search(cr, uid, [('email', 'in', ['b@test', 'c@test', 'd@test'])])
         partner_ids.append(p_a_id)
         self.assertEqual(set(message_pigs_pids), set(partner_ids), 'mail.message on pigs incorrect number of notified_partner_ids')
         self.assertEqual(set(message_bird_pids), set(partner_ids), 'mail.message on bird notified_partner_ids incorrect')
@@ -183,17 +183,17 @@ class test_message_compose(TestMailBase):
         # ----------------------------------------
 
         # get already-created partners back
-        p_b_id = self.res_partner.search(cr, uid, [('email', '=', 'b@b.b')])[0]
-        p_c_id = self.res_partner.search(cr, uid, [('email', '=', 'c@c.c')])[0]
-        p_d_id = self.res_partner.search(cr, uid, [('email', '=', 'd@d.d')])[0]
+        p_b_id = self.res_partner.search(cr, uid, [('email', '=', 'b@test')])[0]
+        p_c_id = self.res_partner.search(cr, uid, [('email', '=', 'c@test')])[0]
+        p_d_id = self.res_partner.search(cr, uid, [('email', '=', 'd@test')])[0]
         # modify template: use email_recipients, use template and email address in email_to to test all features together
         user_model_id = self.registry('ir.model').search(cr, uid, [('model', '=', 'res.users')])[0]
         email_template.write(cr, uid, [email_template_id], {
             'model_id': user_model_id,
             'body_html': '${object.login}',
-            'email_to': '${object.email}, c@c',
+            'email_to': '${object.email}, c@test',
             'email_recipients': '%i,%i' % (p_b_id, p_c_id),
-            'email_cc': 'd@d',
+            'email_cc': 'd@test',
             })
         # patner by email + partner by id (no double)
         send_to = [p_a_id, p_b_id, p_c_id, p_d_id]
@@ -216,8 +216,8 @@ class test_message_compose(TestMailBase):
             'subject': '${object.name}',
             'body_html': '${object.description}',
             'user_signature': True,
-            'email_to': 'b@b.b c@c.c',
-            'email_cc': 'd@d.d',
+            'email_to': 'b@test c@test',
+            'email_cc': 'd@test',
             'email_recipients': '${user.partner_id.id},%s,%s,-1' % (self.user_raoul.partner_id.id, self.user_bert.partner_id.id)
         })
 
@@ -225,8 +225,8 @@ class test_message_compose(TestMailBase):
         msg_id = email_template.send_mail(cr, uid, email_template_id, self.group_pigs_id, context=context)
         mail = self.mail_mail.browse(cr, uid, msg_id, context=context)
         self.assertEqual(mail.subject, 'Pigs', 'email_template: send_mail: wrong subject')
-        self.assertEqual(mail.email_to, 'b@b.b c@c.c', 'email_template: send_mail: wrong email_to')
-        self.assertEqual(mail.email_cc, 'd@d.d', 'email_template: send_mail: wrong email_cc')
+        self.assertEqual(mail.email_to, 'b@test c@test', 'email_template: send_mail: wrong email_to')
+        self.assertEqual(mail.email_cc, 'd@test', 'email_template: send_mail: wrong email_cc')
 
         # force send: take email_recipients into account
         email_template.send_mail(cr, uid, email_template_id, self.group_pigs_id, force_send=True, context=context)

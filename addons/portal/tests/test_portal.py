@@ -106,7 +106,7 @@ class test_portal(TestMailBase):
         mail_invite = self.registry('mail.wizard.invite')
         base_url = self.registry('ir.config_parameter').get_param(cr, uid, 'web.base.url', default='')
         # Carine Poilvache, with email, should receive emails for comments and emails
-        partner_carine_id = self.res_partner.create(cr, uid, {'name': 'Carine Poilvache', 'email': 'c@c'})
+        partner_carine_id = self.res_partner.create(cr, uid, {'name': 'Carine Poilvache', 'email': 'c@test'})
 
         # Do: create a mail_wizard_invite, validate it
         self._init_mock_build_email()
