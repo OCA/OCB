@@ -588,6 +588,13 @@ class account_move_line(osv.osv):
         cr.execute('SELECT indexname FROM pg_indexes WHERE indexname = %s', ('account_move_line_date_id_index',))
         if not cr.fetchone():
             cr.execute('CREATE INDEX account_move_line_date_id_index ON account_move_line (date DESC, id desc)')
+        index_name = 'account_move_line_journal_id_period_id_create_uid_state_index'
+        cr.execute("SELECT indexname FROM pg_indexes "
+                   "WHERE indexname = %s", (index_name,))
+        if not cr.fetchone():
+            cr.execute("CREATE INDEX %s ON account_move_line "
+                       " (journal_id, period_id, create_uid) "
+                       "WHERE state = 'draft'" % index_name)
         return res
 
     def _check_no_view(self, cr, uid, ids, context=None):
