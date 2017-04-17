@@ -132,7 +132,7 @@ class product_product(osv.osv):
                     move_ids.append(move_id)
 
 
-                    if diff > 0:
+                    if diff*qty > 0:
                         if not stock_input_acc:
                             stock_input_acc = product.\
                                 property_stock_account_input.id
@@ -158,7 +158,7 @@ class product_product(osv.osv):
                                     'credit': amount_diff,
                                     'move_id': move_id
                                     })
-                    elif diff < 0:
+                    elif diff*qty < 0:
                         if not stock_output_acc:
                             stock_output_acc = product.\
                                 property_stock_account_output.id
@@ -203,11 +203,11 @@ class product_product(osv.osv):
         """
         if context is None:
             context = {}
-        
+
         location_obj = self.pool.get('stock.location')
         warehouse_obj = self.pool.get('stock.warehouse')
         shop_obj = self.pool.get('sale.shop')
-        
+
         states = context.get('states',[])
         what = context.get('what',())
         if not ids:
@@ -245,7 +245,7 @@ class product_product(osv.osv):
         if context.get('compute_child',True):
             child_location_ids = location_obj.search(cr, uid, [('location_id', 'child_of', location_ids)])
             location_ids = child_location_ids or location_ids
-        
+
         # this will be a dictionary of the product UoM by product id
         product2uom = {}
         uom_ids = []
@@ -296,7 +296,7 @@ class product_product(osv.osv):
                 'and location_dest_id IN %s '\
                 'and product_id IN %s '\
                 'and state IN %s ' + (date_str and 'and '+date_str+' ' or '') +' '\
-                + prodlot_clause + 
+                + prodlot_clause +
                 'group by product_id,product_uom',tuple(where))
             results = cr.fetchall()
         if 'out' in what:
@@ -308,10 +308,10 @@ class product_product(osv.osv):
                 'and location_dest_id NOT IN %s '\
                 'and product_id  IN %s '\
                 'and state in %s ' + (date_str and 'and '+date_str+' ' or '') + ' '\
-                + prodlot_clause + 
+                + prodlot_clause +
                 'group by product_id,product_uom',tuple(where))
             results2 = cr.fetchall()
-            
+
         # Get the missing UoM resources
         uom_obj = self.pool.get('product.uom')
         uoms = map(lambda x: x[2], results) + map(lambda x: x[2], results2)
@@ -322,7 +322,7 @@ class product_product(osv.osv):
             uoms = uom_obj.browse(cr, uid, list(set(uoms)), context=context)
             for o in uoms:
                 uoms_o[o.id] = o
-                
+
         #TOCHECK: before change uom of product, stock move line are in old uom.
         context.update({'raise-exception': False})
         # Count the incoming quantities
