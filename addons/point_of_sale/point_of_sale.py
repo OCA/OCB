@@ -1524,6 +1524,14 @@ class product_template(osv.osv):
 class res_partner(osv.osv):
     _inherit = 'res.partner'
 
+    _columns = {
+        'available_in_pos': fields.boolean('Available in the Point of Sale')
+    }
+
+    _defaults = {
+        'available_in_pos': True
+    }
+
     def create_from_ui(self, cr, uid, partner, context=None):
         """ create or modify a partner from the point of sale ui.
             partner contains the partner's fields. """
