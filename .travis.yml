@@ -30,7 +30,7 @@ before_install:
 
 install:
   - ln -s ${HOME}/build/${ODOO_REPO} ${HOME}/${ODOO_REPO#*/}-${VERSION}
-  - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+  - git clone --depth=1 https://github.com/guewen/maintainer-quality-tools.git -b fail-when-no-deps ${HOME}/maintainer-quality-tools
   - pip install -r ${HOME}/maintainer-quality-tools/travis/requirements.txt
   - pip install -q QUnitSuite flake8 coveralls pylint
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
