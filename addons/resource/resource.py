@@ -377,7 +377,7 @@ class resource_calendar(osv.osv):
                           resource_id=None, default_interval=None, context=None):
         hours = 0.0
         for day in rrule.rrule(rrule.DAILY, dtstart=start_dt,
-                               until=(end_dt + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0),
+                               until=end_dt,
                                byweekday=self.get_weekdays(cr, uid, id, context=context)):
             day_start_dt = day.replace(hour=0, minute=0, second=0)
             if start_dt and day.date() == start_dt.date():
