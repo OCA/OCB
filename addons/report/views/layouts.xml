@@ -107,6 +107,7 @@
             </t>
 
             <ul class="list-inline">
+                <li t-if="o and o.name"><span t-field="o.name"/></li>
                 <li>Page:</li>
                 <li><span class="page"/></li>
                 <li>/</li>
@@ -135,6 +136,7 @@
             </div>
             <div class="col-xs-2 col-xs-offset-3 text-right">
                 <ul class="list-inline">
+                    <li t-if="o and o.name"><span t-field="o.name"/></li>
                     <li><span class="page"/></li>
                     <li>/</li>
                     <li><span class="topage"/></li>
