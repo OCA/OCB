@@ -33,6 +33,31 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="website_product_view_sale_order_button">
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='buttons']" position="inside">
+                <button
+                    attrs="{'invisible': [('confirmed_sales_count','=',0)]}"
+                    class="oe_inline oe_stat_button"
+                    name="%(sale.action_order_line_product_tree)d"
+                    type="action" icon="fa-strikethrough">
+                    <field
+                        string="Confirmed sales"
+                        name="confirmed_sales_count" widget="statinfo"
+                        />
+                </button>
+            </xpath>
+            <xpath expr="//div[@name='options']" position="inside">
+                <div>
+                    <field name="website_featured"/>
+                    <label for="website_featured"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Product attribute -->
 
     <record id="variants_template_tree_view" model="ir.ui.view">

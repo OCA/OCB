@@ -20,29 +20,34 @@
 ##############################################################################
 
 from openerp import tools
-from openerp.osv import osv, fields
+from openerp.osv import osv
+from openerp.osv import fields
 
-class product_style(osv.Model):
+
+class ProductStyle(osv.Model):
     _name = "product.style"
     _columns = {
-        'name' : fields.char('Style Name', required=True),
+        'name': fields.char('Style Name', required=True),
         'html_class': fields.char('HTML Classes'),
     }
 
-class product_pricelist(osv.Model):
+
+class ProductPricelist(osv.Model):
     _inherit = "product.pricelist"
     _columns = {
         'code': fields.char('Promotional Code'),
     }
 
 
-class product_public_category(osv.osv):
+class ProductPublicCategory(osv.osv):
     _name = "product.public.category"
     _description = "Public Category"
     _order = "sequence, name"
 
     _constraints = [
-        (osv.osv._check_recursion, 'Error ! You cannot create recursive categories.', ['parent_id'])
+        (osv.osv._check_recursion,
+         'Error ! You cannot create recursive categories.',
+         ['parent_id'])
     ]
 
     def name_get(self, cr, uid, ids, context=None):
@@ -67,40 +72,59 @@ class product_public_category(osv.osv):
         return result
 
     def _set_image(self, cr, uid, id, name, value, args, context=None):
-        return self.write(cr, uid, [id], {'image': tools.image_resize_image_big(value)}, context=context)
+        return self.write(cr, uid, [id],
+                          {'image': tools.image_resize_image_big(value)},
+                          context=context)
 
     _columns = {
         'name': fields.char('Name', required=True, translate=True),
-        'complete_name': fields.function(_name_get_fnc, type="char", string='Name'),
-        'parent_id': fields.many2one('product.public.category','Parent Category', select=True),
-        'child_id': fields.one2many('product.public.category', 'parent_id', string='Children Categories'),
-        'sequence': fields.integer('Sequence', help="Gives the sequence order when displaying a list of product categories."),
+        'complete_name': fields.function(_name_get_fnc,
+                                         type="char", string='Name'),
+        'parent_id': fields.many2one('product.public.category',
+                                     'Parent Category', select=True),
+        'child_id': fields.one2many('product.public.category',
+                                    'parent_id', string='Children Categories'),
+        'sequence': fields.integer('Sequence',
+                                   help="Gives the sequence order "
+                                        "when displaying a list of "
+                                        "product categories."),
 
-        # NOTE: there is no 'default image', because by default we don't show thumbnails for categories. However if we have a thumbnail
-        # for at least one category, then we display a default image on the other, so that the buttons have consistent styling.
+        # NOTE: there is no 'default image',
+        # because by default we don't show thumbnails for categories.
+        # However if we have a thumbnail for at least one category,
+        # then we display a default image on the other,
+        # so that the buttons have consistent styling.
         # In this case, the default image is set by the js code.
         # NOTE2: image: all image fields are base64 encoded and PIL-supported
-        'image': fields.binary("Image",
-            help="This field holds the image used as image for the category, limited to 1024x1024px."),
-        'image_medium': fields.function(_get_image, fnct_inv=_set_image,
-            string="Medium-sized image", type="binary", multi="_get_image",
+        'image': fields.binary(
+            "Image",
+            help="This field holds the image used as image for the category, "
+                 " limited to 1024x1024px."),
+        'image_medium': fields.function(
+            _get_image, fnct_inv=_set_image,
+            string="Medium-sized image",
+            type="binary", multi="_get_image",
             store={
-                'product.public.category': (lambda self, cr, uid, ids, c={}: ids, ['image'], 10),
+                'product.public.category': (
+                    lambda self, cr, uid, ids, c={}: ids, ['image'], 10),
             },
-            help="Medium-sized image of the category. It is automatically "\
-                 "resized as a 128x128px image, with aspect ratio preserved. "\
+            help="Medium-sized image of the category. It is automatically "
+                 "resized as a 128x128px image, with aspect ratio preserved. "
                  "Use this field in form views or some kanban views."),
-        'image_small': fields.function(_get_image, fnct_inv=_set_image,
+        'image_small': fields.function(
+            _get_image, fnct_inv=_set_image,
             string="Smal-sized image", type="binary", multi="_get_image",
             store={
-                'product.public.category': (lambda self, cr, uid, ids, c={}: ids, ['image'], 10),
+                'product.public.category': (
+                    lambda self, cr, uid, ids, c={}: ids, ['image'], 10),
             },
-            help="Small-sized image of the category. It is automatically "\
-                 "resized as a 64x64px image, with aspect ratio preserved. "\
+            help="Small-sized image of the category. It is automatically "
+                 "resized as a 64x64px image, with aspect ratio preserved. "
                  "Use this field anywhere a small image is required."),
     }
 
-class product_template(osv.Model):
+
+class ProductTemplate(osv.Model):
     _inherit = ["product.template", "website.seo.metadata"]
     _order = 'website_published desc, website_sequence desc, name'
     _name = 'product.template'
@@ -112,8 +136,28 @@ class product_template(osv.Model):
             res[product.id] = "/shop/product/%s" % (product.id,)
         return res
 
+    def _confirmed_sales_count(self, cr, uid, ids, field_name, arg, context=None):
+        res = dict.fromkeys(ids, 0)
+        for template in self.browse(cr, uid, ids, context=context):
+            res[template.id] = sum([p.confirmed_sales_count
+                                    for p in template.product_variant_ids])
+        return res
+
+    def _update_confirmed_sales_count(self, cr, uid, ids, context=None):
+        res = {}
+        sale_order_line_model = self.pool['sale.order.line']
+        for so_line in sale_order_line_model.browse(cr, uid, ids):
+            if not so_line.product_id:
+                continue
+            pid = so_line.product_id.product_tmpl_id.id
+            # consider only confirmed lines
+            if so_line.state not in ('cancel', 'draft'):
+                res[pid] = res.get(pid, 0) + 1
+        return res
+
     _columns = {
-        # TODO FIXME tde: when website_mail/mail_thread.py inheritance work -> this field won't be necessary
+        # TODO FIXME tde: when website_mail/mail_thread.py
+        # inheritance work -> this field won't be necessary
         'website_message_ids': fields.one2many(
             'mail.message', 'res_id',
             domain=lambda self: [
@@ -121,16 +165,56 @@ class product_template(osv.Model):
             ],
             string='Website Comments',
         ),
-        'website_published': fields.boolean('Available in the website', copy=False),
-        'website_description': fields.html('Description for the website', translate=True),
-        'alternative_product_ids': fields.many2many('product.template','product_alternative_rel','src_id','dest_id', string='Alternative Products', help='Appear on the product page'),
-        'accessory_product_ids': fields.many2many('product.product','product_accessory_rel','src_id','dest_id', string='Accessory Products', help='Appear on the shopping cart'),
+        'website_published': fields.boolean('Available in the website',
+                                            copy=False),
+        'website_description': fields.html('Description for the website',
+                                           translate=True),
+        'alternative_product_ids': fields.many2many(
+            'product.template',
+            'product_alternative_rel',
+            'src_id', 'dest_id',
+            string='Alternative Products',
+            help='Appear on the product page'
+        ),
+        'accessory_product_ids': fields.many2many(
+            'product.product',
+            'product_accessory_rel',
+            'src_id', 'dest_id',
+            string='Accessory Products',
+            help='Appear on the shopping cart'
+        ),
         'website_size_x': fields.integer('Size X'),
         'website_size_y': fields.integer('Size Y'),
-        'website_style_ids': fields.many2many('product.style', string='Styles'),
-        'website_sequence': fields.integer('Sequence', help="Determine the display order in the Website E-commerce"),
-        'website_url': fields.function(_website_url, string="Website url", type="char"),
-        'public_categ_ids': fields.many2many('product.public.category', string='Public Category', help="Those categories are used to group similar products for e-commerce."),
+        'website_style_ids': fields.many2many('product.style',
+                                              string='Styles'),
+        'website_sequence': fields.integer(
+            'Sequence',
+            help="Determine the display order in the Website E-commerce"
+        ),
+        'website_url': fields.function(_website_url,
+                                       string="Website url",
+                                       type="char"),
+        'public_categ_ids': fields.many2many(
+            'product.public.category',
+            string='Public Category',
+            help="Those categories are used to group "
+                 "similar products for e-commerce."
+        ),
+
+
+        'confirmed_sales_count': fields.function(
+            _confirmed_sales_count,
+            store={
+                'sale.order.line': (_update_confirmed_sales_count,
+                                    ['state'], 10)
+            },
+            string='# Confirmed Sales',
+            help='Sales counter that takes into account only '
+                 '`confirmed` sales. Meaning that '
+                 'sale order lines in state "draft" and "cancel" '
+                 'are not taken into account.',
+            type='integer'
+        ),
     }
 
     def _defaults_website_sequence(self, cr, uid, *l, **kwargs):
@@ -148,59 +232,133 @@ class product_template(osv.Model):
     def set_sequence_top(self, cr, uid, ids, context=None):
         cr.execute('SELECT MAX(website_sequence) FROM product_template')
         max_sequence = cr.fetchone()[0] or 0
-        return self.write(cr, uid, ids, {'website_sequence': max_sequence + 1}, context=context)
+        return self.write(cr, uid, ids, {'website_sequence': max_sequence + 1},
+                          context=context)
 
     def set_sequence_bottom(self, cr, uid, ids, context=None):
         cr.execute('SELECT MIN(website_sequence) FROM product_template')
         min_sequence = cr.fetchone()[0] or 0
-        return self.write(cr, uid, ids, {'website_sequence': min_sequence -1}, context=context)
+        return self.write(cr, uid, ids, {'website_sequence': min_sequence - 1},
+                          context=context)
 
     def set_sequence_up(self, cr, uid, ids, context=None):
         product = self.browse(cr, uid, ids[0], context=context)
-        cr.execute("""  SELECT id, website_sequence FROM product_template
-                        WHERE website_sequence > %s AND website_published = %s ORDER BY website_sequence ASC LIMIT 1""" % (product.website_sequence, product.website_published))
+        query = """
+            SELECT id, website_sequence FROM product_template
+            WHERE website_sequence > %s
+            AND website_published = %s
+            ORDER BY website_sequence ASC LIMIT 1
+        """ % (product.website_sequence, product.website_published)
+        cr.execute(query)
         prev = cr.fetchone()
         if prev:
-            self.write(cr, uid, [prev[0]], {'website_sequence': product.website_sequence}, context=context)
-            return self.write(cr, uid, [ids[0]], {'website_sequence': prev[1]}, context=context)
+            self.write(cr, uid, [prev[0]],
+                       {'website_sequence': product.website_sequence},
+                       context=context)
+            return self.write(cr, uid, [ids[0]], {'website_sequence': prev[1]},
+                              context=context)
         else:
             return self.set_sequence_top(cr, uid, ids, context=context)
 
     def set_sequence_down(self, cr, uid, ids, context=None):
         product = self.browse(cr, uid, ids[0], context=context)
-        cr.execute("""  SELECT id, website_sequence FROM product_template
-                        WHERE website_sequence < %s AND website_published = %s ORDER BY website_sequence DESC LIMIT 1""" % (product.website_sequence, product.website_published))
+        query = """
+            SELECT id, website_sequence FROM product_template
+            WHERE website_sequence < %s
+            AND website_published = %s
+            ORDER BY website_sequence DESC LIMIT 1
+        """ % (product.website_sequence, product.website_published)
+        cr.execute(query)
         next = cr.fetchone()
         if next:
-            self.write(cr, uid, [next[0]], {'website_sequence': product.website_sequence}, context=context)
-            return self.write(cr, uid, [ids[0]], {'website_sequence': next[1]}, context=context)
+            self.write(cr, uid, [next[0]],
+                       {'website_sequence': product.website_sequence},
+                       context=context)
+            return self.write(cr, uid, [ids[0]], {'website_sequence': next[1]},
+                              context=context)
         else:
             return self.set_sequence_bottom(cr, uid, ids, context=context)
 
-class product_product(osv.Model):
+
+class ProductProduct(osv.Model):
     _inherit = "product.product"
 
     def _website_url(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for product in self.browse(cr, uid, ids, context=context):
-            res[product.id] = "/shop/product/%s" % (product.product_tmpl_id.id,)
+            res[product.id] = "/shop/product/%s" % product.product_tmpl_id.id
+        return res
+
+
+
+    def _confirmed_sales_count(self, cr, uid, ids, field_name, arg, context=None):
+        sale_order_line_model = self.pool['sale.order.line']
+        states = ('cancel', 'draft')
+        count = lambda x: sale_order_line_model.search_count(
+            cr, uid, [('product_id', '=', x), ('state', 'not in', states)])
+        return {
+            product_id: count(product_id) for product_id in ids
+        }
+
+    def _update_confirmed_sales_count(self, cr, uid, ids, context=None):
+        res = {}
+        sale_order_line_model = self.pool['sale.order.line']
+        for so_line in sale_order_line_model.browse(cr, uid, ids):
+            if not so_line.product_id:
+                continue
+            pid = so_line.product_id.id
+            # consider only confirmed lines
+            if so_line.state not in ('cancel', 'draft'):
+                res[pid] = res.get(pid, 0) + 1
         return res
 
     _columns = {
-        'website_url': fields.function(_website_url, string="Website url", type="char"),
+        'website_url': fields.function(_website_url,
+                                       string="Website url",
+                                       type="char"),
+        'confirmed_sales_count': fields.function(
+            _confirmed_sales_count,
+            store={
+                'sale.order.line': (_update_confirmed_sales_count,
+                                    ['state'], 10)
+            },
+            string='# Confirmed Sales',
+            help='Sales counter that takes into account only '
+                 '`confirmed` sales. Meaning that '
+                 'sale order lines in state "draft" and "cancel" '
+                 'are not taken into account.',
+            type='integer'
+        ),
+        'website_featured': fields.boolean(
+            'Featured',
+            help='Give precedence to this product on your site.'
+                 'Product listing will take this value into account '
+                 'when sorting products.',
+            copy=False
+        ),
     }
 
-class product_attribute(osv.Model):
+
+class ProductAttribute(osv.Model):
     _inherit = "product.attribute"
     _columns = {
-        'type': fields.selection([('radio', 'Radio'), ('select', 'Select'), ('color', 'Color'), ('hidden', 'Hidden')], string="Type"),
+        'type': fields.selection([('radio', 'Radio'),
+                                 ('select', 'Select'),
+                                 ('color', 'Color'),
+                                 ('hidden', 'Hidden')],
+                                 string="Type"),
     }
     _defaults = {
         'type': lambda *a: 'radio',
     }
 
-class product_attribute_value(osv.Model):
+
+class ProductAttributeValue(osv.Model):
     _inherit = "product.attribute.value"
     _columns = {
-        'color': fields.char("HTML Color Index", help="Here you can set a specific HTML color index (e.g. #ff0000) to display the color on the website if the attibute type is 'Color'."),
+        'color': fields.char("HTML Color Index",
+                             help="Here you can set "
+                                  "a specific HTML color index (e.g. #ff0000) "
+                                  "to display the color on the website "
+                                  "if the attibute type is 'Color'."),
     }
