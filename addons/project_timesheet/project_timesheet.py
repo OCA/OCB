@@ -3,14 +3,12 @@
 import time
 import datetime
 from dateutil.relativedelta import relativedelta
-
-from openerp.addons.analytic.models import analytic
-from openerp.osv import fields, osv
+from openerp import fields, models
 from openerp import tools
 from openerp.tools.translate import _
 from openerp.exceptions import UserError
 
-class project_project(osv.osv):
+class project_project(models.Model):
     _inherit = 'project.project'
 
     def open_timesheets(self, cr, uid, ids, context=None):
@@ -44,7 +42,7 @@ class project_project(osv.osv):
         return res
 
 
-class task(osv.osv):
+class task(models.Model):
     _inherit = "project.task"
 
     # Compute: effective_hours, total_hours, progress
@@ -81,40 +79,61 @@ class task(osv.osv):
     def _get_total_hours(self):
         return super(task, self)._get_total_hours() + self.effective_hours
 
-    _columns = {
-        'remaining_hours': fields.function(_hours_get, string='Remaining Hours', multi='line_id', help="Total remaining time, can be re-estimated periodically by the assignee of the task.",
-            store = {
-                'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
-                'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
-            }),
-        'effective_hours': fields.function(_hours_get, string='Hours Spent', multi='line_id', help="Computed using the sum of the task work done.",
-            store = {
-                'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
-                'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
-            }),
-        'total_hours': fields.function(_hours_get, string='Total', multi='line_id', help="Computed as: Time Spent + Remaining Time.",
-            store = {
-                'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
-                'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
-            }),
-        'progress': fields.function(_hours_get, string='Working Time Progress (%)', multi='line_id', group_operator="avg", help="If the task has a progress of 99.99% you should close the task if it's finished or reevaluate the time",
-            store = {
-                'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours', 'state', 'stage_id'], 10),
-                'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
-            }),
-        'delay_hours': fields.function(_hours_get, string='Delay Hours', multi='line_id', help="Computed as difference between planned hours by the project manager and the total hours of the task.",
-            store = {
-                'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
-                'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
-            }),
-        'timesheet_ids': fields.one2many('account.analytic.line', 'task_id', 'Timesheets'),
-        'analytic_account_id': fields.related('project_id', 'analytic_account_id',
-            type='many2one', relation='account.analytic.account', string='Analytic Account', store=True),
-    }
-
-    _defaults = {
-        'progress': 0,
-    }
+    remaining_hours = fields.Float(
+        compute='_hours_get',
+        string='Remaining Hours',
+        multi='line_id',
+        help="Total remaining time, can be re-estimated periodically by the assignee of the task.",
+        store = {
+            'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
+            'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
+        })
+    effective_hours = fields.Float(
+        compute='_hours_get',
+        string='Hours Spent',
+        multi='line_id', help="Computed using the sum of the task work done.",
+        store = {
+            'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
+            'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
+        })
+    total_hours = fields.Float(
+        compute='_hours_get',
+        string='Total',
+        multi='line_id', help="Computed as: Time Spent + Remaining Time.",
+        store = {
+            'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
+            'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
+        })
+    progress = fields.Float(
+        compute='_hours_get',
+        string='Working Time Progress (%)',
+        multi='line_id',
+        group_operator="avg",
+        help="If the task has a progress of 99.99% you should close the task if it's finished or reevaluate the time",
+        default=0,
+        store = {
+            'project.task': (lambda self, cr, uid, ids, c={}: ids,
+                             ['timesheet_ids', 'remaining_hours', 'planned_hours', 'state', 'stage_id'], 10),
+            'account.analytic.line': (
+                _get_task, ['task_id', 'unit_amount'], 10),
+        })
+    delay_hours = fields.Float(
+        compute='_hours_get',
+        string='Delay Hours',
+        multi='line_id',
+        help="Computed as difference between planned hours by the project manager and the total hours of the task.",
+        store = {
+            'project.task': (lambda self, cr, uid, ids, c={}: ids,
+                             ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
+            'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
+        })
+    timesheet_ids = fields.One2many(
+        'account.analytic.line',
+        'task_id',
+        'Timesheets')
+    analytic_account_id = fields.Many2one(
+        related='project_id.analytic_account_id',
+        relation='account.analytic.account', string='Analytic Account', store=True)
 
     def _prepare_delegate_values(self, cr, uid, ids, delegate_data, context=None):
         vals = super(task, self)._prepare_delegate_values(cr, uid, ids, delegate_data, context)
@@ -123,7 +142,7 @@ class task(osv.osv):
         return vals
 
 
-class res_partner(osv.osv):
+class res_partner(models.Model):
     _inherit = 'res.partner'
 
     def unlink(self, cursor, user, ids, context=None):
@@ -133,8 +152,6 @@ class res_partner(osv.osv):
         return super(res_partner,self).unlink(cursor, user, ids,
                 context=context)
 
-class account_analytic_line(osv.osv):
+class account_analytic_line(models.Model):
     _inherit = "account.analytic.line"
-    _columns = {
-        'task_id' : fields.many2one('project.task', 'Task'),
-    }
+    task_id = fields.Many2one('project.task', 'Task')
