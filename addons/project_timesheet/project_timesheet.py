@@ -11,12 +11,12 @@ from openerp.exceptions import UserError
 class project_project(models.Model):
     _inherit = 'project.project'
 
-    def open_timesheets(self, cr, uid, ids, context=None):
+    def open_timesheets(self):
         """ open Timesheets view """
-        mod_obj = self.pool.get('ir.model.data')
-        act_obj = self.pool.get('ir.actions.act_window')
+        mod_obj = self.env['ir.model.data']
+        act_obj = self.env['ir.actions.act_window']
 
-        project = self.browse(cr, uid, ids[0], context)
+        project = self
         view_context = {
             'search_default_account_id': [project.analytic_account_id.id],
             'default_account_id': project.analytic_account_id.id,
@@ -24,19 +24,19 @@ class project_project(models.Model):
         }
         help = _("""<p class="oe_view_nocontent_create">Record your timesheets for the project '%s'.</p>""") % (project.name,)
 
-        res = mod_obj.get_object_reference(cr, uid, 'hr_timesheet', 'act_hr_timesheet_line_evry1_all_form')
+        res = mod_obj.get_object_reference('hr_timesheet', 'act_hr_timesheet_line_evry1_all_form')
         id = res and res[1] or False
-        result = act_obj.read(cr, uid, [id], context=context)[0]
+        result = act_obj[0]
         result['name'] = _('Timesheets')
         result['context'] = view_context
         result['help'] = help
         return result
 
-    def open_contract(self, cr, uid, ids, context=None):
+    def open_contract(self):
         """ open Contract view """
 
-        res = self.pool['ir.actions.act_window'].for_xml_id(cr, uid, 'project_timesheet', 'action_project_analytic_account', context=context)
-        contract_ids = self.browse(cr, uid, ids, context=context)
+        res = self.env['ir.actions.act_window'].for_xml_id('project_timesheet', 'action_project_analytic_account')
+        contract_ids = self
         account_ids = [x.analytic_account_id.id for x in contract_ids]
         res['res_id'] = account_ids and account_ids[0] or None
         return res
@@ -46,9 +46,9 @@ class task(models.Model):
     _inherit = "project.task"
 
     # Compute: effective_hours, total_hours, progress
-    def _hours_get(self, cr, uid, ids, field_names, args, context=None):
+    def _hours_get(self, field_names, args):
         res = {}
-        for task in self.browse(cr, uid, ids, context=context):
+        for task in self:
             res[task.id] = {
                 'effective_hours': 0.0,
                 'remaining_hours': task.planned_hours,
@@ -56,9 +56,9 @@ class task(models.Model):
                 'total_hours': task.planned_hours,
                 'delay_hours': 0.0,
             }
-        tasks_data = self.pool['account.analytic.line'].read_group(cr, uid, [('task_id', 'in', ids)], ['task_id','unit_amount'], ['task_id'], context=context)
+        tasks_data = self.env['account.analytic.line'].read_group([('task_id', 'in')], ['task_id','unit_amount'], ['task_id'])
         for data in tasks_data:
-            task = self.browse(cr, uid, data['task_id'][0], context=context)
+            task = self.search([('task_id', 'in', data['task_id'][0])])
             res[data['task_id'][0]] = {'effective_hours': data.get('unit_amount', 0.0), 'remaining_hours': task.planned_hours - data.get('unit_amount', 0.0)}
             res[data['task_id'][0]]['total_hours'] = res[data['task_id'][0]]['remaining_hours'] + data.get('unit_amount', 0.0)
             res[data['task_id'][0]]['delay_hours'] = res[data['task_id'][0]]['total_hours'] - task.planned_hours
@@ -70,9 +70,9 @@ class task(models.Model):
                 res[data['task_id'][0]]['progress'] = 100.0
         return res
 
-    def _get_task(self, cr, uid, id, context=None):
+    def _get_task(id):
         res = []
-        for line in self.pool.get('account.analytic.line').search_read(cr,uid,[('task_id', '!=', False),('id','in',id)], ['task_id'], context=context):
+        for line in self.env['account.analytic.line'].search_read([('task_id', '!=', False),('id','in',id)], ['task_id']):
             res.append(line['task_id'][0])
         return res
 
@@ -85,7 +85,7 @@ class task(models.Model):
         multi='line_id',
         help="Total remaining time, can be re-estimated periodically by the assignee of the task.",
         store = {
-            'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
+            'project.task': (lambda self, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
             'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
         })
     effective_hours = fields.Float(
@@ -93,7 +93,7 @@ class task(models.Model):
         string='Hours Spent',
         multi='line_id', help="Computed using the sum of the task work done.",
         store = {
-            'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
+            'project.task': (lambda self, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
             'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
         })
     total_hours = fields.Float(
@@ -101,7 +101,7 @@ class task(models.Model):
         string='Total',
         multi='line_id', help="Computed as: Time Spent + Remaining Time.",
         store = {
-            'project.task': (lambda self, cr, uid, ids, c={}: ids, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
+            'project.task': (lambda self, ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
             'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
         })
     progress = fields.Float(
@@ -112,7 +112,7 @@ class task(models.Model):
         help="If the task has a progress of 99.99% you should close the task if it's finished or reevaluate the time",
         default=0,
         store = {
-            'project.task': (lambda self, cr, uid, ids, c={}: ids,
+            'project.task': (lambda self,
                              ['timesheet_ids', 'remaining_hours', 'planned_hours', 'state', 'stage_id'], 10),
             'account.analytic.line': (
                 _get_task, ['task_id', 'unit_amount'], 10),
@@ -123,7 +123,7 @@ class task(models.Model):
         multi='line_id',
         help="Computed as difference between planned hours by the project manager and the total hours of the task.",
         store = {
-            'project.task': (lambda self, cr, uid, ids, c={}: ids,
+            'project.task': (lambda self,
                              ['timesheet_ids', 'remaining_hours', 'planned_hours'], 10),
             'account.analytic.line': (_get_task, ['task_id', 'unit_amount'], 10),
         })
@@ -135,9 +135,9 @@ class task(models.Model):
         related='project_id.analytic_account_id',
         relation='account.analytic.account', string='Analytic Account', store=True)
 
-    def _prepare_delegate_values(self, cr, uid, ids, delegate_data, context=None):
-        vals = super(task, self)._prepare_delegate_values(cr, uid, ids, delegate_data, context)
-        for task in self.browse(cr, uid, ids, context=context):
+    def _prepare_delegate_values(self, delegate_data):
+        vals = super(task, self)._prepare_delegate_values(delegate_data)
+        for task in self:
             vals[task.id]['planned_hours'] += task.effective_hours
         return vals
 
@@ -145,12 +145,11 @@ class task(models.Model):
 class res_partner(models.Model):
     _inherit = 'res.partner'
 
-    def unlink(self, cursor, user, ids, context=None):
-        parnter_id=self.pool.get('project.project').search(cursor, user, [('partner_id', 'in', ids)])
+    def unlink(self, ids):
+        parnter_id=self.env['project.project'].search([('partner_id', 'in', ids)])
         if parnter_id:
             raise UserError(_('You cannot delete a partner which is assigned to project, but you can uncheck the active box.'))
-        return super(res_partner,self).unlink(cursor, user, ids,
-                context=context)
+        return super(res_partner,self).unlink(ids)
 
 class account_analytic_line(models.Model):
     _inherit = "account.analytic.line"
