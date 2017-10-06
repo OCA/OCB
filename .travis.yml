@@ -1,0 +1,61 @@
+cache:
+  - pip: true
+  - directories:
+    - "travis_phantomjs"
+
+addons:
+  apt:
+    sources:
+      - pov-wkhtmltopdf
+    packages:
+      - expect-dev  # provides unbuffer utility
+      - python-lxml # because pip installation is slow
+      - poppler-utils # document index
+      - antiword # document index
+      - python-ldap # auth_ldap
+      - wkhtmltopdf # report_webkit
+
+language: python
+sudo: false
+
+python:
+  - "2.7"
+
+env:
+  - VERSION="10.0" ODOO_REPO="OCA/OCB" LINT_CHECK="0" EXTRA_EXCLUDE="auth_ldap,base_gengo,hw_blackbox_be,hw_escpos,hw_posbox_homepage,hw_posbox_upgrade,hw_proxy,hw_scale,hw_scanner,l10n_ae,l10n_ar,l10n_at,l10n_au,l10n_be,l10n_be_hr_payroll,l10n_be_hr_payroll_account,l10n_be_intrastat,l10n_be_invoice_bba,l10n_bo,l10n_br,l10n_ca,l10n_ch,l10n_cl,l10n_cn,l10n_cn_small_business,l10n_cn_standard,l10n_co,l10n_cr,l10n_de,l10n_de_skr03,l10n_de_skr04,l10n_do,l10n_ec,l10n_es,l10n_et,l10n_eu_service,l10n_fr,l10n_fr_fec,l10n_fr_hr_payroll,l10n_gr,l10n_gt,l10n_hn,l10n_hr,l10n_hu,l10n_in,l10n_in_hr_payroll,l10n_it,l10n_jp,l10n_lu,l10n_ma,l10n_multilang,l10n_mx,l10n_nl,l10n_no,l10n_nz,l10n_pa,l10n_pe,l10n_pl,l10n_pt,l10n_ro,l10n_sa,l10n_sg,l10n_si,l10n_syscohada,l10n_th,l10n_tr,l10n_uk,l10n_uy,l10n_ve,l10n_vn,pos_cache,theme_bootswatch,theme_default,website_gengo,test_pylint"
+
+virtualenv:
+  system_site_packages: true
+
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  # phantomjs > 2.0 required for MutationObserver API support
+  - "export PHANTOMJS_VERSION=2.1.1"
+  - "phantomjs --version"
+  - "export PATH=$PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64/bin:$PATH"
+  - "phantomjs --version"
+  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then rm -rf $PWD/travis_phantomjs; mkdir -p $PWD/travis_phantomjs; fi"
+  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then wget https://github.com/Medium/phantomjs/releases/download/v$PHANTOMJS_VERSION/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -O $PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2; fi"
+  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then tar -xvf $PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -C $PWD/travis_phantomjs; fi"
+  - "phantomjs --version"
+
+install:
+  - ln -s ${HOME}/build/${ODOO_REPO} ${HOME}/${ODOO_REPO#*/}-${VERSION}
+  - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+  - pip install -r ${HOME}/maintainer-quality-tools/travis/requirements.txt
+  - pip install -q QUnitSuite flake8 coveralls pylint
+  - ln -s `which nodejs` $HOME/maintainer-quality-tools/travis/node
+  - npm install less less-plugin-clean-css
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - export INCLUDE=$(getaddons.py -m ${HOME}/build/${ODOO_REPO}/odoo/addons ${HOME}/build/${ODOO_REPO}/addons)
+  - export EXCLUDE=hw_scanner,hw_escpos,$EXTRA_EXCLUDE
+  - cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
+
+script:
+  - SERVER_PATH=${HOME}/${ODOO_REPO#*/}-${VERSION}
+  - export TRAVIS_BUILD_DIR=${SERVER_PATH}/odoo/addons
+  - travis_run_tests
+
+after_success:
+  - travis_after_tests_success
