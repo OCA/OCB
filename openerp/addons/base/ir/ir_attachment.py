@@ -8,7 +8,7 @@ import mimetypes
 import os
 import re
 
-from openerp import SUPERUSER_ID, tools
+from openerp import SUPERUSER_ID, tools, api
 from openerp.exceptions import AccessError
 from openerp.osv import fields,osv
 from openerp.tools.translate import _
@@ -250,7 +250,7 @@ class ir_attachment(osv.osv):
         'company_id': fields.many2one('res.company', 'Company', change_default=True),
         'type': fields.selection( [ ('url','URL'), ('binary','File'), ],
                 'Type', help="You can either upload a file from your computer or copy/paste an internet link to your file", required=True, change_default=True),
-        'url': fields.char('Url', size=1024),
+        'url': fields.char('Url', size=1024, index=True),
         # al: We keep shitty field names for backward compatibility with document
         'datas': fields.function(_data_get, fnct_inv=_data_set, string='File Content', type="binary", nodrop=True),
         'store_fname': fields.char('Stored Filename'),
@@ -398,6 +398,8 @@ class ir_attachment(osv.osv):
             vals.pop(field, False)
         if 'mimetype' in vals or 'datas' in vals:
             vals = self._check_contents(cr, uid, vals, context=context)
+        if 'url' in vals:
+            self._get_asset_attachments.clear_cache(self)
         return super(ir_attachment, self).write(cr, uid, ids, vals, context)
 
     def copy(self, cr, uid, id, default=None, context=None):
@@ -416,6 +418,7 @@ class ir_attachment(osv.osv):
         to_delete = set([a.store_fname for a in self.browse(cr, uid, ids, context=context)
                          if a.store_fname])
         res = super(ir_attachment, self).unlink(cr, uid, ids, context)
+        self._get_asset_attachments.clear_cache(self)
         for file_path in to_delete:
             self._file_delete(cr, uid, file_path)
 
@@ -427,8 +430,25 @@ class ir_attachment(osv.osv):
             values.pop(field, False)
         values = self._check_contents(cr, uid, values, context=context)
         self.check(cr, uid, [], mode='write', context=context, values=values)
+        if 'url' in values:
+            self._get_asset_attachments.clear_cache(self)
         return super(ir_attachment, self).create(cr, uid, values, context)
 
     def action_get(self, cr, uid, context=None):
         return self.pool.get('ir.actions.act_window').for_xml_id(
             cr, uid, 'base', 'action_attachment', context=context)
+
+    @api.model
+    @tools.ormcache('version', 'xmlid', 'inc', 'asset_type')
+    def _get_asset_attachments(self, version, xmlid, inc, asset_type):
+        """return assets for a view given by its xmlid"""
+        domain = [
+            # this first proposition is not really necessary, but nudges
+            # postgres into using the index on url
+            ('url', '!=', False),
+            ('url', '=like', '/web/content/%%-%s/%s%s.%s' % (
+                version, xmlid,
+                ('%%' if inc is None else '.%s' % inc), asset_type)
+            )
+        ]
+        return self.search(domain, order='name asc')
