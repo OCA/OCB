@@ -30,7 +30,7 @@
                     <label for="use_timesheets"/>
                 </xpath>
                 <xpath expr='//div[@name="buttons"]' position="inside">
-                    <button class="oe_inline oe_stat_button" name="open_timesheets" type="object" attrs="{'invisible':[('use_timesheets','=', 0)]}"
+                    <button class="oe_inline oe_stat_button" name="open_timesheets" type="object" attrs="{'invisible':[('use_timesheets','=', False)]}"
                         icon="fa-calendar" string="Timesheets"/>
                 </xpath>
             </field>
