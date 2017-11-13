@@ -7,7 +7,7 @@ from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.utils import COMMASPACE, formataddr, formatdate, getaddresses, make_msgid
+from email.utils import COMMASPACE, formataddr, formatdate, getaddresses, make_msgid, parseaddr
 import logging
 import re
 import smtplib
@@ -15,7 +15,7 @@ import threading
 
 from odoo import api, fields, models, tools, _
 from odoo.exceptions import except_orm, UserError
-from odoo.tools import html2text, ustr
+from odoo.tools import email_split, html2text, ustr
 
 _logger = logging.getLogger(__name__)
 _test_logger = logging.getLogger('odoo.tests')
@@ -427,6 +427,7 @@ class IrMailServer(models.Model):
             smtp_port = mail_server.smtp_port
             smtp_encryption = mail_server.smtp_encryption
             smtp_debug = smtp_debug or mail_server.smtp_debug
+            mail_server._update_message_from(message)
         else:
             # we were passed an explicit smtp_server or nothing at all
             smtp_server = smtp_server or tools.config.get('smtp_server')
@@ -463,6 +464,70 @@ class IrMailServer(models.Model):
             _logger.info(msg)
             raise MailDeliveryException(_("Mail Delivery Failed"), msg)
         return message_id
+
+    @api.multi
+    def _get_rewritten_from(self, original_from):
+        """Returns a FROM header to respect the SMTP server settings.
+
+        Args:
+            original_from (str): The original FROM header for the message.
+
+        Returns:
+            str: A string that should be used in a message header.
+        """
+        # Use the canonical name, if existing.
+        address = parseaddr(original_from)
+        # Otherwise we use the name part of the email address.
+        if not address[0]:
+            address[0] = address[1].split('@', 1)[0]
+        rewritten_name = _('%(author)s via %(company)s') % {
+            'author': address[0],
+            'company': self.env.user.company_id.name,
+        }
+        return formataddr((rewritten_name, self._get_default_bounce_address()))
+
+    @api.model
+    def _get_rewrite_from_whitelist(self):
+        """Return a list of domains that this system is allowed to send from.
+
+        Returns:
+            list(str): Domains that this system can send authenticated emails
+                for.
+        """
+        whitelist = self.env['ir.config_parameter'].sudo().get_param(
+            'mail.rewrite_from.whitelist', default='',
+        )
+        if whitelist.strip():
+            return [line.strip() for line in whitelist.split(',')]
+
+    @api.multi
+    def _update_message_from(self, message):
+        """Update the FROM header on message to align with server settings.
+
+        Args:
+            message (email.message): The message object to be evaluated and
+                possibly mutated.
+        """
+
+        self.ensure_one()
+
+        domain_catchall = self.env['ir.config_parameter'].sudo().get_param(
+            'mail.catchall.domain',
+        )
+        # Without a catchall domain, we do not have an address to send from
+        if not domain_catchall:
+            return
+
+        whitelist = self._get_rewrite_from_whitelist()
+        address = email_split(message['From'])[0]
+        domain_email = address.split('@', 1)[1]
+
+        if not whitelist or domain_email in whitelist:
+            return
+
+        message.replace_header(
+            'From', self._get_rewritten_from(message['From']),
+        )
 
     @api.onchange('smtp_encryption')
     def _onchange_encryption(self):
