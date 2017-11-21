@@ -5021,7 +5021,6 @@ instance.web.form.Many2ManyListView = instance.web.ListView.extend(/** @lends in
             });
         }
      },
-    is_action_enabled: function () { return true; },
 });
 instance.web.form.Many2ManyList = instance.web.form.AddAnItemList.extend({
     _add_row_class: 'oe_form_field_many2many_list_row_add',
