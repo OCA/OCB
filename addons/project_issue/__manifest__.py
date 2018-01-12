@@ -17,6 +17,7 @@ It allows the manager to quickly check the issues, assign them and decide on the
     'website': 'https://www.odoo.com/page/project-management',
     'depends': [
         'project',
+        'portal',
     ],
     'data': [
         'data/mail_message_subtype_data.xml',
