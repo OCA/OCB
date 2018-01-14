@@ -18,6 +18,7 @@ from odoo import registry as registry_get
 from odoo.addons.auth_signup.controllers.main import AuthSignupHome as Home
 from odoo.addons.web.controllers.main import db_monodb, ensure_db, set_cookie_and_redirect, login_and_redirect
 
+import urllib
 
 _logger = logging.getLogger(__name__)
 
@@ -129,7 +130,10 @@ class OAuthController(http.Controller):
     @http.route('/auth_oauth/signin', type='http', auth='none')
     @fragment_to_query_string
     def signin(self, **kw):
-        state = json.loads(kw['state'])
+        tmp_state = urllib.unquote(kw['state'])
+        while urllib.unquote(tmp_state) != tmp_state:
+            tmp_state = urllib.unquote(tmp_state)
+        state = json.loads(tmp_state)
         dbname = state['d']
         provider = state['p']
         context = state.get('c', {})
