@@ -21,7 +21,10 @@ class sale_order_dates(osv.osv):
             for pick in order.picking_ids:
                 dates_list.append(pick.date)
             if dates_list:
-                res[order.id] = min(dates_list)
+                if self.picking_policy == 'one'
+                   res[order.id] = max(dates_list)
+                else:
+                   res[order.id] = min(dates_list)
             else:
                 res[order.id] = False
         return res
