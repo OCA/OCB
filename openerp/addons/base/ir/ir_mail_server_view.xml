@@ -15,6 +15,7 @@
                         <field name="smtp_host"/>
                         <field name="smtp_port"/>
                         <field name="smtp_debug" groups="base.group_no_one"/>
+                        <field name="smtp_timeout"/>
                      </group>
                      <group string="Security and Authentication" colspan="4">
                         <field name="smtp_encryption" on_change="on_change_encryption(smtp_encryption)"/>

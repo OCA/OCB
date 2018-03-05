@@ -236,6 +236,8 @@ class configmanager(object):
                          help='specify the SMTP username for sending email')
         group.add_option('--smtp-password', dest='smtp_password', my_default=False,
                          help='specify the SMTP password for sending email')
+        group.add_option('--smtp-timeout', dest='smtp_timeout', type="float",
+                         help='if greater than zero, the timeout in seconds for SMTP connections')
         parser.add_option_group(group)
 
         group = optparse.OptionGroup(parser, "Database related options")
