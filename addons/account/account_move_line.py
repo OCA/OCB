@@ -946,10 +946,10 @@ class account_move_line(osv.osv):
                     if not line2.reconcile_id:
                         if line2.id not in merges:
                             merges.append(line2.id)
-                        if line2.account_id.currency_id:
-                            total += line2.amount_currency
-                        else:
-                            total += (line2.debit or 0.0) - (line2.credit or 0.0)
+                            if line2.account_id.currency_id:
+                                total += line2.amount_currency
+                            else:
+                                total += (line2.debit or 0.0) - (line2.credit or 0.0)
                 merges_rec.append(line.reconcile_partial_id.id)
             else:
                 unmerge.append(line.id)

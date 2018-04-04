@@ -18,7 +18,13 @@ python:
   - "2.7"
 
 env:
+  global:
   - VERSION="8.0" ODOO_REPO="OCA/OCB" LINT_CHECK="0"
+
+  matrix:
+  - INCLUDE="base,base_setup,board,web,edi,web_kanban,web_kanban_sparkline,web_kanban_gauge,web_analytics,web_diagram,web_api,web_tests,web_graph,web_gantt,report,web_view_editor,base_iban,analytic,account,product,procurement,stock,sale,sale_stock,sales_team,crm,purchase,mrp,mail,base_import,test_access_rights,test_impex,test_new_api,test_converter,test_convert,test_documentation_examples,test_exceptions,test_inherit,test_workflow,test_limits,test_inherits,test_uninstall,resource,email_template,fetchmail,account_voucher,base_action_rule,calendar,decimal_precision,stock_account"
+  - INCLUDE="website_event,sale_margin,analytic_contract_hr_expense,payment_buckaroo,contacts,project_issue_sheet,google_calendar,sale_order_dates,mass_mailing,sale_analytic_plans,website_google_map,hr_payroll_account,product_extended,delivery,hr_expense,marketing_campaign,hr_gamification,website_certification,hr_applicant_document,website_mail_group,stock_invoice_directly,multi_company,association,google_account,payment_authorize,hr_contract,website_crm_partner_assign,base_report_designer,project_issue,account_analytic_default,account_bank_statement_extensions,sale_service,hr_evaluation,lunch,website_sale,website_report,marketing_crm,base_import_module,website_membership,anonymization,note_pad,account_payment,base_geolocalize,hr_payroll,hw_proxy,payment_paypal,stock_dropshipping,auth_crypt,document,website_instantclick,hr_attendance,sale_journal,payment_ogone,payment_transfer,marketing,website_crm,payment,crm_mass_mailing,stock_picking_wave,claim_from_delivery,membership,website_payment,website_gengo,account_chart,account_anglo_saxon,crm_helpdesk,website,knowledge,purchase_requisition,survey_crm,google_spreadsheet,auth_ldap,sale_layout,website_sale_options,account_asset,event_sale,product_expiry,payment_adyen,marketing_campaign_crm_demo,account_test,product_margin,survey,account_analytic_plans,warning,portal_project_issue,share,crm_project_issue,report_intrastat,base_vat,event,hw_scale,portal,hw_escpos,report_webkit,portal_sale,account_accountant,google_drive,procurement_jit_stock,web_linkedin,portal_claim,account_cancel,pad_project,im_livechat,website_event_sale,website_project,website_mail,website_sale_delivery,account_budget,mrp_repair,portal_project,website_event_track,pad,hr,mrp_operations,base_gengo,website_customer,pos_restaurant,hr_recruitment,payment_sips,hr_holidays,anglo_saxon_dropshipping,website_hr,website_livechat,mrp_byproduct,hr_timesheet,auth_openid,gamification_sale_crm,auth_oauth,crm_profiling,project_timesheet,web_calendar,hr_timesheet_sheet,website_partner,website_blog,pos_discount,project,web_tests_demo,portal_gamification,portal_stock,crm_claim,point_of_sale,note,im_odoo_support,hw_blackbox_be,website_twitter,auth_signup,sale_mrp,account_followup,subscription,hw_scanner,analytic_user_function,im_chat,fleet,bus,crm_partner_assign,website_quote,product_visible_discount,sale_crm,purchase_double_validation,hr_timesheet_invoice,website_forum_doc,account_sequence,purchase_analytic_plans,product_email_template,procurement_jit,website_hr_recruitment,website_forum,account_analytic_analysis,gamification,account_check_writing,stock_landed_costs"
+  - INCLUDE="l10n_ro,l10n_be,l10n_it,l10n_de,l10n_at,l10n_fr_rib,l10n_th,l10n_be_hr_payroll_account,l10n_eu_service,l10n_et,l10n_ae,l10n_multilang,l10n_cn,l10n_be_intrastat,l10n_be_coda,l10n_vn,l10n_sg,l10n_nl,l10n_hr,l10n_gt,l10n_jp,l10n_be_hr_payroll,l10n_tr,l10n_si,l10n_ma,l10n_pl,l10n_pa,l10n_no,l10n_es,l10n_hn,l10n_ec,l10n_ch,l10n_in,l10n_br,l10n_cr,l10n_ve,l10n_hu,l10n_pt,l10n_cl,l10n_fr,l10n_in_hr_payroll,l10n_sa,l10n_lu,l10n_bo,l10n_mx,l10n_ca,l10n_ar,l10n_be_invoice_bba,l10n_uy,l10n_us,l10n_gr,l10n_do,l10n_uk,l10n_syscohada,l10n_fr_hr_payroll,l10n_pe,l10n_co"
 
 virtualenv:
   system_site_packages: true
@@ -34,7 +40,6 @@ install:
   - pip install -Ur ${HOME}/build/${ODOO_REPO}/requirements.txt
   - pip install -q QUnitSuite flake8 coveralls pylint
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  - export INCLUDE=$(getaddons.py -m ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons)
   - export EXCLUDE=hw_scanner,hw_escpos
   - cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
 

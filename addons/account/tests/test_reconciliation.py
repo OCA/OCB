@@ -269,3 +269,41 @@ class TestReconciliation(TransactionCase):
                 counterpart_exchange_loss_line = line
         #  We should be able to find a move line of 0.01 EUR on the Foreign Exchange Loss account
         self.assertTrue(counterpart_exchange_loss_line, 'There should be one move line of 0.01 EUR on account "Foreign Exchange Loss"')
+
+    def test_merged_partial_reconciliation(self):
+        """ https://github.com/odoo/odoo/issues/5810
+        Fix calculation of total amount so that no full reconciliation is
+        attempted on the combination of 15, -7.5 and -15. """
+        def create_move(amount, account, journal):
+            move = self.env['account.move'].create({
+                'journal_id': journal.id,
+            })
+            self.env['account.move.line'].create({
+                'move_id': move.id,
+                'debit': -amount if amount < 0 else 0.0,
+                'credit': amount if amount > 0 else 0.0,
+                'account_id': account.id,
+                'name': 'counterpart',
+            })
+            return self.env['account.move.line'].create({
+                'move_id': move.id,
+                'debit': amount if amount > 0 else 0.0,
+                'credit': -amount if amount < 0 else 0.0,
+                'account_id': self.account_rcv_id,
+                'name': 'receivable',
+            })
+
+        sale = create_move(
+            15, self.env.ref('account.a_sale'),
+            self.env.ref('account.sales_journal'))
+        bank1 = create_move(
+            -7.5, self.env.ref('account.a_pay'),
+            self.env.ref('account.bank_journal'))
+        bank2 = create_move(
+            -15, self.env.ref('account.a_pay'),
+            self.env.ref('account.bank_journal'))
+
+        (sale + bank1).reconcile_partial()
+        self.assertEqual(sale.amount_residual, 7.5)
+        (sale + bank1 + bank2).reconcile_partial()
+        self.assertEqual(sale.amount_residual, -7.5)
