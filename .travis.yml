@@ -18,7 +18,13 @@ python:
   - "2.7"
 
 env:
+  global:
   - VERSION="8.0" ODOO_REPO="OCA/OCB" LINT_CHECK="0" WEBSITE_REPO="1"
+
+matrix:
+  - export INCLUDE=$(getaddons.py -m --only-applications ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons)
+  - export INCLUDE=$(getaddons.py -m --exclude-applications --exclude-localization ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons)
+  - export INCLUDE=$(getaddons.py -m --only-localization ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons)
 
 virtualenv:
   system_site_packages: true
@@ -29,7 +35,9 @@ before_install:
 
 install:
   - ln -s ${HOME}/build/${ODOO_REPO} ${HOME}/${ODOO_REPO#*/}-${VERSION}
-  - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+  # - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+  # Temporary branch with filter feature
+  - git clone --depth=1 https://stefanrijnhart/OCA/maintainer-quality-tools.git -b add/getaddons_filters ${HOME}/maintainer-quality-tools
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - travis_install_nightly
   - export INCLUDE=$(getaddons.py -m ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons)
