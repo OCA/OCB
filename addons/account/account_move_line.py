@@ -1064,7 +1064,8 @@ class account_move_line(osv.osv):
                 'journal_id': writeoff_journal_id,
                 'date':date,
                 'state': 'draft',
-                'line_id': writeoff_lines
+                'line_id': writeoff_lines,
+                'ref': "write-off small amounts"
             })
 
             writeoff_line_ids = self.search(cr, uid, [('move_id', '=', writeoff_move_id), ('account_id', '=', account_id)])
