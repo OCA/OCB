@@ -1062,11 +1062,10 @@ class account_move_line(osv.osv):
             writeoff_move_id = move_obj.create(cr, uid, {
                 'period_id': writeoff_period_id,
                 'journal_id': writeoff_journal_id,
-                'date':date,
+                'date': date,
                 'state': 'draft',
                 'line_id': writeoff_lines,
-                'ref': "write-off small amounts"
-            })
+            }, context=context)
 
             writeoff_line_ids = self.search(cr, uid, [('move_id', '=', writeoff_move_id), ('account_id', '=', account_id)])
             if account_id == writeoff_acc_id:
