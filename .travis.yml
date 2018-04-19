@@ -20,7 +20,7 @@ python:
 
 env:
   global:
-  - VERSION="9.0" ODOO_REPO="OCA/OCB" LINT_CHECK="0" WEBSITE_REPO="1"
+  - VERSION="9.0" ODOO_REPO="OCA/OCB" LINT_CHECK="0" WEBSITE_REPO="1" TESTS="0"
   matrix:
   - INCLUDE=applications
   - INCLUDE=no_applications TESTS="1"
