@@ -48,6 +48,8 @@ script:
         export INCLUDE=$(getaddons.py -m --exclude-applications --exclude-localization ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons);
     elif [ $INCLUDE = 'localization' ]; then
         export INCLUDE=$(getaddons.py -m --only-localization ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons);
+        # Avoiding auto-install generic_coa
+        find ${HOME} -name __openerp__.py -exec sed -i "/'_auto_install_l10n'/d" {} \;
     fi
   - SERVER_PATH=${HOME}/${ODOO_REPO#*/}-${VERSION}
   - export TRAVIS_BUILD_DIR=${SERVER_PATH}/openerp/addons
