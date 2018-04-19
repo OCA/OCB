@@ -34,10 +34,10 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - ln -s ${HOME}/build/${ODOO_REPO} ${HOME}/${ODOO_REPO#*/}-${VERSION}
   - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - travis_install_nightly
+  - rm -rf ${HOME}/${ODOO_REPO#*/}-${VERSION}; ln -s ${HOME}/build/${ODOO_REPO} ${HOME}/${ODOO_REPO#*/}-${VERSION}
   - export EXCLUDE=hw_scanner,hw_escpos,theme_bootswatch
   - cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
 
