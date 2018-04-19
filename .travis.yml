@@ -44,6 +44,7 @@ install:
 script:
   - if [ $INCLUDE = 'applications' ]; then
         export INCLUDE=$(getaddons.py -m --only-applications ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons);
+        find ${HOME} -name __init__.py -exec sed -i  "/import test_crawl/d" {} \; ;
     elif [ $INCLUDE = 'no_applications' ]; then
         export INCLUDE=$(getaddons.py -m --exclude-applications --exclude-localization ${HOME}/build/${ODOO_REPO}/addons);
     elif [ $INCLUDE = 'localization' ]; then
