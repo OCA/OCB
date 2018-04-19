@@ -45,7 +45,7 @@ script:
   - if [ $INCLUDE = 'applications' ]; then
         export INCLUDE=$(getaddons.py -m --only-applications ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons);
     elif [ $INCLUDE = 'no_applications' ]; then
-        export INCLUDE=$(getaddons.py -m --exclude-applications --exclude-localization ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons);
+        export INCLUDE=$(getaddons.py -m --exclude-applications --exclude-localization ${HOME}/build/${ODOO_REPO}/addons);
     elif [ $INCLUDE = 'localization' ]; then
         export INCLUDE=$(getaddons.py -m --only-localization ${HOME}/build/${ODOO_REPO}/openerp/addons ${HOME}/build/${ODOO_REPO}/addons);
         find ${HOME} -name __openerp__.py -exec sed -i "/'_auto_install_l10n'/d" {} \; ;
