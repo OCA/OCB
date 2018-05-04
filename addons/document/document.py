@@ -35,7 +35,7 @@ from openerp import netsvc
 from openerp import pooler
 from openerp import tools
 from openerp import SUPERUSER_ID
-from openerp.osv import fields, osv
+from openerp.osv import fields, osv, expression
 from openerp.osv.orm import except_orm
 from openerp.tools.misc import ustr
 from openerp.tools.translate import _
@@ -159,6 +159,27 @@ class document_file(osv.osv):
             bro = obj_model.browse(cr, uid, res_id, context=context)
             return bro.partner_id.id
         return False
+
+    def read_group(self, cr, uid, domain, fields, groupby, offset=0,
+                   limit=None, context=None, orderby=False):
+        """ Gouping breaks for unprivileged users if the sql statement
+        within read_group happens to select an inaccessible document
+        """
+        if uid != SUPERUSER_ID:
+            accessible_domain = [
+                ('id', 'in', self.search(cr, uid, domain, context=context)),
+            ]
+            if domain:
+                domain = expression.AND([
+                    expression.normalize_domain(domain),
+                    accessible_domain,
+                ])
+            else:
+                domain = accessible_domain
+        return super(document_file, self).read_group(
+            cr, uid, domain, fields, groupby, offset=offset, limit=limit,
+            context=context, orderby=orderby)
+
 
 class document_directory(osv.osv):
     _name = 'document.directory'
