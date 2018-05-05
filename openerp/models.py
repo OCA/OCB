@@ -1052,6 +1052,7 @@ class BaseModel(object):
         mode = 'init'
         current_module = ''
         noupdate = False
+        bulk = context and context.get('bulk_mode')
 
         ids = []
         for id, xid, record, info in self._convert_records(cr, uid,
@@ -1059,7 +1060,8 @@ class BaseModel(object):
                                       context=context, log=messages.append),
                 context=context, log=messages.append):
             try:
-                cr.execute('SAVEPOINT model_load_save')
+                if not bulk:
+                    cr.execute('SAVEPOINT model_load_save')
             except psycopg2.InternalError, e:
                 # broken transaction, exit and hope the source error was
                 # already logged
@@ -1071,17 +1073,26 @@ class BaseModel(object):
                 ids.append(ModelData._update(cr, uid, self._name,
                      current_module, record, mode=mode, xml_id=xid,
                      noupdate=noupdate, res_id=id, context=context))
-                cr.execute('RELEASE SAVEPOINT model_load_save')
+                if not bulk:
+                    cr.execute('RELEASE SAVEPOINT model_load_save')
             except psycopg2.Warning, e:
                 messages.append(dict(info, type='warning', message=str(e)))
-                cr.execute('ROLLBACK TO SAVEPOINT model_load_save')
+                if not bulk:
+                    cr.execute('ROLLBACK TO SAVEPOINT model_load_save')
+                else:
+                    # in bulk mode we fail early and are more touchy
+                    # about warnings
+                    break
             except psycopg2.Error, e:
                 messages.append(dict(
                     info, type='error',
                     **PGERROR_TO_OE[e.pgcode](self, fg, info, e)))
                 # Failed to write, log to messages, rollback savepoint (to
                 # avoid broken transaction) and keep going
-                cr.execute('ROLLBACK TO SAVEPOINT model_load_save')
+                if not bulk:
+                    cr.execute('ROLLBACK TO SAVEPOINT model_load_save')
+                else:
+                    break
             except Exception, e:
                 message = (_('Unknown error during import:') +
                            ' %s: %s' % (type(e), unicode(e)))
@@ -1091,8 +1102,15 @@ class BaseModel(object):
                                      moreinfo=moreinfo))
                 # Failed for some reason, perhaps due to invalid data supplied,
                 # rollback savepoint and keep going
-                cr.execute('ROLLBACK TO SAVEPOINT model_load_save')
-        if any(message['type'] == 'error' for message in messages):
+                if not bulk:
+                    cr.execute('ROLLBACK TO SAVEPOINT model_load_save')
+                else:
+                    break
+        if not bulk:
+            failures = ('error',)
+        else:
+            failures = ('error', 'warning')
+        if any(message['type'] in failures for message in messages):
             cr.execute('ROLLBACK TO SAVEPOINT model_load')
             ids = False
         return {'ids': ids, 'messages': messages}
