@@ -195,13 +195,21 @@ class stock_picking(osv.osv):
                 if move.purchase_line_id and move.purchase_line_id.order_id.invoice_method == 'picking':
                     if not move.move_orig_ids:
                         res[picking.id] = True
+                elif move.origin_returned_move_id and \
+                        move.location_dest_id.usage == 'internal':
+                    if not move.move_orig_ids:
+                        res[picking.id] = True
         return res
 
     def _get_picking_to_recompute(self, cr, uid, ids, context=None):
         picking_ids = set()
         for move in self.pool.get('stock.move').browse(cr, uid, ids, context=context):
-            if move.picking_id and move.purchase_line_id:
-                picking_ids.add(move.picking_id.id)
+            if move.picking_id:
+                if move.purchase_line_id or (
+                    move.origin_returned_move_id and
+                    move.location_dest_id.usage == 'internal'
+                ):
+                    picking_ids.add(move.picking_id.id)
         return list(picking_ids)
 
     _columns = {
