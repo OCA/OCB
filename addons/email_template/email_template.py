@@ -20,6 +20,7 @@
 #
 ##############################################################################
 
+from decimal import Decimal
 import base64
 import datetime
 import dateutil.relativedelta as relativedelta
@@ -70,6 +71,30 @@ def format_tz(pool, cr, uid, dt, tz=False, format=False, context=None):
         fdate = ts.strftime(format_date).decode('utf-8')
         ftime = ts.strftime(format_time).decode('utf-8')
         return "%s %s%s" % (fdate, ftime, (' (%s)' % tz) if tz else '')
+
+
+def format_amount(pool, cr, uid, amount, currency, context):
+    dec = Decimal(str(currency.rounding)).as_tuple().exponent
+    fmt = "%.{0}f".format(abs(dec))
+    lang = context.get("lang") or 'en_US'
+    if lang:
+        res_lang = pool.get('res.lang')
+        ids = res_lang.search(cr, uid, [("code", "=", lang)])
+        if ids:
+            lang_id = res_lang.browse(cr, uid, ids[0])
+            formatted_amount = lang_id.format(
+                fmt, currency.round(amount), grouping=True, monetary=True) \
+                .replace(r' ', u'\N{NO-BREAK SPACE}').replace(r'-', u'\u2011')
+
+    pre = post = u''
+    if currency.position == 'before':
+        pre = u'{symbol}\N{NO-BREAK SPACE}'.format(
+            symbol=currency.symbol or '')
+    else:
+        post = u'\N{NO-BREAK SPACE}{symbol}'.format(
+            symbol=currency.symbol or '')
+
+    return u'{pre}{0}{post}'.format(formatted_amount, pre=pre, post=post)
 
 try:
     # We use a jinja2 sandboxed environment to render mako templates.
@@ -200,6 +225,8 @@ class email_template(osv.osv):
         records = self.pool[model].browse(cr, uid, res_ids, context=context) or [None]
         variables = {
             'format_tz': lambda dt, tz=False, format=False, context=context: format_tz(self.pool, cr, uid, dt, tz, format, context),
+            'format_amount': lambda amount, currency, context=context:
+            format_amount(self.pool, cr, uid, amount, currency, context),
             'user': user,
             'ctx': context,  # context kw would clash with mako internals
         }
