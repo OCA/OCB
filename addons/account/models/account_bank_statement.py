@@ -567,6 +567,11 @@ class AccountBankStatementLine(models.Model):
         # Blue lines = payment on bank account not assigned to a statement yet
         reconciliation_aml_accounts = [self.journal_id.default_credit_account_id.id, self.journal_id.default_debit_account_id.id]
         domain_reconciliation = ['&', ('statement_id', '=', False), ('account_id', 'in', reconciliation_aml_accounts)]
+        fiscalyear_lock_date = self.env.user.company_id.fiscalyear_lock_date
+        if fiscalyear_lock_date:
+            domain_reconciliation.append(('date_maturity', '>', fiscalyear_lock_date))
+            # Remove when expression.OR works fine
+            domain_reconciliation.insert(0, '&')
 
         # Black lines = unreconciled & (not linked to a payment or open balance created by statement
         domain_matching = [('reconciled', '=', False)]
