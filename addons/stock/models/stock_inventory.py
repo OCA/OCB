@@ -391,7 +391,8 @@ class InventoryLine(models.Model):
         values.pop('product_name', False)
         if 'product_id' in values and 'product_uom_id' not in values:
             values['product_uom_id'] = self.env['product.product'].browse(values['product_id']).uom_id.id
-        existings = self.search([
+        # Modification OpenFire pour permettre de bypasser le test de doublon
+        existings = self._context.get('of_inventory_line_check_double', True) and self.search([
             ('product_id', '=', values.get('product_id')),
             ('inventory_id.state', '=', 'confirm'),
             ('location_id', '=', values.get('location_id')),

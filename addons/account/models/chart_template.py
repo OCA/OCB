@@ -126,6 +126,11 @@ class AccountChartTemplate(models.Model):
 
     @api.one
     def try_loading_for_current_company(self):
+        # OF : Désactivation du chargement automatique de plan comptable
+        # Fonction trop dangereuse, appelée à chaque mise à jour du module l10n_fr
+        # Et qui force la création d'un plan comptable pour la société courante de l'utilisateur admin
+        return
+
         self.ensure_one()
         company = self.env.user.company_id
         # If we don't have any chart of account on this company, install this chart of account

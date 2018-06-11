@@ -119,7 +119,7 @@ def setup_deps_debian(git_dir):
     debian_control = open(debian_control_path).read()
     debs = re.findall('python-[0-9a-z]+',debian_control)
     debs += ["postgresql"]
-    proc = subprocess.Popen(['sudo','apt-get','install'] + debs, stdin=open('/dev/tty'))
+    proc = subprocess.Popen(['sudo','apt-get', '-y', 'install'] + debs)
     proc.communicate()
 
 def cmd_setup_deps():

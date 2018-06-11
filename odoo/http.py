@@ -1376,7 +1376,9 @@ class Root(object):
         if db:
             if db not in db_filter([db], httprequest=httprequest):
                 _logger.warn("Logged into database '%s', but dbfilter "
-                             "rejects it; logging session out.", db)
+                             "rejects it; logging session out. "
+                             # Ajout OpenFire pour avoir le detail de l'url fautive
+                             "httprequest = %s", db, httprequest)
                 httprequest.session.logout()
                 db = None
 
@@ -1521,7 +1523,9 @@ def db_filter(dbs, httprequest=None):
     if d == "www" and r:
         d = r.partition('.')[0]
     if odoo.tools.config['dbfilter']:
-        r = odoo.tools.config['dbfilter'].replace('%h', h).replace('%d', d)
+        # Modification OpenFire pour modifier le db_filter en fonction de l'url de connexion
+        dbfilter = eval(odoo.tools.config.get('of_url_dbfilter', "{}")).get(h, odoo.tools.config['dbfilter'])
+        r = dbfilter.replace('%h', h).replace('%d', d)
         dbs = [i for i in dbs if re.match(r, i)]
     elif odoo.tools.config['db_name']:
         # In case --db-filter is not provided and --database is passed, Odoo will

@@ -463,10 +463,11 @@ class Home(http.Controller):
             request.uid = odoo.SUPERUSER_ID
 
         values = request.params.copy()
+        values['mono_db'] = len(http.db_list(True, request.httprequest)) == 1
         try:
             values['databases'] = http.db_list()
         except odoo.exceptions.AccessDenied:
-            values['databases'] = None
+            values['databases'] = [request.session.db]
 
         if request.httprequest.method == 'POST':
             old_uid = request.uid

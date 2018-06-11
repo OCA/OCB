@@ -64,8 +64,8 @@ class rml_parse(object):
             context = {}
         self.cr = cr
         self.uid = uid
-        env = odoo.api.Environment(cr, uid, context)
-        user = env['res.users'].browse(uid)
+        self.env = odoo.api.Environment(cr, uid, context)
+        user = self.env['res.users'].browse(uid)
         self.localcontext = {
             'user': user,
             'setCompany': self.setCompany,
