@@ -65,14 +65,16 @@ class ir_sequence(openerp.osv.osv.osv):
             if  element.implementation != 'standard':
                 res[element.id] = element.number_next
             else:
-                # get number from postgres sequence. Cannot use
-                # currval, because that might give an error when
-                # not having used nextval before.
-                statement = (
-                    "SELECT last_value, increment_by, is_called"
-                    " FROM ir_sequence_%03d"
-                    % element.id)
-                cr.execute(statement)
+                seq_id = "%03d" % element.id
+                query = """SELECT last_value,
+                                  (SELECT increment_by
+                                   FROM pg_sequences
+                                   WHERE sequencename = 'ir_sequence_%(seq_id)s'),
+                                  is_called
+                               FROM ir_sequence_%(seq_id)s"""
+                if cr._cnx.server_version < 100000:
+                    query = "SELECT last_value, increment_by, is_called FROM ir_sequence_%(seq_id)s"
+                cr.execute(query % {'seq_id': seq_id})
                 (last_value, increment_by, is_called) = cr.fetchone()
                 if is_called:
                     res[element.id] = last_value + increment_by
