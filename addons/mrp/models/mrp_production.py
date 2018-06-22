@@ -3,7 +3,9 @@
 
 from collections import defaultdict
 import math
+from datetime import timedelta
 
+from odoo.fields import Datetime as Dt
 from odoo import api, fields, models, _
 from odoo.addons import decimal_precision as dp
 from odoo.exceptions import UserError
@@ -299,6 +301,11 @@ class MrpProduction(models.Model):
         self.location_src_id = self.picking_type_id.default_location_src_id.id or location.id
         self.location_dest_id = self.picking_type_id.default_location_dest_id.id or location.id
 
+    @api.onchange('date_planned_start', 'product_id')
+    def onchange_date_planned(self):
+        self.date_planned_finished = Dt.from_string(
+            self.date_planned_start) + timedelta(days=self.product_id.produce_delay)
+
     @api.multi
     def write (self, vals):
         res = super(MrpProduction, self).write(vals)
@@ -349,8 +356,8 @@ class MrpProduction(models.Model):
     def _generate_finished_moves(self):
         move = self.env['stock.move'].create({
             'name': self.name,
-            'date': self.date_planned_start,
-            'date_expected': self.date_planned_start,
+            'date': self.date_planned_finished,
+            'date_expected': self.date_planned_finished,
             'product_id': self.product_id.id,
             'product_uom': self.product_uom_id.id,
             'product_uom_qty': self.product_qty,
