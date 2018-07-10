@@ -182,7 +182,7 @@ class mail_thread(osv.AbstractModel):
 
     def read_followers_data(self, cr, uid, follower_ids, context=None):
         result = []
-        for follower in self.pool.get('res.partner').browse(cr, uid, follower_ids, context=context):
+        for follower in self.pool.get('res.partner').browse(cr, SUPERUSER_ID, follower_ids, context=context):
             is_editable = self.pool['res.users'].has_group(cr, uid, 'base.group_no_one')
             is_uid = uid in map(lambda x: x.id, follower.user_ids)
             data = (follower.id,
