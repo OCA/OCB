@@ -1005,19 +1005,24 @@ class Field(object):
                 # we would simply lose their values during an onchange!
                 continue
 
-            target = env[field.model_name]
+            target = failed = env[field.model_name]
             computed = target.browse(env.computed[field])
             if path == 'id':
                 target = records - computed
             elif path:
-                target = (target.browse(env.cache[field]) - computed).filtered(
+                # Always invalidate special values
+                failed = target.browse([
+                    key for key, value in env.cache[field].iteritems()
+                    if isinstance(value, SpecialValue)
+                ])
+                target = (target.browse(env.cache[field]) - failed - computed).filtered(
                     lambda rec: rec._mapped_cache(path) & records
                 )
             else:
                 target = target.browse(env.cache[field]) - computed
 
             if target:
-                spec.append((field, target._ids))
+                spec.append((field, (target | failed)._ids))
 
         return spec
 
