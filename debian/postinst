@@ -7,6 +7,7 @@ ODOO_GROUP="odoo"
 ODOO_DATA_DIR=/var/lib/odoo
 ODOO_LOG_DIR=/var/log/odoo
 ODOO_USER="odoo"
+PYPI_DEPENDENCIES="pyPdf"
 
 case "${1}" in
     configure)
@@ -24,6 +25,11 @@ case "${1}" in
         chmod 0750 $ODOO_LOG_DIR
         # Data dir
         chown $ODOO_USER:$ODOO_GROUP $ODOO_DATA_DIR
+        # Install pypi dependencies
+        for i in ${PYPI_DEPENDENCIES};
+        do
+            pip install ${i}
+        done
         ;;
     *)
         ;;

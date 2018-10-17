@@ -238,6 +238,10 @@ instance.web.parse_value = function (value, descriptor, value_if_empty) {
                 throw new Error(_.str.sprintf(_t("'%s' is not a correct integer"), value));
             return tmp;
         case 'float':
+            var tmp = Number(value);
+            if (!isNaN(tmp))
+                return tmp;
+
             var tmp2 = value;
             do {
                 tmp = tmp2;

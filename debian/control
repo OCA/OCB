@@ -35,7 +35,7 @@ Depends:
  python-pychart,
  python-pydot,
  python-pyparsing,
- python-pypdf,
+ python-pypdf | python-pypdf2,
  python-reportlab,
  python-requests,
  python-simplejson,
@@ -46,6 +46,7 @@ Depends:
  python-werkzeug,
  python-xlwt,
  python-yaml,
+ python-pip,
 Conflicts: tinyerp-server, openerp-server, openerp-web, openerp
 Replaces: tinyerp-server, openerp-server, openerp-web, openerp
 Recommends:
