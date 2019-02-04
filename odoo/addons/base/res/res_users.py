@@ -378,9 +378,6 @@ class Users(models.Model):
             db = self._cr.dbname
             for id in self.ids:
                 self.__uid_cache[db].pop(id, None)
-        if any(key in values for key in self._get_session_token_fields()):
-            self._invalidate_session_cache()
-
         return res
 
     @api.multi
@@ -390,7 +387,6 @@ class Users(models.Model):
         db = self._cr.dbname
         for id in self.ids:
             self.__uid_cache[db].pop(id, None)
-        self._invalidate_session_cache()
         return super(Users, self).unlink()
 
     @api.model
@@ -530,7 +526,6 @@ class Users(models.Model):
                                 FROM res_users
                                 WHERE id=%%s""" % (session_fields), (self.id,))
         if self.env.cr.rowcount != 1:
-            self._invalidate_session_cache()
             return False
         data_fields = self.env.cr.fetchone()
         # generate hmac key
@@ -540,11 +535,6 @@ class Users(models.Model):
         h = hmac.new(key, data, sha256)
         # keep in the cache the token
         return h.hexdigest()
-
-    @api.multi
-    def _invalidate_session_cache(self):
-        """ Clear the sessions cache """
-        self._compute_session_token.clear_cache(self)
 
     @api.model
     def change_password(self, old_passwd, new_passwd):
