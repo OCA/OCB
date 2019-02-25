@@ -68,7 +68,7 @@ else:
             wkhtmltopdf_state = 'upgrade'
         else:
             wkhtmltopdf_state = 'ok'
-        if LooseVersion(version) >= LooseVersion('0.12.2'):
+        if LooseVersion(version) >= LooseVersion('0.12.2') and LooseVersion(version) < LooseVersion('0.12.5'):
             wkhtmltopdf_dpi_zoom_ratio = True
 
         if config['workers'] == 1:
