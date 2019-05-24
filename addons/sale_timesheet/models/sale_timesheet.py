@@ -63,7 +63,12 @@ class AccountAnalyticLine(models.Model):
                     'product_id': sol.product_id.id,
                 })
                 result = self._get_timesheet_cost(result)
-
+            else:
+                result.update({
+                    'so_line': False,
+                    'product_id': False,
+                })
+                result = self._get_timesheet_cost(result)
         result = super(AccountAnalyticLine, self)._get_sale_order_line(vals=result)
         return result
 
