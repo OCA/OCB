@@ -578,7 +578,25 @@ class MassMailing(models.Model):
         blacklist = {}
         target = self.env[self.mailing_model_real]
         mail_field = 'email' if 'email' in target._fields else 'email_from'
-        if 'opt_out' in target._fields:
+        if self.mailing_model_real == "mail.mass_mailing.contact":
+            # If user is opt_out on One list but not on another or if two user
+            # with same email address, one opted in and the other one
+            # opted out, send the mail anyway
+            query = """
+                SELECT lower(substring(email, '([^ ,;<@]+@[^> ,;]+)')), opt_out
+                FROM mail_mass_mailing_contact
+                WHERE id IN (
+                    SELECT contact_id
+                    FROM mail_mass_mailing_contact_list_rel
+                    WHERE list_id IN %s)
+                    AND substring(email, '([^ ,;<@]+@[^> ,;]+)') IS NOT NULL;
+            """
+            self._cr.execute(query, (tuple(self.contact_list_ids.ids),))
+            contacts = self._cr.fetchall()
+            opt_out_contacts = [c[0] for c in contacts if c[1]]
+            opt_in_contacts = [c[0] for c in contacts if not c[1]]
+            blacklist = set(c for c in opt_out_contacts if c not in opt_in_contacts)
+        elif 'opt_out' in target._fields:
             # avoid loading a large number of records in memory
             # + use a basic heuristic for extracting emails
             query = """
@@ -590,11 +608,12 @@ class MassMailing(models.Model):
             query = query % {'target': target._table, 'mail_field': mail_field}
             self._cr.execute(query)
             blacklist = set(m[0] for m in self._cr.fetchall())
+        else:
+            _logger.info("Mass-mailing %s targets %s, no blacklist available", self, target._name)
+        if blacklist:
             _logger.info(
                 "Mass-mailing %s targets %s, blacklist: %s emails",
                 self, target._name, len(blacklist))
-        else:
-            _logger.info("Mass-mailing %s targets %s, no blacklist available", self, target._name)
         return blacklist
 
     def _get_convert_links(self):
