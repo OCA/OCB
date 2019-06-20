@@ -496,7 +496,7 @@ class StockMove(models.Model):
                 to_assign[key] |= move
 
         # create procurements for make to order moves
-        procurements = self.env['procurement.order']
+        procurements = self.env['procurement.order'].with_context(procurement_autorun_defer=True)
         for move in move_create_proc:
             procurements |= procurements.create(move._prepare_procurement_from_move())
         if procurements:
