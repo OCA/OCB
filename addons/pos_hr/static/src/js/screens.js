@@ -18,7 +18,7 @@ ScreenWidget.include({
         var employees = this.pos.employees;
         var prom;
         for(var i = 0, len = employees.length; i < len; i++){
-            if(employees[i].barcode === code.code){
+            if(employees[i].barcode === Sha1.hash(code.code)){
                 if (employees[i].id !== this.pos.get_cashier().id && employees[i].pin) {
                     prom =  this.gui.ask_password(employees[i].pin).then(function(){
                         self.pos.set_cashier(employees[i]);
