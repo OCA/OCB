@@ -358,7 +358,11 @@ class AccountMove(models.Model):
         for move in self:
             if move.line_ids:
                 if not all([x.company_id.id == move.company_id.id for x in move.line_ids]):
-                    raise UserError(_("Cannot create moves for different companies."))
+                    info = [
+                        (move.company_id.name, x.company_id.name)
+                        for x in move.line_ids
+                        if x.company_id.id != move.company_id.id]
+                    raise UserError(_("Cannot create moves for different companies. %s " % info))
         self.assert_balanced()
         return self._check_lock_date()
 
