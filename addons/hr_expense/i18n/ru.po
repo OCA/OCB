@@ -3,14 +3,16 @@
 # * hr_expense
 # 
 # Translators:
-# Эдуард Манятовский <manyatovskiy@gmail.com>, 2016
+# Collex100, 2017
+# Vasiliy Korobatov <korobatov@gmail.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-23 13:27+0000\n"
-"PO-Revision-Date: 2017-06-23 13:27+0000\n"
-"Last-Translator: Эдуард Манятовский <manyatovskiy@gmail.com>, 2016\n"
+"PO-Revision-Date: 2016-09-07 09:21+0000\n"
+"Last-Translator: Vasiliy Korobatov <korobatov@gmail.com>, 2019\n"
 "Language-Team: Russian (https://www.transifex.com/odoo/teams/41243/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -82,8 +84,8 @@ msgid ""
 "<strong class=\"text-info\">[PRODUCT CODE]</strong> Free Description <strong"
 " class=\"text-primary\">PRICE</strong>"
 msgstr ""
-"<strong class=\"text-info\">ПРОДУКТ КОД]</strong> Бесплатная подписка<strong"
-" class=\"text-primary\">ЦЕНА</strong>"
+"<strong class=\"text-info\">[КОД ПРОДУКТА]</strong> Бесплатная "
+"подписка<strong class=\"text-primary\">ЦЕНА</strong>"
 
 #. module: hr_expense
 #: model:ir.ui.view,arch_db:hr_expense.report_expense_sheet
@@ -131,7 +133,7 @@ msgid ""
 "A payment of %s %s with the reference <a href='/mail/view?%s'>%s</a> related"
 " to your expense %s has been made."
 msgstr ""
-"Оплата%s %s со ссылкой<a href='/mail/view?%s'>%s</a> связанное с вашими "
+"Оплата %s %s со ссылкой<a href='/mail/view?%s'>%s</a> связанное с вашими "
 "расходами %s было сделано."
 
 #. module: hr_expense
@@ -188,15 +190,15 @@ msgid "All Expenses"
 msgstr "Все Расходы"
 
 #. module: hr_expense
+#: model:ir.model.fields,help:hr_expense.field_hr_expense_account_id
+msgid "An expense account is expected"
+msgstr "Ожидается счет расходов"
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_analytic_account_id
 #: model:ir.ui.view,arch_db:hr_expense.view_hr_expense_filter
 msgid "Analytic Account"
 msgstr "Аналитический счет"
-
-#. module: hr_expense
-#: model:ir.model.fields,help:hr_expense.field_hr_expense_account_id
-msgid "An expense account is expected"
-msgstr ""
 
 #. module: hr_expense
 #: model:ir.ui.view,arch_db:hr_expense.view_hr_expense_configuration
@@ -443,7 +445,7 @@ msgstr "Описание Расхода"
 #. module: hr_expense
 #: model:ir.ui.view,arch_db:hr_expense.view_hr_expense_configuration
 msgid "Expense Email Alias"
-msgstr "Расходы Email Алиас"
+msgstr "Email псевдоним Расходы"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_sheet_journal_id
@@ -476,7 +478,7 @@ msgstr "Статус отчета о расходах"
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_sheet_name
 msgid "Expense Report Summary"
-msgstr "Итоговый оОтчет о расходах"
+msgstr "Итоговый отчет о расходах"
 
 #. module: hr_expense
 #: model:ir.ui.menu,name:hr_expense.menu_hr_expense_sheet_my_reports
@@ -697,12 +699,12 @@ msgstr "Отдел кадров"
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_hr_expense_register_payment_wizard
 msgid "Hr Expense Register Payment wizard"
-msgstr "Мастер HR Расход регистратор платежей"
+msgstr "Мастер регистрации платежей расходов ОК"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_hr_expense_refuse_wizard
 msgid "Hr Expense refuse Reason wizard"
-msgstr "Мастер причина отказов Hr Расход"
+msgstr "Мастер причин отказа в расходах на персонал"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_config_settings_id
@@ -889,6 +891,18 @@ msgid ""
 msgstr ""
 "После того, как ваш почтовый шлюз настроен, вернуться к экрану\n"
 "                          настройки следующих шагов."
+
+#. module: hr_expense
+#: code:addons/hr_expense/models/hr_expense.py:537
+#, python-format
+msgid "Only HR Officers can approve expenses"
+msgstr "Только кадровики могут утверждать расходы"
+
+#. module: hr_expense
+#: code:addons/hr_expense/models/hr_expense.py:528
+#, python-format
+msgid "Only HR Officers can refuse expenses"
+msgstr "Только кадровики могут отказать в оплате расходов"
 
 #. module: hr_expense
 #: selection:hr.expense.sheet,state:0
@@ -1400,7 +1414,13 @@ msgid "You cannot delete a posted expense."
 msgstr "Вы не можете удалить опубликованный расход."
 
 #. module: hr_expense
-#: code:addons/hr_expense/models/hr_expense.py:559
+#: code:addons/hr_expense/models/hr_expense.py:446
+#, python-format
+msgid "You cannot delete a posted or paid expense."
+msgstr "Вы не можете удалить опубликованные или оплаченные расходы."
+
+#. module: hr_expense
+#: code:addons/hr_expense/models/hr_expense.py:576
 #, python-format
 msgid ""
 "You cannot have a positive and negative amounts on the same expense report."
@@ -1416,7 +1436,13 @@ msgstr ""
 "Вы не можете сообщать о расходах для разных сотрудников в одном отчете!"
 
 #. module: hr_expense
-#: code:addons/hr_expense/models/hr_expense.py:104
+#: code:addons/hr_expense/models/hr_expense.py:605
+#, python-format
+msgid "You cannot report expenses with different payment modes."
+msgstr "Вы не можете отчитываться о расходах с различными способами оплаты."
+
+#. module: hr_expense
+#: code:addons/hr_expense/models/hr_expense.py:105
 #, python-format
 msgid "You cannot report twice the same line!"
 msgstr "Вы не можете сообщить дважды одну и ту же строку!"

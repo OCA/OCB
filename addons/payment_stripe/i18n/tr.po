@@ -3,16 +3,19 @@
 # * payment_stripe
 # 
 # Translators:
-# Ediz Duman <neps1192@gmail.com>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
+# Martin Trigaux, 2016
 # eren b <inactive+erenbn@transifex.com>, 2016
+# Ediz Duman <neps1192@gmail.com>, 2016
+# Murat Kaplan <muratk@projetgrup.com>, 2017
+# Umur Akın <umura@projetgrup.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0c\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-07 08:57+0000\n"
-"PO-Revision-Date: 2016-09-07 08:57+0000\n"
-"Last-Translator: eren b <inactive+erenbn@transifex.com>, 2016\n"
+"PO-Revision-Date: 2016-09-07 09:24+0000\n"
+"Last-Translator: Umur Akın <umura@projetgrup.com>, 2019\n"
 "Language-Team: Turkish (https://www.transifex.com/odoo/teams/41243/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,11 +30,14 @@ msgid ""
 "product. As defined in your Stripe profile. See: "
 "https://stripe.com/docs/checkout"
 msgstr ""
+"Markanızın veya ürünün kare resmine yönlendiren ilişkili veya mutlak bir "
+"URL. Stripe porfilinde tanımladığınız gibi. See: "
+"https://stripe.com/docs/checkout"
 
 #. module: payment_stripe
 #: model:ir.ui.view,arch_db:payment_stripe.stripe_s2s_form
 msgid "CVC"
-msgstr ""
+msgstr "CVC"
 
 #. module: payment_stripe
 #: model:ir.ui.view,arch_db:payment_stripe.stripe_s2s_form
@@ -46,14 +52,14 @@ msgstr "Kart numarası"
 #. module: payment_stripe
 #: model:ir.model.fields,field_description:payment_stripe.field_payment_acquirer_stripe_image_url
 msgid "Checkout Image URL"
-msgstr ""
+msgstr "Ödeme Resmi URL'si"
 
 #. module: payment_stripe
 #. openerp-web
 #: code:addons/payment_stripe/static/src/xml/stripe_templates.xml:15
 #, python-format
 msgid "Close"
-msgstr ""
+msgstr "Kapat"
 
 #. module: payment_stripe
 #: model:ir.ui.view,arch_db:payment_stripe.stripe_s2s_form
@@ -65,7 +71,7 @@ msgstr "Onaylama <span class=\"fa fa-long-arrow-right\"/>"
 #: code:addons/payment_stripe/static/src/xml/stripe_templates.xml:9
 #, python-format
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. module: payment_stripe
 #: model:ir.ui.view,arch_db:payment_stripe.stripe_s2s_form
@@ -92,7 +98,7 @@ msgstr "Ödeme İşlemi"
 #: code:addons/payment_stripe/static/src/js/stripe.js:43
 #, python-format
 msgid "Payment error"
-msgstr ""
+msgstr "Ödeme hatası"
 
 #. module: payment_stripe
 #: model:ir.model.fields,field_description:payment_stripe.field_payment_acquirer_stripe_publishable_key
@@ -127,4 +133,4 @@ msgstr ""
 #. module: payment_stripe
 #: model:ir.model,name:payment_stripe.model_payment_token
 msgid "payment.token"
-msgstr ""
+msgstr "payment.token"

@@ -71,7 +71,10 @@ class StockQuant(models.Model):
             valuation_update = newprice - quant.cost
             # this is where we post accounting entries for adjustment, if needed
             # If neg quant period already closed (likely with manual valuation), skip update
-            if not quant.company_id.currency_id.is_zero(valuation_update) and move._check_lock_date():
+            lock_date = max(move.company_id.period_lock_date, move.company_id.fiscalyear_lock_date)
+            if self.user_has_groups('account.group_account_manager'):
+                lock_date = move.company_id.fiscalyear_lock_date
+            if not quant.company_id.currency_id.is_zero(valuation_update) and lock_date and move.date[:10] > lock_date:
                 quant.with_context(force_valuation_amount=valuation_update)._account_entry_move(move)
 
             # update the standard price of the product, only if we would have
@@ -115,10 +118,13 @@ class StockQuant(models.Model):
             else:
                 self.with_context(force_company=company_from.id)._create_account_move_line(move, acc_valuation, acc_dest, journal_id)
 
-        if move.company_id.anglo_saxon_accounting and move.location_id.usage == 'supplier' and move.location_dest_id.usage == 'customer':
+        if move.company_id.anglo_saxon_accounting:
             # Creates an account entry from stock_input to stock_output on a dropship move. https://github.com/odoo/odoo/issues/12687
             journal_id, acc_src, acc_dest, acc_valuation = move._get_accounting_data_for_valuation()
-            self.with_context(force_company=move.company_id.id)._create_account_move_line(move, acc_src, acc_dest, journal_id)
+            if move.location_id.usage == 'supplier' and move.location_dest_id.usage == 'customer':
+                self.with_context(force_company=move.company_id.id)._create_account_move_line(move, acc_src, acc_dest, journal_id)
+            if move.location_id.usage == 'customer' and move.location_dest_id.usage == 'supplier':
+                self.with_context(force_company=move.company_id.id)._create_account_move_line(move, acc_dest, acc_src, journal_id)
 
     def _create_account_move_line(self, move, credit_account_id, debit_account_id, journal_id):
         # group quants by cost
@@ -220,7 +226,7 @@ class StockMove(models.Model):
             # product_obj = self.pool.get('product.product')
             if any(q.qty <= 0 for q in move.quant_ids) or move.product_qty == 0:
                 # if there is a negative quant, the standard price shouldn't be updated
-                return
+                continue
             # Note: here we can't store a quant.cost directly as we may have moved out 2 units
             # (1 unit to 5€ and 1 unit to 7€) and in case of a product return of 1 unit, we can't
             # know which of the 2 costs has to be used (5€ or 7€?). So at that time, thanks to the
@@ -279,7 +285,7 @@ class StockMove(models.Model):
             valuation_amount = self._context.get('force_valuation_amount')
         else:
             if self.product_id.cost_method == 'average':
-                valuation_amount = cost if self.location_id.usage == 'supplier' and self.location_dest_id.usage == 'internal' else self.product_id.standard_price
+                valuation_amount = cost if self.location_id.usage in ['supplier', 'production'] and self.location_dest_id.usage == 'internal' else self.product_id.standard_price
             else:
                 valuation_amount = cost if self.product_id.cost_method == 'real' else self.product_id.standard_price
         # the standard_price of the product may be in another decimal precision, or not compatible with the coinage of

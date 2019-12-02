@@ -3,27 +3,33 @@
 # * website_sale
 # 
 # Translators:
-# Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
-# Kari Lindgren <kari.lindgren@emsystems.fi>, 2016
-# salmemik <salmemik@gmail.com>, 2016
-# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2016
 # Svante Suominen <svante.suominen@web-veistamo.fi>, 2016
+# Atte Isopuro <atte.isopuro@web-veistamo.fi>, 2016
 # Kari Lindgren <karisatu@gmail.com>, 2016
 # Pekko Tuomisto <pekko.tuomisto@web-veistamo.fi>, 2016
 # Miku Laitinen <miku.laitinen@gmail.com>, 2016
-# Atte Isopuro <atte.isopuro@web-veistamo.fi>, 2016
-# Veikko Väätäjä <veikko.vaataja@gmail.com>, 2016
+# Martin Trigaux, 2016
 # Tommi Rintala <tommi.rintala@gmail.com>, 2016
 # artol <arto.leskinen@tek.fi>, 2017
+# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2017
 # Kim Asplund <kim.asplund@gmail.com>, 2017
+# Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2017
+# Kari Lindgren <kari.lindgren@emsystems.fi>, 2017
+# Jukka Paulin <jukka.paulin@gmail.com>, 2018
+# Veikko Väätäjä <veikko.vaataja@gmail.com>, 2018
+# Timo Talvitie <timo.talvitie@vizucom.com>, 2018
+# Mikko Närjänen <mikko.narjanen@web-veistamo.fi>, 2018
+# Mikko Salmela <salmemik@gmail.com>, 2018
+# difbit <timo.kekalainen@hotmail.com>, 2019
+# Tuomas Lyyra <tuomas.lyyra@legenda.fi>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-18 14:21+0000\n"
-"PO-Revision-Date: 2017-07-18 14:21+0000\n"
-"Last-Translator: Kim Asplund <kim.asplund@gmail.com>, 2017\n"
+"POT-Creation-Date: 2017-11-30 14:34+0000\n"
+"PO-Revision-Date: 2016-09-07 09:34+0000\n"
+"Last-Translator: Tuomas Lyyra <tuomas.lyyra@legenda.fi>, 2019\n"
 "Language-Team: Finnish (https://www.transifex.com/odoo/teams/41243/fi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,7 +45,7 @@ msgstr "! Hintaan voidaan lisätä käsittelykuluja"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment
 msgid "(processing fees apply)"
-msgstr ""
+msgstr "(käsittelymaksu lisätään)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.product
@@ -80,7 +86,7 @@ msgstr "<i class=\"fa fa-check\"/> Toimita tähän osoitteeseen"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.order_state_message
 msgid "<i class=\"fa fa-cog\"/> Configure Transfer Details"
-msgstr ""
+msgstr "<i class=\"fa fa-cog\"/> Määritä siirtotiedot"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -212,6 +218,9 @@ msgid ""
 "                <span class=\"hidden-xs\">Continue Shopping</span>\n"
 "                <span class=\"visible-xs-inline\">Continue</span>"
 msgstr ""
+"<span class=\"fa fa-long-arrow-left\"/>\n"
+"                <span class=\"hidden-xs\">Jatka ostoksia</span>\n"
+"                <span class=\"visible-xs-inline\">Jatka</span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
@@ -671,7 +680,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.extra_info
 msgid "A document to provide ?"
-msgstr ""
+msgstr "Liitetäänkö mukaan asiakirja?"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -732,6 +741,8 @@ msgstr "Lisää toimituskulut verkkomyyntiin"
 msgid ""
 "Add a step to request some extra customer data (picking preferences, etc.)"
 msgstr ""
+"Lisää tilausprosessiin uusi välivaihe lisätietojen syöttämiseen (asiakkaan "
+"viite, kommentit ym.)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.product
@@ -758,7 +769,7 @@ msgstr ""
 #. module: website_sale
 #: selection:website.config.settings,sale_pricelist_setting_split_2:0
 msgid "Advanced pricing based on formulas (discounts, margins, rounding)"
-msgstr ""
+msgstr "Monipuoliset hinnoitteluasetukset (alennukset, katteet, pyöristys)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.option_collapse_products_categories
@@ -782,6 +793,8 @@ msgid ""
 "Allows to manage different prices based on rules per category of customers.\n"
 "                Example: 10% for retailers, promotion of 5 EUR on this product, etc."
 msgstr ""
+"Mahdollistaa eri hintojen hallinnan sääntöjen perusteella asiakkaiden kategoriaa kohti.\n"
+"                 Esimerkki: 10% vähittäiskauppiaille, 5 euron myynninedistäminen tässä tuotteessa jne."
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_alternative_product_ids
@@ -793,7 +806,7 @@ msgstr "Vaihtoehtoiset tuotteet"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.recommended_products
 msgid "Alternative Products:"
-msgstr ""
+msgstr "Vaihtoehtoiset tuotteet:"
 
 #. module: website_sale
 #. openerp-web
@@ -871,7 +884,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_catalog
 msgid "Catalog"
-msgstr ""
+msgstr "Luettelo"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.sort
@@ -1159,7 +1172,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_sale.field_product_product_website_description
 #: model:ir.model.fields,field_description:website_sale.field_product_template_website_description
 msgid "Description for the website"
-msgstr ""
+msgstr "Verkkosivuston kuvaus"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_delivery_carrier_website_sequence
@@ -1260,12 +1273,12 @@ msgstr "Ulkoinen kiintolevy"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.extra_info_option
 msgid "Extra Info<span class=\"chevron\"/>"
-msgstr ""
+msgstr "Tilauksen lisätiedot"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.extra_info
 msgid "Extra Step"
-msgstr ""
+msgstr "Lisätietovaihe"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_module_delivery_fedex
@@ -1299,7 +1312,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.extra_info
 msgid "Give us your feedback..."
-msgstr ""
+msgstr "Anna meille palautetta..."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_website_config_settings_module_portal
@@ -1533,6 +1546,11 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "List displaying"
+msgstr ""
+
+#. module: website_sale
+#: model:ir.ui.view,arch_db:website_sale.address
+msgid "Log In"
 msgstr ""
 
 #. module: website_sale
@@ -1871,7 +1889,7 @@ msgstr "Hinnastot"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Pricing &amp; Discounts"
-msgstr ""
+msgstr "Hinnoittelu ja alennukset"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_sale_pricelist_setting_split_1
@@ -2269,12 +2287,12 @@ msgstr "Toimitusosoite"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_config_settings_view_form
 msgid "Shipping Connectors"
-msgstr ""
+msgstr "Toimitusliittimet"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_sale_delivery_settings
 msgid "Shipping Management"
-msgstr ""
+msgstr "Lähetysten hallinta"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.products
@@ -2326,6 +2344,11 @@ msgstr "Näytä hinnastot tuotteilla"
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_group_pricelist_item
 msgid "Show pricelists to customers"
 msgstr "Näytä hinnastot asiakkaille"
+
+#. module: website_sale
+#: model:ir.ui.view,arch_db:website_sale.address
+msgid "Sign Up"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
@@ -2398,7 +2421,7 @@ msgstr "Puhujat"
 #. module: website_sale
 #: selection:website.config.settings,sale_pricelist_setting_split_2:0
 msgid "Specific prices per customer segment, currency, etc."
-msgstr ""
+msgstr "Erilliset hinnat asiakassegmentin, valuutan, jne. mukaan"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_website_config_settings_sale_pricelist_setting_split_2

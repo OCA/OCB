@@ -3,18 +3,21 @@
 # * web
 # 
 # Translators:
-# Martin Trigaux <mat@odoo.com>, 2016
-# Aleksander <aleksander@provendo.no>, 2016
-# Mari Løken <mari@tinderbox.no>, 2016
 # Roy Edvard Ellingsen <roy@royedvard.com>, 2016
+# Mari Løken <inactive+mari123@transifex.com>, 2016
+# Aleksander, 2016
 # Eirik Halvorsen <eirik386@gmail.com>, 2017
+# Martin Trigaux, 2017
+# Jorunn D. Newth, 2017
+# Marius Stedjan <marius@stedjan.com>, 2018
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-23 13:28+0000\n"
-"PO-Revision-Date: 2017-06-23 13:28+0000\n"
-"Last-Translator: Eirik Halvorsen <eirik386@gmail.com>, 2017\n"
+"PO-Revision-Date: 2016-09-07 09:30+0000\n"
+"Last-Translator: Marius Stedjan <marius@stedjan.com>, 2018\n"
 "Language-Team: Norwegian Bokmål (https://www.transifex.com/odoo/teams/41243/nb/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -722,7 +725,7 @@ msgstr "Slett denne filen"
 #: code:addons/web/static/src/xml/base.xml:105
 #, python-format
 msgid "Disable Technical Features"
-msgstr ""
+msgstr "Deaktiver Tekniske Funksjoner"
 
 #. module: web
 #. openerp-web
@@ -844,7 +847,7 @@ msgstr "E-post"
 #: code:addons/web/static/src/xml/base.xml:108
 #, python-format
 msgid "Enable Technical Features"
-msgstr ""
+msgstr "Aktiver Tekniske Funksjoner"
 
 #. module: web
 #. openerp-web
@@ -866,7 +869,7 @@ msgstr "Feil, passordet er ikke endret !"
 #: code:addons/web/static/src/js/views/form_widgets.js:426
 #, python-format
 msgid "Error: Bad domain"
-msgstr ""
+msgstr "Feil: Dårlig domene"
 
 #. module: web
 #. openerp-web
@@ -880,7 +883,7 @@ msgstr "Evalueringsfeil"
 #: code:addons/web/static/src/xml/base.xml:576
 #, python-format
 msgid "Expand all"
-msgstr ""
+msgstr "Utvid alle"
 
 #. module: web
 #. openerp-web
@@ -901,7 +904,7 @@ msgstr "Eksporter data"
 #: code:addons/web/static/src/xml/base.xml:1096
 #, python-format
 msgid "Export Formats :"
-msgstr ""
+msgstr "Eksportformater:"
 
 #. module: web
 #. openerp-web
@@ -915,7 +918,7 @@ msgstr "Eksporter til fil"
 #: code:addons/web/static/src/xml/base.xml:1089
 #, python-format
 msgid "Export Type :"
-msgstr ""
+msgstr "Eksporttype:"
 
 #. module: web
 #. openerp-web
@@ -965,7 +968,7 @@ msgstr "Felt Vis Hent"
 #: code:addons/web/static/src/js/widgets/debug_manager.js:243
 #, python-format
 msgid "Fields of %s"
-msgstr ""
+msgstr "Felter for %s"
 
 #. module: web
 #. openerp-web
@@ -1039,6 +1042,9 @@ msgid ""
 "\n"
 "Tip: try to flip axis, filter further or reduce the number of measures."
 msgstr ""
+"For å virke med Excel, kan ikke data eksporteres hvis det er mer enn 256 kolonner.\n"
+"\n"
+"Tips: Prøv å snu aksen, filtrere mer, eller redusere antall mål."
 
 #. module: web
 #. openerp-web
@@ -1140,6 +1146,8 @@ msgid ""
 "Invalid database name. Only alphanumerical characters, underscore, hyphen "
 "and dot are allowed."
 msgstr ""
+"Ugyldig databasenavn. Bare alfanumeriske tegn, understrekingstegn, "
+"bindestrek og punktum er tillatt."
 
 #. module: web
 #. openerp-web
@@ -1411,6 +1419,8 @@ msgid ""
 "No data available for this chart. Try to add some records, or make sure that"
 " there is no active filter in the search bar."
 msgstr ""
+"Det finnes ingen data for dette diagrammet. Legg til oppføringer, eller "
+"sjekk at det ikke finnes aktive filtre i søkefeltet."
 
 #. module: web
 #. openerp-web
@@ -1420,27 +1430,29 @@ msgid ""
 "No data available for this pivot table.  Try to add some records, or make sure\n"
 "        that there is at least one measure and no active filter in the search bar."
 msgstr ""
+"Det finnes ingen data for denne pivottabellen. Legg til oppføringer, eller "
+"sjekk at det ikke finnes aktive filtre i søkefeltet."
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/graph_widget.js:95
 #, python-format
 msgid "No data to display"
-msgstr ""
+msgstr "Ingen data å vise"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/xml/base.xml:606
 #, python-format
 msgid "No data to display."
-msgstr ""
+msgstr "Ingen data å vise."
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/widgets/debug_manager.js:328
 #, python-format
 msgid "No metadata available"
-msgstr ""
+msgstr "Ingen metadata tilgjengelig"
 
 #. module: web
 #. openerp-web
@@ -1454,14 +1466,14 @@ msgstr "Ingen resultater å vise..."
 #: code:addons/web/static/src/js/views/form_widgets.js:446
 #, python-format
 msgid "No selected record"
-msgstr ""
+msgstr "Ingen valgt oppføring"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/form_relational_widgets.js:328
 #, python-format
 msgid "No value found for the field %s for value %s"
-msgstr ""
+msgstr "Ingen verdi funnet for felt %s for verdi %s"
 
 #. module: web
 #. openerp-web
@@ -1475,14 +1487,14 @@ msgstr "Normal"
 #: code:addons/web/static/src/js/views/graph_widget.js:239
 #, python-format
 msgid "Not enough data points"
-msgstr ""
+msgstr "Ikke mange nok datapunkter"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/xml/base.xml:744
 #, python-format
 msgid "Not shown in kanban"
-msgstr ""
+msgstr "Vises ikke i kanban"
 
 #. module: web
 #. openerp-web
@@ -1503,14 +1515,14 @@ msgstr "Odoo"
 #: code:addons/web/static/src/js/apps.js:195
 #, python-format
 msgid "Odoo Apps will be available soon"
-msgstr ""
+msgstr "Apper fra Odoo vil snart være tilgjengelige"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/form_upgrade_widgets.js:53
 #, python-format
 msgid "Odoo Enterprise"
-msgstr ""
+msgstr "Odoo Enterprise"
 
 #. module: web
 #: model:ir.ui.view,arch_db:web.qunit_suite
@@ -1522,7 +1534,7 @@ msgstr "Odoo Webtester"
 #: code:addons/web/static/src/js/views/form_widgets.js:648
 #, python-format
 msgid "Off"
-msgstr ""
+msgstr "Av"
 
 #. module: web
 #. openerp-web
@@ -1539,14 +1551,14 @@ msgstr "Ok"
 #: code:addons/web/static/src/xml/base.xml:42
 #, python-format
 msgid "Old Password"
-msgstr ""
+msgstr "Gammelt passord"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/form_widgets.js:646
 #, python-format
 msgid "On"
-msgstr ""
+msgstr "På"
 
 #. module: web
 #. openerp-web
@@ -1560,7 +1572,7 @@ msgstr "Ved endring:"
 #: code:addons/web/static/src/js/widgets/progress_bar.js:79
 #, python-format
 msgid "Only Integer Value should be valid."
-msgstr ""
+msgstr "Kun heltall er gyldig verdi"
 
 #. module: web
 #. openerp-web
@@ -1574,14 +1586,14 @@ msgstr "Bare deg"
 #: code:addons/web/static/src/xml/base.xml:95
 #, python-format
 msgid "Open Developer Tools"
-msgstr ""
+msgstr "Åpne utviklerverktøy"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/xml/base.xml:115
 #, python-format
 msgid "Open View"
-msgstr ""
+msgstr "Åpne Visning"
 
 #. module: web
 #. openerp-web
@@ -1603,7 +1615,7 @@ msgstr "Passord"
 #: code:addons/web/static/src/xml/base.xml:548
 #, python-format
 msgid "Pie Chart"
-msgstr ""
+msgstr "Kakediagram"
 
 #. module: web
 #. openerp-web
@@ -1613,6 +1625,8 @@ msgid ""
 "Pie chart cannot display all zero numbers.. Try to change your domain to "
 "display positive results"
 msgstr ""
+"Kakediagram kan ikke vise kun nullverdier. Forsøk å endre domenet for å vise"
+" positive resultater."
 
 #. module: web
 #. openerp-web
@@ -1622,13 +1636,15 @@ msgid ""
 "Pie chart cannot mix positive and negative numbers. Try to change your "
 "domain to only display positive results"
 msgstr ""
+"Kakediagrammet kan ikke blande positive og negative tall. Prøv å endre "
+"domenet til bare å vise positive resultater."
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/pivot_view.js:30
 #, python-format
 msgid "Pivot"
-msgstr ""
+msgstr "Pivot"
 
 #. module: web
 #. openerp-web
@@ -1677,7 +1693,7 @@ msgstr "Drevet av"
 #. module: web
 #: model:ir.ui.view,arch_db:web.login_layout
 msgid "Powered by <span>Odoo</span>"
-msgstr ""
+msgstr "Drevet av <span>Odoo</span>"
 
 #. module: web
 #. openerp-web
@@ -1705,7 +1721,7 @@ msgstr "Skriv ut arbeidsflyt"
 #: code:addons/web/static/src/xml/base.xml:593
 #, python-format
 msgid "Quarter"
-msgstr ""
+msgstr "Kvartal"
 
 #. module: web
 #. openerp-web
@@ -1740,7 +1756,7 @@ msgstr "Generer"
 #: code:addons/web/static/src/xml/base.xml:114
 #, python-format
 msgid "Run JS Tests"
-msgstr ""
+msgstr "Kjør JS-tester"
 
 #. module: web
 #. openerp-web
@@ -1778,7 +1794,7 @@ msgstr "Lagre som:"
 #: code:addons/web/static/src/xml/base.xml:1064
 #, python-format
 msgid "Save current search"
-msgstr ""
+msgstr "Lagre dette søket"
 
 #. module: web
 #. openerp-web
@@ -1843,7 +1859,7 @@ msgstr "Søk: "
 #: code:addons/web/static/src/js/views/form_widgets.js:433
 #, python-format
 msgid "See selection "
-msgstr ""
+msgstr "Se valg"
 
 #. module: web
 #. openerp-web
@@ -1857,42 +1873,42 @@ msgstr "Velg"
 #. module: web
 #: model:ir.ui.view,arch_db:web.login
 msgid "Select <i class=\"fa fa-database\"/>"
-msgstr ""
+msgstr "Velg <i class=\"fa fa-database\"/>"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/widgets/debug_manager.js:165
 #, python-format
 msgid "Select a view"
-msgstr ""
+msgstr "Velg en visning"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/form_widgets.js:448
 #, python-format
 msgid "Select records "
-msgstr ""
+msgstr "Velg oppføringer"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/form_widgets.js:458
 #, python-format
 msgid "Select records..."
-msgstr ""
+msgstr "Velg oppføringer..."
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/form_common.js:1103
 #, python-format
 msgid "Selected domain"
-msgstr ""
+msgstr "Valgt domene"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/js/views/form_widgets.js:458
 #, python-format
 msgid "Selected records"
-msgstr ""
+msgstr "Valgte oppføringer"
 
 #. module: web
 #. openerp-web
@@ -1947,7 +1963,7 @@ msgstr "Størrelse:"
 #: code:addons/web/controllers/main.py:1038
 #, python-format
 msgid "Something horrible happened"
-msgstr ""
+msgstr "Noe forferdelig skjedde"
 
 #. module: web
 #. openerp-web
@@ -2128,13 +2144,15 @@ msgid ""
 "Timezone Mismatch : The timezone of your browser doesn't match the selected "
 "one. The time in Odoo is displayed according to your field timezone."
 msgstr ""
+"Tidssonefeil: Tidssonen i nettleseren din stemmer ikke med den valgte "
+"tidssonen. Tiden i Odoo vises i henhold til tidssonen i feltet."
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/xml/base.xml:118
 #, python-format
 msgid "Toggle Timelines"
-msgstr ""
+msgstr "Tidslinjer på/av"
 
 #. module: web
 #. openerp-web
@@ -2245,7 +2263,7 @@ msgstr "Navnløs"
 #: code:addons/web/static/src/js/framework/data.js:1114
 #, python-format
 msgid "Unsupported operator %s in domain %s"
-msgstr "Ustøttet operatør % s i domenet %s"
+msgstr "Ustøttet operatør %s i domenet %s"
 
 #. module: web
 #. openerp-web

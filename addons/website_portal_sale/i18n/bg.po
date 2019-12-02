@@ -3,20 +3,20 @@
 # * website_portal_sale
 # 
 # Translators:
-# Martin Trigaux <mat@odoo.com>, 2016
-# Kaloyan Naumov <kaloyan@lumnus.net>, 2016
-# kalatchev <kalatchev@gmail.com>, 2016
+# Martin Trigaux, 2016
+# Maria Boyadjieva <marabo2000@gmail.com>, 2016
 # Iliana Ilieva <i.ilieva@sunservice-bg.com>, 2016
-# Bernard <bernard@abv.bg>, 2016
-# Любо Енев <lubo@lumnus.net>, 2016
-# Anton Vassilev <anton.vasilev@gmail.com>, 2016
+# Kaloyan Naumov <kaloyan@lumnus.net>, 2016
+# Любо Енев, 2016
+# Anton Vassilev, 2016
+# Ivan Ivanov, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0c\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-29 14:01+0000\n"
 "PO-Revision-Date: 2016-09-29 14:01+0000\n"
-"Last-Translator: Anton Vassilev <anton.vasilev@gmail.com>, 2016\n"
+"Last-Translator: Ivan Ivanov, 2017\n"
 "Language-Team: Bulgarian (https://www.transifex.com/odoo/teams/41243/bg/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,7 +27,7 @@ msgstr ""
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
 msgid "<i class=\"fa fa-arrow-circle-right\"/> Pay Now"
-msgstr "<i class=\"fa fa-arrow-circle-right\"/> Плати Сега"
+msgstr "<i class=\"fa fa-arrow-circle-right\"/> Платете сега"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_orders
@@ -45,7 +45,7 @@ msgid ""
 "Done</span>"
 msgstr ""
 "<span class=\"label label-default\"><i class=\"fa fa-fw fa-check\"/> "
-"Готово</span>"
+"Извършен</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
@@ -54,7 +54,7 @@ msgid ""
 "Paid</span>"
 msgstr ""
 "<span class=\"label label-default\"><i class=\"fa fa-fw fa-check\"/> "
-"Платено</span>"
+"Платен</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_quotations
@@ -63,7 +63,7 @@ msgid ""
 "Expired</span>"
 msgstr ""
 "<span class=\"label label-default\"><i class=\"fa fa-fw fa-clock-o\"/> "
-"Изтекло</span>"
+"Изтекъл</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
@@ -73,7 +73,7 @@ msgid ""
 "Cancelled</span>"
 msgstr ""
 "<span class=\"label label-default\"><i class=\"fa fa-fw fa-remove\"/> "
-"Отказано</span>"
+"Отменен</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
@@ -82,7 +82,7 @@ msgid ""
 " fa-clock-o\"/> Waiting</span>"
 msgstr ""
 "<span class=\"label label-info orders_label_text_align\"><i class=\"fa fa-fw"
-" fa-clock-o\"/> Чакащо</span>"
+" fa-clock-o\"/> Изчакващ</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_orders
@@ -91,7 +91,7 @@ msgid ""
 "Invoiced</span>"
 msgstr ""
 "<span class=\"label label-info\"><i class=\"fa fa-fw fa-clock-o\"/> "
-"Фактурирано</span>"
+"Фактуриран</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
@@ -99,8 +99,8 @@ msgid ""
 "<span class=\"label label-info\"><i class=\"fa fa-fw fa-clock-o\"/> Waiting "
 "for Payment</span>"
 msgstr ""
-"<span class=\"label label-info\"><i class=\"fa fa-fw fa-clock-o\"/> Чака за "
-"плащане</span>"
+"<span class=\"label label-info\"><i class=\"fa fa-fw fa-clock-o\"/> Изчакващ"
+" плащане</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
@@ -109,7 +109,7 @@ msgid ""
 "fa-fw fa-check\"/> Paid</span>"
 msgstr ""
 "<span class=\"label label-success orders_label_text_align\"><i class=\"fa "
-"fa-fw fa-check\"/> Платено</span>"
+"fa-fw fa-check\"/> Платен</span>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
@@ -129,7 +129,7 @@ msgstr "<strong>Фактури</strong>"
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
 msgid "<strong>Invoicing Address</strong>"
-msgstr "<strong>Адрес за Фактура</strong>"
+msgstr "<strong>Адрес на фактура</strong>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
@@ -144,7 +144,7 @@ msgstr "<strong>Количество</strong>"
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
 msgid "<strong>Shipping Address</strong>"
-msgstr "<strong>Адрес на доставка</strong>"
+msgstr "<strong>Адрес за шипинг</strong>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
@@ -159,12 +159,12 @@ msgstr "<strong>Общо:</strong>"
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
 msgid "<strong>Unit Price</strong>"
-msgstr "<strong>Единична Цена</strong>"
+msgstr "<strong>Единична цена</strong>"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
 msgid "Amount Due"
-msgstr ""
+msgstr "Дължима сума"
 
 #. module: website_portal_sale
 #: code:addons/website_portal_sale/controllers/main.py:181
@@ -173,6 +173,8 @@ msgid ""
 "Changing VAT number is not allowed once invoices have been issued for your "
 "account. Please contact us directly for this operation."
 msgstr ""
+"След като бъдат издадени фактури за сметката Ви, промяната на номера по ДДС "
+"няма да е разрешена. Моля, свържете се с нас директно за тази операция."
 
 #. module: website_portal_sale
 #: code:addons/website_portal_sale/controllers/main.py:184
@@ -181,11 +183,13 @@ msgid ""
 "Changing your name is not allowed once invoices have been issued for your "
 "account. Please contact us directly for this operation."
 msgstr ""
+"След като бъдат издадени фактури за сметката Ви, промяната на името Ви няма "
+"да е разрешена. Моля, свържете се с нас директно за тази операция."
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
 msgid "Due Date"
-msgstr "Насрочена дата"
+msgstr "Дължима дата"
 
 #. module: website_portal_sale
 #: model:ir.model,name:website_portal_sale.model_account_invoice
@@ -210,17 +214,17 @@ msgstr "Фактури"
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
 msgid "My Orders"
-msgstr "Мои поръчки"
+msgstr "Моите поръчки"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
 msgid "My Quotes"
-msgstr ""
+msgstr "Моите оферти"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
 msgid "Order"
-msgstr "Ред"
+msgstr "Поръчка"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_orders
@@ -230,17 +234,17 @@ msgstr "Дата на поръчка"
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_menu_sale
 msgid "Orders"
-msgstr ""
+msgstr "Поръчки"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
 msgid "Pay Now"
-msgstr "Плати Сега"
+msgstr "Платете сега"
 
 #. module: website_portal_sale
 #: model:ir.model,name:website_portal_sale.model_payment_transaction
 msgid "Payment Transaction"
-msgstr "Плащане"
+msgstr "Платежна транзакция"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.orders_followup
@@ -255,7 +259,7 @@ msgstr "Оферта  #"
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_menu_sale
 msgid "Quotes"
-msgstr ""
+msgstr "Оферти"
 
 #. module: website_portal_sale
 #: model:ir.model.fields,field_description:website_portal_sale.field_payment_transaction_sale_order_id
@@ -281,19 +285,19 @@ msgstr "Данъци:"
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
 msgid "There are currently no invoices for your account."
-msgstr "Няма фактури за вашия потребител."
+msgstr "Понастоящем няма фактури по Вашата сметка."
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_orders
 msgid "There are currently no orders for your account."
-msgstr "Няма поръчки за вашия потребител."
+msgstr "Понастоящем няма поръчки по Вашата сметка."
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_quotations
 msgid "There are currently no quotes for your account."
-msgstr "Няма оферти за вашия потребител."
+msgstr "Понастоящем няма оферти по Вашата сметка."
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_orders
@@ -309,19 +313,19 @@ msgstr "Сума без данъци:"
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_quotations
 msgid "Valid Until"
-msgstr "Валидност до"
+msgstr "Валиден до"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_invoices
 msgid "Your Invoices and Payments"
-msgstr "Вашите Фактури и Плащания"
+msgstr "Вашите фактури и плащания"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_orders
 msgid "Your Orders"
-msgstr "Вашите Поръчки"
+msgstr "Вашите поръчки"
 
 #. module: website_portal_sale
 #: model:ir.ui.view,arch_db:website_portal_sale.portal_my_home_sale

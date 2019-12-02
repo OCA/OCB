@@ -3,11 +3,13 @@
 import pytz
 import datetime
 import logging
+import hmac
 
 from collections import defaultdict
 from itertools import chain, repeat
 from lxml import etree
 from lxml.builder import E
+from hashlib import sha256
 
 from odoo import api, fields, models, tools, SUPERUSER_ID, _
 from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
@@ -280,6 +282,26 @@ class Users(models.Model):
         if any(user.company_ids and user.company_id not in user.company_ids for user in self):
             raise ValidationError(_('The chosen company is not in the allowed companies for this user'))
 
+    def _read_from_database(self, field_names, inherited_field_names=[]):
+        super(Users, self)._read_from_database(field_names, inherited_field_names)
+        canwrite = self.check_access_rights('write', raise_exception=False)
+        if not canwrite and set(USER_PRIVATE_FIELDS).intersection(field_names):
+            for record in self:
+                for f in USER_PRIVATE_FIELDS:
+                    try:
+                        record._cache[f]
+                        record._cache[f] = '********'
+                    except Exception:
+                        # skip SpecialValue (e.g. for missing record or access right)
+                        pass
+
+    @api.multi
+    @api.constrains('action_id')
+    def _check_action_id(self):
+        action_open_website = self.env.ref('base.action_open_website', raise_if_not_found=False)
+        if action_open_website and any(user.action_id.id == action_open_website.id for user in self):
+            raise ValidationError(_('The "App Switcher" action cannot be selected as home action.'))
+
     @api.multi
     def read(self, fields=None, load='_classic_read'):
         if fields and self == self.env.user:
@@ -290,19 +312,7 @@ class Users(models.Model):
                 # safe fields only, so we read as super-user to bypass access rights
                 self = self.sudo()
 
-        result = super(Users, self).read(fields=fields, load=load)
-
-        canwrite = self.env['ir.model.access'].check('res.users', 'write', False)
-        if not canwrite:
-            def override_password(vals):
-                if (vals['id'] != self._uid):
-                    for key in USER_PRIVATE_FIELDS:
-                        if key in vals:
-                            vals[key] = '********'
-                return vals
-            result = map(override_password, result)
-
-        return result
+        return super(Users, self).read(fields=fields, load=load)
 
     @api.model
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
@@ -368,6 +378,8 @@ class Users(models.Model):
             db = self._cr.dbname
             for id in self.ids:
                 self.__uid_cache[db].pop(id, None)
+        if any(key in values for key in self._get_session_token_fields()):
+            self._invalidate_session_cache()
 
         return res
 
@@ -378,6 +390,7 @@ class Users(models.Model):
         db = self._cr.dbname
         for id in self.ids:
             self.__uid_cache[db].pop(id, None)
+        self._invalidate_session_cache()
         return super(Users, self).unlink()
 
     @api.model
@@ -431,6 +444,8 @@ class Users(models.Model):
     @api.model
     def check_credentials(self, password):
         """ Override this method to plug additional authentication methods"""
+        if not password:
+            raise AccessDenied()
         user = self.sudo().search([('id', '=', self._uid), ('password', '=', password)])
         if not user:
             raise AccessDenied()
@@ -502,6 +517,34 @@ class Users(models.Model):
             cls.__uid_cache[db][uid] = passwd
         finally:
             cr.close()
+
+    def _get_session_token_fields(self):
+        return {'id', 'login', 'password', 'active'}
+
+    @tools.ormcache('sid')
+    def _compute_session_token(self, sid):
+        """ Compute a session token given a session id and a user id """
+        # retrieve the fields used to generate the session token
+        session_fields = ', '.join(sorted(self._get_session_token_fields()))
+        self.env.cr.execute("""SELECT %s, (SELECT value FROM ir_config_parameter WHERE key='database.secret')
+                                FROM res_users
+                                WHERE id=%%s""" % (session_fields), (self.id,))
+        if self.env.cr.rowcount != 1:
+            self._invalidate_session_cache()
+            return False
+        data_fields = self.env.cr.fetchone()
+        # generate hmac key
+        key = (u'%s' % (data_fields,)).encode('utf-8')
+        # hmac the session id
+        data = sid.encode('utf-8')
+        h = hmac.new(key, data, sha256)
+        # keep in the cache the token
+        return h.hexdigest()
+
+    @api.multi
+    def _invalidate_session_cache(self):
+        """ Clear the sessions cache """
+        self._compute_session_token.clear_cache(self)
 
     @api.model
     def change_password(self, old_passwd, new_passwd):
@@ -614,8 +657,26 @@ class GroupsImplied(models.Model):
         if values.get('users') or values.get('implied_ids'):
             # add all implied groups (to all users of each group)
             for group in self:
-                vals = {'users': zip(repeat(4), group.with_context(active_test=False).users.ids)}
-                super(GroupsImplied, group.trans_implied_ids).write(vals)
+                self._cr.execute("""
+                    WITH RECURSIVE group_imply(gid, hid) AS (
+                        SELECT gid, hid
+                          FROM res_groups_implied_rel
+                         UNION
+                        SELECT i.gid, r.hid
+                          FROM res_groups_implied_rel r
+                          JOIN group_imply i ON (i.hid = r.gid)
+                    )
+                    INSERT INTO res_groups_users_rel (gid, uid)
+                         SELECT i.hid, r.uid
+                           FROM group_imply i, res_groups_users_rel r
+                          WHERE r.gid = i.gid
+                            AND i.gid = %(gid)s
+                         EXCEPT
+                         SELECT r.gid, r.uid
+                           FROM res_groups_users_rel r
+                           JOIN group_imply i ON (r.gid = i.hid)
+                          WHERE i.gid = %(gid)s
+                """, dict(gid=group.id))
         return res
 
 
@@ -639,7 +700,7 @@ class UsersImplied(models.Model):
             for user in self.with_context({}):
                 gs = set(concat(g.trans_implied_ids for g in user.groups_id))
                 vals = {'groups_id': [(4, g.id) for g in gs]}
-                super(UsersImplied, self).write(vals)
+                super(UsersImplied, user).write(vals)
         return res
 
 #
@@ -735,6 +796,11 @@ class GroupsView(models.Model):
             xml = E.field(E.group(*(xml1), col="2"), E.group(*(xml2), col="4"), name="groups_id", position="replace")
             xml.addprevious(etree.Comment("GENERATED AUTOMATICALLY BY GROUPS"))
             xml_content = etree.tostring(xml, pretty_print=True, xml_declaration=True, encoding="utf-8")
+            if not view.check_access_rights('write',  raise_exception=False):
+                # erp manager has the rights to update groups/users but not
+                # to modify ir.ui.view
+                if self.env.user.has_group('base.group_erp_manager'):
+                    view = view.sudo()
             view.with_context(lang=None).write({'arch': xml_content, 'arch_fs': False})
 
     def get_application_groups(self, domain):
@@ -787,9 +853,9 @@ class UsersView(models.Model):
         group_multi_company = self.env.ref('base.group_multi_company', False)
         if group_multi_company and 'company_ids' in values:
             if len(user.company_ids) <= 1 and user.id in group_multi_company.users.ids:
-                group_multi_company.write({'users': [(3, user.id)]})
+                user.write({'groups_id': [(3, group_multi_company.id)]})
             elif len(user.company_ids) > 1 and user.id not in group_multi_company.users.ids:
-                group_multi_company.write({'users': [(4, user.id)]})
+                user.write({'groups_id': [(4, group_multi_company.id)]})
         return user
 
     @api.multi
@@ -800,9 +866,9 @@ class UsersView(models.Model):
         if group_multi_company and 'company_ids' in values:
             for user in self:
                 if len(user.company_ids) <= 1 and user.id in group_multi_company.users.ids:
-                    group_multi_company.write({'users': [(3, user.id)]})
+                    user.write({'groups_id': [(3, group_multi_company.id)]})
                 elif len(user.company_ids) > 1 and user.id not in group_multi_company.users.ids:
-                    group_multi_company.write({'users': [(4, user.id)]})
+                    user.write({'groups_id': [(4, group_multi_company.id)]})
         return res
 
     def _remove_reified_groups(self, values):
@@ -875,9 +941,12 @@ class UsersView(models.Model):
         # add reified groups fields
         for app, kind, gs in self.env['res.groups'].sudo().get_groups_by_application():
             if kind == 'selection':
+                field_name = name_selection_groups(gs.ids)
+                if allfields and field_name not in allfields:
+                    continue
                 # selection group field
                 tips = ['%s: %s' % (g.name, g.comment) for g in gs if g.comment]
-                res[name_selection_groups(gs.ids)] = {
+                res[field_name] = {
                     'type': 'selection',
                     'string': app.name or _('Other'),
                     'selection': [(False, '')] + [(g.id, g.name) for g in gs],
@@ -888,7 +957,10 @@ class UsersView(models.Model):
             else:
                 # boolean group fields
                 for g in gs:
-                    res[name_boolean_group(g.id)] = {
+                    field_name = name_boolean_group(g.id)
+                    if allfields and field_name not in allfields:
+                        continue
+                    res[field_name] = {
                         'type': 'boolean',
                         'string': g.name,
                         'help': g.comment,

@@ -3,15 +3,20 @@
 # * website_forum
 # 
 # Translators:
-# Jeffery CHEN <jeffery9@gmail.com>, 2016
-# liAnGjiA <liangjia@qq.com>, 2017
+# Jeffery CHEN <jeffery9@gmail.com>, 2017
+# Lijie Ma <tony@malijie.cc>, 2017
+# e2f_cn c5 <jarvisn@ecinnovations.com>, 2018
+# keecome <7017511@qq.com>, 2018
+# liAnGjiA <liangjia@qq.com>, 2019
+# e2f <projects@e2f.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-10-10 08:44+0000\n"
-"PO-Revision-Date: 2016-10-10 08:44+0000\n"
-"Last-Translator: liAnGjiA <liangjia@qq.com>, 2017\n"
+"PO-Revision-Date: 2016-09-07 09:32+0000\n"
+"Last-Translator: e2f <projects@e2f.com>, 2019\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/odoo/teams/41243/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -60,6 +65,43 @@ msgid ""
 "    </table>\n"
 "</div>"
 msgstr ""
+"\n"
+"<div summary=\"o_mail_notification\" style=\"padding:0px; width:600px; margin:0 auto; background: #FFFFFF repeat top /100%;color:#777777\">\n"
+"    <table cellspacing=\"0\" cellpadding=\"0\" style=\"width:600px; border-collapse:collapse; background:inherit; color:inherit\">\n"
+"        <tbody><tr>\n"
+"            <td valign=\"center\" width=\"200\" style=\"padding:0px 10px 5px 5px; font-size: 12px\">\n"
+"                <img src=\"/logo.png\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" alt=\"${user.company_id.name}\">\n"
+"            </td>\n"
+"        </tr></tbody>\n"
+"    </table>\n"
+"</div>\n"
+"<div summary=\"o_mail_notification\" style=\"padding:0px; width:600px; margin:0 auto; background: #FFFFFF repeat top /100%;color:#777777\">\n"
+"    <table cellspacing=\"0\" cellpadding=\"0\" style=\"vertical-align:top; padding:0px; border-collapse:collapse; background:inherit; color:inherit\">\n"
+"        <tbody><tr>\n"
+"            <td valign=\"top\" style=\"width:600px; padding:0px 10px 5px 5px;\">\n"
+"                <div>\n"
+"                    <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0;margin:0px auto;padding:0\">\n"
+"                </div>\n"
+"            </td>\n"
+"        </tr></tbody>\n"
+"    </table>\n"
+"</div>\n"
+"<div style=\"padding:0px; width:600px; max-width:600px; margin:0 auto; background: #FFFFFF repeat top /100%; color:#777777\">\n"
+"    <table cellspacing=\"0\" cellpadding=\"0\" style=\"width:600px ;text-align:justify; margin:0 auto; border-collapse:collapse; background:inherit; color:inherit\">\n"
+"        <tbody><tr>\n"
+"            <td style=\"padding:0px 10px 5px 5px;font-size: 14px;\">\n"
+"                <p>尊敬的 ${object.name}：</p>\n"
+"                <p>您被邀请验证电子邮件，以便能够访问\n"
+"                \"${object.company_id.name}\" Q/A 论坛。</p>\n"
+"                <p>要验证您的电子邮件，请点击以下链接：</p>\n"
+"                <a style=\"margin-left: 15px; padding:5px 10px; border-radius: 3px; background-color:#875A7B; text-align:center; text-decoration:none; color:#F7FBFD;\" href=\"${ctx.get('token_url')}\">\n"
+"                    验证我的 \"${object.company_id.name}\" Q/A 论坛账户\n"
+"                </a>\n"
+"                <p>谢谢参与！</p>\n"
+"            </td>\n"
+"        </tr></tbody>\n"
+"    </table>\n"
+"</div>"
 
 #. module: website_forum
 #. openerp-web
@@ -83,7 +125,7 @@ msgstr "${object.company_id.name} 论坛验证"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.tag
 msgid "&amp;nbsp;&amp;nbsp;<i class=\"fa fa-times\"/>&amp;nbsp;&amp;nbsp;"
-msgstr ""
+msgstr "&amp;nbsp;&amp;nbsp;<i class=\"fa fa-times\"/>&amp;nbsp;&amp;nbsp;"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.header
@@ -100,14 +142,14 @@ msgstr "(以上部分是改编自堆栈溢出的常见问题解答)"
 msgid ""
 "(Un)archiving a forum automatically (un)archives its posts. Do you want to "
 "proceed?"
-msgstr ""
+msgstr "存档论坛会自动存档其中的帖子。你想继续？"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.view_forum_post_form
 msgid ""
 "(Un)archiving a post automatically (un)archives its answers. Do you want to "
 "proceed?"
-msgstr ""
+msgstr "(反)存档一篇帖子会自动(反)存档它的回复。你想继续？"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.view_forum_forum_form
@@ -171,7 +213,7 @@ msgstr "<b>回复者不应增加或延伸问题</b>. 除非可以编辑或增加
 msgid ""
 "<b>Answers should not add or expand questions</b>. Instead either edit the "
 "question or add a question comment."
-msgstr ""
+msgstr "<b>回复不应该添加或扩展问题。</b>而是应编辑问题或添加问题评论。"
 
 #. module: website_forum
 #: model:forum.forum,faq:website_forum.forum_help
@@ -227,6 +269,11 @@ msgid ""
 "    copy/paste. Links are welcome, but should be complementary to\n"
 "    answer, referring sources or additional reading."
 msgstr ""
+"<b>回复中不应只提供\n"
+" 解决方案的链接。</b>回复中还应该提供解决方案\n"
+" 说明文本，即使该文本只是\n"
+" 经复制/粘贴的文本。链接固然受欢迎，但应与\n"
+" 回复互补，从而引用来源或其他阅读资料。"
 
 #. module: website_forum
 #: model:forum.forum,faq:website_forum.forum_help
@@ -236,6 +283,8 @@ msgid ""
 "Links are welcome, but should be complementary to answer, referring sources "
 "or additional reading."
 msgstr ""
+"<b>回复中不应只提供\n"
+" 解决方案链接。</b>回复中还应该提供解决方案说明文本，即使该文本只是经复制/粘贴的文本。链接固然受欢迎，但应与回复互补，从而引用来源或其他阅读资料。"
 
 #. module: website_forum
 #: model:forum.forum,faq:website_forum.forum_help
@@ -320,8 +369,9 @@ msgid ""
 "                        <span class=\"icon-bar\"/>\n"
 "                        <span class=\"icon-bar\"/>"
 msgstr ""
-"<span class=\"sr-only\">切换导航</span><span class=\"icon-bar\"/> <span class"
-"=\"icon-bar\"/>"
+"<span class=\"sr-only\">切换导航</span>\n"
+"                        <span class=\"icon-bar\"/>\n"
+"                        <span class=\"icon-bar\"/>"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_description_full
@@ -360,7 +410,7 @@ msgstr "<span> • </span>标记的"
 #: model:ir.ui.view,arch_db:website_forum.display_post_question_block
 #: model:ir.ui.view,arch_db:website_forum.post_description_full
 msgid "<span>By </span>"
-msgstr "<span>由 </span>"
+msgstr "<span>作者 </span>"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.forum_post_template_new_answer
@@ -380,6 +430,9 @@ msgid ""
 "            similar questions. Using the right tags makes it easier for\n"
 "            others to find and answer your question. (Hover the mouse to follow/unfollow tag(s))"
 msgstr ""
+"标签是将您的问题与其他\n"
+" 类似问题进行分类的标签。通过使用正确的标签，其他人\n"
+" 能够轻松找到并回答您的问题。（将鼠标悬停以选中/取消选中标签）"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.header
@@ -530,7 +583,7 @@ msgstr "被回复的问题"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.view_forum_post_form
 msgid "Answered by"
-msgstr "被...回复"
+msgstr "回复者"
 
 #. module: website_forum
 #: model:gamification.badge,description:website_forum.badge_a_8
@@ -648,7 +701,7 @@ msgstr "返回"
 #: code:addons/website_forum/controllers/main.py:394
 #, python-format
 msgid "Bad Request"
-msgstr "坏的请求"
+msgstr "无效请求"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_res_users_badge_ids
@@ -689,7 +742,7 @@ msgstr "跳到"
 #: code:addons/website_forum/static/src/xml/website_forum_share_templates.xml:34
 #, python-format
 msgid "By sharing you answer, you will get additional"
-msgstr ""
+msgstr "共享您的回复后，如果该回复被选为正确回复，将得到额外的贡献度点数"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_can_accept
@@ -847,7 +900,7 @@ msgstr "关闭"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.close_post
 msgid "Close Post"
-msgstr ""
+msgstr "关闭帖子"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum_karma_close_all
@@ -862,12 +915,12 @@ msgstr "关闭自己的帖子"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.close_post
 msgid "Close post"
-msgstr ""
+msgstr "关闭帖子"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_closed_uid
 msgid "Closed by"
-msgstr "关闭者为"
+msgstr "关闭者"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_closed_date
@@ -956,12 +1009,12 @@ msgstr "转换所有回复去评论，反之亦然"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_answers
 msgid "Convert as a comment"
-msgstr ""
+msgstr "转换为备注"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_comment
 msgid "Convert as an answer"
-msgstr ""
+msgstr "转换为答案"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_karma_accept
@@ -1052,7 +1105,7 @@ msgstr "默认的帖子"
 #: model:ir.ui.view,arch_db:website_forum.post_answers
 #: model:ir.ui.view,arch_db:website_forum.post_description_full
 msgid "Delete"
-msgstr ""
+msgstr "刪除"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum_karma_unlink_all
@@ -1184,7 +1237,7 @@ msgstr "编辑工具：图像和链接"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.edit_profile
 msgid "Email"
-msgstr "Email"
+msgstr "电子邮件"
 
 #. module: website_forum
 #: model:gamification.badge,name:website_forum.badge_a_5
@@ -1210,7 +1263,7 @@ msgstr "热门问题"
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_favourite_count
 msgid "Favorite Count"
-msgstr "收藏夹个数"
+msgstr "收藏数"
 
 #. module: website_forum
 #: model:gamification.badge,name:website_forum.badge_q_5
@@ -1275,7 +1328,7 @@ msgstr "第一个支持"
 #: model:ir.ui.view,arch_db:website_forum.post_answers
 #: model:ir.ui.view,arch_db:website_forum.post_description_full
 msgid "Flag"
-msgstr ""
+msgstr "标记"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum_karma_flag
@@ -1486,7 +1539,7 @@ msgid ""
 "How to create a physical inventory at an anterior date?, How is the "
 "'remaining hours' field computed on tasks?, How to configure TPS and TVQ's "
 "canadian taxes?"
-msgstr ""
+msgstr "如何在早期创建实际库存？如何计算任务的“剩余小时数”字段？如何配置 TPS 和 TVQ 的加拿大税务？"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum_id
@@ -1549,7 +1602,7 @@ msgstr "插入标签到和你有关的问题"
 msgid ""
 "Inventory Date Problem, Task remaining hours, Can you help solve solve my "
 "tax computation problem in Canada?"
-msgstr ""
+msgstr "库存日期问题、任务剩余小时数。您能帮我解决加拿大的税务计算问题吗？"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_user_favourite
@@ -1676,7 +1729,7 @@ msgstr "链接"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.close_post
 msgid "Mark as offensive"
-msgstr ""
+msgstr "标记为具有攻击性"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum_karma_moderate
@@ -1714,7 +1767,7 @@ msgstr "较多投票的"
 #, python-format
 msgid ""
 "Move this question to the top of the list by sharing it on social networks."
-msgstr ""
+msgstr "通过将其分享到社交网络上，将此问题移至列表的顶部。"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_user_vote
@@ -1800,13 +1853,13 @@ msgstr "不能给自己的贴子投票"
 #: code:addons/website_forum/models/forum.py:935
 #, python-format
 msgid "Not enough karma to create a new Tag"
-msgstr ""
+msgstr "贡献值不足，无法创建新标签"
 
 #. module: website_forum
 #: code:addons/website_forum/models/forum.py:494
 #, python-format
 msgid "Not enough karma to retag."
-msgstr ""
+msgstr "贡献值不足，无法更换标签。"
 
 #. module: website_forum
 #: model:gamification.badge,name:website_forum.badge_q_2
@@ -1822,7 +1875,7 @@ msgstr "帖子数量"
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_views
 msgid "Number of Views"
-msgstr "点阅数量"
+msgstr "点击数"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_child_count
@@ -1848,7 +1901,7 @@ msgstr "无礼"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.close_post
 msgid "Offensive Post"
-msgstr ""
+msgstr "具有攻击性的帖子"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_answers
@@ -2136,7 +2189,7 @@ msgstr "回复: %s"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_description_full
 msgid "Reactivate"
-msgstr ""
+msgstr "重新激活"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.header
@@ -2193,7 +2246,7 @@ msgstr "相关计算"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_description_full
 msgid "Reopen"
-msgstr ""
+msgstr "重开"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_answers
@@ -2314,7 +2367,7 @@ msgstr "银质徽章个数"
 #: code:addons/website_forum/static/src/js/website_forum.js:23
 #, python-format
 msgid "Sorry you must be logged in to perform this action"
-msgstr ""
+msgstr "抱歉，您必须登录才能执行此操作"
 
 #. module: website_forum
 #. openerp-web
@@ -2538,7 +2591,7 @@ msgstr "这个帖子已经被结束了"
 msgid ""
 "This post is currently awaiting moderation and not yet published... Do you "
 "want <i>Accept</i> or <i>Reject</i> this post ?"
-msgstr ""
+msgstr "此帖当前正等待审核，尚未发布...<i>是否要接受</i>或<i>拒绝此帖</i>？"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.private_profile
@@ -2583,7 +2636,7 @@ msgstr "为了避免你的问题被结束和可能已经删除，避免询问主
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_post_vote_count
 msgid "Total Votes"
-msgstr ""
+msgstr "投票统计"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.header
@@ -2726,7 +2779,7 @@ msgstr "等待验证"
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_res_users_forum_waiting_posts_count
 msgid "Waiting post"
-msgstr ""
+msgstr "待发布的帖子"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.new_link
@@ -2786,6 +2839,8 @@ msgid ""
 "You already have one pending post.<br/>\n"
 "            Please wait for a moderator to validate your previous post before continuing."
 msgstr ""
+"您已有一个待处理的帖子。<br/>\n"
+" 继续之前，请等待核对人验证您之前的帖子。"
 
 #. module: website_forum
 #: code:addons/website_forum/models/forum.py:139
@@ -2797,7 +2852,7 @@ msgstr "你不能选择%s作为默认帖子，论坛不允许这样做。"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_answer
 msgid "You cannot post an empty answer"
-msgstr ""
+msgstr "你不能发表空的回复"
 
 #. module: website_forum
 #: model:forum.forum,faq:website_forum.forum_help
@@ -2856,7 +2911,7 @@ msgstr "青铜"
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.post_description_full
 msgid "by"
-msgstr "by"
+msgstr "作者"
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.forum_index
@@ -2973,17 +3028,17 @@ msgstr "被关闭了"
 msgid ""
 "has been posted and require your validation. Click here to access the "
 "question :"
-msgstr ""
+msgstr "新问题已发布，需要您进行验证。点击此处进入问题："
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.forum_post_template_new_answer
 msgid "has been posted. Click here to access the post :"
-msgstr ""
+msgstr "新答案已发布。点击此处进入帖子："
 
 #. module: website_forum
 #: model:ir.ui.view,arch_db:website_forum.forum_post_template_new_question
 msgid "has been posted. Click here to access the question :"
-msgstr ""
+msgstr "新答案已发布。点击此处进入问题："
 
 #. module: website_forum
 #. openerp-web

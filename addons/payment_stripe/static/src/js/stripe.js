@@ -68,40 +68,40 @@ odoo.define('payment_stripe.stripe', function(require) {
         e.preventDefault();
         if ($('.o_website_payment').length !== 0) {
             var currency = $("input[name='currency']").val();
+            var currency_id = $("input[name='currency_id']").val();
             var amount = parseFloat($("input[name='amount']").val() || '0.0');
-            if (!_.contains(int_currencies, currency)) {
-                amount = amount*100;
-            }
 
             ajax.jsonRpc('/website_payment/transaction', 'call', {
                     reference: $("input[name='invoice_num']").val(),
                     amount: amount,
-                    currency_id: currency,
+                    currency_id: currency_id,
                     acquirer_id: acquirer_id
                 })
                 handler.open({
                     name: $("input[name='merchant']").val(),
+                    email: $("input[name='email']").val(),
                     description: $("input[name='invoice_num']").val(),
                     currency: currency,
-                    amount: amount,
+                    amount: _.contains(int_currencies, currency) ? amount : amount * 100,
                 });
         } else {
             var currency = $("input[name='currency']").val();
             var amount = parseFloat($("input[name='amount']").val() || '0.0');
-            if (!_.contains(int_currencies, currency)) {
-                amount = amount*100;
-            }
 
             ajax.jsonRpc('/shop/payment/transaction/' + acquirer_id, 'call', {
                     so_id: so_id,
                     so_token: so_token
                 }, {'async': false}).then(function (data) {
+                var $pay_stripe = $('#pay_stripe').detach();
                 $form.html(data);
+                // Restore 'Pay Now' button HTML since data might have changed it.
+                $form.find('#pay_stripe').replaceWith($pay_stripe);
                 handler.open({
                     name: $("input[name='merchant']").val(),
+                    email: $("input[name='email']").val(),
                     description: $("input[name='invoice_num']").val(),
                     currency: currency,
-                    amount: amount,
+                    amount: _.contains(int_currencies, currency) ? amount : amount * 100,
                 });
             });
         }

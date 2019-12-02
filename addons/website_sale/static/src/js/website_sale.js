@@ -88,7 +88,7 @@ odoo.define('website_sale.website_sale', function (require) {
             var product_ids = [];
             var product_dom = $(".js_product .js_add_cart_variants[data-attribute_value_ids]");
             var qty = $(event.target).closest('form').find('input[name="add_qty"]').val();
-            if (!product_dom.length) {
+            if (!product_dom.length || $('body').hasClass('editor_enable')) {
                 return;
             }
             _.each(product_dom, function (prod) {
@@ -129,10 +129,13 @@ odoo.define('website_sale.website_sale', function (require) {
 
         $(oe_website_sale).on("change", ".oe_cart input.js_quantity[data-product-id]", function () {
           var $input = $(this);
-            if ($input.data('update_change')) {
+            if ($input.data('update_change') || $('body').hasClass('editor_enable')) {
                 return;
             }
           var value = parseInt($input.val() || 0, 10);
+      if (isNaN(value)) {
+          value = 1;
+      }
           var $dom = $(this).closest('tr');
           //var default_price = parseFloat($dom.find('.text-danger > span.oe_currency_value').text());
           var $dom_optional = $dom.nextUntil(':not(.optional_product.info)');
@@ -151,7 +154,11 @@ odoo.define('website_sale.website_sale', function (require) {
                 'set_qty': value
             }).then(function (data) {
                 $input.data('update_change', false);
-                if (value !== parseInt($input.val() || 0, 10)) {
+                var check_value = parseInt($input.val() || 0, 10);
+                if (isNaN(check_value)) {
+                    check_value = 1;
+                }
+                if (value !== check_value) {
                     $input.trigger('change');
                     return;
                 }
@@ -161,7 +168,7 @@ odoo.define('website_sale.website_sale', function (require) {
                 }
                 else {
                     $q.parents('li:first').addClass("hidden");
-                    $('a[href^="/shop/checkout"]').addClass("hidden");
+                    $('a[href*="/shop/checkout"]').addClass("hidden");
                 }
 
                 $q.html(data.cart_quantity).hide().fadeIn(600);
@@ -191,6 +198,9 @@ odoo.define('website_sale.website_sale', function (require) {
 
         // hack to add and remove from cart with json
         $(oe_website_sale).on('click', 'a.js_add_cart_json', function (ev) {
+            if ($('body').hasClass('editor_enable')) {
+                return;
+            }
             ev.preventDefault();
             var $link = $(ev.currentTarget);
             var $input = $link.parent().find("input");

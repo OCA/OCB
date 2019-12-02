@@ -520,8 +520,12 @@ class Escpos:
         # Print Code
         if code:
             self._raw(code)
+            # We are using type A commands
+            # So we need to add the 'NULL' character
+            # https://github.com/python-escpos/python-escpos/pull/98/files#diff-a0b1df12c7c67e38915adbe469051e2dR444
+            self._raw('\x00')
         else:
-            raise exception.BarcodeCodeError()
+            raise BarcodeCodeError()
 
     def receipt(self,xml):
         """
@@ -881,14 +885,23 @@ class Escpos:
             self._raw(PAPER_FULL_CUT)
 
 
-    def cashdraw(self, pin):
-        """ Send pulse to kick the cash drawer """
-        if pin == 2:
-            self._raw(CD_KICK_2)
-        elif pin == 5:
-            self._raw(CD_KICK_5)
-        else:
-            raise CashDrawerError()
+    def cashdraw(self, pin, tries=5):
+        """ Send pulse to kick the cash drawer
+
+        With some printers the drawer will not open after one pulse, for this reason we will check
+        the drawer status up to 'tries' times and send a new pulse if the drawer is still closed. If the
+        drawer status is open, we will stop sending pulses.
+        """
+        for i in range(tries):
+            if pin == 2:
+                self._raw(CD_KICK_2)
+            elif pin == 5:
+                self._raw(CD_KICK_5)
+            else:
+                raise CashDrawerError()
+
+            if i != tries - 1 and not self.get_printer_status()['printer']['drawer_pin_high']:
+                break
 
 
     def hw(self, hw):

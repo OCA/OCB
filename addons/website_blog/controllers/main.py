@@ -35,7 +35,7 @@ class WebsiteBlog(http.Controller):
             group['date_begin'] = start
             group['date_end'] = end
 
-            locale = request.context.get('lang', 'en_US')
+            locale = request.context.get('lang') or 'en_US'
             start = pytz.UTC.localize(fields.Datetime.from_string(start))
             tzinfo = pytz.timezone(request.context.get('tz', 'utc') or 'utc')
 
@@ -110,6 +110,9 @@ class WebsiteBlog(http.Controller):
         # retrocompatibility to accept tag as slug
         active_tag_ids = tag and map(int, [unslug(t)[1] for t in tag.split(',')]) or []
         if active_tag_ids:
+            fixed_tag_slug = ",".join(map(slug, request.env['blog.tag'].browse(active_tag_ids)))
+            if fixed_tag_slug != tag:
+                return request.redirect(request.httprequest.full_path.replace("/tag/%s/" % tag, "/tag/%s/" % fixed_tag_slug, 1), 301)
             domain += [('tag_ids', 'in', active_tag_ids)]
         if blog:
             domain += [('blog_id', '=', blog.id)]
@@ -177,7 +180,9 @@ class WebsiteBlog(http.Controller):
         v = {}
         v['blog'] = blog
         v['base_url'] = request.env['ir.config_parameter'].get_param('web.base.url')
-        v['posts'] = request.env['blog.post'].search([('blog_id','=', blog.id)], limit=min(int(limit), 50))
+        v['posts'] = request.env['blog.post'].search([('blog_id','=', blog.id)],
+            limit=min(int(limit), 50),
+            order="post_date DESC")
         v['html2plaintext'] = html2plaintext
         r = request.render("website_blog.blog_feed", v, headers=[('Content-Type', 'application/atom+xml')])
         return r

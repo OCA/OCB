@@ -3,21 +3,23 @@
 # * website_slides
 # 
 # Translators:
-# Giacomo Grasso <giacomo.grasso.82@gmail.com>, 2016
-# Francesco Garganese <francesco.garganese@aeromnia.aero>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
-# Paolo Valier <paolo.valier@hotmail.it>, 2016
-# p_amoruso <p.amoruso@elvenstudio.it>, 2016
 # Giuseppe Castellani <giuseppecastellani@gmail.com>, 2016
-# Simone Bernini <simone@aperturelabs.it>, 2016
 # Lorenzo Battistini <lorenzo.battistini@agilebg.com>, 2016
+# p_amoruso <p.amoruso@elvenstudio.it>, 2016
+# Simone Bernini <simone@aperturelabs.it>, 2016
+# Giacomo Grasso <giacomo.grasso.82@gmail.com>, 2016
+# Martin Trigaux, 2016
+# Francesco Garganese <francesco.garganese@aeromnia.aero>, 2017
+# Paolo Valier, 2018
+# Léonie Bouchat <lbo@odoo.com>, 2018
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-23 13:28+0000\n"
-"PO-Revision-Date: 2017-06-23 13:28+0000\n"
-"Last-Translator: Lorenzo Battistini <lorenzo.battistini@agilebg.com>, 2016\n"
+"PO-Revision-Date: 2016-09-07 09:34+0000\n"
+"Last-Translator: Léonie Bouchat <lbo@odoo.com>, 2018\n"
 "Language-Team: Italian (https://www.transifex.com/odoo/teams/41243/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -91,6 +93,8 @@ msgid ""
 "(Un)archiving a channel automatically (un)archives its slides. Do you want "
 "to proceed?"
 msgstr ""
+"Ripristinare un canale dall'archivio ripristina anche tutte le sue diapositive.\n"
+"Sei sicuro di voler procedere?"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slides_search
@@ -326,12 +330,12 @@ msgstr "Solo Utenti Autentificati "
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_5
 msgid "Awesome Timesheet by Odoo"
-msgstr ""
+msgstr "Splendido timesheet di Odoo"
 
 #. module: website_slides
 #: model:slide.tag,name:website_slides.tag1
 msgid "CMS"
-msgstr ""
+msgstr "CMS"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_can_see
@@ -429,6 +433,8 @@ msgid ""
 "Could not fetch data from url. Document or access right not available.\n"
 "Here is the received response: %s"
 msgstr ""
+"Non è possibile recuperare i dati dall'URL. Documenti o diritti di accesso non disponibili:\n"
+"Qui trovi la risposta ricevuta: %s"
 
 #. module: website_slides
 #: code:addons/website_slides/models/slides.py:307
@@ -507,6 +513,9 @@ msgid ""
 "\n"
 "Learn more at https://odoo.com"
 msgstr ""
+"Scopri la soluzione software di gestione aziendale all-in-one che si adatta a tutte le aziende e situazioni.\n"
+"\n"
+"Per saperne di più: https://odoo.com"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_dislikes
@@ -562,6 +571,10 @@ msgid ""
 "Chrome: http://bit.ly/2613LcY\n"
 "iOS: http://bit.ly/1ZUZsZD"
 msgstr ""
+"Scarica Awesome Timesheet di Odoo e scopri quanto sia facile rintracciare il tempo e gestire i dipendenti.!\n"
+"\n"
+"Chrome: http://bit.ly/2613LcY\n"
+"iOS: http://bit.ly/1ZUZsZD"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_download_security
@@ -650,7 +663,7 @@ msgstr "Politica in primo piano"
 #: code:addons/website_slides/static/src/js/slides_upload.js:90
 #, python-format
 msgid "File is too big. File size cannot exceed 25MB"
-msgstr ""
+msgstr "Il file è troppo grande. Non può superare i 25MB"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_can_see_full
@@ -773,7 +786,7 @@ msgstr "Likes"
 #. module: website_slides
 #: model:slide.tag,name:website_slides.tag2
 msgid "Marketing"
-msgstr ""
+msgstr "Marketing"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_image_medium
@@ -874,7 +887,7 @@ msgstr "Numero di video "
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_2
 msgid "Odoo All-in-One Software Demonstration"
-msgstr ""
+msgstr "Dimostrazione del software all-in-one Odoo"
 
 #. module: website_slides
 #: model:slide.category,name:website_slides.category_2
@@ -910,7 +923,7 @@ msgstr "Odoo Strade & Strategie - Fabien Pinckaers"
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_3
 msgid "Odoo Sign Demonstration"
-msgstr ""
+msgstr "Dimostrazione di Odoo Firma"
 
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_1
@@ -1195,6 +1208,9 @@ msgid ""
 "\n"
 "Discover more at https://www.odoo.com/page/sign"
 msgstr ""
+"Smettila di stampare i documenti, firmarli e poi scannerizzarli. Passa alla firma elettronica con Odoo Firma\n"
+"\n"
+"Per saperne di più: https://www.odoo.com/page/sign"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_tag_form
@@ -1229,6 +1245,9 @@ msgid ""
 "The document type will be set automatically based on the document URL and "
 "properties (e.g. height and width for presentation and document)."
 msgstr ""
+"Il tipo di documento sarà definito automaticamente in base al suo URL e alle"
+" sue proprietà (es: altezza e larghezza per una presentazione o un "
+"documento)."
 
 #. module: website_slides
 #: sql_constraint:slide.slide:0
@@ -1246,7 +1265,7 @@ msgstr "URL Sito Web di terze parti "
 #: model:slide.channel,access_error_msg:website_slides.channel_public
 msgid "This channel is private and its content is restricted to some users."
 msgstr ""
-"Quest ocanale è privato e il suo contenuto è ristretto ad ogni utente."
+"Questo canale è privato e il suo contenuto è limitato ad alcuni utenti."
 
 #. module: website_slides
 #: code:addons/website_slides/controllers/main.py:286
@@ -1281,7 +1300,7 @@ msgstr "Totale"
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_total_views
 msgid "Total # Views"
-msgstr "Tutte #Visite"
+msgstr "# Visite Totali"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_index_content

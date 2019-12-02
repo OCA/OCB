@@ -3,28 +3,31 @@
 # * mass_mailing
 # 
 # Translators:
-# Martin Trigaux <mat@odoo.com>, 2016
 # Šarūnas Ažna <sarunas.azna@gmail.com>, 2016
-# Audrius Palenskis <audrius.palenskis@gmail.com>, 2016
-# UAB "Draugiški sprendimai" <transifex@draugiskisprendimai.lt>, 2016
-# Anatolij <an@cq.lt>, 2016
+# Anatolij, 2016
 # Rolandas <info@paninfo.lt>, 2016
+# UAB "Draugiški sprendimai" <transifex@draugiskisprendimai.lt>, 2016
+# Audrius Palenskis <audrius.palenskis@gmail.com>, 2016
+# Martin Trigaux, 2016
 # Monika Raciunaite <monika.raciunaite@gmail.com>, 2016
 # Antanas Muliuolis <an.muliuolis@gmail.com>, 2017
 # digitouch UAB <digitouchagencyeur@gmail.com>, 2017
+# Silvija Butko <silvija.butko@gmail.com>, 2018
+# Linas Versada <linaskrisiukenas@gmail.com>, 2018
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-23 13:28+0000\n"
-"PO-Revision-Date: 2017-06-23 13:28+0000\n"
-"Last-Translator: digitouch UAB <digitouchagencyeur@gmail.com>, 2017\n"
+"PO-Revision-Date: 2016-09-07 09:23+0000\n"
+"Last-Translator: Linas Versada <linaskrisiukenas@gmail.com>, 2018\n"
 "Language-Team: Lithuanian (https://www.transifex.com/odoo/teams/41243/lt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Language: lt\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
@@ -75,6 +78,9 @@ msgid ""
 "                                        <span class=\"fa fa-compass fa-2x text-delta\"/>\n"
 "                                        &amp;nbsp;"
 msgstr ""
+"&amp;nbsp;\n"
+"                                        <span class=\"fa fa-compass fa-2x text-delta\"/>\n"
+"                                        &amp;nbsp;"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_steps
@@ -83,6 +89,9 @@ msgid ""
 "                                        <span class=\"fa fa-credit-card fa-2x text-delta\"/>\n"
 "                                        &amp;nbsp;"
 msgstr ""
+"&amp;nbsp;\n"
+"                                        <span class=\"fa fa-credit-card fa-2x text-delta\"/>\n"
+"                                        &amp;nbsp;"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_steps
@@ -91,16 +100,19 @@ msgid ""
 "                                        <span class=\"fa fa-smile-o fa-2x text-delta\"/>\n"
 "                                        &amp;nbsp;"
 msgstr ""
+"&amp;nbsp;\n"
+"                                        <span class=\"fa fa-smile-o fa-2x text-delta\"/>\n"
+"                                        &amp;nbsp;"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount1
 msgid "20%"
-msgstr ""
+msgstr "20%"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_event
 msgid "21 Jul"
-msgstr ""
+msgstr "Liepos 21"
 
 #. module: mass_mailing
 #: model:mail.template,body_html:mass_mailing.newsletter_template
@@ -118,21 +130,24 @@ msgid ""
 "    <strong>Business Hacks</strong>\n"
 "    <span> to<br>boost your marketing</span>"
 msgstr ""
+"<font>7</font>\n"
+"    <strong>Verslo gudrybės,</strong>\n"
+"    <span><br>kurios padės jūsų rinkodarai</span>"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.email_designer_snippets
 msgid "<i class=\"fa fa-angle-double-down\"/> Footers"
-msgstr ""
+msgstr "<i class=\"fa fa-angle-double-down\"/> Poraštės"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.email_designer_snippets
 msgid "<i class=\"fa fa-angle-double-up\"/> Headers"
-msgstr ""
+msgstr "<i class=\"fa fa-angle-double-up\"/> Antraštės"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.email_designer_snippets
 msgid "<i class=\"fa fa-clone\"/> Body"
-msgstr ""
+msgstr "<i class=\"fa fa-clone\"/> Tekstas"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.snippet_options
@@ -152,11 +167,16 @@ msgid ""
 "                                    <small>Community Manager</small>\n"
 "                                </small>"
 msgstr ""
+"<small>\n"
+"                                    <strong>Michael Fletcher</strong><br/>\n"
+"                                    <small>Bendruomenės vadovas</small>\n"
+"                                </small>"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount2
 msgid "<small>CODE</small>:   <strong class=\"o_code h3\">45A9E77DGW8455</strong>"
 msgstr ""
+"<small>KODAS</small>:   <strong class=\"o_code h3\">45A9E77DGW8455</strong>"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_steps
@@ -176,18 +196,18 @@ msgstr "<small>3 žingsnis:</small>"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
 msgid "<small>user / month (billed annually)</small>"
-msgstr ""
+msgstr "<small>naudotojas / mėnuo (mokama kasmet)</small>"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_footer_social
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_footer_social_left
 msgid "<span class=\"fa fa-copyright\"/> 2016 All Rights Reserved"
-msgstr ""
+msgstr "<span class=\"fa fa-copyright\"/> 2016 Visos teisės saugomos"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
 msgid "<strong>24/7 Support</strong>"
-msgstr ""
+msgstr "<strong>24/7 palaikymas</strong>"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
@@ -207,7 +227,7 @@ msgstr "<strong>Atidaryta</strong>"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
 msgid "<strong>Total</strong> management"
-msgstr ""
+msgstr "<strong>Bendras</strong> valdymas"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_three_cols
@@ -217,12 +237,12 @@ msgstr "Trumpas aprašymas"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_text_image
 msgid "A unique value"
-msgstr ""
+msgstr "Unikali reikšmė"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_contact_ab_pc
 msgid "A/B Testing percentage"
-msgstr ""
+msgstr "A/B testavimo procentas"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_unique_ab_testing
@@ -253,12 +273,12 @@ msgstr "Taikyti"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_footer_tag_line
 msgid "Apps That Help You Grow Your Business"
-msgstr ""
+msgstr "Aplikacijos, padedančios Jums auginti savo verslą"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_title_sub
 msgid "Apps That Help You Grow Your Business!"
-msgstr ""
+msgstr "Aplikacijos, padedančios Jums auginti savo verslą!"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_list_search
@@ -339,7 +359,7 @@ msgstr "Kampanijos etapai"
 #: model:ir.ui.menu,name:mass_mailing.mass_mailing_tag_menu
 #: model:ir.ui.view,arch_db:mass_mailing.mail_mass_mailing_tag_view_form
 msgid "Campaign Tags"
-msgstr ""
+msgstr "Kampanijų žymos"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mass_mailing_config_settings_group_mass_mailing_campaign
@@ -365,7 +385,7 @@ msgstr "Pakeisti stilių"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_title_sub
 msgid "Check this out!"
-msgstr ""
+msgstr "Pažiūrėkite!"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_steps
@@ -454,7 +474,7 @@ msgstr "Kontaktai"
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_contact_message_bounce
 msgid "Counter of the number of bounced emails for this contact."
-msgstr ""
+msgstr "Šio kontakto atmestų laiškų skaičius."
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_contact_create_date
@@ -467,6 +487,8 @@ msgid ""
 "Create a campaign to structure mass mailing and get analysis from email "
 "status."
 msgstr ""
+"Norėdami struktūrizuoti masinius laiškus ir gauti jų būsenos analizę, "
+"sukurkite kampaniją."
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mail_statistics_create_uid
@@ -509,11 +531,13 @@ msgid ""
 "Cyber-threats continue to increase.<br/>\n"
 "                                The discussion will examine how to develop new norms and integrate them into EU"
 msgstr ""
+"Kibernetinės atakos vis dažnėja. <br/>\n"
+"Ši diskusija nagrinėja, kaip kurti naujas nuostatas ir integruoti jas į ES"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_event
 msgid "Cybersecurity"
-msgstr ""
+msgstr "Kibernetinis saugumas"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
@@ -676,7 +700,7 @@ msgstr ""
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_contact_search
 msgid "Exclude Opt Out"
-msgstr ""
+msgstr "Neįtraukti atsisakymo"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_statistics_report_search
@@ -686,7 +710,7 @@ msgstr "Išplėstiniai filtrai..."
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount1
 msgid "FROM YOUR NEXT ORDER!"
-msgstr ""
+msgstr "NUO JŪSŲ KITO UŽSAKYMO!"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_failed
@@ -703,7 +727,7 @@ msgstr "Pirmas naujienlaiškis"
 #. module: mass_mailing
 #: selection:mail.mass_mailing,reply_to_mode:0
 msgid "Followers of leads/applicants"
-msgstr ""
+msgstr "Iniciatyvų/kandindatų prenumeratoriai"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_email_from
@@ -717,6 +741,9 @@ msgid ""
 "Get your inside sales (CRM) fully integrated with online sales (eCommerce), "
 "in-store sales (Point of Sale) and marketplaces like eBay and Amazon."
 msgstr ""
+"Integruokite savo vidinius pardavimus (CRM) su internetiniais pardavimais "
+"(e-komercija), parduotuvių pardavimais (Pardavimo taškas) ir pardavimo "
+"platformomis, tokiomis kaip \"eBay\" ar \"Amazon\"."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mail_statistics_search
@@ -753,6 +780,9 @@ msgid ""
 "related mail_mail can be deleted separately from its statistics. However the"
 " ID is needed for several action and controllers."
 msgstr ""
+"Susijusio mail_mail ID. Šis laukas yra integralus, kadangi susijęs mail_mail"
+" gali būti pašalintas atskirai nuo jo statistikos. Vis tik, ID reikalingas "
+"keliems veiksmams ir valdikliams."
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_campaign_unique_ab_testing
@@ -775,6 +805,8 @@ msgid ""
 "Join our Marketing newsletter and get <strong>this white paper "
 "instantly</strong>"
 msgstr ""
+"Prisijunkite prie mūsų rinkodaros naujienlaiškio ir <strong>netrukus gaukite"
+" šį dokumentą</strong>"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_keep_archives
@@ -839,17 +871,17 @@ msgstr "Paskutinis el. pašto būsenos atnaujinimas"
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mail_statistics_links_click_ids
 msgid "Links click"
-msgstr ""
+msgstr "Nuorodos"
 
 #. module: mass_mailing
 #: model:ir.filters,name:mass_mailing.filter_contact_subscription
 msgid "List Subscription"
-msgstr ""
+msgstr "Prenumeruojamų sąrašas"
 
 #. module: mass_mailing
 #: model:ir.filters,name:mass_mailing.filter_contact_unsubscription
 msgid "List Unsubscription"
-msgstr ""
+msgstr "Neprenumeruojamų sąrašas"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mail_statistics_mail_mail_id
@@ -898,7 +930,7 @@ msgstr "Adresatų sąrašas"
 #. module: mass_mailing
 #: model:ir.actions.act_window,name:mass_mailing.action_view_mass_mailing_contacts
 msgid "Mailing List Subscribers"
-msgstr ""
+msgstr "El. laiškų prenumeratorių sąrašas"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,name:mass_mailing.action_view_mass_mailing_lists
@@ -913,7 +945,7 @@ msgstr "Adresatų sąrašas"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_contact_graph
 msgid "Mailing Lists Subscriber"
-msgstr ""
+msgstr "El. laiškų prenumeratorius"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_contact_search
@@ -924,12 +956,12 @@ msgstr ""
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_links_tree
 msgid "Mailing Statistics of Clicks"
-msgstr ""
+msgstr "Laiškų statistika pagal paspaudimus"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,name:mass_mailing.action_mail_mass_mailing_test
 msgid "Mailing Test"
-msgstr ""
+msgstr "Laiškų testai"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,help:mass_mailing.action_view_mass_mailing_lists
@@ -937,6 +969,8 @@ msgid ""
 "Mailing lists allows you to to manage customers and\n"
 "                    contacts easily and to send to mailings in a single click."
 msgstr ""
+"Laiškų sąrašai leidžia lengvai valdyti klientus ir\n"
+"kontaktus ir jiems siųsti laiškus vienu paspaudimu."
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_total_mailings
@@ -950,7 +984,7 @@ msgstr "El. laiškai"
 #. module: mass_mailing
 #: model:res.groups,name:mass_mailing.group_mass_mailing_campaign
 msgid "Manage Mass Mailing Campaigns"
-msgstr ""
+msgstr "Valdykite masinių laiškų kampanijas"
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mass_mailing_config_settings_group_mass_mailing_campaign
@@ -1011,7 +1045,7 @@ msgstr "Masinio el. pašto kampanija"
 #. module: mass_mailing
 #: model:ir.model,name:mass_mailing.model_mail_mass_mailing_stage
 msgid "Mass Mailing Campaign Stage"
-msgstr ""
+msgstr "Masinių laiškų kampanijos būsena"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,name:mass_mailing.action_view_mass_mailing_campaigns
@@ -1023,12 +1057,12 @@ msgstr "Masinio el. pašto kampanijos"
 #. module: mass_mailing
 #: model:ir.model,name:mass_mailing.model_mail_mass_mailing_contact
 msgid "Mass Mailing Contact"
-msgstr ""
+msgstr "Masinių laiškų kontaktas"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,name:mass_mailing.action_view_mass_mailing_stages
 msgid "Mass Mailing Stages"
-msgstr ""
+msgstr "Masinių laiškų etapai"
 
 #. module: mass_mailing
 #: model:ir.model,name:mass_mailing.model_mail_statistics_report
@@ -1036,7 +1070,7 @@ msgstr ""
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_statistics_report_pivot
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_statistics_report_search
 msgid "Mass Mailing Statistics"
-msgstr ""
+msgstr "Masinių laiškų statistika"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,help:mass_mailing.action_mail_statistics_report
@@ -1046,11 +1080,15 @@ msgid ""
 "can sort out your analysis by different groups to get accurate grained "
 "analysis."
 msgstr ""
+"Masinių laiškų statistika leidžia jums patikrinti skirtingų laiškų "
+"informaciją, tokią kaip atmestų laiškų skaičius, atidaryti laiškai, atsakyti"
+" laiškai. Negalite rūšiuoti savo analizės pagal skirtingas grupes ir gauti "
+"tikslių duomenų."
 
 #. module: mass_mailing
 #: model:ir.model,name:mass_mailing.model_mail_mass_mailing_tag
 msgid "Mass Mailing Tag"
-msgstr ""
+msgstr "Masinių laiškų žyma"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,name:mass_mailing.action_create_ab_mass_mailings_from_campaign
@@ -1064,7 +1102,7 @@ msgstr ""
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_stage_tree
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_tree
 msgid "Mass Mailings"
-msgstr ""
+msgstr "Masiniai laiškai"
 
 #. module: mass_mailing
 #: model:ir.actions.act_window,help:mass_mailing.action_create_ab_mass_mailings_from_campaign
@@ -1075,6 +1113,9 @@ msgid ""
 "Mass mailing allows you to to easily design and send mass mailings to your "
 "contacts, customers or leads using mailing lists."
 msgstr ""
+"Masinis laiškų siuntimas leidžia jums lengvai kurti ir siųsti masinius "
+"laiškus jūsų kontaktams, klientams ar šaltiesiems kontaktams naudojant paštų"
+" sąrašus."
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mass_mailing_config_settings_module_mass_mailing_themes
@@ -1136,12 +1177,12 @@ msgstr ""
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
 msgid "No customization"
-msgstr ""
+msgstr "Pritaikymų nėra"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
 msgid "No support"
-msgstr ""
+msgstr "Palaikymo nėra"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_clicks_ratio
@@ -1161,12 +1202,12 @@ msgstr "Paspaudimų skaičius"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount1
 msgid "OFF"
-msgstr ""
+msgstr "NUOLAIDA"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount2
 msgid "OFF YOUR NEXT ORDER!"
-msgstr ""
+msgstr "NUOLAIDA KITAM UŽSAKYMUI!"
 
 #. module: mass_mailing
 #: model:mail.mass_mailing.list,popup_content:mass_mailing.mass_mail_list_1
@@ -1177,12 +1218,12 @@ msgstr "Odoo pristato"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_image_text
 msgid "Omnichannel sales"
-msgstr ""
+msgstr "Daugiakanaliai pardavimai"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mail_statistics_search
 msgid "Open Date"
-msgstr ""
+msgstr "Atidarymo data"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mail_statistics_opened
@@ -1201,12 +1242,12 @@ msgstr "Atvertas"
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_opened_ratio
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_opened_ratio
 msgid "Opened Ratio"
-msgstr ""
+msgstr "Atidarytų rodiklis"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_contact_opt_out
 msgid "Opt Out"
-msgstr ""
+msgstr "Atsisakymas"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_form
@@ -1231,7 +1272,7 @@ msgstr "Išeinantis paštas"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_comparison_table
 msgid "PRO"
-msgstr ""
+msgstr "PRO"
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_contact_ab_pc
@@ -1239,6 +1280,8 @@ msgid ""
 "Percentage of the contacts that will be mailed. Recipients will be taken "
 "randomly."
 msgstr ""
+"Gavėjų procentas, kuriems bus išsiųstas laiškas. Gavėjai parenkami "
+"atsitiktinai."
 
 #. module: mass_mailing
 #: code:addons/mass_mailing/models/mass_mailing.py:563
@@ -1249,7 +1292,7 @@ msgstr "Prašome pasirinkti gavėjus."
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_reply_to
 msgid "Preferred Reply-To Address"
-msgstr ""
+msgstr "Pageidaujamas atsakymo adresas"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_image_text
@@ -1270,7 +1313,7 @@ msgstr "Gauta"
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_received_ratio
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_received_ratio
 msgid "Received Ratio"
-msgstr ""
+msgstr "Gautų rodiklis"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mail_statistics_recipient
@@ -1293,7 +1336,7 @@ msgstr "Gavėjų modelis"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount1
 msgid "Redeem Discount!"
-msgstr ""
+msgstr "Atsiimti nuolaidą!"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_event
@@ -1327,7 +1370,7 @@ msgstr "Atsakyta"
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_replied_ratio
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_replied_ratio
 msgid "Replied Ratio"
-msgstr ""
+msgstr "Atsakytų rodiklis"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mail_statistics_search
@@ -1342,7 +1385,7 @@ msgstr "Atsakyti (kam)"
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_reply_to_mode
 msgid "Reply-To Mode"
-msgstr ""
+msgstr "Atsakymo rėžimas"
 
 #. module: mass_mailing
 #: model:ir.ui.menu,name:mass_mailing.menu_mass_mailing_report
@@ -1363,7 +1406,7 @@ msgstr "Kartoti"
 #. module: mass_mailing
 #: model:ir.model,name:mass_mailing.model_mail_mass_mailing_test
 msgid "Sample Mail Wizard"
-msgstr ""
+msgstr "Pavyzdinio laiško vedlys"
 
 #. module: mass_mailing
 #: model:mail.mass_mailing.stage,name:mass_mailing.campaign_stage_1
@@ -1433,12 +1476,12 @@ msgstr "Siųskite pavyzdinį laišką"
 msgid ""
 "Send a sample of this mailing to the above of email addresses for test "
 "purpose."
-msgstr ""
+msgstr "Siųsti šių laiškų pavyzdį nurodytiems kontaktams testavimo tikslais."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_campaign_form
 msgid "Send new A/B Testing Mass Mailing"
-msgstr ""
+msgstr "Siųsti naują A/B testavimo masinį laišką"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_campaign_form
@@ -1573,7 +1616,7 @@ msgstr "Žymos"
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_form
 #, python-format
 msgid "Test Mailing"
-msgstr ""
+msgstr "Testuoti laiškus"
 
 #. module: mass_mailing
 #: selection:mail.statistics.report,state:0
@@ -1583,17 +1626,17 @@ msgstr "Patikrinta"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_title_text
 msgid "Thank you for joining us!"
-msgstr ""
+msgstr "Dėkojame, kad prisijungėte prie mūsų!"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_paragraph
 msgid "That way, Odoo evolves much faster than any other solution."
-msgstr ""
+msgstr "Tokiu būdu \"Odoo\" progresuoja greičiau nei kiti sprendimai."
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_contact_opt_out
 msgid "The contact has chosen not to receive mails anymore from this list"
-msgstr ""
+msgstr "Kontaktas pasirinko nebegauti masinių laiškų iš šio sąrašo"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_paragraph
@@ -1601,6 +1644,8 @@ msgid ""
 "The open source model of Odoo has allowed us to leverage thousands of developers and\n"
 "                                business experts to build hundreds of apps in just a few years."
 msgstr ""
+"Atviro kodo modelis leido \"Odoo\" pritraukti tūkstančius programuotojų ir verslo ekspertų,\n"
+"kad galėtume sukurti šimtus programų vos per kelis metus."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_text_image
@@ -1609,12 +1654,15 @@ msgid ""
 "developers and business experts to build hundreds of apps in just a few "
 "years."
 msgstr ""
+"Atviro kodo modelis leido \"Odoo\" pritraukti tūkstančius programuotojų ir "
+"verslo ekspertų, kad galėtume sukurti šimtus programų vos per kelis metus."
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_campaign_medium_id
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_medium_id
 msgid "This is the delivery method, e.g. Postcard, Email, or Banner Ad"
 msgstr ""
+"Tai yra pristatymo būdas, pvz., atvirukas, el. paštas, reklaminis skydelis"
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_source_id
@@ -1622,6 +1670,8 @@ msgid ""
 "This is the link source, e.g. Search Engine, another domain, or name of "
 "email list"
 msgstr ""
+"Tai yra nuorodos šaltinis, pvz., paieškos variklis, kitas adresas ar gavėjo "
+"sąrašo pavadinimas"
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_campaign_source_id
@@ -1629,11 +1679,13 @@ msgid ""
 "This is the link source, e.g. Search Engine, another domain,or name of email"
 " list"
 msgstr ""
+"Tai yra nuorodos šaltinis, pvz., paieškos variklis, kitas adresas ar gavėjo "
+"sąrašo pavadinimas"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_form
 msgid "This mass mailing is scheduled for"
-msgstr ""
+msgstr "Šis masinis siuntimas yra suplanuotas"
 
 #. module: mass_mailing
 #: model:ir.model.fields,help:mass_mailing.field_mail_mass_mailing_campaign_campaign_id
@@ -1642,12 +1694,14 @@ msgid ""
 "This name helps you tracking your different campaign efforts, e.g. "
 "Fall_Drive, Christmas_Special"
 msgstr ""
+"Šis pavadinimas leidžia jums sekti skirtingų kampanijų sėkmę, pvz.: "
+"Rudens_išpardavimas, Kalėdų_pasiūlymas"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_form
 msgid ""
 "This will send the email to all recipients. Do you still want to proceed ?"
-msgstr ""
+msgstr "Tai išsiųs laišką visiems gavėjams. Ar vis tiek norite tęsti?"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_total
@@ -1658,7 +1712,7 @@ msgstr "Viso"
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_links_search
 msgid "Tracked Link"
-msgstr ""
+msgstr "Sekama nuoroda"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_campaign_form
@@ -1675,7 +1729,7 @@ msgstr "Nebeprenumeruoti"
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_contact_unsubscription_date
 msgid "Unsubscription Date"
-msgstr ""
+msgstr "Prenumeratos nutraukimo data"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_paragraph
@@ -1683,11 +1737,13 @@ msgid ""
 "Usability improvements made on Odoo will automatically apply to all\n"
 "                                of our fully integrated apps."
 msgstr ""
+"Atlikti \"Odoo\" panaudojimo patobulinimai bus automatiškai pritaikomi\n"
+"visoms mūsų integruotoms programoms."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount2
 msgid "Use This Promo Code BEFORE 1st of August"
-msgstr ""
+msgstr "Panaudokite šį nuolaidos kodą IKI rugpjūčio 1 d."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount2
@@ -1707,6 +1763,9 @@ msgid ""
 " back please accept this 20% discount on you next purchase by clicking the "
 "button."
 msgstr ""
+"Mes nuolat augame, gaila, kad nebesate viso to dalimi! Pailginome darbo "
+"valandas ir turime daug naujų produktų. Norėdami pakviesti jus sugrįžti, "
+"siūlome šią 20% nuolaidą kitam jūsų apsipirkimui paspaudus šią nuorodą."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_title_text
@@ -1714,6 +1773,8 @@ msgid ""
 "We want to take this opportunity to welcome you to our ever-growing "
 "community!<br/>"
 msgstr ""
+"Norime pasinaudoti proga ir pakviesti jus į mūsų nuolat augančią "
+"bendruomenę! <br/>"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_paragraph
@@ -1721,6 +1782,9 @@ msgid ""
 "With strong technical foundations, Odoo's framework is unique.\n"
 "                                It provides top notch usability that scales across all apps."
 msgstr ""
+"\"Odoo\" pasižymi stipriais techniniais pagrindais, padarančiais\n"
+"šį karkasą unikaliu. Jis suteikia aukščiausio lygio panaudojimo galimybes,\n"
+"kurios taikomos visose jo programose."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_image
@@ -1728,6 +1792,8 @@ msgid ""
 "With strong technical foundations, Odoo's framework is unique. It provides "
 "<strong>top notch usability that scales across all apps</strong>."
 msgstr ""
+"\"Odoo\" pasižymi stipriais techniniais pagrindais, padarančiais šį karkasą unikaliu. Jis suteikia <strong>aukščiausio lygio panaudojimo galimybes,\n"
+"kurios taikomos visose jo programose.</strong>"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_two_cols
@@ -1736,17 +1802,21 @@ msgid ""
 "                                    services or a specific feature. To be successful\n"
 "                                    your content needs to be useful to your readers."
 msgstr ""
+"Parašykite pastraipą, apibūdinančią jūsų produktą,\n"
+"paslaugas ar tam tikrą funkciją. Norint, kad turinys\n"
+"būtų sėkmingas, jis turėtų būti naudingas jūsų\n"
+"skaitytojams."
 
 #. module: mass_mailing
 #: code:addons/mass_mailing/controllers/main.py:26
 #, python-format
 msgid "You have been unsubscribed successfully"
-msgstr ""
+msgstr "Jūs sėkmingai atsisakėte prenumeratos"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_banner
 msgid "Your Banner Image"
-msgstr ""
+msgstr "Jūsų reklaminis paveikslėlis"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_header_logo
@@ -1771,6 +1841,8 @@ msgid ""
 "Your platform is ready for work. It will help you reduce the costs of "
 "digital signage, attract new customers and increase sales."
 msgstr ""
+"Jūsų platforma yra paruošta darbui. Ji padės jums sumažinti reklaminius "
+"biudžetus, pritraukti naujus klientus ir padidinti pardavimus."
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.s_mail_block_discount2
@@ -1780,12 +1852,12 @@ msgstr "ir sutaupykite $20 kitam savo užsakymui!"
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mail_mass_mailing_campaign_campaign_id
 msgid "campaign_id"
-msgstr ""
+msgstr "campaign_id"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_list_form
 msgid "e.g. Consumer Newsletter"
-msgstr ""
+msgstr "pvz.: vartotojo naujienlaiškis"
 
 #. module: mass_mailing
 #: model:ir.ui.view,arch_db:mass_mailing.view_mail_mass_mailing_form

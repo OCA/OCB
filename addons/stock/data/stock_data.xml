@@ -14,6 +14,8 @@
                 <!--
     Resource: stock.location
     -->
+    </data>
+    <data noupdate="1">
         <record id="stock_location_locations" model="stock.location">
             <field name="name">Physical Locations</field>
             <field name="usage">view</field>
@@ -145,7 +147,6 @@ watch your stock valuation, and track production lots (based on serial numbers).
         
 
         <record id="warehouse0" model="stock.warehouse">
-            <field model="res.company" name="name" search="[]" use="name"/>
             <field name="partner_id" ref="base.main_partner"/>
             <field name="code">WH</field>
         </record>

@@ -3,7 +3,7 @@
 # * website_slides
 # 
 # Translators:
-# Martin Trigaux <mat@odoo.com>, 2016
+# Martin Trigaux, 2016
 # UAB "Draugiški sprendimai" <transifex@draugiskisprendimai.lt>, 2016
 # Šarūnas Ažna <sarunas.azna@gmail.com>, 2016
 # Audrius Palenskis <audrius.palenskis@gmail.com>, 2016
@@ -11,19 +11,22 @@
 # Monika Raciunaite <monika.raciunaite@gmail.com>, 2016
 # Antanas Muliuolis <an.muliuolis@gmail.com>, 2017
 # digitouch UAB <digitouchagencyeur@gmail.com>, 2017
+# Silvija Butko <silvija.butko@gmail.com>, 2018
+# Naglis Jonaitis, 2018
+# Linas Versada <paulius.sladkevicius@gmail.com>, 2018
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-23 13:28+0000\n"
 "PO-Revision-Date: 2017-06-23 13:28+0000\n"
-"Last-Translator: digitouch UAB <digitouchagencyeur@gmail.com>, 2017\n"
+"Last-Translator: Linas Versada <paulius.sladkevicius@gmail.com>, 2018\n"
 "Language-Team: Lithuanian (https://www.transifex.com/odoo/teams/41243/lt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Language: lt\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: website_slides
 #: model:mail.template,body_html:website_slides.slide_template_shared
@@ -44,6 +47,21 @@ msgid ""
 "    </a>\n"
 "</p>\n"
 msgstr ""
+"\n"
+"<p>Sveiki,</p>\n"
+"<p>\n"
+"    ${user.name} pasidalino ${object.slide_type} <strong>${object.name}</strong> su jumis!\n"
+"</p>\n"
+"<p style=\"text-align: center; margin-top: 10px;\">\n"
+"    <a href=\"${object.website_url}\">\n"
+"        <img alt=\"${object.name}\" src=\"${ctx['base_url']}/web/image/slide.slide/${object.id}/image\" style=\"height:auto; width:150px; background-color: #cccccc; margin: 16px;\">\n"
+"    </a>\n"
+"</p>\n"
+"<p style=\"text-align: center; margin-top: 10px;\">\n"
+"    <a style=\"-webkit-user-select: none; padding: 5px 10px; font-size: 12px; line-height: 18px; color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius:3px\" class=\"o_default_snippet_text\" href=\"${object.website_url}\">\n"
+"        Žiūrėti <strong>${object.name}</strong>\n"
+"    </a>\n"
+"</p>\n"
 
 #. module: website_slides
 #: model:mail.template,body_html:website_slides.slide_template_published
@@ -64,6 +82,21 @@ msgid ""
 "    </a>\n"
 "</p>\n"
 msgstr ""
+"\n"
+"<p>Sveiki,</p>\n"
+"<p>\n"
+"    Naujas ${object.slide_type} <strong>${object.name}</strong> buvo paskelbtas ${object.channel_id.name} ${format_tz(object.write_date, tz=user.tz)}\n"
+"</p>\n"
+"<p style=\"text-align: center; margin-top: 10px;\">\n"
+"    <a href=\"${object.website_url}\">\n"
+"        <img alt=\"${object.name}\" src=\"${ctx['base_url']}/web/image/slide.slide/${object.id}/image\" style=\"height:auto; width:150px; background-color: #cccccc; margin: 16px;\">\n"
+"    </a>\n"
+"</p>\n"
+"<p style=\"text-align: center; margin-top: 10px;\">\n"
+"    <a style=\"-webkit-user-select: none; padding: 5px 10px; font-size: 12px; line-height: 18px; color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius:3px\" class=\"o_default_snippet_text\" href=\"${object.website_url}\">\n"
+"        Žiūrėti <strong>${object.name}</strong>\n"
+"    </a>\n"
+"</p>\n"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_embed_count_views
@@ -91,6 +124,8 @@ msgid ""
 "(Un)archiving a channel automatically (un)archives its slides. Do you want "
 "to proceed?"
 msgstr ""
+"Kanalo (at)archyvavimas automatiškai (at)archyvuoja jo skaidres. Ar norite "
+"tęsti?"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slides_search
@@ -132,12 +167,12 @@ msgstr "<b>Dalintis:</b>"
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
 msgid "<i class=\"fa fa-align-justify\"/> Transcript"
-msgstr ""
+msgstr "<i class=\"fa fa-align-justify\"/>Nuorašas"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.home
 msgid "<i class=\"fa fa-arrow-right\"/> See all"
-msgstr ""
+msgstr "<i class=\"fa fa-arrow-right\"/>Žiūrėti visus"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -189,7 +224,7 @@ msgstr "<i class=\"fa fa-home\"/> Apie"
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slides_channel_header
 msgid "<i class=\"fa fa-home\"/> Home"
-msgstr ""
+msgstr "<i class=\"fa fa-home\"/>Namai"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -197,6 +232,8 @@ msgid ""
 "<i class=\"fa fa-info-circle\"/>\n"
 "                                        The social sharing module will be unlocked when a moderator will allow your publication."
 msgstr ""
+"<i class=\"fa fa-info-circle\"/>\n"
+"Socialinių tinklų dalijimosi modulis bus atrakintas, kai moderatorius leis jūsų publikaciją."
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -216,12 +253,12 @@ msgstr "<i class=\"fa fa-spinner fa-spin\"/> Krauna ..."
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
 msgid "<i class=\"fa fa-thumbs-down\"/> Dislikes"
-msgstr ""
+msgstr "<i class=\"fa fa-thumbs-down\"/>Neigiami vertinimai"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
 msgid "<i class=\"fa fa-thumbs-up\"/> Likes"
-msgstr ""
+msgstr "<i class=\"fa fa-thumbs-up\"/> Teigiami vertinimai"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -256,6 +293,8 @@ msgid ""
 "<span class=\"badge\" id=\"total-share\">0</span>\n"
 "                                                    <i class=\"fa fa-share-alt\"/> Social Shares"
 msgstr ""
+"<span class=\"badge\" id=\"total-share\">0</span>\n"
+"                                                    <i class=\"fa fa-share-alt\"/> Soc. tinklų pasidalijimai"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -269,7 +308,7 @@ msgstr ""
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_social_email
 msgid "<span class=\"help-block\">Send presentation through email</span>"
-msgstr ""
+msgstr "<span class=\"help-block\">Siųsti prezentaciją el. paštu</span>"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_social_media
@@ -277,6 +316,8 @@ msgid ""
 "<span class=\"help-block\">Use permanent link to share in social "
 "media</span>"
 msgstr ""
+"<span class=\"help-block\">Naudokite ilgalaikę nuorodą pasidalijimui soc. "
+"tinkluose</span>"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -286,7 +327,7 @@ msgstr "<span class=\"text-muted small\">peržiūros</span>"
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slides_channel_header
 msgid "<span class=\"text-muted\">Sort by:</span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">Rikiuoti pagal:</span>"
 
 #. module: website_slides
 #: sql_constraint:slide.tag:0
@@ -318,7 +359,7 @@ msgstr ""
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_5
 msgid "Awesome Timesheet by Odoo"
-msgstr ""
+msgstr "Puikus \"Odoo\" darbo laiko apskaitos žiniaraštis"
 
 #. module: website_slides
 #: model:slide.tag,name:website_slides.tag1
@@ -381,11 +422,13 @@ msgstr "Kanalo nustatymai"
 msgid ""
 "Channel contains the given title, please change before Save or Publish."
 msgstr ""
+"Kanalas turi suteiktą pavadinimą, pakeiskite prieš išsaugodami ar "
+"paskelbdami."
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_channel
 msgid "Channel for Slides"
-msgstr ""
+msgstr "Kanalas skaidrėms"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_channel_form
@@ -419,6 +462,8 @@ msgid ""
 "Could not fetch data from url. Document or access right not available.\n"
 "Here is the received response: %s"
 msgstr ""
+"Iš nuorodos nepavyko gauti duomenų. Nepasiekiamas dokumentas arba prieigos teisės.\n"
+"Gautas atsakymas: %s"
 
 #. module: website_slides
 #: code:addons/website_slides/models/slides.py:307
@@ -427,6 +472,8 @@ msgid ""
 "Could not fetch data from url. Document or access right not available:\n"
 "%s"
 msgstr ""
+"Iš nuorodos nepavyko gauti duomenų. Nepasiekiamas dokumentas arba netinkamos prieigos teisės:\n"
+"%s"
 
 #. module: website_slides
 #: model:slide.slide,description:website_slides.slide_1
@@ -467,6 +514,8 @@ msgid ""
 "Default channel for slides, all public users can access content of this "
 "channel."
 msgstr ""
+"Numatytasis kanalas skaidrėms, visi vieši vartotojai gali pasiekti šio "
+"kanalo turinį."
 
 #. module: website_slides
 #. openerp-web
@@ -493,11 +542,14 @@ msgid ""
 "\n"
 "Learn more at https://odoo.com"
 msgstr ""
+"Atraskite visko viename verslo valdymo platformą, kuri tinka bet kokio dydžio ar tipo verslui.\n"
+"\n"
+"Sužinokite daugiau https://odoo.com"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_dislikes
 msgid "Dislikes"
-msgstr ""
+msgstr "Neigiami įvertinimai"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_category_display_name
@@ -548,6 +600,10 @@ msgid ""
 "Chrome: http://bit.ly/2613LcY\n"
 "iOS: http://bit.ly/1ZUZsZD"
 msgstr ""
+"Atsisiųskite puikų \"Odoo\" darbo laiko apskaitos žiniaraštį ir sužinokite, koks gali būti paprastas laiko sekimas ir darbuotojų valdymas!\n"
+"\n"
+"Chrome: http://bit.ly/2613LcY\n"
+"iOS: http://bit.ly/1ZUZsZD"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_download_security
@@ -562,12 +618,12 @@ msgstr "El. pašto adresas"
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_channel_publish_template_id
 msgid "Email template to send slide publication through email"
-msgstr ""
+msgstr "Laiško šablonas siunčiant skaidrės publikaciją el. paštu"
 
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_channel_share_template_id
 msgid "Email template used when sharing a slide"
-msgstr ""
+msgstr "Laiško šablonas, naudojamas, kai dalijamasi skaidrėmis"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_embed_code
@@ -577,7 +633,7 @@ msgstr "Įterptas kodas"
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_embedcount_ids
 msgid "Embed Count"
-msgstr ""
+msgstr "Įterpinių skaičius"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_social_embed
@@ -587,7 +643,7 @@ msgstr "Įterpta į Jūsų tinklalapį"
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_embed
 msgid "Embedded Slides View Counter"
-msgstr ""
+msgstr "Įterptų skaidrių peržiūrų skaičius"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -613,22 +669,22 @@ msgstr "Visi"
 #. module: website_slides
 #: selection:slide.channel,promote_strategy:0
 msgid "Featured Presentation"
-msgstr ""
+msgstr "Iškelta prezentacija"
 
 #. module: website_slides
 #: model:slide.category,name:website_slides.category_1
 msgid "Featured Presentations"
-msgstr ""
+msgstr "Iškelta prezentacija"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_promoted_slide_id
 msgid "Featured Slide"
-msgstr ""
+msgstr "Iškelta skaidrė"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_promote_strategy
 msgid "Featuring Policy"
-msgstr ""
+msgstr "Rodymo politika"
 
 #. module: website_slides
 #. openerp-web
@@ -636,7 +692,7 @@ msgstr ""
 #: code:addons/website_slides/static/src/js/slides_upload.js:90
 #, python-format
 msgid "File is too big. File size cannot exceed 25MB"
-msgstr ""
+msgstr "Failas per didelis. Failo dydis negali viršyti 25MB."
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_can_see_full
@@ -656,7 +712,7 @@ msgstr "Google Doc raktas"
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_slide_graph
 msgid "Graph of Slides"
-msgstr ""
+msgstr "Skaidrių grafikas"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_slide_search
@@ -666,7 +722,7 @@ msgstr "Grupuoti pagal"
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_channel_group_ids
 msgid "Groups allowed to see presentations in this channel"
-msgstr ""
+msgstr "Grupės, kurioms leidžiama matyti šio kanalo prezentacijas"
 
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_channel_upload_group_ids
@@ -674,6 +730,8 @@ msgid ""
 "Groups allowed to upload presentations in this channel. If void, every user "
 "can upload."
 msgstr ""
+"Grupės, kurioms leidžiama į šį kanalą įkelti prezentacijas. Jei tuščia, "
+"įkelti gali visi vartotojai."
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_category_id
@@ -706,13 +764,15 @@ msgid ""
 "Internal server error, please try again later or contact administrator.\n"
 "Here is the error message: %s"
 msgstr ""
+"Vidinė serverio klaida. Bandykite dar kartą arba susisiekite su administratoriumi.\n"
+"Klaidos pranešimas: %s"
 
 #. module: website_slides
 #. openerp-web
 #: code:addons/website_slides/static/src/js/slides_upload.js:85
 #, python-format
 msgid "Invalid file type. Please select pdf or image file"
-msgstr ""
+msgstr "Netinkamas failo tipas. Pasirinkite PDF arba paveikslėlio tipo failą."
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_category___last_update
@@ -744,13 +804,13 @@ msgstr "Paskutinį kartą atnaujinta"
 #. module: website_slides
 #: selection:slide.channel,promote_strategy:0
 msgid "Latest Published"
-msgstr ""
+msgstr "Paskutinis paskelbtas"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_likes
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
 msgid "Likes"
-msgstr ""
+msgstr "Teigiami vertinimai"
 
 #. module: website_slides
 #: model:slide.tag,name:website_slides.tag2
@@ -765,12 +825,12 @@ msgstr "Vidutinis"
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_channel_access_error_msg
 msgid "Message to display when not accessible due to access rights"
-msgstr ""
+msgstr "Pranešimas rodomas, kai nepasiekiama dėl prieigos teisių"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_mime_type
 msgid "Mime-type"
-msgstr ""
+msgstr "MIME tipas"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -807,12 +867,12 @@ msgstr "Naujausia"
 #. module: website_slides
 #: selection:slide.channel,promote_strategy:0
 msgid "No Featured Presentation"
-msgstr ""
+msgstr "Nėra iškeltos prezentacijos"
 
 #. module: website_slides
 #: selection:slide.slide,download_security:0
 msgid "No One"
-msgstr ""
+msgstr "Niekas"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.channel_not_found
@@ -856,7 +916,7 @@ msgstr "VIdeo skaičius"
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_2
 msgid "Odoo All-in-One Software Demonstration"
-msgstr ""
+msgstr "\"Odoo\" visko viename programinės įrangos demonstracija"
 
 #. module: website_slides
 #: model:slide.category,name:website_slides.category_2
@@ -892,7 +952,7 @@ msgstr ""
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_3
 msgid "Odoo Sign Demonstration"
-msgstr ""
+msgstr "\"Odoo Sign\" demonstracija"
 
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_1
@@ -919,19 +979,19 @@ msgstr ""
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_9
 msgid "Open Days 2014 Infographic"
-msgstr ""
+msgstr "Atvirų dienų 2014 infografikas"
 
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_11
 msgid "OpenSource CMS, A performance comparison - Mantavya Gajjar"
-msgstr ""
+msgstr "OpenSource TVS, našumo palyginimas - Mantavya Gajjar"
 
 #. module: website_slides
 #. openerp-web
 #: code:addons/website_slides/static/src/xml/website_slides.xml:28
 #, python-format
 msgid "PDF or Image File"
-msgstr ""
+msgstr "PDF arba paveikslėlis"
 
 #. module: website_slides
 #: model:slide.channel,name:website_slides.channel_partial
@@ -949,6 +1009,8 @@ msgstr "Prašome"
 #, python-format
 msgid "Please <a href=\"/web?redirect=%s\">login</a> to vote this slide"
 msgstr ""
+"<a href=\"/web?redirect=%s\">prisijunkite</a>, kad balsuotumėte už šią "
+"skaidrę"
 
 #. module: website_slides
 #: code:addons/website_slides/models/slides.py:310
@@ -1045,6 +1107,8 @@ msgid ""
 "Review your channel settings to promote your most viewed or recent published"
 " presentation"
 msgstr ""
+"Peržiūrėkite savo kanalo nustatymus ir iškelkite žiūrimiausią arba naujausią"
+" prezentaciją"
 
 #. module: website_slides
 #: model:slide.slide,description:website_slides.slide_0
@@ -1071,7 +1135,7 @@ msgstr "Išsaugoti kaip juodraštį"
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_slide_search
 msgid "Search Slides"
-msgstr ""
+msgstr "Skaidrių paieška"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_channel_form
@@ -1122,22 +1186,22 @@ msgstr "Pasidalintas šablonas"
 #. module: website_slides
 #: selection:slide.channel,visibility:0
 msgid "Show channel but restrict presentations"
-msgstr ""
+msgstr "Rodyti kanalą, bet apriboti prezentacijas"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_slide_form
 msgid "Slide"
-msgstr ""
+msgstr "Skaidrė"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_tag
 msgid "Slide Tag"
-msgstr ""
+msgstr "Skaidrės žyma"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_custom_slide_id
 msgid "Slide to Promote"
-msgstr ""
+msgstr "Skaidrė iškėlimui"
 
 #. module: website_slides
 #: model:ir.actions.act_window,name:website_slides.action_slides_slides
@@ -1148,12 +1212,12 @@ msgstr ""
 #: model:ir.ui.menu,name:website_slides.submenu_action_slides_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_slide_tree
 msgid "Slides"
-msgstr ""
+msgstr "Skaidrės"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_category
 msgid "Slides Category"
-msgstr ""
+msgstr "Skaidrių kategorija"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slides_search
@@ -1167,6 +1231,9 @@ msgid ""
 "\n"
 "Discover more at https://www.odoo.com/page/sign"
 msgstr ""
+"Užteks spausdinti ir skenuoti rankiniu būdu. Pereikite prie elektroninio pasirašymo su \"Odoo Sign\"!\n"
+"\n"
+"Sužinokite daugiau https://www.odoo.com/page/sign"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.view_slide_tag_form
@@ -1193,7 +1260,7 @@ msgstr "Žymos..."
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.home
 msgid "The"
-msgstr ""
+msgstr " "
 
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_slide_slide_type
@@ -1201,16 +1268,18 @@ msgid ""
 "The document type will be set automatically based on the document URL and "
 "properties (e.g. height and width for presentation and document)."
 msgstr ""
+"Dokumento tipas bus nustatytas automatiškai, remiantis jo nuoroda ir "
+"savybėms (pvz., aukštis ir plotis prezentacijoms ar dokumentams)."
 
 #. module: website_slides
 #: sql_constraint:slide.slide:0
 msgid "The slide name must be unique within a channel"
-msgstr ""
+msgstr "Skaidrės pavadinimas kanale turi būti unikalus"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_embed_url
 msgid "Third Party Website URL"
-msgstr ""
+msgstr "Trečiųjų šalių svetainės nuoroda"
 
 #. module: website_slides
 #: model:slide.channel,access_error_msg:website_slides.channel_partial
@@ -1218,6 +1287,8 @@ msgstr ""
 #: model:slide.channel,access_error_msg:website_slides.channel_public
 msgid "This channel is private and its content is restricted to some users."
 msgstr ""
+"Šis kanalas yra privatus ir jo turinys yra apribotas kai kuriems "
+"vartotojams."
 
 #. module: website_slides
 #: code:addons/website_slides/controllers/main.py:286
@@ -1226,11 +1297,13 @@ msgid ""
 "This video already exists in this channel <a target=\"_blank\" "
 "href=\"/slides/slide/%s\">click here to view it </a>"
 msgstr ""
+"Šis video jau yra šiame kanale, <a target=\"_blank\" "
+"href=\"/slides/slide/%s\">peržiūrėkite jį paspaudę čia </a>"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_image_thumb
 msgid "Thumbnail"
-msgstr ""
+msgstr "Miniatiūra"
 
 #. module: website_slides
 #. openerp-web
@@ -1255,7 +1328,7 @@ msgstr "Viso # peržiūrų"
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_index_content
 msgid "Transcript"
-msgstr ""
+msgstr "Nuorašas"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_slide_type
@@ -1267,12 +1340,12 @@ msgstr "Tipas"
 #: code:addons/website_slides/controllers/main.py:141
 #, python-format
 msgid "Uncategorized"
-msgstr ""
+msgstr "Nekategorizuotas"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.home
 msgid "Uncategorized presentation"
-msgstr ""
+msgstr "Nekategorizuota prezentacija"
 
 #. module: website_slides
 #: code:addons/website_slides/models/slides.py:522
@@ -1296,6 +1369,8 @@ msgid ""
 "Upload PDF presentations, documents, videos or infographic using the button "
 "below."
 msgstr ""
+"Įkelkite PDF prezentacijas, dokumentus, vaizdus ar infografikus naudodami "
+"mygtuką apačioje."
 
 #. module: website_slides
 #. openerp-web
@@ -1315,12 +1390,12 @@ msgstr "Įkelia prezentaciją..."
 #. module: website_slides
 #: model:slide.channel,description:website_slides.channel_private
 msgid "Used to publish internal slides of company."
-msgstr ""
+msgstr "Naudojamas vidinių įmonės skaidrių skelbimui."
 
 #. module: website_slides
 #: model:slide.channel,description:website_slides.channel_partial
 msgid "Used to publish slides in partner network privately."
-msgstr ""
+msgstr "Naudojamas privačiam skaidrių viešinimui partnerio tinkle."
 
 #. module: website_slides
 #: selection:slide.slide,slide_type:0
@@ -1383,14 +1458,14 @@ msgstr "Rašyti komentarą..."
 #: code:addons/website_slides/static/src/js/slides_upload.js:115
 #, python-format
 msgid "You can not upload password protected file."
-msgstr ""
+msgstr "Negalite įkelti failo, kuris yra apsaugotas slaptažodžiu."
 
 #. module: website_slides
 #. openerp-web
 #: code:addons/website_slides/static/src/js/slides.js:65
 #, python-format
 msgid "You have already voted for this slide"
-msgstr ""
+msgstr "Už šią skaidrę jau balsavote"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -1446,7 +1521,7 @@ msgstr "yra privatus."
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
 #: model:ir.ui.view,arch_db:website_slides.slide_social_email
 msgid "login"
-msgstr ""
+msgstr "prisijungimas"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slide_detail_view
@@ -1463,7 +1538,7 @@ msgstr "arba"
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.slides_search
 msgid "results found for the given criteria"
-msgstr ""
+msgstr "rezultatai, rasti pagal kriterijus"
 
 #. module: website_slides
 #: model:ir.ui.view,arch_db:website_slides.embed_slide

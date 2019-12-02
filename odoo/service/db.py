@@ -32,7 +32,7 @@ class DatabaseExists(Warning):
 #----------------------------------------------------------
 
 def check_super(passwd):
-    if passwd and passwd == odoo.tools.config['admin_passwd']:
+    if passwd and odoo.tools.config.verify_admin_password(passwd):
         return True
     raise odoo.exceptions.AccessDenied()
 
@@ -58,7 +58,10 @@ def _initialize_db(id, db_name, demo, lang, user_password, login='admin', countr
             if country_code:
                 countries = env['res.country'].search([('code', 'ilike', country_code)])
                 if countries:
-                    env['res.company'].browse(1).country_id = countries[0]
+                    comp_local = {'country_id': countries[0].id}
+                    if countries[0].currency_id:
+                        comp_local['currency_id'] = countries[0].currency_id.id
+                    env['res.company'].browse(1).write(comp_local)
 
             # update admin's password and lang and login
             values = {'password': user_password, 'lang': lang}
@@ -211,9 +214,13 @@ def dump_db(db_name, stream, backup_format='zip'):
             return stdout
 
 def exp_restore(db_name, data, copy=False):
+    def chunks(d, n=8192):
+        for i in range(0, len(d), n):
+            yield d[i:i+n]
     data_file = tempfile.NamedTemporaryFile(delete=False)
     try:
-        data_file.write(data.decode('base64'))
+        for chunk in chunks(data):
+            data_file.write(chunk.decode('base64'))
         data_file.close()
         restore_db(db_name, data_file.name, copy=copy)
     finally:
@@ -296,7 +303,7 @@ def exp_rename(old_name, new_name):
     return True
 
 def exp_change_admin_password(new_password):
-    odoo.tools.config['admin_passwd'] = new_password
+    odoo.tools.config.set_admin_password(new_password)
     odoo.tools.config.save()
     return True
 

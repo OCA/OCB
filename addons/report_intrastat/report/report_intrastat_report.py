@@ -36,12 +36,12 @@ class ReportIntrastat(models.Model):
                     intrastat.id as intrastat_id,
                     upper(inv_country.code) as code,
                     sum(case when inv_line.price_unit is not null
-                            then inv_line.price_unit * inv_line.quantity
+                            then inv_line.price_unit * (1.0 - coalesce(inv_line.discount, 0.0) / 100.0) * inv_line.quantity
                             else 0
                         end) as value,
                     sum(
-                        case when uom.category_id != puom.category_id then (pt.weight * inv_line.quantity)
-                        else (pt.weight * inv_line.quantity * uom.factor) end
+                        case when uom.category_id != puom.category_id then (coalesce(nullif(pp.weight, 0), pt.weight) * inv_line.quantity)
+                        else (coalesce(nullif(pp.weight, 0), pt.weight) * inv_line.quantity * uom.factor) end
                     ) as weight,
                     sum(
                         case when uom.category_id != puom.category_id then inv_line.quantity
@@ -66,7 +66,7 @@ class ReportIntrastat(models.Model):
                     left join report_intrastat_code intrastat on pt.intrastat_id = intrastat.id
                     left join (res_partner inv_address
                         left join res_country inv_country on (inv_country.id = inv_address.country_id))
-                    on (inv_address.id = inv.partner_id)
+                    on (inv_address.id = coalesce(inv.partner_shipping_id, inv.partner_id))
                 where
                     inv.state in ('open','paid')
                     and inv_line.product_id is not null

@@ -3,27 +3,31 @@
 # * account
 # 
 # Translators:
-# Grzegorz Grzelak <grzegorz.grzelak@openglobe.pl>, 2016
-# Marcin Młynarczyk <mlynarczyk@gmail.com>, 2016
 # Monika Motyczyńska <m.monia@op.pl>, 2016
-# Judyta Kaźmierczak <judyta.kazmierczak@openglobe.pl>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
-# Piotr Szlązak <szlazakpiotr@gmail.com>, 2016
-# zbik2607 <darek@krokus.com.pl>, 2016
-# Jakobus Buntownikus <buntownix@gmail.com>, 2016
-# 8cells Team <admin@8cells.com>, 2016
+# Marcin Młynarczyk <mlynarczyk@gmail.com>, 2016
 # Mikołaj Dziurzyński <mikolaj.dziurzynski@openglobe.pl>, 2016
 # Zdzisław Krajewski <zdzichucb@gmail.com>, 2016
+# Piotr Szlązak <szlazakpiotr@gmail.com>, 2016
+# 8cells Team <admin@8cells.com>, 2016
+# Jakobus Buntownikus <buntownix@gmail.com>, 2016
+# Judyta Kaźmierczak <judyta.kazmierczak@openglobe.pl>, 2016
 # m_aciek <maciej.olko@gmail.com>, 2016
+# Martin Trigaux, 2016
 # Paweł Michoń <michon.pawel@wp.pl>, 2017
 # Karol Rybak <karolrybak85@gmail.com>, 2017
+# Grzegorz Grzelak <grzegorz.grzelak@openglobe.pl>, 2017
+# Dariusz Żbikowski <darek@krokus.com.pl>, 2018
+# taksun <taksun@o2.pl>, 2018
+# Paweł Wodyński <pw@myodoo.pl>, 2018
+# Tomasz Leppich <t.leppich@gmail.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-05-26 08:44+0000\n"
-"PO-Revision-Date: 2017-05-26 08:44+0000\n"
-"Last-Translator: Karol Rybak <karolrybak85@gmail.com>, 2017\n"
+"PO-Revision-Date: 2016-09-07 09:15+0000\n"
+"Last-Translator: Tomasz Leppich <t.leppich@gmail.com>, 2019\n"
 "Language-Team: Polish (https://www.transifex.com/odoo/teams/41243/pl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -72,7 +76,7 @@ msgid ""
 "% endif\n"
 msgstr ""
 "\n"
-"<p>Drogi ${object.partner_id.name}\n"
+"<p>Drogi(a) ${object.partner_id.name}\n"
 "% set access_action = object.get_access_action()\n"
 "% set access_url = access_action['type'] == 'ir.actions.act_url' and access_action['url'] or '/report/pdf/account.report_invoice/' + str(object.id)\n"
 "% set is_online = access_action and access_action['type'] == 'ir.actions.act_url'\n"
@@ -92,7 +96,7 @@ msgstr ""
 "% if is_online:\n"
 "    <br/><br/>\n"
 "    <center>\n"
-"      <a href=\"${access_url}\" style=\"background-color: #1abc9c; padding: 20px; text-decoration: none; color: #fff; border-radius: 5px; font-size: 16px;\" class=\"o_default_snippet_text\">View Invoice</a>\n"
+"      <a href=\"${access_url}\" style=\"background-color: #1abc9c; padding: 20px; text-decoration: none; color: #fff; border-radius: 5px; font-size: 16px;\" class=\"o_default_snippet_text\">Zobacz fakturę</a>\n"
 "    </center>\n"
 "% endif\n"
 "    <br/><br/>\n"
@@ -319,6 +323,78 @@ msgid ""
 "                </html>\n"
 "            "
 msgstr ""
+"<html>\n"
+"                <head></head>\n"
+"                % set record = ctx.get('record')\n"
+"                % set company = record and record.company_id or user.company_id\n"
+"                <body style=\"margin: 0; padding: 0;\">\n"
+"                <table border=\"0\" width=\"100%\" cellpadding=\"0\" bgcolor=\"#ededed\" style=\"padding: 20px; background-color: #ededed\" summary=\"o_mail_notification\">\n"
+"                    <tbody>\n"
+"\n"
+"                      <!-- HEADER -->\n"
+"                      <tr>\n"
+"                        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"                          <table width=\"590\" border=\"0\" cellpadding=\"0\" bgcolor=\"#875A7B\" style=\"min-width: 590px; background-color: rgb(135,90,123); padding: 20px;\">\n"
+"                            <tr>\n"
+"                              <td valign=\"middle\">\n"
+"                                  <span style=\"font-size:20px; color:white; font-weight: bold;\">\n"
+"                                      Invoice ${object.record_name}\n"
+"                                  </span>\n"
+"                              </td>\n"
+"                              <td valign=\"middle\" align=\"right\">\n"
+"                                  <img src=\"/logo.png?company=${company.id}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" alt=\"${company.name}\">\n"
+"                              </td>\n"
+"                            </tr>\n"
+"                          </table>\n"
+"                        </td>\n"
+"                      </tr>\n"
+"\n"
+"                      <!-- CONTENT -->\n"
+"                      <tr>\n"
+"                        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"                          <table width=\"590\" border=\"0\" cellpadding=\"0\" bgcolor=\"#ffffff\" style=\"min-width: 590px; background-color: rgb(255, 255, 255); padding: 20px;\">\n"
+"                            <tbody>\n"
+"                              <td valign=\"top\" style=\"font-family:Arial,Helvetica,sans-serif; color: #555; font-size: 14px;\">\n"
+"                                ${object.body | safe}\n"
+"                              </td>\n"
+"                            </tbody>\n"
+"                          </table>\n"
+"                        </td>\n"
+"                      </tr>\n"
+"\n"
+"                      <!-- FOOTER -->\n"
+"                      <tr>\n"
+"                        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"                          <table width=\"590\" border=\"0\" cellpadding=\"0\" bgcolor=\"#875A7B\" style=\"min-width: 590px; background-color: rgb(135,90,123); padding: 20px;\">\n"
+"                            <tr>\n"
+"                              <td valign=\"middle\" align=\"left\" style=\"color: #fff; padding-top: 10px; padding-bottom: 10px; font-size: 12px;\">\n"
+"                                ${company.name}<br/>\n"
+"                                ${company.phone or ''}\n"
+"                              </td>\n"
+"                              <td valign=\"middle\" align=\"right\" style=\"color: #fff; padding-top: 10px; padding-bottom: 10px; font-size: 12px;\">\n"
+"                                % if company.email:\n"
+"                                <a href=\"mailto:${company.email}\" style=\"text-decoration:none; color: white;\">${company.email}</a><br/>\n"
+"                                % endif\n"
+"                                % if company.website:\n"
+"                                    <a href=\"${company.website}\" style=\"text-decoration:none; color: white;\">\n"
+"                                        ${company.website}\n"
+"                                    </a>\n"
+"                                % endif\n"
+"                              </td>\n"
+"                            </tr>\n"
+"                          </table>\n"
+"                        </td>\n"
+"                      </tr>\n"
+"                      <tr>\n"
+"                        <td align=\"center\">\n"
+"                            Obsługiwane przez <a href=\"https://www.odoo.com\">Odoo</a>.\n"
+"                        </td>\n"
+"                      </tr>\n"
+"                    </tbody>\n"
+"                </table>\n"
+"                </body>\n"
+"                </html>\n"
+"            "
 
 #. module: account
 #: model:ir.ui.view,arch_db:account.account_planner
@@ -1058,7 +1134,7 @@ msgstr "Wybrana pozycja zapisu jest już uzgodniona."
 #: code:addons/account/models/account_bank_statement.py:883
 #, python-format
 msgid "A selected statement line was already reconciled with an account move."
-msgstr ""
+msgstr "Wybrana pozycja zapisu jest już uzgodniona z pozycją konta."
 
 #. module: account
 #: code:addons/account/models/account_bank_statement.py:218
@@ -1552,7 +1628,12 @@ msgstr "Adres"
 #. module: account
 #: model:ir.model.fields,field_description:account.field_tax_adjustments_wizard_tax_id
 msgid "Adjustment Tax"
-msgstr "Korygowany podatek"
+msgstr "Podatek korekcyjny"
+
+#. module: account
+#: model:ir.model.fields,field_description:account.field_tax_adjustments_wizard_adjustment_type
+msgid "Adjustment Type"
+msgstr "Rodzaj korekty"
 
 #. module: account
 #: model:ir.ui.view,arch_db:account.view_account_tax_template_form
@@ -1598,6 +1679,11 @@ msgid ""
 "you request an interval of 30 days Odoo generates an analysis of creditors "
 "for the past month, past two months, and so on."
 msgstr ""
+"Czasowe saldo płatności partnera jest bardziej szczegółowym raportem Twoich "
+"należności od partnerów w określonych interwałach czasowych. Odoo przelicza "
+"tabelę bilansu kredytowego licząc od daty rozpoczęcia. Jeśli ustalisz "
+"interwał na 30 dni Odoo wyświetla analizę wierzycieli przez miniony miesiąc,"
+" dwa miesiące itd."
 
 #. module: account
 #. openerp-web
@@ -2238,6 +2324,12 @@ msgstr "Uzgadnianie konta bankowego - przeniesienie ustalenia"
 #: model:ir.ui.view,arch_db:account.view_bank_statement_search
 msgid "Bank Statement"
 msgstr "Wyciąg bankowy"
+
+#. module: account
+#: code:addons/account/models/account_bank_statement.py:935
+#, python-format
+msgid "Bank Statement %s"
+msgstr "Wyciąg z konta bankowego %s"
 
 #. module: account
 #: model:ir.model,name:account.model_account_bank_statement_line
@@ -3618,6 +3710,27 @@ msgid "Day(s) after the invoice date"
 msgstr "Dzień(dni) po dacie wystawienia faktury"
 
 #. module: account
+#: model:res.company,overdue_msg:base.main_company
+msgid ""
+"Dear Sir/Madam,\n"
+"\n"
+"Our records indicate that some payments on your account are still due. Please find details below.\n"
+"If the amount has already been paid, please disregard this notice. Otherwise, please forward us the total amount stated below.\n"
+"If you have any queries regarding your account, Please contact us.\n"
+"\n"
+"Thank you in advance for your cooperation.\n"
+"Best Regards,"
+msgstr ""
+"Szanowni Państwo,\n"
+"\n"
+"Nasze dane wskazują, że niektóre płatności za wystawione faktury na Państwa koncie są nadal nie zapłacone. Prosimy zapoznać się ze szczegółami poniżej. Prosimy o przesłanie nam całkowitej należnej kwoty podanej poniżej. \n"
+"Jeżeli kwota została już zapłacona, prosimy o informację zwrotną kiedy przelew został zrealizowany w celu weryfikacji.\n"
+"Jeśli mają Państwo jakiekolwiek pytania dotyczące Państwa konta, zapraszamy do kontaktu z nami.\n"
+"\n"
+"Z góry dziękujemy za współpracę.\n"
+"Z poważaniem,"
+
+#. module: account
 #: model:ir.model.fields,field_description:account.field_account_move_line_debit
 #: model:ir.ui.view,arch_db:account.report_financial
 #: model:ir.ui.view,arch_db:account.report_generalledger
@@ -4326,7 +4439,7 @@ msgstr "Konto księgowe"
 #. module: account
 #: model:ir.ui.menu,name:account.menu_account_report
 msgid "Financial Report"
-msgstr "Raport Finansów"
+msgstr "Raport finansowy"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_financial_report_style_overwrite
@@ -4664,7 +4777,7 @@ msgstr "Przejdź do panelu konfiguracji"
 #. module: account
 #: selection:res.partner,trust:0
 msgid "Good Debtor"
-msgstr "dobry dłużnik"
+msgstr "Dobry dłużnik"
 
 #. module: account
 #. openerp-web
@@ -5331,13 +5444,13 @@ msgstr ""
 #: code:addons/account/models/account_invoice.py:581
 #, python-format
 msgid "Invoice must be paid in order to set it to register payment."
-msgstr ""
+msgstr "Faktura musi być zatwierdzona, aby zarejestrować płatność."
 
 #. module: account
 #: code:addons/account/models/account_invoice.py:573
 #, python-format
 msgid "Invoice must be validated in order to set it to register payment."
-msgstr ""
+msgstr "Faktura musi być zatwierdzona, aby zarejestrować płatność."
 
 #. module: account
 #: model:mail.message.subtype,description:account.mt_invoice_paid
@@ -5491,6 +5604,9 @@ msgid ""
 "since it would create a gap in the numbering. You should create the journal "
 "entry again and cancel it thanks to a regular revert."
 msgstr ""
+"Nie można usunąć płatności, która już utworzyła zapis księgowy, ponieważ "
+"spowodowałoby to lukę w numeracji. Powinieneś ponownie utworzyć wpis do "
+"dziennika i anulować go, dzięki regularnemu przywracaniu."
 
 #. module: account
 #. openerp-web
@@ -6841,6 +6957,10 @@ msgid ""
 "would make a gap in the numbering. You should book an entry and make a "
 "regular revert of it in case you want to cancel it."
 msgstr ""
+"Operacja nie jest dozwolona. Ponieważ linia wyciągu już otrzymała numer, nie"
+" można jej całkowicie pogodzić z istniejącymi zapisami księgowymi, w "
+"przeciwnym razie powstałaby luka w numeracji. Powinieneś zarezerwować wpis i"
+" regularnie go powracać na wypadek, gdybyś chciał go anulować."
 
 #. module: account
 #: code:addons/account/wizard/account_reconcile.py:66
@@ -8346,7 +8466,7 @@ msgid ""
 msgstr ""
 "Wybór \"Ostrzeżenie\" spowoduje ostrzeżenie użytkownika informacją. Wybór "
 "\"Informacja blokująca\" spowoduje wyświetlenie wyjątku z tekstem informacji"
-" i zablowowanie dalszego działania. Informację wpisz w następnym polu."
+" i zablokowanie dalszego działania. Informację wpisz w następnym polu."
 
 #. module: account
 #: model:ir.ui.menu,name:account.menu_product_template_action
@@ -8885,6 +9005,10 @@ msgid ""
 " set when the statement line is reconciled then stored to set the same "
 "number again if the line is cancelled, set to draft and re-processed again."
 msgstr ""
+"Pole techniczne zawierające numer przypisany do pozycji dziennika, "
+"automatycznie ustawiane, gdy linia wyciągu jest uzgadniana, a następnie "
+"zapisywana, aby ponownie ustawić ten sam numer, jeśli linia zostanie "
+"anulowana, ustawiona na szkic i ponownie przetworzona."
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_invoice_refund_refund_only
@@ -9068,7 +9192,7 @@ msgid ""
 " is debited and negative when account is credited."
 msgstr ""
 "Kwota wyrażona w drugiej walucie musi być dodatnia, jeśli konto jest "
-"obciążone, i ujemna, gdy konto jest uznane."
+"obciążane, i ujemna, gdy konto jest uznawane."
 
 #. module: account
 #: code:addons/account/models/account.py:605
@@ -9150,6 +9274,9 @@ msgid ""
 "The first step is to set up your company's information. This is mostly used "
 "in printed business documents like orders and invoices."
 msgstr ""
+"Pierwszym krokiem jest skonfigurowanie informacji o firmie. Jest to "
+"najczęściej używane w drukowanych dokumentach biznesowych, takich jak "
+"zamówienia i faktury."
 
 #. module: account
 #: model:ir.model.fields,help:account.field_res_partner_property_account_position_id
@@ -9292,6 +9419,8 @@ msgid ""
 "The selected account of your Journal Entry forces to provide a secondary "
 "currency. You should remove the secondary currency on the account."
 msgstr ""
+"Wybrane konto Twojego wpisu do dziennika wymusza dostarczanie waluty "
+"dodatkowej. Powinieneś usunąć walutę dodatkową na koncie."
 
 #. module: account
 #: code:addons/account/models/account_invoice.py:1325
@@ -9324,6 +9453,8 @@ msgid ""
 "There are still unposted entries in the period you want to lock. You should "
 "either post or delete them."
 msgstr ""
+"W okresie, który chcesz zablokować, są jeszcze nieopublikowane wpisy. "
+"Powinieneś je opublikować lub usunąć."
 
 #. module: account
 #: code:addons/account/models/account_bank_statement.py:172
@@ -9609,6 +9740,8 @@ msgid ""
 "This move's amount is higher than the transaction's amount. Click to "
 "register a partial payment and keep the payment balance open."
 msgstr ""
+"Kwota tego ruchu jest wyższa niż kwota transakcji. Kliknij, aby "
+"zarejestrować częściową płatność i zachować saldo płatności otwarte."
 
 #. module: account
 #: model:ir.model.fields,help:account.field_accounting_report_debit_credit
@@ -9728,6 +9861,8 @@ msgstr ""
 #, python-format
 msgid "Tip: Hit CTRL-Enter to reconcile all the balanced items in the sheet."
 msgstr ""
+"Wskazówka: naciśnij CTRL-Enter, aby uzgodnić wszystkie zrównoważone elementy"
+" w arkuszu."
 
 #. module: account
 #: selection:account.financial.report,style_overwrite:0
@@ -9964,7 +10099,7 @@ msgstr "Niepodzielone zyski/straty"
 #: code:addons/account/static/src/xml/account_reconciliation.xml:278
 #, python-format
 msgid "Undo the partial reconciliation."
-msgstr ""
+msgstr "Cofnij częściowe uzgodnienie."
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_invoice_line_price_unit
@@ -10151,6 +10286,9 @@ msgid ""
 "Used to hold the reference of the external mean that created this statement "
 "(name of imported file, reference of online synchronization...)"
 msgstr ""
+"Używane do przechowywania odniesienia zewnętrznego środka, który utworzył tę"
+" instrukcję (nazwa zaimportowanego pliku, odniesienie do synchronizacji "
+"online ...)"
 
 #. module: account
 #: model:ir.model.fields,help:account.field_account_journal_sequence
@@ -10517,6 +10655,8 @@ msgstr "Nie możesz usunąć płatności, która została już zaksięgowana"
 #, python-format
 msgid "You can only delete an invoice line if the invoice is in draft state."
 msgstr ""
+"Możesz usunąć wiersz faktury, tylko jeśli faktura jest w stanie wersji "
+"roboczej."
 
 #. module: account
 #: code:addons/account/models/account_payment.py:128
@@ -10541,6 +10681,7 @@ msgstr ""
 msgid ""
 "You cannot add/modify entries prior to and inclusive of the lock date %s"
 msgstr ""
+"Nie można dodawać / modyfikować wpisów przed i włącznie z datą blokady %s"
 
 #. module: account
 #: code:addons/account/models/account_move.py:187
@@ -10563,6 +10704,16 @@ msgstr ""
 " skasować uzgodnienie z płatnościami."
 
 #. module: account
+#: code:addons/account/models/company.py:118
+#, python-format
+msgid ""
+"You cannot change the currency of the company since some journal items "
+"already exist"
+msgstr ""
+"Nie możesz zmienić waluty firmy, ponieważ niektóre pozycje w dzienniku już "
+"istnieją"
+
+#. module: account
 #: code:addons/account/models/account.py:180
 #, python-format
 msgid ""
@@ -10577,6 +10728,8 @@ msgid ""
 "You cannot change the value of the reconciliation on this account as it "
 "already has some moves"
 msgstr ""
+"Nie można zmienić wartości uzgodnienia na tym koncie, ponieważ ma już pewne "
+"ruchy"
 
 #. module: account
 #: code:addons/account/models/account_move.py:418
@@ -10729,6 +10882,12 @@ msgstr ""
 #: model:ir.ui.view,arch_db:account.invoice_supplier_form
 msgid "You have"
 msgstr "Masz"
+
+#. module: account
+#: code:addons/account/models/account_payment.py:360
+#, python-format
+msgid "You have to define a sequence for %s in your company."
+msgstr "Musisz zdefiniować sekwencję dla %s w swojej firmy."
 
 #. module: account
 #: code:addons/account/wizard/account_report_general_ledger.py:21
@@ -10949,13 +11108,13 @@ msgstr "pierwszy)"
 #: model:ir.ui.view,arch_db:account.invoice_form
 msgid "for this customer. You can allocate them to mark this invoice as paid."
 msgstr ""
-"dla tego odbiorcy. Możesz umieścić je aby oznaczyć fakturę jako zapłaconą."
+"z tym klientem. Możesz je przypisać aby oznaczyć fakturę jako zapłaconą."
 
 #. module: account
 #: model:ir.ui.view,arch_db:account.invoice_supplier_form
 msgid "for this supplier. You can allocate them to mark this bill as paid."
 msgstr ""
-"dla tego dostawcy. Możesz umieścić je aby oznaczyć fakturę jako zapłaconą."
+"z tym dostawcą. Możesz je przypisać aby oznaczyć fakturę jako zapłaconą."
 
 #. module: account
 #: model:ir.ui.view,arch_db:account.account_invoice_report_duplicate
@@ -11109,3 +11268,11 @@ msgstr "wizard.multi.charts.accounts"
 #: model:ir.ui.view,arch_db:account.view_bank_statement_form
 msgid "→ Count"
 msgstr "→ Liczba"
+
+#. module: account
+#: code:addons/account/models/account.py:309
+#, python-format
+msgid ""
+"Currency field should only be set if the journal's currency is different "
+"from the company's. Leave the field blank to use company currency."
+msgstr ""

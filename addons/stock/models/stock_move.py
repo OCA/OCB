@@ -179,10 +179,13 @@ class StockMove(models.Model):
         else:
             self.lot_ids = self.mapped('reserved_quant_ids').mapped('lot_id').ids
 
-    @api.one
+    @api.multi
     @api.depends('reserved_quant_ids.qty')
     def _compute_reserved_availability(self):
-        self.reserved_availability = sum(self.mapped('reserved_quant_ids').mapped('qty'))
+        result = {data['reservation_id'][0]: data['qty'] for data in 
+            self.env['stock.quant'].read_group([('reservation_id', 'in', self.ids)], ['reservation_id','qty'], ['reservation_id'])}
+        for rec in self:
+            rec.reserved_availability = result.get(rec.id, 0.0)
 
     @api.one
     @api.depends('state', 'product_id', 'product_qty', 'location_id')
@@ -190,8 +193,8 @@ class StockMove(models.Model):
         if self.state == 'done':
             self.availability = self.product_qty
         else:
-            quants = self.env['stock.quant'].search([('location_id', 'child_of', self.location_id.id), ('product_id', '=', self.product_id.id), ('reservation_id', '=', False)])
-            self.availability = min(self.product_qty, sum(quants.mapped('qty')))
+            qty_tot = self.env['stock.quant'].read_group([('location_id', 'child_of', self.location_id.id), ('product_id', '=', self.product_id.id), ('reservation_id', '=', False)], ['qty'], [])[0]
+            self.availability = min(self.product_qty, qty_tot['qty'] or 0)
 
     @api.multi
     def _compute_string_qty_information(self):
@@ -220,10 +223,12 @@ class StockMove(models.Model):
 
     @api.constrains('product_uom')
     def _check_uom(self):
-        moves_error = self.filtered(lambda move: move.product_id.uom_id.category_id.id != move.product_uom.category_id.id)
+        moves_error = self.filtered(lambda move: move.product_id.uom_id.category_id != move.product_uom.category_id)
         if moves_error:
             user_warning = _('You try to move a product using a UoM that is not compatible with the UoM of the product moved. Please use an UoM in the same UoM category.')
-            user_warning += '\n\nBlocking: %s' % ' ,'.join(moves_error.mapped('name'))
+            for move in moves_error:
+                user_warning += _('\n\n%s --> Product UoM is %s (%s) - Move UoM is %s (%s)') % (move.product_id.display_name, move.product_id.uom_id.name, move.product_id.uom_id.category_id.name, move.product_uom.name, move.product_uom.category_id.name)
+            user_warning += _('\n\nBlocking: %s') % ' ,'.join(moves_error.mapped('name'))
             raise UserError(user_warning)
 
     @api.model_cr
@@ -283,10 +288,10 @@ class StockMove(models.Model):
                     if propagated_date_field:
                         current_date = datetime.strptime(move.date_expected, DEFAULT_SERVER_DATETIME_FORMAT)
                         new_date = datetime.strptime(vals.get(propagated_date_field), DEFAULT_SERVER_DATETIME_FORMAT)
-                        delta = new_date - current_date
-                        if abs(delta.days) >= move.company_id.propagation_minimum_delta:
+                        delta_days = (new_date - current_date).total_seconds() / 86400
+                        if abs(delta_days) >= move.company_id.propagation_minimum_delta:
                             old_move_date = datetime.strptime(move.move_dest_id.date_expected, DEFAULT_SERVER_DATETIME_FORMAT)
-                            new_move_date = (old_move_date + relativedelta.relativedelta(days=delta.days or 0)).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+                            new_move_date = (old_move_date + relativedelta.relativedelta(days=delta_days or 0)).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
                             propagated_changes_dict['date_expected'] = new_move_date
                     #For pushed moves as well as for pulled moves, propagate by recursive call of write().
                     #Note that, for pulled moves we intentionally don't propagate on the procurement.
@@ -390,9 +395,13 @@ class StockMove(models.Model):
         if not self.product_id or self.product_qty < 0.0:
             self.product_qty = 0.0
         if self.product_qty < self._origin.product_qty:
-            return {'warning': _("By changing this quantity here, you accept the "
-                                 "new quantity as complete: Odoo will not "
-                                 "automatically generate a back order.")}
+            warning_mess = {
+                'title': _('Quantity decreased!'),
+                'message' : _("By changing this quantity here, you accept the "
+                              "new quantity as complete: Odoo will not "
+                              "automatically generate a back order."),
+            }
+            return {'warning': warning_mess}
 
     @api.onchange('product_id')
     def onchange_product_id(self):
@@ -402,7 +411,7 @@ class StockMove(models.Model):
         self.product_uom_qty = 1.0
         return {'domain': {'product_uom': [('category_id', '=', product.uom_id.category_id.id)]}}
 
-    @api.onchange('date')
+    @api.onchange('date_expected')
     def onchange_date(self):
         if self.date_expected:
             self.date = self.date_expected
@@ -523,7 +532,7 @@ class StockMove(models.Model):
             'name': self.rule_id and self.rule_id.name or "/",
             'origin': origin,
             'company_id': self.company_id.id,
-            'date_planned': self.date,
+            'date_planned': self.date_expected,
             'product_id': self.product_id.id,
             'product_qty': self.product_uom_qty,
             'product_uom': self.product_uom.id,
@@ -647,7 +656,7 @@ class StockMove(models.Model):
             if move.state != 'assigned' and not self.env.context.get('reserve_only_ops'):
                 qty_already_assigned = move.reserved_availability
                 qty = move.product_qty - qty_already_assigned
-                
+
                 quants = Quant.quants_get_preferred_domain(qty, move, domain=main_domain[move.id], preferred_domain_list=[])
                 Quant.quants_reserve(quants, move)
 
@@ -657,6 +666,16 @@ class StockMove(models.Model):
             moves_to_assign.write({'state': 'assigned'})
         if not no_prepare:
             self.check_recompute_pack_op()
+
+    def _propagate_cancel(self):
+        self.ensure_one()
+        if self.move_dest_id:
+            if self.propagate:
+                if self.move_dest_id.state not in ('done', 'cancel'):
+                    self.move_dest_id.action_cancel()
+            elif self.move_dest_id.state == 'waiting':
+                # If waiting, the chain will be broken and we are not sure if we can still wait for it (=> could take from stock instead)
+                self.move_dest_id.write({'state': 'confirmed'})
 
     @api.multi
     def action_cancel(self):
@@ -674,12 +693,7 @@ class StockMove(models.Model):
                     pass
                     # procurements.search([('move_dest_id', '=', move.id)]).cancel()
             else:
-                if move.move_dest_id:
-                    if move.propagate:
-                        move.move_dest_id.action_cancel()
-                    elif move.move_dest_id.state == 'waiting':
-                        # If waiting, the chain will be broken and we are not sure if we can still wait for it (=> could take from stock instead)
-                        move.move_dest_id.write({'state': 'confirmed'})
+                move._propagate_cancel()
                 if move.procurement_id:
                     procurements |= move.procurement_id
 
@@ -854,13 +868,15 @@ class StockMove(models.Model):
                             false_quants += [reserved_quant]
                         elif float_compare(lot_quantities.get(reserved_quant.lot_id.id, 0), 0, precision_rounding=rounding) > 0:
                             if float_compare(lot_quantities[reserved_quant.lot_id.id], reserved_quant.qty, precision_rounding=rounding) >= 0:
-                                lot_quantities[reserved_quant.lot_id.id] -= reserved_quant.qty
-                                quants_taken += [(reserved_quant, reserved_quant.qty)]
-                                qty_on_link -= reserved_quant.qty
+                                qty_taken = min(reserved_quant.qty, qty_on_link)
+                                lot_quantities[reserved_quant.lot_id.id] -= qty_taken
+                                quants_taken += [(reserved_quant, qty_taken)]
+                                qty_on_link -= qty_taken
                             else:
-                                quants_taken += [(reserved_quant, lot_quantities[reserved_quant.lot_id.id])]
-                                lot_quantities[reserved_quant.lot_id.id] = 0
-                                qty_on_link -= lot_quantities[reserved_quant.lot_id.id]
+                                qty_taken = min(qty_on_link, lot_quantities[reserved_quant.lot_id.id])
+                                quants_taken += [(reserved_quant, qty_taken)]
+                                lot_quantities[reserved_quant.lot_id.id] -= qty_taken
+                                qty_on_link -= qty_taken
                     lot_move_qty[move.id] = qty_on_link
 
                 remaining_move_qty[move.id] -= prout_move_qty[move]
@@ -919,6 +935,15 @@ class StockMove(models.Model):
             raise UserError(_('You can only delete draft moves.'))
         return super(StockMove, self).unlink()
 
+    def _propagate_split(self, new_move, qty):
+        if self.move_dest_id and self.propagate and self.move_dest_id.state not in ('done', 'cancel'):
+            new_move_prop = self.move_dest_id.split(qty)
+            new_move.write({'move_dest_id': new_move_prop})
+
+    def _prepare_move_split_vals(self, defaults):
+        # hook to add values in default vals in other modules
+        return defaults
+
     @api.multi
     def split(self, qty, restrict_lot_id=False, restrict_partner_id=False):
         """ Splits qty from move move into a new move
@@ -948,6 +973,9 @@ class StockMove(models.Model):
             'move_dest_id': self.move_dest_id.id,
             'origin_returned_move_id': self.origin_returned_move_id.id,
         }
+
+        defaults = self._prepare_move_split_vals(defaults)
+
         if restrict_partner_id:
             defaults['restrict_partner_id'] = restrict_partner_id
 
@@ -959,13 +987,10 @@ class StockMove(models.Model):
         # TDE CLEANME: used only in write in this file, to clean
         # ctx['do_not_propagate'] = True
         self.with_context(do_not_propagate=True, rounding_method='HALF-UP').write({'product_uom_qty': self.product_uom_qty - uom_qty})
-        
-        if self.move_dest_id and self.propagate and self.move_dest_id.state not in ('done', 'cancel'):
-            new_move_prop = self.move_dest_id.split(qty)
-            new_move.write({'move_dest_id': new_move_prop})
+        self._propagate_split(new_move, qty)
         # returning the first element of list returned by action_confirm is ok because we checked it wouldn't be exploded (and
         # thus the result of action_confirm should always be a list of 1 element length)
-        new_move.action_confirm()
+        new_move = new_move.action_confirm()
         # TDE FIXME: due to action confirm change
         return new_move.id
 
@@ -981,7 +1006,7 @@ class StockMove(models.Model):
             'views': [(view.id, 'form')],
             'view_id': view.id,
             'target': 'new',
-            'res_id': self.id}
+            'res_id': self.picking_id.id}
     show_picking = action_show_picking
 
     # Quants management

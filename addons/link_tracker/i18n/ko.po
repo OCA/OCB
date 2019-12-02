@@ -1,37 +1,43 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # * link_tracker
-#
+# 
 # Translators:
+# 종현 엄 <whd5367@naver.com>, 2017
+# Martin Trigaux, 2017
+# Seongseok Shin <shinss61@hotmail.com>, 2018
+# Linkup <link-up@naver.com>, 2018
+# JH CHOI <hwangtog@gmail.com>, 2019
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo 9.0\n"
+"Project-Id-Version: Odoo Server 10.0c\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-07 08:57+0000\n"
-"PO-Revision-Date: 2016-01-25 08:56+0000\n"
-"Last-Translator: Martin Trigaux\n"
-"Language-Team: Korean (http://www.transifex.com/odoo/odoo-9/language/ko/)\n"
-"Language: ko\n"
+"PO-Revision-Date: 2016-09-07 09:22+0000\n"
+"Last-Translator: JH CHOI <hwangtog@gmail.com>, 2019\n"
+"Language-Team: Korean (https://www.transifex.com/odoo/teams/41243/ko/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
+"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_link_click_ids
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_form
 msgid "Clicks"
-msgstr ""
+msgstr "클릭수"
 
 #. module: link_tracker
 #: sql_constraint:link.tracker.code:0
 msgid "Code must be unique."
-msgstr ""
+msgstr "코드는 고유해야 합니다."
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_link_code_ids
 msgid "Codes"
-msgstr ""
+msgstr "코드"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_click_country_id
@@ -67,17 +73,17 @@ msgstr "표시 이름"
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_favicon
 msgid "Favicon"
-msgstr ""
+msgstr "파비콘"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_icon_src
 msgid "Favicon Source"
-msgstr ""
+msgstr "파비콘 소스"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_short_url_host
 msgid "Host of the short URL"
-msgstr ""
+msgstr "단축 URL의 호스트"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_click_id
@@ -89,7 +95,7 @@ msgstr "ID"
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_click_ip
 msgid "Internet Protocol"
-msgstr ""
+msgstr "내부 프로토콜"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker___last_update
@@ -122,12 +128,12 @@ msgstr "링크"
 #: model:ir.actions.act_window,name:link_tracker.action_link_tracker
 #: model:ir.ui.menu,name:link_tracker.menu_url_shortener_main
 msgid "Link Tracker"
-msgstr ""
+msgstr "링크 트랙커"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_count
 msgid "Number of Clicks"
-msgstr ""
+msgstr "클릭 수"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_title
@@ -137,90 +143,90 @@ msgstr "페이지 제목"
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_redirected_url
 msgid "Redirected URL"
-msgstr ""
+msgstr "리디렉션 URL"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_code_code
 msgid "Short URL Code"
-msgstr ""
+msgstr "단축 URL 코드"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_code
 msgid "Short URL code"
-msgstr ""
+msgstr "단축 URL 코드"
 
 #. module: link_tracker
 #: model:ir.actions.act_window,name:link_tracker.action_view_click_statistics
 msgid "Statistics of Clicks"
-msgstr ""
+msgstr "클릭 수 통계"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_url
 msgid "Target URL"
-msgstr ""
+msgstr "대상 URL"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_filter
 msgid "Title and URL"
-msgstr ""
+msgstr "제목과 URL"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_filter
 msgid "Tracked Link"
-msgstr ""
+msgstr "추적 링크"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_short_url
 msgid "Tracked URL"
-msgstr ""
+msgstr "추적 URL"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_form
 msgid "Visit Page"
-msgstr ""
+msgstr "방문 페이지"
 
 #. module: link_tracker
 #: code:addons/link_tracker/models/link_tracker.py:141
 #, python-format
 msgid "Visit Webpage"
-msgstr ""
+msgstr "방문 웹사이트"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_form
 msgid "Website Link"
-msgstr ""
+msgstr "웹사이트 링크"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_click_form
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_click_graph
 msgid "Website Link Clicks"
-msgstr ""
+msgstr "웹사이트 링크 클릭"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_form_stats
 msgid "Website Link Graph"
-msgstr ""
+msgstr "웹사이트 링크 그래프"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_graph
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_tree
 msgid "Website Links"
-msgstr ""
+msgstr "웹사이트 링크"
 
 #. module: link_tracker
 #: model:ir.ui.view,arch_db:link_tracker.view_link_tracker_click_tree
 msgid "Website Links Clicks"
-msgstr ""
+msgstr "웹사이트 링크 클릭"
 
 #. module: link_tracker
 #: model:ir.model,name:link_tracker.model_link_tracker
 msgid "link.tracker"
-msgstr ""
+msgstr "link.tracker"
 
 #. module: link_tracker
 #: model:ir.model,name:link_tracker.model_link_tracker_click
 msgid "link.tracker.click"
-msgstr ""
+msgstr "link.tracker.click"
 
 #. module: link_tracker
 #: model:ir.model,name:link_tracker.model_link_tracker_code
@@ -230,4 +236,4 @@ msgstr ""
 #. module: link_tracker
 #: model:ir.actions.act_window,name:link_tracker.action_link_tracker_stats
 msgid "link.tracker.form.graph.action"
-msgstr ""
+msgstr "link.tracker.form.graph.action"

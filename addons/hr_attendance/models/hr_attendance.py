@@ -16,7 +16,8 @@ class HrAttendance(models.Model):
         return self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
 
     employee_id = fields.Many2one('hr.employee', string="Employee", default=_default_employee, required=True, ondelete='cascade', index=True)
-    department_id = fields.Many2one('hr.department', string="Department", related="employee_id.department_id")
+    department_id = fields.Many2one('hr.department', string="Department", related="employee_id.department_id",
+        readonly=True)
     check_in = fields.Datetime(string="Check In", default=fields.Datetime.now, required=True)
     check_out = fields.Datetime(string="Check Out")
     worked_hours = fields.Float(string='Worked Hours', compute='_compute_worked_hours', store=True, readonly=True)
@@ -80,7 +81,7 @@ class HrAttendance(models.Model):
                     ('employee_id', '=', attendance.employee_id.id),
                     ('check_out', '=', False),
                     ('id', '!=', attendance.id),
-                ])
+                ], order='check_in desc', limit=1)
                 if no_check_out_attendances:
                     raise exceptions.ValidationError(_("Cannot create new attendance record for %(empl_name)s, the employee hasn't checked out since %(datetime)s") % {
                         'empl_name': attendance.employee_id.name_related,

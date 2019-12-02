@@ -3,23 +3,25 @@
 # * account_asset
 # 
 # Translators:
-# Максим Дронь <dronmax@gmail.com>, 2016
 # KingOPl Slav <87slava13@gmail.com>, 2016
 # Masha Koc <mariya.kos.ua@gmail.com>, 2016
-# Sergey Vilizhanin <sv@grimmette.ru>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
 # Denis Trepalin <zekarious@gmail.com>, 2016
-# Алексей Кулагин <alekseik120988.kulagin@yandex.ru>, 2016
-# Max Belyanin <maxbelyanin@gmail.com>, 2016
 # Андрей Гусев <gaussgss@gmail.com>, 2016
 # Viktor Pogrebniak <vp@aifil.ru>, 2016
+# Max Belyanin <maxbelyanin@gmail.com>, 2016
+# Martin Trigaux, 2016
+# Sergey Vilizhanin, 2016
+# Алексей Кулагин <alekseik120988.kulagin@yandex.ru>, 2016
+# Максим Дронь <dronmax@gmail.com>, 2016
+# Vasiliy Korobatov <korobatov@gmail.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0c\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-07 08:56+0000\n"
-"PO-Revision-Date: 2016-09-07 08:56+0000\n"
-"Last-Translator: Viktor Pogrebniak <vp@aifil.ru>, 2016\n"
+"PO-Revision-Date: 2016-09-07 09:15+0000\n"
+"Last-Translator: Vasiliy Korobatov <korobatov@gmail.com>, 2019\n"
 "Language-Team: Russian (https://www.transifex.com/odoo/teams/41243/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -31,13 +33,13 @@ msgstr ""
 #: code:addons/account_asset/models/account_asset.py:376
 #, python-format
 msgid " (copy)"
-msgstr "(копия)"
+msgstr " (копия)"
 
 #. module: account_asset
 #: code:addons/account_asset/models/account_asset.py:511
 #, python-format
 msgid " (grouped)"
-msgstr "(сгруппировано)"
+msgstr " (сгруппировано)"
 
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_asset_entry_count
@@ -52,7 +54,7 @@ msgstr "# позиций амортизации"
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_asset_asset_report_installment_nbr
 msgid "# of Installment Lines"
-msgstr "# строк рассрочки "
+msgstr "# строк рассрочки"
 
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_asset_depreciation_confirmation_wizard_date
@@ -68,7 +70,8 @@ msgstr "Проводка по счету"
 #: model:ir.model.fields,help:account_asset.field_account_asset_category_account_depreciation_id
 msgid "Account used in the depreciation entries, to decrease the asset value."
 msgstr ""
-"Аккаунт используется в записях амортизации, для уменьшения стоимости активов"
+"Аккаунт используется в записях амортизации, для уменьшения стоимости "
+"активов."
 
 #. module: account_asset
 #: model:ir.model.fields,help:account_asset.field_account_asset_category_account_depreciation_expense_id
@@ -85,7 +88,7 @@ msgid ""
 "Account used to record the purchase of the asset at its original price."
 msgstr ""
 "Учетная запись, используемая для записи покупки актива в его первоначальной "
-"цены"
+"цены."
 
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_asset_active
@@ -147,7 +150,7 @@ msgid "Asset Durations to Modify"
 msgstr "Актив - интервал времени для изменения"
 
 #. module: account_asset
-#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_start_date
+#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_end_date
 msgid "Asset End Date"
 msgstr "Дата Окончания Актива"
 
@@ -162,7 +165,7 @@ msgid "Asset Name"
 msgstr "Название актива"
 
 #. module: account_asset
-#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_end_date
+#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_start_date
 msgid "Asset Start Date"
 msgstr "Дата Начала Актива"
 
@@ -294,7 +297,7 @@ msgstr ""
 #: model:ir.model.fields,help:account_asset.field_account_asset_category_group_entries
 msgid "Check this if you want to group the generated entries by categories."
 msgstr ""
-"Отметьте, если хотите сгруппировать сформированные данные по категориям"
+"Отметьте, если хотите сгруппировать сформированные данные по категориям."
 
 #. module: account_asset
 #: model:ir.model.fields,help:account_asset.field_account_asset_asset_method
@@ -378,7 +381,7 @@ msgstr "Созданные операции по активам"
 #: code:addons/account_asset/wizard/asset_depreciation_confirmation_wizard.py:20
 #, python-format
 msgid "Created Revenue Moves"
-msgstr "Создано Перемещения Доходов "
+msgstr "Создано Перемещения Доходов"
 
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_asset_create_uid
@@ -547,7 +550,7 @@ msgstr "Панель амортизации изменена"
 #: code:addons/account_asset/models/account_asset.py:571
 #, python-format
 msgid "Depreciation line posted."
-msgstr "Позиции амортизации проведены"
+msgstr "Позиции амортизации проведены."
 
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_asset_display_name
@@ -670,7 +673,7 @@ msgid ""
 msgstr ""
 "Показывает, что первая проводка амортизации для этого актива должна быть "
 "сделана с даты приобретения, а не с первого января /  Даты начала "
-"финансового года "
+"финансового года"
 
 #. module: account_asset
 #: model:ir.model.fields,help:account_asset.field_account_asset_category_prorata
@@ -679,7 +682,7 @@ msgid ""
 "from the purchase date instead of the first of January"
 msgstr ""
 "Показывает, что первая проводка амортизации для этого актива должна быть "
-"сделана с даты приобретения, а не с первого января."
+"сделана с даты приобретения, а не с первого января"
 
 #. module: account_asset
 #: model:ir.model,name:account_asset.model_account_invoice
@@ -752,7 +755,7 @@ msgstr "Линейный"
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_depreciation_line_move_check
 msgid "Linked"
-msgstr "связанный"
+msgstr "Связанный"
 
 #. module: account_asset
 #: model:ir.ui.view,arch_db:account_asset.asset_modify_form
@@ -785,6 +788,11 @@ msgstr "Ежемесячный Повторяющийся Доход"
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_depreciation_line_remaining_value
 msgid "Next Period Depreciation"
 msgstr "Следующий период амортизации"
+
+#. module: account_asset
+#: model:ir.ui.view,arch_db:account_asset.view_asset_asset_report_search
+msgid "Not archived"
+msgstr ""
 
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_asset_note
@@ -992,6 +1000,16 @@ msgstr "Количество времени между амортизациям�
 #: model:ir.model.fields,help:account_asset.field_account_asset_category_method_number
 msgid "The number of depreciations needed to depreciate your asset"
 msgstr "Количество амортизаций необходимых для обесценивания актива"
+
+#. module: account_asset
+#: code:addons/account_asset/models/account_asset.py:477
+#, python-format
+msgid ""
+"This depreciation is already linked to a journal entry! Please post or "
+"delete it."
+msgstr ""
+"Эта амортизация уже связана с записью журнала! Пожалуйста, проведите или "
+"удалите ее."
 
 #. module: account_asset
 #: model:ir.ui.view,arch_db:account_asset.view_asset_depreciation_confirmation_wizard

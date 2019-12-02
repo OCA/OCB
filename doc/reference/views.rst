@@ -232,8 +232,7 @@ Possible children elements of the list view are:
         context of the current row's record, if ``True`` the corresponding
         attribute is set on the cell.
 
-        Possible attributes are ``invisible`` (hides the button) and
-        ``readonly`` (disables the button but still shows it)
+        Possible attribute is ``invisible`` (hides the button).
     ``states``
         shorthand for ``invisible`` ``attrs``: a list of states, comma separated,
         requires that the model has a ``state`` field and that it is
@@ -281,7 +280,7 @@ Possible children elements of the list view are:
             filled, and a cross if it is not
         ``handle``
             for ``sequence`` fields, instead of displaying the field's value
-            just displays a dra&drop icon
+            just displays a drag&drop icon
     ``sum``, ``avg``
         displays the corresponding aggregate at the bottom of the column. The
         aggregation is only computed on *currently displayed* records. The
@@ -1157,7 +1156,7 @@ Possible children elements of the search view are:
         fields don't generate domains.
 
         .. note:: the domain and context are inclusive and both are generated
-                  if if a ``context`` is specified. To only generate context
+                  if a ``context`` is specified. To only generate context
                   values, set ``filter_domain`` to an empty list:
                   ``filter_domain="[]"``
     ``groups``

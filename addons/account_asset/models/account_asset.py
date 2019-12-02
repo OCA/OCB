@@ -217,7 +217,14 @@ class AccountAssetAsset(models.Model):
                 # depreciation_date = 1st of January of purchase year if annual valuation, 1st of
                 # purchase month in other cases
                 if self.method_period >= 12:
-                    asset_date = datetime.strptime(self.date[:4] + '-01-01', DF).date()
+                    if self.company_id.fiscalyear_last_month:
+                        asset_date = date(year=int(self.date[:4]),
+                                                   month=self.company_id.fiscalyear_last_month,
+                                                   day=self.company_id.fiscalyear_last_day) + \
+                                     relativedelta(days=1) + \
+                                     relativedelta(year=int(self.date[:4]))  # e.g. 2018-12-31 +1 -> 2019
+                    else:
+                        asset_date = datetime.strptime(self.date[:4] + '-01-01', DF).date()
                 else:
                     asset_date = datetime.strptime(self.date[:7] + '-01', DF).date()
                 # if we already have some previous validated entries, starting date isn't 1st January but last entry + method period
@@ -333,6 +340,8 @@ class AccountAssetAsset(models.Model):
                 'target': 'current',
                 'res_id': move_ids[0],
             }
+        # Fallback, as if we just clicked on the smartbutton
+        return self.open_entries()
 
     @api.multi
     def set_to_draft(self):
@@ -411,7 +420,7 @@ class AccountAssetAsset(models.Model):
     @api.model
     def create(self, vals):
         asset = super(AccountAssetAsset, self.with_context(mail_create_nolog=True)).create(vals)
-        asset.compute_depreciation_board()
+        asset.sudo().compute_depreciation_board()
         return asset
 
     @api.multi
@@ -472,6 +481,8 @@ class AccountAssetDepreciationLine(models.Model):
     def create_move(self, post_move=True):
         created_moves = self.env['account.move']
         prec = self.env['decimal.precision'].precision_get('Account')
+        if self.mapped('move_id'):
+            raise UserError(_('This depreciation is already linked to a journal entry! Please post or delete it.'))
         for line in self:
             category_id = line.asset_id.category_id
             depreciation_date = self.env.context.get('depreciation_date') or line.depreciation_date or fields.Date.context_today(self)

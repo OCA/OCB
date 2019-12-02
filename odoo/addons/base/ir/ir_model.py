@@ -32,7 +32,7 @@ SAFE_EVAL_BASE = {
 def make_compute(text, deps):
     """ Return a compute function from its code body and dependencies. """
     func = lambda self: safe_eval(text, SAFE_EVAL_BASE, {'self': self}, mode="exec")
-    deps = [arg.strip() for arg in (deps or "").split(",")]
+    deps = [arg.strip() for arg in deps.split(",")] if deps else []
     return api.depends(*deps)(func)
 
 
@@ -287,6 +287,11 @@ class IrModelFields(models.Model):
             raise UserError(_("The Selection Options expression is not a valid Pythonic expression."
                               "Please provide an expression in the [('key','Label'), ...] format."))
 
+    @api.constrains('domain')
+    def _check_domain(self):
+        for field in self:
+            safe_eval(field.domain or '[]')
+
     @api.constrains('name', 'state')
     def _check_name(self):
         for field in self:
@@ -393,6 +398,13 @@ class IrModelFields(models.Model):
     def _onchange_ttype(self):
         self.copy = (self.ttype != 'one2many')
         if self.ttype == 'many2many' and self.model_id and self.relation:
+            if self.relation not in self.env:
+                return {
+                    'warning': {
+                        'title': _('Model %s does not exist') % self.relation,
+                        'message': _('Please specify a valid model for the object relation'),
+                    }
+                }
             names = self._custom_many2many_names(self.model_id.model, self.relation)
             self.relation_table, self.column1, self.column2 = names
         else:
@@ -418,6 +430,13 @@ class IrModelFields(models.Model):
                     'title': _("Warning"),
                     'message': _("The table %r if used for other, possibly incompatible fields.") % self.relation_table,
                 }}
+
+    @tools.ormcache('model_name', 'name')
+    def _get_id(self, model_name, name):
+        self.env.cr.execute("SELECT id FROM ir_model_fields WHERE model=%s AND name=%s",
+                            (model_name, name))
+        result = self.env.cr.fetchone()
+        return result and result[0]
 
     @api.multi
     def _drop_column(self):
@@ -596,7 +615,7 @@ class IrModelFields(models.Model):
                     item._prepare_update()
                     if column_rename:
                         raise UserError(_('Can only rename one field at a time!'))
-                    column_rename = (obj._table, item.name, vals['name'], item.index)
+                    column_rename = (obj._table, item.name, vals['name'], item.index, item.store)
 
                 # We don't check the 'state', because it might come from the context
                 # (thus be set for multiple fields) and will be ignored anyway.
@@ -614,10 +633,11 @@ class IrModelFields(models.Model):
 
         if column_rename:
             # rename column in database, and its corresponding index if present
-            table, oldname, newname, index = column_rename
-            self._cr.execute('ALTER TABLE "%s" RENAME COLUMN "%s" TO "%s"' % (table, oldname, newname))
-            if index:
-                self._cr.execute('ALTER INDEX "%s_%s_index" RENAME TO "%s_%s_index"' % (table, oldname, table, newname))
+            table, oldname, newname, index, stored = column_rename
+            if stored:
+                self._cr.execute('ALTER TABLE "%s" RENAME COLUMN "%s" TO "%s"' % (table, oldname, newname))
+                if index:
+                    self._cr.execute('ALTER INDEX "%s_%s_index" RENAME TO "%s_%s_index"' % (table, oldname, table, newname))
 
         if column_rename or patched_models:
             # setup models, this will reload all manual fields in registry
@@ -688,6 +708,8 @@ class IrModelFields(models.Model):
         # add compute function if given
         if field_data['compute']:
             attrs['compute'] = make_compute(field_data['compute'], field_data['depends'])
+        if field_data.get('sparse'):
+            attrs['sparse'] = field_data['sparse']
 
         return fields.Field.by_type[field_data['ttype']](**attrs)
 
@@ -936,6 +958,7 @@ class IrModelAccess(models.Model):
             else:
                 msg_tail = _("Please contact your system administrator if you think this is an error.") + "\n\n(" + _("Document model") + ": %s)"
                 msg_params = (model_name,)
+            msg_tail += u' - ({} {}, {} {})'.format(_('Operation:'), mode, _('User:'), self._uid)
             _logger.info('Access Denied by ACLs for operation: %s, uid: %s, model: %s', mode, self._uid, model_name)
             msg = '%s %s' % (msg_heads[mode], msg_tail)
             raise AccessError(msg % msg_params)

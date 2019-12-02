@@ -249,7 +249,8 @@ class GoogleCalendar(models.AbstractModel):
         if not self.get_need_synchro_attendee():
             data.pop("attendees")
         if isCreating:
-            other_google_ids = [other_att.google_internal_event_id for other_att in event.attendee_ids if other_att.google_internal_event_id]
+            other_google_ids = [other_att.google_internal_event_id for other_att in event.attendee_ids
+                                if other_att.google_internal_event_id and not other_att.google_internal_event_id.startswith('_')]
             if other_google_ids:
                 data["id"] = other_google_ids[0]
         return data
@@ -442,7 +443,9 @@ class GoogleCalendar(models.AbstractModel):
                 if google_attendee.get('found'):
                     continue
 
-                attendee = ResPartner.search([('email', '=', google_attendee['email'])], limit=1)
+                attendee = ResPartner.search([('email', '=ilike', google_attendee['email']), ('user_ids', '!=', False)], limit=1)
+                if not attendee:
+                    attendee = ResPartner.search([('email', '=ilike', google_attendee['email'])], limit=1)
                 if not attendee:
                     data = {
                         'email': partner_email,
@@ -610,7 +613,8 @@ class GoogleCalendar(models.AbstractModel):
             ('event_id.final_date', '>', fields.Datetime.to_string(self.get_minTime())),
         ])
         for att in my_attendees:
-            other_google_ids = [other_att.google_internal_event_id for other_att in att.event_id.attendee_ids if other_att.google_internal_event_id and other_att.id != att.id]
+            other_google_ids = [other_att.google_internal_event_id for other_att in att.event_id.attendee_ids if
+                                other_att.google_internal_event_id and other_att.id != att.id and not other_att.google_internal_event_id.startswith('_')]
             for other_google_id in other_google_ids:
                 if self.get_one_event_synchro(other_google_id):
                     att.write({'google_internal_event_id': other_google_id})
@@ -842,7 +846,7 @@ class GoogleCalendar(models.AbstractModel):
                         try:
                             # if already deleted from gmail or never created
                             recs.delete_an_event(current_event[0])
-                        except Exception, e:
+                        except urllib2.HTTPError, e:
                             if e.code in (401, 410,):
                                 pass
                             else:
@@ -920,7 +924,7 @@ class GoogleCalendar(models.AbstractModel):
 
     def get_minTime(self):
         number_of_week = self.env['ir.config_parameter'].get_param('calendar.week_synchro', default=13)
-        return datetime.now() - timedelta(weeks=number_of_week)
+        return datetime.now() - timedelta(weeks=int(number_of_week))
 
     def get_need_synchro_attendee(self):
         return self.env['ir.config_parameter'].get_param('calendar.block_synchro_attendee', default=True)

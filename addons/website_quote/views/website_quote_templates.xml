@@ -69,11 +69,11 @@
                                             t-options="{'widget': 'monetary', 'display_currency': quotation.pricelist_id.currency_id}"/>
                                     </div>
                               </td>
-                              <td class="text-right" groups="sale.group_show_price_subtotal">
+                              <td class="text-right oe_order_line_price_subtotal" groups="sale.group_show_price_subtotal">
                                   <span t-field="line.price_subtotal"
                                         t-options='{"widget": "monetary", "display_currency": quotation.pricelist_id.currency_id}'/>
                               </td>
-                              <td class="text-right" groups="sale.group_show_price_total">
+                              <td class="text-right oe_order_line_price_total" groups="sale.group_show_price_total">
                                   <span t-field="line.price_total"
                                         t-options='{"widget": "monetary", "display_currency": quotation.pricelist_id.currency_id}'/>
                               </td>
@@ -102,7 +102,7 @@
                             <td></td><td></td><td></td><td></td>
                             <td class="text-right"><strong>Subtotal:</strong></td>
                             <td class="text-right">
-                                <strong data-id="total_amount" t-field="quotation.amount_untaxed" t-options='{"widget": "monetary","display_currency": quotation.pricelist_id.currency_id}'/>
+                                <strong data-id="total_untaxed" t-field="quotation.amount_untaxed" t-options='{"widget": "monetary","display_currency": quotation.pricelist_id.currency_id}'/>
                             </td>
                             <td></td>
                         </tr>
@@ -111,7 +111,7 @@
                             <td></td><td></td><td></td><td></td>
                             <td class="text-right">Taxes:</td>
                             <td class="text-right">
-                                <span data-id="total_amount" t-field="quotation.amount_tax" t-options='{"widget": "monetary","display_currency": quotation.pricelist_id.currency_id}'/>
+                                <span data-id="total_taxes" t-field="quotation.amount_tax" t-options='{"widget": "monetary","display_currency": quotation.pricelist_id.currency_id}'/>
                             </td>
                             <td></td>
                         </tr>
@@ -340,9 +340,7 @@
                                     <li t-foreach="acquirers or []" t-as="acquirer">
                                       <label t-if="buttons.get(acquirer.id)">
                                           <input t-att-value="acquirer.id" type="radio" name="acquirer" t-att-checked="acquirers[0] == acquirer"/>
-                                          <img class="media-object" style="width: 60px; display: inline-block;"
-                                              t-att-title="acquirer.name"
-                                              t-att-src="'/payment_%s/static/src/img/%s_icon.png' % (acquirer.provider, acquirer.provider)"/>
+                                          <span itemprop="image" t-field="acquirer.image_small" t-options="{'widget': 'image', 'style':'max-width: 60px; display: inline-block;'}"/>
                                               <span t-field="acquirer.name"/>
                                       </label>
                                     </li>

@@ -63,7 +63,7 @@ class Website(Home):
     @http.route('/', type='http', auth="public", website=True)
     def index(self, **kw):
         page = 'homepage'
-        main_menu = request.env.ref('website.main_menu', raise_if_not_found=False)
+        main_menu = request.website.menu_id or request.env.ref('website.main_menu', raise_if_not_found=False)
         if main_menu:
             first_menu = main_menu.child_id and main_menu.child_id[0]
             if first_menu:
@@ -110,7 +110,10 @@ class Website(Home):
         }
         # /page/website.XXX --> /page/XXX
         if page.startswith('website.'):
-            return request.redirect('/page/' + page[8:], code=301)
+            url = '/page/' + page[8:]
+            if request.httprequest.query_string:
+                url += '?' + request.httprequest.query_string
+            return request.redirect(url, code=301)
         elif '.' not in page:
             page = 'website.%s' % page
 

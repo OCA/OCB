@@ -1,21 +1,27 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # * web_editor
-#
+# 
 # Translators:
+# Saba Khmaladze <skhmaladze@uglt.org>, 2018
+# Giorgi Melitauri <gmelitauri@live.com>, 2018
+# Temur, 2018
+# Martin Trigaux, 2018
+# Gvantsa Gvinianidze <gvantsa@live.com>, 2019
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo 9.0\n"
+"Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-11-14 15:55+0000\n"
-"PO-Revision-Date: 2016-06-27 15:58+0000\n"
-"Last-Translator: Martin Trigaux\n"
-"Language-Team: Georgian (http://www.transifex.com/odoo/odoo-9/language/ka/)\n"
-"Language: ka\n"
+"PO-Revision-Date: 2016-09-07 09:30+0000\n"
+"Last-Translator: Gvantsa Gvinianidze <gvantsa@live.com>, 2019\n"
+"Language-Team: Georgian (https://www.transifex.com/odoo/teams/41243/ka/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: ka\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
 #. module: web_editor
 #. openerp-web
@@ -216,7 +222,7 @@ msgstr ""
 #. module: web_editor
 #: model:ir.ui.view,arch_db:web_editor.colorpicker
 msgid "Black"
-msgstr ""
+msgstr "შავი"
 
 #. module: web_editor
 #. openerp-web
@@ -323,6 +329,13 @@ msgstr "შექმნის თარიღი"
 
 #. module: web_editor
 #. openerp-web
+#: code:addons/web_editor/static/src/xml/editor.xml:331
+#, python-format
+msgid "Custom"
+msgstr "განსხვავებული"
+
+#. module: web_editor
+#. openerp-web
 #: code:addons/web_editor/static/src/xml/snippets.xml:32
 #, python-format
 msgid "Customize"
@@ -355,6 +368,14 @@ msgstr ""
 #: model:ir.ui.view,arch_db:web_editor.colorpicker
 msgid "Delta"
 msgstr ""
+
+#. module: web_editor
+#. openerp-web
+#: code:addons/web_editor/static/src/js/rte.summernote.js:173
+#: code:addons/web_editor/static/src/xml/editor.xml:34
+#, python-format
+msgid "Description"
+msgstr "აღწერილობა"
 
 #. module: web_editor
 #. openerp-web
@@ -522,7 +543,7 @@ msgstr ""
 #: code:addons/web_editor/static/src/js/rte.summernote.js:917
 #, python-format
 msgid "Full Screen"
-msgstr ""
+msgstr "ხედვა სრულ ეკრანზე"
 
 #. module: web_editor
 #: model:ir.ui.view,arch_db:web_editor.colorpicker
@@ -783,7 +804,7 @@ msgstr ""
 #. module: web_editor
 #: model:ir.model.fields,field_description:web_editor.field_web_editor_converter_test_sub_name
 msgid "Name"
-msgstr ""
+msgstr "სახელი"
 
 #. module: web_editor
 #. openerp-web
@@ -819,7 +840,7 @@ msgstr "ნორმალური"
 #: code:addons/web_editor/static/src/js/snippets.options.js:670
 #, python-format
 msgid "Ok"
-msgstr ""
+msgstr "ოკ"
 
 #. module: web_editor
 #. openerp-web
@@ -949,7 +970,7 @@ msgstr ""
 #: code:addons/web_editor/static/src/xml/editor.xml:349
 #, python-format
 msgid "Repeat"
-msgstr ""
+msgstr "გაიმეორე"
 
 #. module: web_editor
 #. openerp-web
@@ -1293,6 +1314,13 @@ msgstr ""
 
 #. module: web_editor
 #. openerp-web
+#: code:addons/web_editor/static/src/xml/editor.xml:96
+#, python-format
+msgid "Upload an image"
+msgstr ""
+
+#. module: web_editor
+#. openerp-web
 #: code:addons/web_editor/static/src/xml/editor.xml:103
 #, python-format
 msgid "Upload image without optimization"
@@ -1395,7 +1423,7 @@ msgstr ""
 #. module: web_editor
 #: model:ir.model,name:web_editor.model_ir_attachment
 msgid "ir.attachment"
-msgstr ""
+msgstr "ir.attachment"
 
 #. module: web_editor
 #: model:ir.model,name:web_editor.model_ir_qweb

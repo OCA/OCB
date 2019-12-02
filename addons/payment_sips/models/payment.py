@@ -48,7 +48,8 @@ class AcquirerSips(models.Model):
             'prod': 'https://payment-webinit.sips-atos.com/paymentInit',
             'test': 'https://payment-webinit.simu.sips-atos.com/paymentInit', }
 
-        return {'sips_form_url': url.get(environment, url['test']), }
+        icp_value = self.env['ir.config_parameter'].sudo().get_param('acquirer_sips_url_%s' % environment)
+        return {'sips_form_url': icp_value or url.get(environment, url['test']), }
 
     def _sips_generate_shasign(self, values):
         """ Generate the shasign for incoming or outgoing communications.
@@ -80,7 +81,7 @@ class AcquirerSips(models.Model):
         if self.environment == 'prod':
             # For production environment, key version 2 is required
             merchant_id = getattr(self, 'sips_merchant_id')
-            key_version = '2'
+            key_version = self.env['ir.config_parameter'].sudo().get_param('sips.key_version', '2')
         else:
             # Test key provided by Atos Wordline works only with version 1
             merchant_id = '002001000000001'
@@ -171,8 +172,6 @@ class TxSips(models.Model):
         # check what is bought
         if float_compare(float(data.get('amount', '0.0')) / 100, self.amount, 2) != 0:
             invalid_parameters.append(('amount', data.get('amount'), '%.2f' % self.amount))
-        if self.partner_reference and data.get('customerId') != self.partner_reference:
-            invalid_parameters.append(('customerId', data.get('customerId'), self.partner_reference))
 
         return invalid_parameters
 

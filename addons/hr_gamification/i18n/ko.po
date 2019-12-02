@@ -1,20 +1,24 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # * hr_gamification
-#
+# 
 # Translators:
+# Goh Gangtai <gangtai.goh@gmail.com>, 2017
+# Martin Trigaux, 2017
+# JH CHOI <hwangtog@gmail.com>, 2019
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo 9.0\n"
+"Project-Id-Version: Odoo Server 10.0c\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-07 08:57+0000\n"
-"PO-Revision-Date: 2015-09-07 20:51+0000\n"
-"Last-Translator: Martin Trigaux\n"
-"Language-Team: Korean (http://www.transifex.com/odoo/odoo-9/language/ko/)\n"
-"Language: ko\n"
+"PO-Revision-Date: 2016-09-07 09:21+0000\n"
+"Last-Translator: JH CHOI <hwangtog@gmail.com>, 2019\n"
+"Language-Team: Korean (https://www.transifex.com/odoo/teams/41243/ko/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
+"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. module: hr_gamification
@@ -23,23 +27,26 @@ msgid ""
 "A goal is defined by a user and a goal type.\n"
 "                    Goals can be created automatically by using challenges."
 msgstr ""
+"목표는 사용자와 목표 유형에 의해 정의됩니다.\n"
+"                      도전 과제를 사용하여 목표를 자동으로 생성할 수 있습니다."
 
 #. module: hr_gamification
 #: model:ir.model.fields,help:hr_gamification.field_hr_employee_badge_ids
 msgid ""
 "All employee badges, linked to the employee either directly or through the "
 "user"
-msgstr ""
+msgstr "직원에게 직접 또는 사용자를 통해 링크된 모든 직원 배지"
 
 #. module: hr_gamification
 #: model:ir.actions.act_window,help:hr_gamification.challenge_list_action2
 msgid ""
 "Assign a list of goals to chosen users to evaluate them.\n"
-"                    The challenge can use a period (weekly, monthly...) for "
-"automatic creation of goals.\n"
-"                    The goals are created for the specified users or member "
-"of the group."
+"                    The challenge can use a period (weekly, monthly...) for automatic creation of goals.\n"
+"                    The goals are created for the specified users or member of the group."
 msgstr ""
+"선택한 사용자에게 목표 목록을 할당하여 평가합니다.\n"
+"                이 도전 과제는 자동으로 목표를 생성하기 위한 기간(매주, 매월...)을 사용할 수 있습니다.\n"
+"                지정된 사용자 또는 그룹 구성원에 대해 목표가 생성됩니다."
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_res_users_badge_ids
@@ -51,14 +58,12 @@ msgstr "뱃지"
 #: model:ir.ui.view,arch_db:hr_gamification.hr_hr_employee_view_form
 msgid ""
 "Badges are rewards of good work. Give them to people you believe deserve it."
-msgstr ""
-"뱃지는 열심히 일한 보상입니다. 당신이 그럴만한 자격이 있다고 믿기 때문에 사람"
-"들이 보내 준 것입니다."
+msgstr "뱃지는 열심히 일한 보상입니다. 당신이 그럴만한 자격이 있다고 믿기 때문에 사람들이 보내 준 것입니다."
 
 #. module: hr_gamification
 #: model:ir.model.fields,help:hr_gamification.field_hr_employee_direct_badge_ids
 msgid "Badges directly linked to the employee"
-msgstr ""
+msgstr "직원과 직접 연결된 배지"
 
 #. module: hr_gamification
 #: model:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
@@ -143,7 +148,7 @@ msgstr "배지 수여"
 #. module: hr_gamification
 #: model:ir.ui.view,arch_db:hr_gamification.hr_badge_form_view
 msgid "Granted"
-msgstr ""
+msgstr "수여함"
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge_granted_employees_count
@@ -158,7 +163,7 @@ msgstr ""
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_res_users_calendar_last_notif_ack
 msgid "Last notification marked as read from base Calendar"
-msgstr ""
+msgstr "최근 알림이 기준 달력에서 읽음으로 표시됐습니다."
 
 #. module: hr_gamification
 #: model:ir.ui.view,arch_db:hr_gamification.hr_hr_employee_view_form
@@ -185,12 +190,12 @@ msgstr "선택한 임직원은 선택한 사용자와 일치하지 않습니다.
 #. module: hr_gamification
 #: model:ir.model,name:hr_gamification.model_res_users
 msgid "Users"
-msgstr ""
+msgstr "사용자 목록"
 
 #. module: hr_gamification
 #: model:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
 msgid "What are you thankful for?"
-msgstr ""
+msgstr "무엇이 감사한가요?"
 
 #. module: hr_gamification
 #: code:addons/hr_gamification/wizard/gamification_badge_user_wizard.py:21

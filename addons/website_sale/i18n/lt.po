@@ -3,29 +3,34 @@
 # * website_sale
 # 
 # Translators:
-# Martin Trigaux <mat@odoo.com>, 2016
-# Audrius Palenskis <audrius.palenskis@gmail.com>, 2016
-# Arminas Grigonis <arminas@versada.lt>, 2016
-# Anatolij <an@cq.lt>, 2016
-# UAB "Draugiški sprendimai" <transifex@draugiskisprendimai.lt>, 2016
 # Šarūnas Ažna <sarunas.azna@gmail.com>, 2016
+# Arminas Grigonis <arminas@versada.lt>, 2016
+# UAB "Draugiški sprendimai" <transifex@draugiskisprendimai.lt>, 2016
 # Rolandas <info@paninfo.lt>, 2016
+# Anatolij, 2016
+# Martin Trigaux, 2016
 # Monika Raciunaite <monika.raciunaite@gmail.com>, 2016
-# Antanas Muliuolis <an.muliuolis@gmail.com>, 2017
+# Audrius Palenskis <audrius.palenskis@gmail.com>, 2017
 # digitouch UAB <digitouchagencyeur@gmail.com>, 2017
+# Antanas Muliuolis <an.muliuolis@gmail.com>, 2017
+# Paulius Stundžia <paulius@focusate.eu>, 2018
+# Naglis Jonaitis, 2018
+# Linas Versada <linaskrisiukenas@gmail.com>, 2019
+# Silvija Butko <silvija.butko@gmail.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-18 14:21+0000\n"
-"PO-Revision-Date: 2017-07-18 14:21+0000\n"
-"Last-Translator: digitouch UAB <digitouchagencyeur@gmail.com>, 2017\n"
+"POT-Creation-Date: 2017-11-30 14:34+0000\n"
+"PO-Revision-Date: 2016-09-07 09:34+0000\n"
+"Last-Translator: Silvija Butko <silvija.butko@gmail.com>, 2019\n"
 "Language-Team: Lithuanian (https://www.transifex.com/odoo/teams/41243/lt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Language: lt\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment_token_form_confirm
@@ -44,6 +49,9 @@ msgid ""
 "                              Free Shipping in U.S.<br/>\n"
 "                              Buy now, get in 2 days"
 msgstr ""
+"30 pinigų grąžinimo garantija <br/>\n"
+"Nemokamas pristatymas JAV <br/>\n"
+"Pirkite dabar, gaukite per 2 dienas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.report_shop_saleorder_document
@@ -150,7 +158,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.total
 msgid "<span class=\"col-xs-6 text-right text-muted\">Subtotal:</span>"
-msgstr ""
+msgstr "<span class=\"col-xs-6 text-right text-muted\">Tarpinė suma:</span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment
@@ -194,6 +202,8 @@ msgid ""
 "<span class=\"fa fa-lightbulb-o fa-2x\"/>\n"
 "                                Everything is editable in your Odoo website. Feel free to edit any page title, field or button label. Simply hit *Edit* in upper-right corner to start editing the page."
 msgstr ""
+"<span class=\"fa fa-lightbulb-o fa-2x\"/>\n"
+"Viskas jūsų \"Odoo\" svetainėje yra redaguojama. Pakeiskite bet kurį puslapio pavadinimą, laukelį ar mygtuką. Paprasčiausiai paspauskite \"Redaguoti\" viršutiniame dešiniajame kampe."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -201,6 +211,8 @@ msgid ""
 "<span class=\"fa fa-lightbulb-o fa-2x\"/>\n"
 "                                Offering free delivery with a minimum amount or minimum number of items should drive up your average order value and help to compensate for the delivery costs."
 msgstr ""
+"<span class=\"fa fa-lightbulb-o fa-2x\"/>\n"
+"Nemokamo pristatymo siūlymas už minimalią kainą ar su minimaliu prekių kiekiu turėtų padidinti jūsų vidutinę užsakymo vertę ir padėti kompensuoti pristatymo išlaidas."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -208,6 +220,8 @@ msgid ""
 "<span class=\"fa fa-lightbulb-o fa-2x\"/>\n"
 "                                You can create different rates based on order amount ranges (e.g. $10 up to a $50 order, then $5 beyond)."
 msgstr ""
+"<span class=\"fa fa-lightbulb-o fa-2x\"/>\n"
+"Galite sukurti skirtingas kainas pagal užsakytą kiekį (pvz., 10$ iki 50$ užsakymui, o vėliau 5$)."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.continue_shopping
@@ -281,6 +295,9 @@ msgid ""
 "                                        <strong> Rules &amp; Formulas</strong>\n"
 "                                    </span>"
 msgstr ""
+"<span class=\"panel-title\">\n"
+"<strong>Taisyklės ir formulės</strong>\n"
+"</span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -290,6 +307,10 @@ msgid ""
 "                                            <span class=\"small\"/>\n"
 "                                    </span>"
 msgstr ""
+"<span class=\"panel-title\">\n"
+"                                        <strong>Vidutiniai krepšeliai yra &gt; 5 prekių?</strong><br/>\n"
+"                                            <span class=\"small\"/>\n"
+"                                    </span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -373,6 +394,11 @@ msgid ""
 "                                        <span class=\"small\"/>\n"
 "                                </span>"
 msgstr ""
+"<span class=\"panel-title\">\n"
+"                                    <span class=\"fa fa-check-square-o\"/>\n"
+"                                    <strong>Keisti jūsų produktų katalogą</strong><br/>\n"
+"                                        <span class=\"small\"/>\n"
+"                                </span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -403,6 +429,11 @@ msgid ""
 "                                    <span class=\"small\"/>\n"
 "                            </span>"
 msgstr ""
+"<span class=\"panel-title\">\n"
+"                                <span class=\"fa fa-check-square-o\"/>\n"
+"                                <strong>Nustatyti apmokėjimo procesą</strong><br/>\n"
+"                                    <span class=\"small\"/>\n"
+"                            </span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -430,6 +461,8 @@ msgid ""
 "<span class=\"panel-title\"><span class=\"fa fa-lock\"/><strong>Wire "
 "transfer</strong> (slow and inefficient)</span>"
 msgstr ""
+"<span class=\"panel-title\"><span class=\"fa fa-"
+"lock\"/><strong>Perlaida</strong> (lėta ir neefektyvu)</span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -438,6 +471,9 @@ msgid ""
 "                            <span class=\"small\">Advised if your packs vary in size/weight and/or if you ship worldwide</span>\n"
 "                            </span>"
 msgstr ""
+"<span class=\"panel-title\"><span class=\"fa fa-shopping-cart\"/><strong> Už savikainą</strong> (klientas moka tiek, kiek jūs)<br/>\n"
+"                            <span class=\"small\">Rekomenduojama, jei jūsų pakuotės yra skirtingo dydžio/svorio ir/ar jūs siunčiate į visą pasaulį</span>\n"
+"                            </span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -455,6 +491,9 @@ msgid ""
 "                            <span class=\"small\">Advised if you target a local audience</span>\n"
 "                            </span>"
 msgstr ""
+"<span class=\"panel-title\"><span class=\"fa fa-table\"/><strong> Vienodi tarifai</strong> (visi moka tą patį)<br/>\n"
+"                            <span class=\"small\">Siūloma, jei taikote į vietinę auditoriją</span>\n"
+"                            </span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
@@ -478,7 +517,7 @@ msgstr "<strong>Pridėti į krepšelį</strong>"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>Bonuses:</strong> what you get on top of the offer"
-msgstr ""
+msgstr "<strong>Priedai:</strong> ką gausite kartu su pasiūlymu"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -486,11 +525,13 @@ msgid ""
 "<strong>Call-to-action</strong> short and clear: Add to Cart, Ask for quote,"
 " etc."
 msgstr ""
+"<strong>Kvietimas veikti</strong>trumpas ir aiškus: Pridėti prie krepšelio, "
+"Prašyti sąskaitos ir pan."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>Cons:</strong>"
-msgstr ""
+msgstr "<strong>Minusai:</strong>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -498,11 +539,14 @@ msgid ""
 "<strong>Cons:</strong> customers have to check out to find out the delivery "
 "price."
 msgstr ""
+"<strong>Minusai:</strong> klientai turi nueiti iki apmokėjimo, kad sužinotų "
+"pristatymo kainą."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>Cons:</strong> may be discouraging for your cheapest items"
 msgstr ""
+"<strong>Minusai:</strong> gali būti nepatrauklu jūsų pigiausiems produktams"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -510,6 +554,8 @@ msgid ""
 "<strong>Cons:</strong> will require you to either absorb the cost or "
 "slightly increase your prices to cover it."
 msgstr ""
+"<strong>Minusai:</strong> jums reikės arba susitaikyti su išlaidomis, arba "
+"jas padengti padidinant kainas."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -525,6 +571,8 @@ msgid ""
 "<strong>For complex imports</strong> (&gt;5000 items, product variants, "
 "pictures, etc.):"
 msgstr ""
+"<strong>Sudėtingiems importavimams</strong> (daugiau nei 5000 prekių, "
+"produkto variantų, paveikslėlių ir pan.):"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -537,11 +585,13 @@ msgid ""
 "<strong>Key features, emotional and commercial content</strong><br/>\n"
 "                            Recommended for at least your top products, because it may have a big impact on your sales and conversion rates."
 msgstr ""
+"<strong>Pagrindinės funkcijos, emocinis ir komercinis turinys</strong><br/>\n"
+"                            Rekomenduojama bent jau populiariausiems produktams, kadangi tai gali turėti didelę įtaką jūsų pardavimams ir konversijoms."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>Mandatory content</strong><br/>"
-msgstr ""
+msgstr "<strong>Būtinas turinys</strong><br/>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -577,7 +627,7 @@ msgstr "<strong>Produkto / Paslaugos pavadinimas</strong>"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>Pros:</strong>"
-msgstr ""
+msgstr "<strong>Pliusai:</strong>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -585,6 +635,8 @@ msgid ""
 "<strong>Pros:</strong> being transparent about your charges can help you "
 "gain the trust of your customers."
 msgstr ""
+"<strong>Pliusai:</strong> skaidrumas dėl papildomų mokesčių gali padėti "
+"užsitarnauti klientų pasitikėjimą."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -592,11 +644,13 @@ msgid ""
 "<strong>Pros:</strong> gives you a significant advantage over any "
 "competitors that don't offer the same perk."
 msgstr ""
+"<strong>Pliusai:</strong> suteikia jums nemažą privalumą prieš konkurentus, "
+"kurie to nesiūlo."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>Pros:</strong> simple to understand"
-msgstr ""
+msgstr "<strong>Pliusai:</strong>lengva suprasti"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -608,7 +662,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>See it in action in Odoo</strong><br/>"
-msgstr ""
+msgstr "<strong>Pamatykite, kaip tai atrodo \"Odoo\"</strong><br/>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -642,11 +696,13 @@ msgid ""
 "<strong>Value proposition:</strong> what’s the end-benefit of this product "
 "and who is it for?"
 msgstr ""
+"<strong>Vertės pasiūlymas:</strong> kokia yra galutinė šio produkto nauda ir"
+" kam jis skirtas?"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "<strong>Variants</strong> like size or color"
-msgstr ""
+msgstr "<strong>Variantai</strong>, tokie kaip dydis ar spalva"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.terms
@@ -655,6 +711,9 @@ msgid ""
 "This should the country in which your company is headquartered or the "
 "country from which you operate your web site and mobile app."
 msgstr ""
+"<b>Reguliuojantis įstatymas</b> informuos vartotojus, kokie įstatymai "
+"reguliuoja susitarimą. Tai turėtų būti šalis, kurioje yra jūsų įmonės "
+"būstinė, arba šalis, iš kurios jūs valdote savo svetainę ir programėlę."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.terms
@@ -664,6 +723,11 @@ msgid ""
 "be part of a very long and thorough list in your Terms and Conditions "
 "agreements so as to encompass the most amount of negative uses."
 msgstr ""
+"Frazė <b>\"Ribos, ką vartotojas gali daryti\"</b> informuos vartotojus, kad "
+"sutikdami naudotis jūsų paslauga, jie taip pat sutinka ir nedaryti "
+"atitinkamų dalykų. Tai gali būti labai ilgo ir išsamaus sąrašo jūsų "
+"naudojimo sąlygose dalimi, kuri apibrėžia visas neigiamas naudojimo "
+"galimybes."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.terms
@@ -674,6 +738,10 @@ msgid ""
 " agreeing (or disagreeing) with the Terms and Conditions or Privacy Policies"
 " of these third parties."
 msgstr ""
+"Frazė <b>\"Nuorodos į kitas svetaines\"</b> informuos vartotojus, kad jūs "
+"nesate atsakingas už trečiųjų šalių svetainių turinį. Ši frazė informuoja "
+"vartotojus, kad jie patys yra atsakingi už susipažinimą ir (ne)sutikimą su "
+"tų trečiųjų šalių naudojimo ir privatumo taisyklėmis."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.terms
@@ -683,6 +751,10 @@ msgid ""
 "have an account with you) can be terminated in case of abuses or at your "
 "sole discretion."
 msgstr ""
+"Frazė <b>\"Nutraukimas\"</b> informuos vartotojus, kad vartotojų paskyros "
+"svetainėje ir jų prieiga prie jūsų internetinio puslapio (jei vartotojai "
+"negali turėti paskyros) gali būti vienašališkai nutraukta, jei naudojama "
+"netinkamai."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.extra_info
@@ -695,11 +767,13 @@ msgid ""
 "A few % discount can bring you twice more customers! Here are a few kinds of"
 " discounts to boost your sales:"
 msgstr ""
+"Kelių procentų nuolaida gali jums atvesti dvigubai daugiau klientų! Štai "
+"keli nuolaidų tipai jūsų pardavimų padidinimui:"
 
 #. module: website_sale
 #: selection:website.config.settings,sale_pricelist_setting_split_1:0
 msgid "A single sales price per product"
-msgstr ""
+msgstr "Vieno produkto pardavimo kaina"
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_orders_abandonned_orders
@@ -720,6 +794,10 @@ msgid ""
 "sell strategy, e.g. for computers: mouse, keyboard, etc.). An algorithm "
 "figures out a list of accessories based on all the products added to cart."
 msgstr ""
+"Papildomi priedai pasirodo tada kai klientas peržiūri krepšelį prieš "
+"apmokėjimą (kryžminio pardavimo strategija. Pvz, kompiuteriams galima "
+"pasiūlyti klaviatūrą ar pelę). Algoritmas suskaičiuoja priedų sąrašą "
+"remiantis produktais, pridėtais į krepšelį."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -731,7 +809,7 @@ msgstr "Priedai: ekranas, pelė"
 #: model:ir.model.fields,field_description:website_sale.field_product_product_accessory_product_ids
 #: model:ir.model.fields,field_description:website_sale.field_product_template_accessory_product_ids
 msgid "Accessory Products"
-msgstr ""
+msgstr "Papildomi produktai"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_module_portal
@@ -748,6 +826,8 @@ msgstr "Pridėti pristatymo išlaidas internetiniuose pardavimuose"
 msgid ""
 "Add a step to request some extra customer data (picking preferences, etc.)"
 msgstr ""
+"Pridėkite žingsnį, reikalaujantį papildomų kliento duomenų (paėmimo "
+"pageidavimai ar pan.)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.product
@@ -757,7 +837,7 @@ msgstr "Pridėti į krepšelį"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Add to Cart button"
-msgstr ""
+msgstr "\"Pridėti į krepšelį\" mygtukas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -785,12 +865,12 @@ msgstr "Visi produktai"
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_pricelist_selectable
 msgid "Allow the end user to choose this price list"
-msgstr ""
+msgstr "Leisti galutiniam vartotojui pasirinkti šį kainoraštį"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale_pricelist_form_view
 msgid "Allow to use on"
-msgstr ""
+msgstr "Leisti naudoti"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_website_config_settings_group_sale_pricelist
@@ -798,6 +878,8 @@ msgid ""
 "Allows to manage different prices based on rules per category of customers.\n"
 "                Example: 10% for retailers, promotion of 5 EUR on this product, etc."
 msgstr ""
+"Leidžia valdyti skirtingas kainas pagal klientų kategorijų taisykles.\n"
+"Pvz: 10% mažmeninių pardavėjų, 5 EUR nuolaida šiam produktui ir pan."
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_alternative_product_ids
@@ -845,14 +927,14 @@ msgstr "Prieinamumo įspėjimas"
 #. module: website_sale
 #: model:product.pricelist,name:website_sale.list_benelux
 msgid "Benelux"
-msgstr ""
+msgstr "Beneliuksas"
 
 #. module: website_sale
 #. openerp-web
 #: code:addons/website_sale/static/src/xml/website_sale_dashboard.xml:21
 #, python-format
 msgid "Best Sellers"
-msgstr ""
+msgstr "Geriausiai parduodami"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.bill_to
@@ -872,17 +954,17 @@ msgstr "Mokėjimas<span class=\"chevron\"/>"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Can take up to several days to receive the money"
-msgstr ""
+msgstr "Pinigų gavimas gali užtrukti kelias dienas"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_sale_order_cart_quantity
 msgid "Cart Quantity"
-msgstr ""
+msgstr "Krepšelio kiekis"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Cash amount or percentage discounts"
-msgstr ""
+msgstr "Pinigų suma arba procentinės nuolaidos"
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_catalog
@@ -905,6 +987,8 @@ msgid ""
 "Categories are used to browse your products through the\n"
 "            touchscreen interface."
 msgstr ""
+"Kategorijos naudojamos naršyti jūsų produktus jutikliniame\n"
+"ekrane."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_delivery_carrier_public_categ_ids
@@ -916,6 +1000,11 @@ msgid ""
 "Shop page, hit Customize and turn *Product Categories* on. A product can "
 "belong to several categories."
 msgstr ""
+"Kategorijos gali būti skelbiamos parduotuvės puslapyje (internetiniame "
+"kataloge), kad padėtų vartotojams rasti visus produktus kategorijoje. "
+"Norėdami paskelbti jas, nueikite į parduotuvės puslapio nustatymus ir "
+"įjunkite produktų kategorijas. Produktas gali priklausyti kelioms "
+"kategorijoms."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -957,12 +1046,12 @@ msgstr ""
 #: code:addons/website_sale/static/src/js/website_sale_tour_shop.js:33
 #, python-format
 msgid "Click here to set an image describing your product."
-msgstr ""
+msgstr "Nustatyti paveikslėlį, kuris apibūdina jūsų produktą."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Click here to unfold a Good Product Page"
-msgstr ""
+msgstr "Paspauskite, kad išskleistumėte gerą produkto puslapį"
 
 #. module: website_sale
 #. openerp-web
@@ -988,7 +1077,7 @@ msgstr "Paspauskite šį mygtuką, kad Jūsų klientai galėtų tai matyti."
 #. module: website_sale
 #: model:ir.actions.act_window,help:website_sale.product_public_category_action
 msgid "Click to define a new category."
-msgstr ""
+msgstr "Nustatyti naują kategoriją."
 
 #. module: website_sale
 #: selection:product.attribute,type:0
@@ -998,7 +1087,7 @@ msgstr "Spalva"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Community &amp; Enterprise users:"
-msgstr ""
+msgstr "Community &amp; Enterprise vartotojai"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
@@ -1023,7 +1112,7 @@ msgstr "Kompiuteriai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Configure your delivery methods (pricing, destinations)"
-msgstr ""
+msgstr "Nustatykite pristatymo būdus (kainodara, vietos)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -1084,7 +1173,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Create your product items"
-msgstr ""
+msgstr "Sukurkite savo produkto elementus"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image_create_uid
@@ -1113,7 +1202,7 @@ msgstr "Kliento segmentai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Customers review:"
-msgstr ""
+msgstr "Klientų apžvalga:"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_module_delivery_dhl
@@ -1123,12 +1212,12 @@ msgstr "DHL integracija"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_currency_id
 msgid "Default Currency"
-msgstr "Numatyta valiuta"
+msgstr "Numatytoji valiuta"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_pricelist_id
 msgid "Default Pricelist"
-msgstr "Numatytas kainoraštis"
+msgstr "Numatytasis kainoraštis"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_config_settings_view_form
@@ -1138,12 +1227,12 @@ msgstr "Numatytoji pardavimų komanda"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_config_settings_view_form
 msgid "Default Salesperson"
-msgstr "Numatytas pardavėjas"
+msgstr "Numatytasis pardavėjas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Default mode"
-msgstr ""
+msgstr "Numatytasis režimas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -1156,6 +1245,8 @@ msgid ""
 "Delivery methods are only used internally: the customer doesn't pay for "
 "shipping costs"
 msgstr ""
+"Pristatymo būdai naudojami tik viduje: klientas nemoka už pristatymo "
+"išlaidas"
 
 #. module: website_sale
 #: selection:website.config.settings,sale_delivery_settings:0
@@ -1163,6 +1254,8 @@ msgid ""
 "Delivery methods are selectable on the website: the customer pays for "
 "shipping costs"
 msgstr ""
+"Pristatymo būdai pasirenkami svetainėje: klientas moka už pristatymo "
+"išlaidas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -1177,24 +1270,25 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_sale.field_product_product_website_description
 #: model:ir.model.fields,field_description:website_sale.field_product_template_website_description
 msgid "Description for the website"
-msgstr ""
+msgstr "Tinklalapio aprašymas"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_delivery_carrier_website_sequence
 #: model:ir.model.fields,help:website_sale.field_product_product_website_sequence
 #: model:ir.model.fields,help:website_sale.field_product_template_website_sequence
 msgid "Determine the display order in the Website E-commerce"
-msgstr ""
+msgstr "Nustatykite rodymo tvarką svetainės e-komercijoje"
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.devices
 msgid "Devices"
-msgstr "Devices"
+msgstr "Įrenginiai"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Discount % or amounts, margins, roundings, periods, etc."
 msgstr ""
+"Nuolaidos procentas arba dydis, maržos, apvalinimai, laikotarpiai ir t.t."
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image_display_name
@@ -1213,12 +1307,12 @@ msgstr ""
 #: code:addons/website_sale/static/src/js/website_sale_tour_shop.js:47
 #, python-format
 msgid "Drag this website block and drop it in your page."
-msgstr ""
+msgstr "Nutempkite šį svetainės bloką į savo puslapį."
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_pricelist_code
 msgid "E-commerce Promotional Code"
-msgstr ""
+msgstr "Nuolaidos kodas"
 
 #. module: website_sale
 #: model:product.pricelist,name:website_sale.list_europe
@@ -1228,14 +1322,14 @@ msgstr "EUR"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Ease the product browsing with:"
-msgstr ""
+msgstr "Palengvinkite produktų naršymą su:"
 
 #. module: website_sale
 #. openerp-web
 #: code:addons/website_sale/static/src/js/website_sale_tour_shop.js:27
 #, python-format
 msgid "Edit the price of this product by clicking on the amount."
-msgstr ""
+msgstr "Redaguokite šio produkto kainą paspausdami ant sumos."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address_kanban
@@ -1246,6 +1340,8 @@ msgstr "Redaguoti šį adresą"
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Edit your payment policies and security to reassure your visitors"
 msgstr ""
+"Redaguokite savo mokėjimo sąlygas ir apsaugą, kad užtikrintumėte savo "
+"lankytojus"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
@@ -1255,7 +1351,7 @@ msgstr "El. paštas"
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_website_config_settings_order_mail_template
 msgid "Email sent to customer at the end of the checkout process"
-msgstr ""
+msgstr "Laiškas, nusiunčiamas klientui apmokėjimo pabaigoje"
 
 #. module: website_sale
 #. openerp-web
@@ -1273,7 +1369,7 @@ msgstr "Klaida! Jūs negalite sukurti pasikartojančių kategorijų."
 #. module: website_sale
 #: model:product.public.category,name:website_sale.External_Hard_Drive
 msgid "External Hard Drive"
-msgstr "External Hard Drive"
+msgstr "Išorinis kietasis diskas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.extra_info_option
@@ -1288,7 +1384,7 @@ msgstr "Papildomas žingsnis"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_module_delivery_fedex
 msgid "Fedex integration"
-msgstr "Fedex integracija"
+msgstr "„Fedex“ integracija"
 
 #. module: website_sale
 #. openerp-web
@@ -1302,12 +1398,12 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Free and no setup"
-msgstr ""
+msgstr "Nemokamas ir jokio nustatymo"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Free delivery (see Delivery Strategy section)"
-msgstr ""
+msgstr "Nemokamas pristatymas (žiūrėkite pristatymo strategijos sekciją)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.view_sales_order_filter_ecommerce
@@ -1317,7 +1413,7 @@ msgstr "Iš interneto svetainės"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.extra_info
 msgid "Give us your feedback..."
-msgstr ""
+msgstr "Parašykite mums atsiliepimą..."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_website_config_settings_module_portal
@@ -1335,11 +1431,13 @@ msgid ""
 "Go through the checkout process and make sure every single step is tailored "
 "to your activity:"
 msgstr ""
+"Pereikite apmokėjimo procesą ir įsitikinkite, kad kiekvienas žingsnis yra "
+"pritaikytas prie jūsų veiklos:"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_style_html_class
 msgid "HTML Classes"
-msgstr ""
+msgstr "HTML klasės"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_attribute_value_html_color
@@ -1365,6 +1463,8 @@ msgstr "Headset"
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Here are <strong>some pros and cons</strong> to help you decide:<br/>"
 msgstr ""
+"Štai <strong>keli pliusai ir minusai</strong>, kurie padės jums apsispręsti:"
+" <br/>"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_attribute_value_html_color
@@ -1372,6 +1472,8 @@ msgid ""
 "Here you can set a specific HTML color index (e.g. #ff0000) to display the "
 "color on the website if the attibute type is 'Color'."
 msgstr ""
+"Čia galite nustatyti konkretų HTML spalvos kodą (pvz., #ff0000), kuris bus "
+"rodomas svetainėje, jei atributo tipas yra \"Spalva\""
 
 #. module: website_sale
 #: selection:product.attribute,type:0
@@ -1396,6 +1498,9 @@ msgid ""
 "If you deal with a major shipper (UPS, FedEx, DHL, etc.), activate the "
 "related connector in Odoo to compute accurate costs and print labels."
 msgstr ""
+"Jei dirbate su didžiaisiais kurjeriais (UPS, FedEx, DHL ar pan.) aktyvuokite"
+" atitinkamą sąsają \"Odoo\", kad galėtumėte tiksliai skaičiuoti išlaidas ir "
+"spausdinti etiketes."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.terms
@@ -1412,6 +1517,16 @@ msgid ""
 "will respond to any DMCA take down notices received and you will take down "
 "the content."
 msgstr ""
+"Jei jūsų svetainė ar mobiliosios programėlės leidžia vartotojams kurti "
+"turinį ir padaryti matomą kitiems, <b>Turinio</b> skiltis informuos "
+"vartotojus, kad jie turi savo sukurto turinio autorines teises. <br/> "
+"\"Turinio\" išsireiškimas dažniausiai mini, kad vartotojai turi suteikti "
+"jums (svetainės ar programėlės kūrėjui) licenciją, pagal kurią jūs "
+"galėtumėte pasidalinti šiuo turiniu savo svetainėje/programėlėje su kitais "
+"vartotojais. <br/>Kadangi vartotojų sukurtas turinys yra viešas kitiems "
+"vartotojams, autorinių teisių pažeidimo skiltis yra naudinga informuojant "
+"vartotojus ir kūrėjus, jog bet koks autorines teises pažeidžiantis turinys "
+"bus pašalintas."
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image_image
@@ -1440,6 +1555,10 @@ msgid ""
 " You don't want to cut into your margins, but you want to remain price-"
 "competitive."
 msgstr ""
+"Įsivaizduokite, kad naujas klientas prideda produktą į savo krepšelį ir "
+"palieka jūsų svetainę dėl pristatymo kainos... Geros pristatymo strategijos "
+"sukūrimas yra sunkus. Nenorite sumažinti savo maržų, bet norite išlaikyti "
+"konkurencingą kainą."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -1462,12 +1581,12 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Install Optional Products (cross-selling)"
-msgstr ""
+msgstr "Įdiekite papildomus produktus (kryžminis pardavimas)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Install shipping connectors"
-msgstr ""
+msgstr "Įdiegti kurjerių sąsajas"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_website_config_settings_module_website_sale_options
@@ -1499,6 +1618,8 @@ msgid ""
 "It's difficult to recommend one over the others. So, simply pick the one "
 "that is more popular in your country!"
 msgstr ""
+"Sunku kurį nors parekomenduoti. Paprasčiausiai pasirinkite tą, kuris "
+"populiariausias jūsų šalyje!"
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.Keyboard_Mouse
@@ -1545,12 +1666,17 @@ msgstr "Įstatyminis pavadinimas"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Let them buy straight from catalog with:"
-msgstr ""
+msgstr "Leiskite jiems pirkti tiesiai iš katalogo su:"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "List displaying"
-msgstr ""
+msgstr "Sąrašo rodymas"
+
+#. module: website_sale
+#: model:ir.ui.view,arch_db:website_sale.address
+msgid "Log In"
+msgstr "Prisijungti"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -1569,6 +1695,9 @@ msgid ""
 " time, otherwise they will leave your website. Here are some actions to "
 "tailor the process to your business."
 msgstr ""
+"Įsitikinkite, kad jūsų klientas gali pereiti apsipirkimo procesą per labai "
+"trumpą laiką, kitu atveju, jie paliks jūsų svetainę. Štai keli veiksmai "
+"proceso pritaikymui jūsų verslui."
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_module_delivery
@@ -1598,7 +1727,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Min. qty or period"
-msgstr ""
+msgstr "Min. kiekis ar laikotarpis"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_config_settings_view_form
@@ -1616,6 +1745,7 @@ msgid ""
 "Multi-buy offers (2 products sold together for less than their individual "
 "price)"
 msgstr ""
+"Daugiapirkiminiai pasiūlymai (2 produktai parduodami kartu už mažesnę kainą)"
 
 #. module: website_sale
 #. openerp-web
@@ -1649,17 +1779,17 @@ msgstr "Naujas produktas"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "No monthly fees for standard offer"
-msgstr ""
+msgstr "Standartiniam pasiūlymui nėra mėnesinių mokesčių"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.products
 msgid "No product defined."
-msgstr ""
+msgstr "Nenustatytas joks produktas."
 
 #. module: website_sale
 #: selection:website.config.settings,sale_delivery_settings:0
 msgid "No shipping management on website"
-msgstr ""
+msgstr "Svetainėje nėra pristatymo valdymo"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment_token_form_confirm
@@ -1669,7 +1799,7 @@ msgstr "Ne, pasirinkite kitą metodą"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale_pricelist_form_view
 msgid "None website"
-msgstr ""
+msgstr "Jokia svetainė"
 
 #. module: website_sale
 #. openerp-web
@@ -1698,12 +1828,12 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Online users: we do it for you!"
-msgstr ""
+msgstr "Interneto vartotojai: mes tai darome jums!"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_sale_order_only_services
 msgid "Only Services"
-msgstr ""
+msgstr "Tik paslaugos"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_module_website_sale_options
@@ -1713,7 +1843,7 @@ msgstr "Galimi produktai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Options: warranty, software"
-msgstr ""
+msgstr "Pasirinkimai: garantija, programinė įranga"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.confirmation
@@ -1723,12 +1853,12 @@ msgstr "Užsakymas"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_order_mail_template
 msgid "Order Confirmation Email"
-msgstr ""
+msgstr "Užsakymo patvirtinimo laiškas"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_sale_order_website_order_line
 msgid "Order Lines displayed on Website"
-msgstr ""
+msgstr "Užsakymo eilutės, rodomos svetainėje"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_sale_order_website_order_line
@@ -1736,6 +1866,8 @@ msgid ""
 "Order Lines to be displayed on the website. They should not be used for "
 "computation purpose."
 msgstr ""
+"Užsakymo eilutės rodymui svetainėje. Jos neturėtų būti naudojamos "
+"skaičiavimo tikslais."
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_orders
@@ -1778,7 +1910,7 @@ msgstr "Pirkėjas"
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_ecommerce_payment_acquirers
 msgid "Payment Acquirers"
-msgstr ""
+msgstr "Mokėjimų gavimas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.report_shop_saleorder_document
@@ -1798,7 +1930,7 @@ msgstr "Apmokėjimo būdai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Payment must be reconciled manually"
-msgstr ""
+msgstr "Mokėjimas turi būti sudengtas rankiniu būdu"
 
 #. module: website_sale
 #: code:addons/website_sale/controllers/main.py:758
@@ -1810,7 +1942,7 @@ msgstr ""
 #: code:addons/website_sale/controllers/main.py:755
 #, python-format
 msgid "Payment transaction failed (%s)"
-msgstr ""
+msgstr "Mokėjimo operacija nepavyko (%s)"
 
 #. module: website_sale
 #: code:addons/website_sale/controllers/main.py:759
@@ -1852,7 +1984,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Prefered by some customers"
-msgstr ""
+msgstr "Kai kurių klientų mėgstamas"
 
 #. module: website_sale
 #: code:addons/website_sale/controllers/backend.py:65
@@ -1869,7 +2001,7 @@ msgstr "Suma"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_pricelist_ids
 msgid "Price list available for this Ecommerce/Website"
-msgstr ""
+msgstr "Šiai e-komercijai/svetainei galimas kainų sąrašas"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_pricelist
@@ -1885,7 +2017,7 @@ msgstr "Kainoraščiai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Pricing &amp; Discounts"
-msgstr ""
+msgstr "Kainodara ir nuolaidos"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_sale_pricelist_setting_split_1
@@ -1931,7 +2063,7 @@ msgstr "Produktų puslapiai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.product_public_category_tree_view
 msgid "Product Public Categories"
-msgstr ""
+msgstr "Viešos produkto kategorijos"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_template
@@ -1941,23 +2073,23 @@ msgstr "Produkto šablonas"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Product attributes filter"
-msgstr ""
+msgstr "Produkto atributų filtras"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Product categories list"
-msgstr ""
+msgstr "Produktų kategorijų sąrašas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Product descriptions"
-msgstr ""
+msgstr "Produktų aprašymai"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.product
 #: model:ir.ui.view,arch_db:website_sale.product_price
 msgid "Product not available"
-msgstr ""
+msgstr "Produktas nepasiekiamas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.404
@@ -1975,7 +2107,7 @@ msgstr "Produktai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
 msgid "Promote"
-msgstr ""
+msgstr "Reklamuoti"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_rating_rating_website_published
@@ -1986,22 +2118,22 @@ msgstr "Publikuotas"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
 msgid "Push down"
-msgstr ""
+msgstr "Pastumti žemyn"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
 msgid "Push to bottom"
-msgstr ""
+msgstr "Nustumti į apačią"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
 msgid "Push to top"
-msgstr ""
+msgstr "Nustumti į viršų"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
 msgid "Push up"
-msgstr ""
+msgstr "Pastumti aukštyn"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2032,17 +2164,17 @@ msgstr "Kiekis"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Quantity-based discounts (B2B)"
-msgstr ""
+msgstr "Kiekiu grįstos nuolaidos (B2B)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Quick and easy to set up"
-msgstr ""
+msgstr "Lengvas ir greitas nustatymas"
 
 #. module: website_sale
 #: selection:product.attribute,type:0
 msgid "Radio"
-msgstr ""
+msgstr "Radio"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_rating_rating
@@ -2055,33 +2187,33 @@ msgstr "Vertinimas"
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_rating_last_value
 #: model:ir.model.fields,field_description:website_sale.field_product_product_rating_last_value
 msgid "Rating Last Value"
-msgstr ""
+msgstr "Paskutinis vertinimas"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_rating_count
 #: model:ir.model.fields,field_description:website_sale.field_product_product_rating_count
 msgid "Rating count"
-msgstr ""
+msgstr "Vertinimų kiekis"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image_product_tmpl_id
 msgid "Related Product"
-msgstr ""
+msgstr "Susijęs produktas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.404
 msgid "Return to the product list."
-msgstr ""
+msgstr "Sugrįžti į produktų sąrašą."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.wizard_checkout
 msgid "Review Order<span class=\"chevron\"/>"
-msgstr ""
+msgstr "Peržiūrėti užsakymą<span class=\"chevron\"/>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Review your catalog"
-msgstr ""
+msgstr "Peržiūrėkite savo katalogą"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.products_item
@@ -2142,7 +2274,7 @@ msgstr "Saugus mokėjimas"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "See how to configure delivery methods and shipping connectors"
-msgstr ""
+msgstr "Sužinokite, kaip nustatyti pristatymo būdus ir pristatymo sąsajas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2152,12 +2284,12 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "See how to configure pricing &amp; discounts"
-msgstr ""
+msgstr "Žiūrėkite, kaip nustatyti kainodarą ir nuolaidas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "See how to customize your catalog page"
-msgstr ""
+msgstr "Sužinokite, kaip nustatyti savo katalogo puslapį"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2187,6 +2319,8 @@ msgid ""
 "Select <b>New Product</b> to create it and manage its properties to boost "
 "your sales."
 msgstr ""
+"Pasirinkite <b>Naują produktą</b> sukūrimui ir valdykite jo savybes, kad "
+"padidintumėte pardavimus."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address_kanban
@@ -2196,12 +2330,12 @@ msgstr "Pasirinkti šį adresą"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Select your pricing preference and allow discounts"
-msgstr ""
+msgstr "Pasirinkite savo kainodaros pageidavimus ir leiskite nuolaidas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Select your shipping management policy"
-msgstr ""
+msgstr "Pasirinkite savo pristatymo valdymo politiką"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_pricelist_selectable
@@ -2239,6 +2373,8 @@ msgid ""
 "Set alternatives, accessories and options in product detail form (in Sales "
 "tab)"
 msgstr ""
+"Nustatykite alternatyvas, priedus ir pasirinkimus produkto informacijos "
+"formoje (pardavimų skiltyje)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2283,12 +2419,12 @@ msgstr "Pristatymo adresas"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_config_settings_view_form
 msgid "Shipping Connectors"
-msgstr ""
+msgstr "Siuntimo jungimai"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_sale_delivery_settings
 msgid "Shipping Management"
-msgstr ""
+msgstr "Siuntimo valdymas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.products
@@ -2299,7 +2435,7 @@ msgstr "Pardavimų skyriai"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.checkout
 msgid "Shop - Checkout"
-msgstr ""
+msgstr "Parduotuvė - Apmokėjimas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment_token_form_confirm
@@ -2309,7 +2445,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.confirmation
 msgid "Shop - Confirmed"
-msgstr ""
+msgstr "Parduotuvė - Patvirtinta"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment
@@ -2329,7 +2465,7 @@ msgstr "Apsipirkinėjimo patirtis"
 #. module: website_sale
 #: model:res.groups,name:website_sale.group_website_multi_image
 msgid "Show multi image on eCommerce"
-msgstr ""
+msgstr "E-komercijoje rodyti kelis paveikslėlius"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_group_product_pricelist
@@ -2340,6 +2476,11 @@ msgstr "Rodyti kainoraščius ant produktų"
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_group_pricelist_item
 msgid "Show pricelists to customers"
 msgstr "Rdoyti kainoraščius klientams"
+
+#. module: website_sale
+#: model:ir.ui.view,arch_db:website_sale.address
+msgid "Sign Up"
+msgstr "Užsiregistruoti"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
@@ -2386,6 +2527,8 @@ msgid ""
 "Some acquirers like Authorize.net and Ingenico can be used as payment "
 "gateways with your own payment processor."
 msgstr ""
+"Kai kurie surinkėjai, tokie kaip \"Authorize.net\" ar \"Ingenico\", gali "
+"būti naudojami kaip mokėjimo tarpininkai su jūsų mokėjimo apdorotoju."
 
 #. module: website_sale
 #: code:addons/website_sale/controllers/main.py:485
@@ -2423,7 +2566,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Start your online shop by creating 3 products pages.<br/>"
-msgstr ""
+msgstr "Pradėkite savo el. parduotuvę nuo 3 produktų puslapių sukūrimo. <br/>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
@@ -2433,7 +2576,7 @@ msgstr "Valstija / Provincija"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
 msgid "State / Province..."
-msgstr ""
+msgstr "Valstija / Regionas..."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
@@ -2443,7 +2586,7 @@ msgstr "Gatvė <span class=\"hidden-xs\"> ir numeris</span>"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_style_name
 msgid "Style Name"
-msgstr ""
+msgstr "Stiliaus pavadinimas"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_website_style_ids
@@ -2471,6 +2614,8 @@ msgid ""
 "Suggest more expensive alternatives to your customers (upsell strategy). "
 "Those products show up on the product page."
 msgstr ""
+"Pasiūlykite brangesnes alternatyvas savo klientams (papildomo pardavimo "
+"strategija). Šie produktai rodomi produkto puslapyje."
 
 #. module: website_sale
 #: selection:website.config.settings,module_website_sale_options:0
@@ -2482,17 +2627,17 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Suggest options and accessories"
-msgstr ""
+msgstr "Pasiūlyti pasirinkimus ir priedus"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Suggest pricier alternatives"
-msgstr ""
+msgstr "Pasiūlykite brangesnes alternatyvas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.suggested_products_list
 msgid "Suggested Accessories:"
-msgstr ""
+msgstr "Siūlomi priedai:"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment_token_form_confirm
@@ -2502,7 +2647,7 @@ msgstr "Santrauka"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
 msgid "TIN / VAT"
-msgstr ""
+msgstr "TIN / PVM"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2532,7 +2677,7 @@ msgstr "Sąlygos"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.terms
 msgid "Terms &amp;amp; Conditions"
-msgstr ""
+msgstr "Sąlygos"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.confirmation
@@ -2546,6 +2691,9 @@ msgid ""
 "contents, logo and other visual media you created is your property and is "
 "protected by copyright laws."
 msgstr ""
+"<b>Intelektinės nuosavybės </b>  pranešimas informuos vartotojus, kad "
+"turinys, logotipai ir kita vizualinė medžiaga, kuria sukūrėte, yra jūsų "
+"nuosavybė ir yra saugoma įstatymų."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2554,6 +2702,9 @@ msgid ""
 "several places: Contact us page, website header &amp; footer, printed "
 "business documents like orders and invoices, etc."
 msgstr ""
+"Pirmas žingsnis yra nustatyti jūsų įmonės informacija. Ji naudojama keliose "
+"vietose: kontaktų puslapyje, svetainės antraštėje ir poraštėje, "
+"atspausdintuose dokumentuose (sąskaitos, užsakymai ir pan.)."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_delivery_carrier_website_url
@@ -2578,7 +2729,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "There are two strategies to sell more to a customer:"
-msgstr ""
+msgstr "Štai dvi strategijos, kurios padeda klientui parduoti daugiau:"
 
 #. module: website_sale
 #. openerp-web
@@ -2598,11 +2749,13 @@ msgid ""
 "This field holds the image used as image for the category, limited to "
 "1024x1024px."
 msgstr ""
+"Šiame lauke saugomas paveikslėlis, naudojamas kaip kategorijos paveikslėlis."
+" Maks. dydis 1024x1024px."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.reduction_code
 msgid "This promo code is not available"
-msgstr ""
+msgstr "Šis nuolaidos kodas negalioja"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2610,12 +2763,16 @@ msgid ""
 "To collect payments, you can either request your customers to process it manually (wire transfer, etc.) or redirect them to payment acquirers.<br/>\n"
 "                        Using payment acquirers costs you money, so take some time to compare them."
 msgstr ""
+"Norėdami surinkti mokėjimus, galite prašyti klientų apdoroti juos rankiniu būdu (pinigų perlaida ar pan.) arba nukreipti juos į mokėjimų surinkėjus.<br/>\n"
+"Mokėjimų surinkėjų naudojimas jums kainuoja pinigus, tad gerai įvertinkite juos."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid ""
 "To do so, take the most out of Odoo's <strong>pricing options</strong>:<br/>"
 msgstr ""
+"Norėdami tai padaryti, gaukite viską iš \"Odoo\" <strong>kainodaros "
+"pasirinkimų</strong>:<br/>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.report_shop_saleorder_document
@@ -2671,11 +2828,13 @@ msgstr ""
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Use our import templates to get your catalog ready in no time!"
 msgstr ""
+"Naudokite mūsų importavimo šablonus, kad paruoštumėte savo katalogą "
+"akimirksniu!"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_config_settings_group_sale_pricelist
 msgid "Use pricelists to adapt your price per customers"
-msgstr ""
+msgstr "Naudokite kainoraščius kainos pritaikymui prie klientų"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.cart_popover
@@ -2728,24 +2887,24 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_sale.field_product_product_public_categ_ids
 #: model:ir.model.fields,field_description:website_sale.field_product_template_public_categ_ids
 msgid "Website Product Category"
-msgstr ""
+msgstr "Svetainės produktų kategorija"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.product_public_category_form_view
 msgid "Website Public Categories"
-msgstr ""
+msgstr "Viešos svetainės kategorijos"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_website_sequence
 #: model:ir.model.fields,field_description:website_sale.field_product_product_website_sequence
 #: model:ir.model.fields,field_description:website_sale.field_product_template_website_sequence
 msgid "Website Sequence"
-msgstr ""
+msgstr "Svetainės seka"
 
 #. module: website_sale
 #: model:ir.actions.act_url,name:website_sale.action_open_website
 msgid "Website Shop"
-msgstr ""
+msgstr "Svetainės parduotuvė"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_website_url
@@ -2776,14 +2935,14 @@ msgstr "Interneto svetainės meta pavadinimas"
 #: model:ir.model.fields,field_description:website_sale.field_product_product_website_price
 #: model:ir.model.fields,field_description:website_sale.field_product_template_website_price
 msgid "Website price"
-msgstr ""
+msgstr "Svetainės kaina"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier_website_public_price
 #: model:ir.model.fields,field_description:website_sale.field_product_product_website_public_price
 #: model:ir.model.fields,field_description:website_sale.field_product_template_website_public_price
 msgid "Website public price"
-msgstr ""
+msgstr "Vieša svetainės kaina"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_crm_team_website_ids
@@ -2813,12 +2972,12 @@ msgstr ""
 #. module: website_sale
 #: model:ir.actions.act_window,help:website_sale.action_orders_ecommerce
 msgid "You don't have any confirmed order from the website."
-msgstr ""
+msgstr "Neturite jokių patvirtintų mokėjimų iš svetainės."
 
 #. module: website_sale
 #: model:ir.actions.act_window,help:website_sale.action_unpaid_orders_ecommerce
 msgid "You don't have any unpaid order from the website."
-msgstr ""
+msgstr "Jūs neturite jokių neapmokėtų užsakymų iš svetainės."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.address
@@ -2864,7 +3023,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.order_state_message
 msgid "Your payment has been authorized."
-msgstr ""
+msgstr "Jūsų mokėjimas buvo patvirtintas."
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.order_state_message
@@ -2925,12 +3084,12 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.search count
 msgid "found)"
-msgstr ""
+msgstr "(rasta)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.cart_popover
 msgid "items)"
-msgstr ""
+msgstr "prekių)"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -2940,7 +3099,7 @@ msgstr "arba"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "product's availability (In Stock, Not Available, etc.)"
-msgstr ""
+msgstr "produkto pasiekiamumas (turimas, nepasiekiamas ir t.t.)"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_attribute_value
@@ -2985,24 +3144,24 @@ msgstr "website.config.settings"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "what do the customers think of the product"
-msgstr ""
+msgstr "ką klientai galvoja apie produktą"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.cart
 msgid "☑ 256 bit encryption"
-msgstr ""
+msgstr "☑ 256 bitų užšifravimas"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.cart
 msgid "☑ 30-days money-back guarantee"
-msgstr ""
+msgstr "☑ 30 dienų pinigų grąžinimo garantija"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.cart
 msgid "☑ Invoice sent by e-Mail"
-msgstr ""
+msgstr "☑ Sąskaita išsiunčiama el. paštu"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.cart
 msgid "☑ Processed by Ogone"
-msgstr ""
+msgstr "☑ Apdorojama „Ogone“"

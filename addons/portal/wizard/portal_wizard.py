@@ -93,7 +93,7 @@ class PortalWizardUser(models.TransientModel):
                 partners_error_empty |= wizard_user.partner_id
             elif email in emails:
                 partners_error_emails |= wizard_user.partner_id
-            user = self.env['res.users'].sudo().with_context(active_test=False).search([('login', '=', email)])
+            user = self.env['res.users'].sudo().with_context(active_test=False).search([('login', '=ilike', email)])
             if user:
                 partners_error_user |= wizard_user.partner_id
             emails.append(email)
@@ -140,7 +140,7 @@ class PortalWizardUser(models.TransientModel):
                     if wizard_user.partner_id.company_id:
                         company_id = wizard_user.partner_id.company_id.id
                     else:
-                        company_id = self.env['res.company']._company_default_get('res.users')
+                        company_id = self.env['res.company']._company_default_get('res.users').id
                     user_portal = wizard_user.sudo().with_context(company_id=company_id)._create_user()
                 else:
                     user_portal = user

@@ -303,9 +303,9 @@ class IrHttp(models.AbstractModel):
         if not filename:
             if filename_field in obj:
                 filename = obj[filename_field]
-            elif module_resource_path:
+            if not filename and module_resource_path:
                 filename = os.path.basename(module_resource_path)
-            else:
+            if not filename:
                 filename = "%s-%s-%s" % (obj._name, obj.id, field)
 
         # mimetype
@@ -320,11 +320,18 @@ class IrHttp(models.AbstractModel):
             if not mimetype:
                 mimetype = guess_mimetype(base64.b64decode(content), default=default_mimetype)
 
+        # extension
+        _, existing_extension = os.path.splitext(filename)
+        if not existing_extension:
+            extension = mimetypes.guess_extension(mimetype)
+            if extension:
+                filename = "%s%s" % (filename, extension)
+
         headers += [('Content-Type', mimetype), ('X-Content-Type-Options', 'nosniff')]
 
         # cache
         etag = hasattr(request, 'httprequest') and request.httprequest.headers.get('If-None-Match')
-        retag = '"%s"' % hashlib.md5(last_update).hexdigest()
+        retag = '"%s"' % hashlib.md5(content).hexdigest()
         status = status or (304 if etag == retag else 200)
         headers.append(('ETag', retag))
         headers.append(('Cache-Control', 'max-age=%s' % (STATIC_CACHE if unique else 0)))

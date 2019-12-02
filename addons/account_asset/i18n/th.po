@@ -3,17 +3,18 @@
 # * account_asset
 # 
 # Translators:
-# Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
 # Ekasit Saichompu <ekasitb@gmail.com>, 2016
 # Seksan Poltree <seksan.poltree@gmail.com>, 2016
+# Martin Trigaux, 2016
+# Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2016
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0c\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-07 08:56+0000\n"
-"PO-Revision-Date: 2016-09-07 08:56+0000\n"
-"Last-Translator: Seksan Poltree <seksan.poltree@gmail.com>, 2016\n"
+"PO-Revision-Date: 2016-09-07 09:15+0000\n"
+"Last-Translator: Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2016\n"
 "Language-Team: Thai (https://www.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -136,7 +137,7 @@ msgid "Asset Durations to Modify"
 msgstr ""
 
 #. module: account_asset
-#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_start_date
+#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_end_date
 msgid "Asset End Date"
 msgstr "วันสิ้นสุดสินทรัพย์"
 
@@ -151,7 +152,7 @@ msgid "Asset Name"
 msgstr "ชื่อสินทรัพย์"
 
 #. module: account_asset
-#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_end_date
+#: model:ir.model.fields,field_description:account_asset.field_account_invoice_line_asset_start_date
 msgid "Asset Start Date"
 msgstr "วันเริ่มต้นสินทรัพย์"
 
@@ -469,6 +470,7 @@ msgstr ""
 
 #. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_category_account_depreciation_id
+#: model:ir.ui.view,arch_db:account_asset.view_account_asset_asset_form
 msgid "Depreciation Entries: Asset Account"
 msgstr ""
 
@@ -756,6 +758,11 @@ msgid "Next Period Depreciation"
 msgstr "การเสื่อมสภาพในงวดหน้า"
 
 #. module: account_asset
+#: model:ir.ui.view,arch_db:account_asset.view_asset_asset_report_search
+msgid "Not archived"
+msgstr ""
+
+#. module: account_asset
 #: model:ir.model.fields,field_description:account_asset.field_account_asset_asset_note
 msgid "Note"
 msgstr "โน้ต"
@@ -958,6 +965,14 @@ msgstr ""
 #: model:ir.model.fields,help:account_asset.field_account_asset_asset_method_number
 #: model:ir.model.fields,help:account_asset.field_account_asset_category_method_number
 msgid "The number of depreciations needed to depreciate your asset"
+msgstr ""
+
+#. module: account_asset
+#: code:addons/account_asset/models/account_asset.py:477
+#, python-format
+msgid ""
+"This depreciation is already linked to a journal entry! Please post or "
+"delete it."
 msgstr ""
 
 #. module: account_asset

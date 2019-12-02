@@ -214,6 +214,15 @@ class MaintenanceEquipment(models.Model):
         return super(MaintenanceEquipment, self).write(vals)
 
     @api.model
+    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
+        """ mail.thread override so user_id which has no special access allowance is not
+            automatically subscribed.
+        """
+        if auto_follow_fields is None:
+            auto_follow_fields = []
+        return super(MaintenanceEquipment, self)._message_get_auto_subscribe_fields(updated_fields, auto_follow_fields)
+
+    @api.model
     def _read_group_category_ids(self, categories, domain, order):
         """ Read group customization in order to display all the categories in
             the kanban view, even if they are empty.
@@ -277,7 +286,8 @@ class MaintenanceRequest(models.Model):
                                help="Date requested for the maintenance to happen")
     owner_user_id = fields.Many2one('res.users', string='Created by', default=lambda s: s.env.uid)
     category_id = fields.Many2one('maintenance.equipment.category', related='equipment_id.category_id', string='Category', store=True, readonly=True)
-    equipment_id = fields.Many2one('maintenance.equipment', string='Equipment', index=True)
+    equipment_id = fields.Many2one('maintenance.equipment', string='Equipment',
+                                   ondelete='restrict', index=True)
     technician_user_id = fields.Many2one('res.users', string='Owner', track_visibility='onchange', oldname='user_id')
     stage_id = fields.Many2one('maintenance.stage', string='Stage', track_visibility='onchange',
                                group_expand='_read_group_stage_ids', default=_default_stage)
@@ -337,8 +347,8 @@ class MaintenanceRequest(models.Model):
         if vals.get('owner_user_id'):
             self.message_subscribe_users(user_ids=[vals['owner_user_id']])
         res = super(MaintenanceRequest, self).write(vals)
-        if self.stage_id.done and 'stage_id' in vals:
-            self.write({'close_date': fields.Date.today()})
+        if 'stage_id' in vals:
+            self.filtered(lambda m: m.stage_id.done).write({'close_date': fields.Date.today()})
         return res
 
     @api.model

@@ -46,10 +46,16 @@
     background-color: @o_mm_def_color_alpha;
 }
 
+td {
+    // Default browser style but needed so that alignment works on some mail
+    // clients (see transcoder)
+    text-align: inherit;
+}
 
 // ===== Layout =====
 .o_layout {
     overflow: hidden;
+    box-sizing: content-box;
     width: 94%;
     min-height: 100%;
     background-color: @o_mm_def_color_alpha;
@@ -89,7 +95,6 @@
     }
 
     .btn.btn-primary {
-        -webkit-user-select: none;
         color: @o_mm_def_btn_text;
         border: none;
         text-decoration: none;

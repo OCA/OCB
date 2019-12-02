@@ -49,7 +49,7 @@ def keep_query(*keep_params, **additional_params):
     if not keep_params and not additional_params:
         keep_params = ('*',)
     params = additional_params.copy()
-    qs_keys = request.httprequest.args.keys()
+    qs_keys = request.httprequest.args.keys() if request else []
     for keep_param in keep_params:
         for param in fnmatch.filter(qs_keys, keep_param):
             if param not in additional_params and param in qs_keys:
@@ -201,7 +201,7 @@ actual arch.
                 fullpath = get_resource_path(*view.arch_fs.split('/'))
                 arch_fs = get_view_arch_from_file(fullpath, view.xml_id)
                 # replace %(xml_id)s, %(xml_id)d, %%(xml_id)s, %%(xml_id)d by the res_id
-                arch_fs = arch_fs and resolve_external_ids(arch_fs, view.xml_id)
+                arch_fs = arch_fs and resolve_external_ids(arch_fs, view.xml_id).replace('%%', '%')
             view.arch = arch_fs or view.arch_db
 
     def _inverse_arch(self):
@@ -330,7 +330,10 @@ actual arch.
 
     def _compute_defaults(self, values):
         if 'inherit_id' in values:
-            values.setdefault('mode', 'extension' if values['inherit_id'] else 'primary')
+            # Do not automatically change the mode if the view already has an inherit_id,
+            # and the user change it to another.
+            if not values['inherit_id'] or all(not view.inherit_id for view in self):
+                values.setdefault('mode', 'extension' if values['inherit_id'] else 'primary')
         return values
 
     @api.model
@@ -378,6 +381,12 @@ actual arch.
 
         self.clear_caches()
         return super(View, self).write(self._compute_defaults(vals))
+
+    def unlink(self):
+        # if in uninstall mode and has children views, emulate an ondelete cascade
+        if self.env.context.get('_force_unlink', False) and self.mapped('inherit_children_ids'):
+            self.mapped('inherit_children_ids').unlink()
+        super(View, self).unlink()
 
     @api.multi
     def toggle(self):
@@ -1152,7 +1161,7 @@ actual arch.
         query = """SELECT max(v.id)
                      FROM ir_ui_view v
                 LEFT JOIN ir_model_data md ON (md.model = 'ir.ui.view' AND md.res_id = v.id)
-                    WHERE md.module NOT IN (SELECT name FROM ir_module_module)
+                    WHERE md.module IN (SELECT name FROM ir_module_module) IS NOT TRUE
                       AND v.model = %s
                       AND v.active = true
                  GROUP BY coalesce(v.inherit_id, v.id)"""

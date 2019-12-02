@@ -71,7 +71,7 @@ class SaleOrder(models.Model):
         if order.pricelist_id and order.partner_id:
             order_line = order._cart_find_product_line(product.id)
             if order_line:
-                pu = self.env['account.tax']._fix_tax_included_price(pu, product.taxes_id, order_line[0].tax_id)
+                pu = self.env['account.tax']._fix_tax_included_price_company(pu, product.taxes_id, order_line[0].tax_id, self.company_id)
 
         return {
             'product_id': product_id,
@@ -113,6 +113,17 @@ class SaleOrder(models.Model):
         """ Add or set product quantity, add_qty can be negative """
         self.ensure_one()
         SaleOrderLineSudo = self.env['sale.order.line'].sudo()
+
+        try:
+            if add_qty:
+                add_qty = float(add_qty)
+        except ValueError:
+            add_qty = 1
+        try:
+            if set_qty:
+                set_qty = float(set_qty)
+        except ValueError:
+            set_qty = 0
         quantity = 0
         order_line = False
         if self.state != 'draft':
@@ -159,10 +170,11 @@ class SaleOrder(models.Model):
                     'pricelist': order.pricelist_id.id,
                 })
                 product = self.env['product.product'].with_context(product_context).browse(product_id)
-                values['price_unit'] = self.env['account.tax']._fix_tax_included_price(
+                values['price_unit'] = self.env['account.tax']._fix_tax_included_price_company(
                     order_line._get_display_price(product),
                     order_line.product_id.taxes_id,
-                    order_line.tax_id
+                    order_line.tax_id,
+                    self.company_id
                 )
 
             order_line.write(values)
@@ -181,7 +193,7 @@ class Website(models.Model):
     _inherit = 'website'
 
     pricelist_id = fields.Many2one('product.pricelist', compute='_compute_pricelist_id', string='Default Pricelist')
-    currency_id = fields.Many2one('res.currency', related='pricelist_id.currency_id', string='Default Currency')
+    currency_id = fields.Many2one('res.currency', related='pricelist_id.currency_id', related_sudo=False, string='Default Currency')
     salesperson_id = fields.Many2one('res.users', string='Salesperson')
     salesteam_id = fields.Many2one('crm.team', string='Sales Team')
     pricelist_ids = fields.One2many('product.pricelist', compute="_compute_pricelist_ids",
@@ -227,8 +239,8 @@ class Website(models.Model):
 
         if not pricelists:  # no pricelist for this country, or no GeoIP
             pricelists |= all_pl.filtered(lambda pl: not show_visible or pl.selectable or pl.id in (current_pl, order_pl))
-        else:
-            pricelists |= all_pl.filtered(lambda pl: not show_visible and pl.sudo().code)
+        if not show_visible and not country_code:
+            pricelists |= all_pl.filtered(lambda pl: pl.sudo().code)
 
         # This method is cached, must not return records! See also #8795
         return pricelists.ids
@@ -244,12 +256,13 @@ class Website(models.Model):
         :param bool show_visible: if True, we don't display pricelist where selectable is False (Eg: Code promo)
         :returns: pricelist recordset
         """
-        website = request and request.website or None
+        website = request and hasattr(request, 'website') and request.website or None
         if not website:
             if self.env.context.get('website_id'):
                 website = self.browse(self.env.context['website_id'])
             else:
-                website = self.search([], limit=1)
+                # In the weird case we are coming from the backend (https://github.com/odoo/odoo/issues/20245)
+                website = len(self) == 1 and self or self.search([], limit=1)
         isocountry = request and request.session.geoip and request.session.geoip.get('country_code') or False
         partner = self.env.user.partner_id
         order_pl = partner.last_website_so_id and partner.last_website_so_id.state == 'draft' and partner.last_website_so_id.pricelist_id
@@ -377,7 +390,7 @@ class Website(models.Model):
             # TODO cache partner_id session
             pricelist = self.env['product.pricelist'].browse(pricelist_id).sudo()
             so_data = self._prepare_sale_order_values(partner, pricelist)
-            sale_order = self.env['sale.order'].sudo().create(so_data)
+            sale_order = self.env['sale.order'].with_context(force_company=request.website.company_id.id).sudo().create(so_data)
 
             # set fiscal position
             if request.website.partner_id.id != partner.id:
@@ -386,7 +399,7 @@ class Website(models.Model):
                 country_code = request.session['geoip'].get('country_code')
                 if country_code:
                     country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1).id
-                    fp_id = request.env['account.fiscal.position'].sudo()._get_fpos_by_region(country_id)
+                    fp_id = request.env['account.fiscal.position'].sudo().with_context(force_company=request.website.company_id.id)._get_fpos_by_region(country_id)
                     sale_order.fiscal_position_id = fp_id
                 else:
                     # if no geolocation, use the public user fp
@@ -443,7 +456,7 @@ class Website(models.Model):
                 if code_pricelist:
                     pricelist_id = code_pricelist.id
                     update_pricelist = True
-            elif code is not None and sale_order.pricelist_id.code:
+            elif code is not None and sale_order.pricelist_id.code and code != sale_order.pricelist_id.code:
                 # code is not None when user removes code and click on "Apply"
                 pricelist_id = partner.property_product_pricelist.id
                 update_pricelist = True

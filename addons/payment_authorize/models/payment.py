@@ -5,6 +5,7 @@ from datetime import datetime
 import hashlib
 import hmac
 import logging
+import string
 import time
 import urlparse
 
@@ -23,6 +24,7 @@ class PaymentAcquirerAuthorize(models.Model):
     provider = fields.Selection(selection_add=[('authorize', 'Authorize.Net')])
     authorize_login = fields.Char(string='API Login Id', required_if_provider='authorize', groups='base.group_user')
     authorize_transaction_key = fields.Char(string='API Transaction Key', required_if_provider='authorize', groups='base.group_user')
+    authorize_signature_key = fields.Char(string='API Signature Key', groups='base.group_user', compute="_compute_auth_signature_key", inverse="_inverse_auth_signature_key")
 
     def _get_feature_support(self):
         """Get advanced feature support by provider.
@@ -40,6 +42,16 @@ class PaymentAcquirerAuthorize(models.Model):
         res['tokenize'].append('authorize')
         return res
 
+    def _compute_auth_signature_key(self):
+        ICP = self.env['ir.config_parameter'].sudo()
+        for acquirer in self.filtered(lambda a: a.provider == 'authorize'):
+            acquirer.authorize_signature_key = ICP.get_param('payment_authorize.signature_key_%s' % acquirer.id)
+
+    def _inverse_auth_signature_key(self):
+        ICP = self.env['ir.config_parameter'].sudo()
+        for acquirer in self.filtered(lambda a: a.provider == 'authorize'):
+            ICP.set_param('payment_authorize.signature_key_%s' % acquirer.id, acquirer.authorize_signature_key)
+
     def _get_authorize_urls(self, environment):
         """ Authorize URLs """
         if environment == 'prod':
@@ -54,7 +66,27 @@ class PaymentAcquirerAuthorize(models.Model):
             values['x_fp_timestamp'],
             values['x_amount'],
             values['x_currency_code']])
-        return hmac.new(str(values['x_trans_key']), data, hashlib.md5).hexdigest()
+
+        # [BACKWARD COMPATIBILITY, 2nd edition]
+        # The signature key is now '128-character hexadecimal format', while the
+        # transaction key was only 16-character.
+        # One of 2 things should have happened:
+        # 1/ the Transaction Key has been replaced with the Signature Key value (patch from March 2019)
+        #       => Use that to sign, but server-to-server won't work since it uses transaction key
+        #          as its credentials
+        # 2/ the Signature key is a new field (patch from July 2019)
+        #       => Use that field for the signature
+
+        # FORWARD-PORT NOTE: be careful, hexadecimal decoding in python 3 is done by using bytes.fromhex(str)
+        # (P2) self.authorize_signature_key.decode("hex") ==> (P3) bytes.fromhex(self.authorize_signature_key)
+        # FORWARD-PORT NOTE NUMERO DOS: forward part to saas-12.4 but no further
+        if len(values['x_trans_key']) == 128 and not self.authorize_signature_key:
+            self.authorize_signature_key = values['x_trans_key'] # store in the correct field
+            return hmac.new(values['x_trans_key'].decode("hex"), data, hashlib.sha512).hexdigest().upper()
+        elif self.authorize_signature_key:
+            return hmac.new(self.authorize_signature_key.decode("hex"), data, hashlib.sha512).hexdigest().upper()
+        else:
+            return hmac.new(str(values['x_trans_key']), data, hashlib.md5).hexdigest()
 
     @api.multi
     def authorize_form_generate_values(self, values):
@@ -126,8 +158,18 @@ class PaymentAcquirerAuthorize(models.Model):
         for field_name in mandatory_fields:
             if not data.get(field_name):
                 error[field_name] = 'missing'
-        if data['cc_expiry'] and datetime.now().strftime('%y%M') > datetime.strptime(data['cc_expiry'], '%M / %y').strftime('%y%M'):
-            return False
+        if data['cc_expiry']:
+            # FIX we split the date into their components and check if there is two components containing only digits
+            # this fixes multiples crashes, if there was no space between the '/' and the components the code was crashing
+            # the code was also crashing if the customer was proving non digits to the date.
+            cc_expiry = [i.strip() for i in data['cc_expiry'].split('/')]
+            if len(cc_expiry) != 2 or any(not i.isdigit() for i in cc_expiry):
+                return False
+            try:
+                if datetime.now().strftime('%y%m') > datetime.strptime('/'.join(cc_expiry), '%m/%y').strftime('%y%m'):
+                    return False
+            except ValueError:
+                return False
         return False if error else True
 
     @api.multi
@@ -162,7 +204,7 @@ class TxAuthorize(models.Model):
     def _authorize_form_get_tx_from_data(self, data):
         """ Given a data dict coming from authorize, verify it and find the related
         transaction record. """
-        reference, trans_id, fingerprint = data.get('x_invoice_num'), data.get('x_trans_id'), data.get('x_MD5_Hash')
+        reference, trans_id, fingerprint = data.get('x_invoice_num'), data.get('x_trans_id'), data.get('x_SHA2_Hash') or data.get('x_MD5_Hash')
         if not reference or not trans_id or not fingerprint:
             error_msg = _('Authorize: received data with missing reference (%s) or trans_id (%s) or fingerprint (%s)') % (reference, trans_id, fingerprint)
             _logger.info(error_msg)
@@ -211,14 +253,15 @@ class TxAuthorize(models.Model):
                (self.type == 'form_save' or self.acquirer_id.save_token == 'always'):
                 transaction = AuthorizeAPI(self.acquirer_id)
                 res = transaction.create_customer_profile_from_tx(self.partner_id, self.acquirer_reference)
-                token_id = self.env['payment.token'].create({
-                    'authorize_profile': res.get('profile_id'),
-                    'name': res.get('name'),
-                    'acquirer_ref': res.get('payment_profile_id'),
-                    'acquirer_id': self.acquirer_id.id,
-                    'partner_id': self.partner_id.id,
-                })
-                self.payment_token_id = token_id
+                if res:
+                    token_id = self.env['payment.token'].create({
+                        'authorize_profile': res.get('profile_id'),
+                        'name': res.get('name'),
+                        'acquirer_ref': res.get('payment_profile_id'),
+                        'acquirer_id': self.acquirer_id.id,
+                        'partner_id': self.partner_id.id,
+                    })
+                    self.payment_token_id = token_id
             return True
         elif status_code == self._authorize_pending_tx_status:
             self.write({

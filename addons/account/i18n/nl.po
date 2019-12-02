@@ -3,23 +3,25 @@
 # * account
 # 
 # Translators:
-# Eric Geens <ericgeens@yahoo.com>, 2016
-# Eric Geens <eric.geens@vitabiz.be>, 2016
-# Yenthe Van Ginneken <yenthespam@gmail.com>, 2016
-# Erwin van der Ploeg <erwin@odooexperts.nl>, 2016
-# Stephan Van Dyck <stephan.vandyck@vanroey.be>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
-# Cas Vissers <casvissers@brahoo.nl>, 2016
 # Volluta <volluta@tutanota.com>, 2016
+# Pol Van Dingenen <pol.vandingenen@vanroey.be>, 2016
+# Eric Geens <eric.geens@vitabiz.be>, 2016
+# Stephan Van Dyck <stephan.vandyck@vanroey.be>, 2016
+# Eric Geens <ericgeens@yahoo.com>, 2016
 # wilcobergacker <wilcobergacker@gmail.com>, 2016
 # Олег <pehotaolega.ru@mail.ru>, 2016
+# Yenthe Van Ginneken <yenthespam@gmail.com>, 2017
+# Cas Vissers <casvissers@brahoo.nl>, 2017
+# Erwin van der Ploeg <erwin@odooexperts.nl>, 2018
+# Martin Trigaux, 2018
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-05-26 08:44+0000\n"
-"PO-Revision-Date: 2017-05-26 08:44+0000\n"
-"Last-Translator: Олег <pehotaolega.ru@mail.ru>, 2016\n"
+"PO-Revision-Date: 2016-09-07 09:15+0000\n"
+"Last-Translator: Martin Trigaux, 2018\n"
 "Language-Team: Dutch (https://www.transifex.com/odoo/teams/41243/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1631,6 +1633,11 @@ msgid "Adjustment Tax"
 msgstr "Aanpassingsboeking"
 
 #. module: account
+#: model:ir.model.fields,field_description:account.field_tax_adjustments_wizard_adjustment_type
+msgid "Adjustment Type"
+msgstr "Tellingsoort"
+
+#. module: account
 #: model:ir.ui.view,arch_db:account.view_account_tax_template_form
 #: model:ir.ui.view,arch_db:account.view_tax_form
 msgid "Advanced Options"
@@ -1751,8 +1758,8 @@ msgid ""
 "All invoices and payments have been matched, your accounts' balances are "
 "clean."
 msgstr ""
-"Alle facturen en betalingen zijn gematched, uw rekeningsaldo's zijn "
-"opgeschoond."
+"Alle facturen en betalingen zijn afgeletterd. Uw rekeningsaldo's zijn "
+"bijgewerkt."
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_bank_statement_all_lines_reconciled
@@ -1768,7 +1775,7 @@ msgid ""
 "created by the system on document validation (invoices, bank statements...) "
 "and will be created in 'Posted' status."
 msgstr ""
-"Alle handmatig gemaakte nieuwe boekingen zijn meestal in de staat "
+"Alle handmatig gemaakte nieuwe boekingen zijn meestal in de status "
 "'Ongeboekt', maar u kunt met de optie instellen om deze status over te slaan"
 " op het betreffende dagboek. In dat geval worden ze behandeld als boekingen "
 "automatisch aangemaakt door het systeem bij document bevestiging (facturen, "
@@ -1806,7 +1813,7 @@ msgstr "Maak het annuleren van boekingen mogelijk"
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_account_template_reconcile
 msgid "Allow Invoices & payments Matching"
-msgstr "Sta factuur & betaling matching toe"
+msgstr "Sta factuur & betaling afletteren toe"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_account_reconcile
@@ -1905,8 +1912,7 @@ msgstr "Bedrag getekend"
 #. module: account
 #: model:ir.model.fields,help:account.field_account_partial_reconcile_amount
 msgid "Amount concerned by this matching. Assumed to be always positive"
-msgstr ""
-"Bedrag betrokken bij deze matching. Verondersteld altijd positief te zijn"
+msgstr "Het bedrag bij deze aflettering dient positief te zijn"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_analytic_line_amount_currency
@@ -2334,6 +2340,12 @@ msgstr "Voorinstellingen tbv afletteren banken"
 #: model:ir.ui.view,arch_db:account.view_bank_statement_search
 msgid "Bank Statement"
 msgstr "Bankafschrift"
+
+#. module: account
+#: code:addons/account/models/account_bank_statement.py:935
+#, python-format
+msgid "Bank Statement %s"
+msgstr "Bankafschrift %s"
 
 #. module: account
 #: model:ir.model,name:account.model_account_bank_statement_line
@@ -2808,8 +2820,8 @@ msgid ""
 "Check this box if this account allows invoices & payments matching of "
 "journal items."
 msgstr ""
-"Vink deze optie aan als u deze rekening wilt toestaan op facturen & "
-"betalingen te matchen."
+"Vink deze optie aan als u deze rekening wilt toestaan bij het afletteren van"
+" facturen & betalingen."
 
 #. module: account
 #: model:ir.model.fields,help:account.field_account_config_settings_expects_chart_of_accounts
@@ -3515,7 +3527,7 @@ msgstr "Bedrag credit"
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_move_line_credit_cash_basis
 msgid "Credit cash basis"
-msgstr "Crediteer kasbasis"
+msgstr "Credit kasbasis"
 
 #. module: account
 #: model:ir.model.fields,help:account.field_account_move_line_matched_credit_ids
@@ -3717,6 +3729,28 @@ msgstr "Dag(en) na het einde van factuurmaand (Net EOM)"
 #: selection:account.payment.term.line,option:0
 msgid "Day(s) after the invoice date"
 msgstr "Dag(en) na de factuurdatum"
+
+#. module: account
+#: model:res.company,overdue_msg:base.main_company
+msgid ""
+"Dear Sir/Madam,\n"
+"\n"
+"Our records indicate that some payments on your account are still due. Please find details below.\n"
+"If the amount has already been paid, please disregard this notice. Otherwise, please forward us the total amount stated below.\n"
+"If you have any queries regarding your account, Please contact us.\n"
+"\n"
+"Thank you in advance for your cooperation.\n"
+"Best Regards,"
+msgstr ""
+"Geachte heer / mevrouw,\n"
+"\n"
+"Uit onze gegevens blijkt dat sommige rekeningen nog niet zijn betaald. Hieronder vindt u meer informatie.\n"
+"Indien het bedrag reeds is betaald, dan kunt u dit bericht negeren. Anders willen wij u vragen om het onderstaande totaal bedrag over te maken.\n"
+"\n"
+"Als u vragen heeft over uw facturen, neem dan contact met ons op.\n"
+"\n"
+"Dank u bij voorbaat voor uw medewerking.\n"
+"Met vriendelijke groet,"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_move_line_debit
@@ -5817,7 +5851,7 @@ msgstr "Facturen met een periode in het huidige jaar"
 #. module: account
 #: model:ir.ui.view,arch_db:account.view_account_move_line_filter
 msgid "Journal items where matching number isn't set"
-msgstr "Boekingen waar het matchende nummer niet is ingesteld. "
+msgstr "Boekingen waar de aflettercode niet is ingesteld. "
 
 #. module: account
 #: model:ir.actions.act_window,name:account.action_account_journal_form
@@ -6461,7 +6495,7 @@ msgstr "Diversen"
 #: model:ir.ui.view,arch_db:account.view_account_move_filter
 #, python-format
 msgid "Miscellaneous Operations"
-msgstr "Memoriaal boekingen"
+msgstr "Memoriaal"
 
 #. module: account
 #. openerp-web
@@ -9928,7 +9962,9 @@ msgstr ""
 #: code:addons/account/static/src/xml/account_reconciliation.xml:21
 #, python-format
 msgid "Tip: Hit CTRL-Enter to reconcile all the balanced items in the sheet."
-msgstr "Tip: Druk op CTRL-Enter om alle regels die matchen af te letteren."
+msgstr ""
+"Tip: Druk op CTRL-Enter om alle regels die correct gekoppeld zijn af te "
+"letteren."
 
 #. module: account
 #: selection:account.financial.report,style_overwrite:0
@@ -10581,7 +10617,7 @@ msgstr ""
 #. module: account
 #: model:ir.ui.view,arch_db:account.account_planner
 msgid "Welcome"
-msgstr "Welko"
+msgstr "Welkom"
 
 #. module: account
 #: model:ir.ui.view,arch_db:account.account_planner
@@ -10782,6 +10818,16 @@ msgstr ""
 "afgeletterde betaling eerst ongedaan te maken."
 
 #. module: account
+#: code:addons/account/models/company.py:118
+#, python-format
+msgid ""
+"You cannot change the currency of the company since some journal items "
+"already exist"
+msgstr ""
+"Het is niet mogelijk de valuta van het bedrijf te wijzigen omdat er al "
+"financiële boekingen zijn gemaakt."
+
+#. module: account
 #: code:addons/account/models/account.py:180
 #, python-format
 msgid ""
@@ -10956,6 +11002,12 @@ msgstr ""
 #: model:ir.ui.view,arch_db:account.invoice_supplier_form
 msgid "You have"
 msgstr "U heeft"
+
+#. module: account
+#: code:addons/account/models/account_payment.py:360
+#, python-format
+msgid "You have to define a sequence for %s in your company."
+msgstr "U dient een reeks aan te maken voor %s in uw bedrijf."
 
 #. module: account
 #: code:addons/account/wizard/account_report_general_ledger.py:21
@@ -11336,3 +11388,14 @@ msgstr "wizard.multi.charts.accounts"
 #: model:ir.ui.view,arch_db:account.view_bank_statement_form
 msgid "→ Count"
 msgstr "→ Tel"
+
+#. module: account
+#: code:addons/account/models/account.py:309
+#, python-format
+msgid ""
+"Currency field should only be set if the journal's currency is different "
+"from the company's. Leave the field blank to use company currency."
+msgstr ""
+"Het valuta veld moet alleen maar worden ingesteld als de valuta van het "
+"dagboek afwijkt van de bedrijfsvaluta. Laat leeg om de bedrijfsvaluta te "
+"gebruiken."

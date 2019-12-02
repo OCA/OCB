@@ -3,33 +3,36 @@
 # * mail
 # 
 # Translators:
-# Murat Kaplan <muratk@projetgrup.com>, 2016
 # Yigit Aga <yagabey@gmail.com>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
-# ilyas kurt <ilyaskrt19@gmail.com>, 2016
-# Ediz Duman <neps1192@gmail.com>, 2016
-# Ramiz Deniz Öner <deniz@denizoner.com>, 2016
 # Güven YILMAZ <guvenyilmaz@outlook.com.tr>, 2016
-# Gökhan Erdoğdu <gokhan.erdogdu@mechsoft.com.tr>, 2016
-# Ahmet Altinisik <aaltinisik@altinkaya.com.tr>, 2016
-# gezgin biri <gezginbiri@hotmail.com>, 2016
-# Ayhan KIZILTAN <akiziltan76@hotmail.com>, 2016
 # Esin Kandemir <esaykandemir@gmail.com>, 2016
 # Cem Uygur <cemuygur.beb@gmail.com>, 2016
 # Saban Yildiz <sabany@projetgrup.com>, 2016
+# İlyas Kurt <ilyaskrt19@gmail.com>, 2016
 # selim kartal <kartalselim37@gmail.com>, 2016
+# Ayhan KIZILTAN <akiziltan76@hotmail.com>, 2016
 # Mehmet Demirel <mdemirell@gmail.com>, 2016
+# Ahmet Altinisik <aaltinisik@altinkaya.com.tr>, 2016
+# Ramiz Deniz Öner <deniz@denizoner.com>, 2016
+# gezgin biri <gezginbiri@hotmail.com>, 2016
+# Martin Trigaux, 2016
 # cagri erarslan <cagri.erarslan@mechsoft.com.tr>, 2016
 # Fırat Kaya <firat.kaya@mechsoft.com.tr>, 2016
 # UNIBRAVO SOFTWARE <unibravo@gmail.com>, 2016
+# Gökhan Erdoğdu <gokhan.erdogdu@mechsoft.com.tr>, 2017
 # İlknur Püskül <ilknurpuskull@gmail.com>, 2017
+# Levent Karakaş <levent@mektup.at>, 2017
+# Murat Kaplan <muratk@projetgrup.com>, 2017
+# Ediz Duman <neps1192@gmail.com>, 2019
+# Umur Akın <umura@projetgrup.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-11-14 15:53+0000\n"
-"PO-Revision-Date: 2016-11-14 15:53+0000\n"
-"Last-Translator: İlknur Püskül <ilknurpuskull@gmail.com>, 2017\n"
+"PO-Revision-Date: 2016-09-07 09:22+0000\n"
+"Last-Translator: Umur Akın <umura@projetgrup.com>, 2019\n"
 "Language-Team: Turkish (https://www.transifex.com/odoo/teams/41243/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -139,6 +142,10 @@ msgid ""
 "object.parent_id.subject) or (object.parent_id and "
 "object.parent_id.record_name and 'Re: %s' % object.parent_id.record_name)}"
 msgstr ""
+"${object.subject or (object.record_name and 'Re: %s' % object.record_name) "
+"or (object.parent_id and object.parent_id.subject and 'Re: %s' % "
+"object.parent_id.subject) or (object.parent_id and "
+"object.parent_id.record_name and 'Re: %s' % object.parent_id.record_name)}"
 
 #. module: mail
 #. openerp-web
@@ -170,7 +177,7 @@ msgstr "%s , %s ağına katıldı."
 #: code:addons/mail/static/src/xml/thread.xml:94
 #, python-format
 msgid "(from"
-msgstr ""
+msgstr "(kimden"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_shortcode_shortcode_type
@@ -178,6 +185,9 @@ msgid ""
 "* Smiley are only used for HTML code to display an image * Text (default "
 "value) is used to substitute text with another text"
 msgstr ""
+"* Smiley, bir resmi görüntülemek için yalnızca HTML kodu için kullanılır. * "
+"Metin (varsayılan değer), metni başka bir metinle değiştirmek için "
+"kullanılır"
 
 #. module: mail
 #. openerp-web
@@ -196,6 +206,23 @@ msgid ""
 "            You can execute a command by typing <b>/command</b>.<br>\n"
 "            You can insert canned responses in your message by typing <b>:shortcut</b>.<br>"
 msgstr ""
+"<br><br>\n"
+"            Kişinin dikkatini çekmek ve ondan bahsetmek için <b>@username</b>, yazabilirsiniz.<br>\n"
+"            Kanaldan bahsetmek için <b>#channel</b>yazabilirsiniz.<br>\n"
+"            Bir komutu çalıştırmak için<b>/command</b>yazabilrsiniz.<br>\n"
+"            Mesajlarınıza hazır mesajlar eklemek için <b>:shortcut</b>yazabilirsiniz.<br>"
+
+#. module: mail
+#: code:addons/mail/models/mail_channel.py:475
+#, python-format
+msgid ""
+"<div class=\"o_mail_notification\">%(author)s invited %(new_partner)s to <a "
+"href=\"#\" class=\"o_channel_redirect\" data-oe-"
+"id=\"%(channel_id)s\">#%(channel_name)s</a></div>"
+msgstr ""
+"<div class=\"o_mail_notification\">%(author)s Davet "
+"edildiniz%(new_partner)s<a href=\"#\" class=\"o_channel_redirect\" data-oe-"
+"id=\"%(channel_id)s\">#%(channel_name)s</a></div>"
 
 #. module: mail
 #: code:addons/mail/models/mail_channel.py:550
@@ -255,6 +282,9 @@ msgid ""
 "messages.</p><p><i>You might need to invite users from the Settings app "
 "first.</i></p>"
 msgstr ""
+"<p><b>Gerçek zamanlı, doğrudan mesajları kullanarak</b> iş arkadaşlarınızla "
+"konuşun.</p><p><i>Öncelikle ayarlar uygulamasından kullanıcıları davet "
+"etmelisiniz.</i></p>"
 
 #. module: mail
 #. openerp-web
@@ -265,6 +295,10 @@ msgid ""
 " notify someone with <i>'@'</i> or link another channel with <i>'#'</i>. "
 "Start your message with <i>'/'</i> to get the list of possible commands.</p>"
 msgstr ""
+"<p><b>Buradaki kanal üylerine </b> bir mesaj yazın.</p> <p>Birini "
+"bilgilendirmek için<i>'@'</i> kullanabilir yada başka kanaldan link "
+"kullanmak için <i>'#'</i>kullanabilirsiniz. Mesajınıza <i>'/'</i> ile "
+"başlarsanız olası komut listesini görebilirsiniz.</p>"
 
 #. module: mail
 #. openerp-web
@@ -275,6 +309,9 @@ msgid ""
 " groups.</p> <p>Try to <b>create your first channel</b> (e.g. sales, "
 "marketing, product XYZ, after work party, etc).</p>"
 msgstr ""
+"<p>Kanallar farklı konu ve gruplar arasında organize olmayı "
+"kolaylaştırır.</p> <p>İlk kanalınızı <b>oluşturmayı deneyin</b> (örn: "
+"pazarlama, ürün XYZ, iş sonrası parti, vb).</p>"
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.email_compose_message_wizard_form
@@ -286,6 +323,12 @@ msgid ""
 "                            </span>\n"
 "                            <span attrs=\"{'invisible':['|', ('model', '=', False), ('composition_mode', '=', 'mass_mail')]}\">Followers of the document and</span>"
 msgstr ""
+"<span attrs=\"{'invisible': [('composition_mode', '!=', 'mass_mail')]}\">\n"
+"                                <strong>Seçilen</strong>\n"
+"                                <span attrs=\"{'invisible': [('use_active_domain', '=', True)]}\">toplu mail gönderme</span>\n"
+"                                <span attrs=\"{'invisible': [('use_active_domain', '=', False)]}\">son arama filtrelerini kaydeder</span>.\n"
+"                            </span>\n"
+"                            <span attrs=\"{'invisible':['|', ('model', '=', False), ('composition_mode', '=', 'mass_mail')]}\">Belgenin takipçileri ve</span>"
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.email_template_form
@@ -343,6 +386,8 @@ msgid ""
 "A shortcode is a keyboard shortcut. For instance, you type #gm and it will "
 "be transformed into \"Good Morning\"."
 msgstr ""
+"Bir kısa kod, bir klavye kısayoludır. Örneğin, # gm yazarsınız ve "
+"\"Günaydın\" a dönüşür."
 
 #. module: mail
 #: model:ir.model,name:mail.model_res_groups
@@ -569,6 +614,8 @@ msgid ""
 "Answers do not go in the original document discussion thread. This has an "
 "impact on the generated message-id."
 msgstr ""
+"Cevaplar orijinal belge tartışma dizisine gitmiyor. Bunun oluşturulan mesaj "
+"kimliği üzerinde bir etkisi vardır."
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_email_template_preview_model_id
@@ -606,6 +653,7 @@ msgid ""
 "Attachments are linked to a document through model / res_id and to the "
 "message through this field."
 msgstr ""
+"Ekler, model / res_id üzerinden bir belgeye ve bu alandaki iletiye bağlanır."
 
 #. module: mail
 #: selection:mail.alias,alias_contact:0
@@ -845,6 +893,8 @@ msgstr "Bir örnek seçin"
 #, python-format
 msgid "Click here to add new %(document)s or send an email to: %(email_link)s"
 msgstr ""
+"Yeni bir belge eklemek için %(document)s yada mail göndermek için buraya "
+"tıklayın: %(email_link)s"
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:356
@@ -855,7 +905,7 @@ msgstr "Yeni %s ekleme için burayı tıklayın"
 #. module: mail
 #: model:ir.actions.act_window,help:mail.mail_shortcode_action
 msgid "Click to define a new chat shortcode."
-msgstr ""
+msgstr "Yeni konuşma kısa kodu tanımlamak için tıklayınız"
 
 #. module: mail
 #: selection:mail.channel.partner,fold_state:0
@@ -1244,6 +1294,8 @@ msgid ""
 "Do not keep a copy of the email in the document communication history (mass "
 "mailing only)"
 msgstr ""
+"E-postanın bir kopyasını belge iletişim geçmişinde saklamayın (yalnızca "
+"toplu postalama)"
 
 #. module: mail
 #: model:ir.model,name:mail.model_mail_followers
@@ -1352,6 +1404,8 @@ msgid ""
 "Email address of the sender. This field is set when no matching partner is "
 "found and replaces the author_id field in the chatter."
 msgstr ""
+"Gönderenin e-posta adresi. Eşleşen bir ortak bulunmadığında ve sohbetteki "
+"author_id alanının yerini aldığında bu alan ayarlanır."
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.email_compose_message_wizard_form
@@ -1406,7 +1460,7 @@ msgstr "Hata, bir iş ortağı aynı nesneyi iki defa izleyemez."
 #: sql_constraint:mail.followers:0
 msgid ""
 "Error: A follower must be either a partner or a channel (but not both)."
-msgstr ""
+msgstr "Hata: Takipçi ya partner ya da kanal olmak zorunda (ikisi olamaz)"
 
 #. module: mail
 #: selection:mail.alias,alias_contact:0 selection:mail.channel,public:0
@@ -1437,7 +1491,7 @@ msgstr "Başarısız"
 #: code:addons/mail/models/mail_template.py:363
 #, python-format
 msgid "Failed to render template %r using values %r"
-msgstr ""
+msgstr "%r değerleri kullanılarak %r şablon oluşturulamadı"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_mail_failure_reason
@@ -1451,6 +1505,8 @@ msgid ""
 "Failure reason. This is usually the exception thrown by the email server, "
 "stored to ease the debugging of mailing issues."
 msgstr ""
+"Arıza nedeni. Arıza nedeni. Bu genellikle e-posta sunucusu tarafından "
+"atılan, e-posta sorunlarının ayıklanmasını kolaylaştırmak için saklanır."
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message_starred_partner_ids
@@ -1458,7 +1514,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mail.field_mail_message_starred_partner_ids
 #: model:ir.model.fields,field_description:mail.field_survey_mail_compose_message_starred_partner_ids
 msgid "Favorited By"
-msgstr ""
+msgstr "Favori"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_email_template_preview_model_object_field
@@ -1990,6 +2046,8 @@ msgid ""
 "If set, the queue manager will send the email after the date. If not set, "
 "the email will be send as soon as possible."
 msgstr ""
+"Ayarlanırsa, kuyruk yöneticisi, tarihten sonra e-postayı gönderir. "
+"Ayarlanmazsa, e-posta en kısa sürede gönderilecektir."
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_email_template_preview_scheduled_date
@@ -1998,6 +2056,9 @@ msgid ""
 "If set, the queue manager will send the email after the date. If not set, "
 "the email will be send as soon as possible. Jinja2 placeholders may be used."
 msgstr ""
+"Ayarlanırsa, kuyruk yöneticisi, tarihten sonra e-postayı gönderir. "
+"Ayarlanmazsa, e-posta en kısa sürede gönderilecektir. Jinja2 yer tutucuları "
+"kullanılabilir."
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_base_config_settings_alias_domain
@@ -2053,12 +2114,14 @@ msgid ""
 "Invalid record set: should be called as model (without records) or on "
 "single-record recordset"
 msgstr ""
+"Geçersiz kayıt seti: model olarak (kayıtsız) yada tek kayıt olarak "
+"çağırılmalıdır."
 
 #. module: mail
 #: code:addons/mail/controllers/main.py:43
 #, python-format
 msgid "Invalid token in route %s"
-msgstr ""
+msgstr "Invalid token in route %s"
 
 #. module: mail
 #. openerp-web
@@ -2101,7 +2164,7 @@ msgstr "İnsanları davet et"
 #: code:addons/mail/static/src/js/client_action.js:649
 #, python-format
 msgid "Invite people to #%s"
-msgstr ""
+msgstr "Kişileri buraya davet edin #%s"
 
 #. module: mail
 #: model:ir.model,name:mail.model_mail_wizard_invite
@@ -2111,7 +2174,7 @@ msgstr "Davet sihirbazı"
 #. module: mail
 #: selection:mail.channel,public:0
 msgid "Invited people only"
-msgstr ""
+msgstr "Sadece Davet Edilen Kişiler"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_account_analytic_account_message_is_follower
@@ -2362,13 +2425,13 @@ msgstr "İzin"
 #: code:addons/mail/static/src/xml/client_action.xml:101
 #, python-format
 msgid "Leave this channel"
-msgstr ""
+msgstr "Bu kanaldan ayrı"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_wizard_invite_channel_ids
 msgid ""
 "List of channels that will be added as listeners of the current document."
-msgstr ""
+msgstr "Kanalları listesi güncel doküman dinleyicisi olarak eklenmiş olacak."
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_wizard_invite_partner_ids
@@ -2380,7 +2443,7 @@ msgstr "Bu belgenin takipçisi olarak eklenecek iş ortakları."
 #: code:addons/mail/models/mail_channel.py:663
 #, python-format
 msgid "List users in the current channel"
-msgstr ""
+msgstr "Güncel kanaldaki kullanıcı listesi"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_followers_channel_id
@@ -2436,7 +2499,7 @@ msgstr ""
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.mail_channel_view_form
 msgid "Mail Channel Form"
-msgstr ""
+msgstr "Mail Kanal Formu"
 
 #. module: mail
 #: code:addons/mail/models/mail_mail.py:318
@@ -2457,7 +2520,7 @@ msgstr "Varolan bir mail.message halkı bilgilendirmek için posta oluşturuldu"
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.view_emails_partner_info_form
 msgid "Mailing Opt-Out"
-msgstr ""
+msgstr "Postalama Devre Dışı"
 
 #. module: mail
 #. openerp-web
@@ -2565,7 +2628,7 @@ msgstr "Mesaj referansları, tanımlayıcılar ya da önceki mesajlar"
 #: code:addons/mail/static/src/xml/client_action.xml:124
 #, python-format
 msgid "Message sent in \""
-msgstr ""
+msgstr "Mesaj gönderildi"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_message_subtype_name
@@ -2702,6 +2765,8 @@ msgstr "Mesaj Ara"
 #, python-format
 msgid "Messages can be <b>starred</b> to remind you to check back later."
 msgstr ""
+"Mesajlar <b>daha sonra tekrar kontrol etmek üzere</b> yıldızla "
+"işaretlenebilir."
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_message_subtype_internal
@@ -2791,32 +2856,32 @@ msgstr "Asla"
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_new_value_char
 msgid "New Value Char"
-msgstr ""
+msgstr "Yeni Karakter Değeri"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_new_value_datetime
 msgid "New Value Datetime"
-msgstr ""
+msgstr "Yeni Değerleme Zamanı"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_new_value_float
 msgid "New Value Float"
-msgstr ""
+msgstr "Yeni Değer Kaydırma"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_new_value_integer
 msgid "New Value Integer"
-msgstr ""
+msgstr "Yeni Tam Sayı Değeri"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_new_value_monetary
 msgid "New Value Monetary"
-msgstr ""
+msgstr "Yeni Parasal Değer"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_new_value_text
 msgid "New Value Text"
-msgstr ""
+msgstr "Yeni Metin Değeri"
 
 #. module: mail
 #. openerp-web
@@ -2876,7 +2941,7 @@ msgstr ""
 #: code:addons/mail/static/src/xml/thread.xml:28
 #, python-format
 msgid "No starred message"
-msgstr ""
+msgstr "Yıldızlı mesaj yok"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message_no_auto_thread
@@ -3126,7 +3191,7 @@ msgstr "Odoo"
 #, python-format
 msgid ""
 "Odoo has now the permission to send you native notifications on this device."
-msgstr ""
+msgstr "Odoo, artık bu cihazda yerel bildirimler göndermek için izin aldı."
 
 #. module: mail
 #. openerp-web
@@ -3142,7 +3207,7 @@ msgstr "Odoo için izniniz gerekiyor"
 msgid ""
 "Odoo will not have the permission to send native notifications on this "
 "device."
-msgstr ""
+msgstr "Odoo, bu cihazda yerel bildirimler gönderme iznine sahip olmayacak."
 
 #. module: mail
 #. openerp-web
@@ -3154,32 +3219,32 @@ msgstr "Çevrimdışı"
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_old_value_char
 msgid "Old Value Char"
-msgstr ""
+msgstr "Eski Karakter Değeri"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_old_value_datetime
 msgid "Old Value DateTime"
-msgstr ""
+msgstr "Eski Tarih Saat Değeri"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_old_value_float
 msgid "Old Value Float"
-msgstr ""
+msgstr "Eski Sayısal Değer"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_old_value_integer
 msgid "Old Value Integer"
-msgstr ""
+msgstr "Eski Tam Sayı Değeri"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_old_value_monetary
 msgid "Old Value Monetary"
-msgstr ""
+msgstr "Eski Parasal Değer"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_value_old_value_text
 msgid "Old Value Text"
-msgstr ""
+msgstr "Eski Metin Değeri"
 
 #. module: mail
 #. openerp-web
@@ -3189,6 +3254,8 @@ msgid ""
 "Once a message has been starred, you can come back and review it at any time"
 " here."
 msgstr ""
+"Bir mesaj yıldızla işaretlendikten sonra, istediğiniz zaman geri gelip "
+"tekrar inceleme yapabilirsiniz."
 
 #. module: mail
 #. openerp-web
@@ -3224,14 +3291,14 @@ msgstr "Üst Belgeyi Aç"
 #: code:addons/mail/static/src/xml/client_action.xml:138
 #, python-format
 msgid "Open channel settings"
-msgstr ""
+msgstr "Açık kanal ayarları"
 
 #. module: mail
 #. openerp-web
 #: code:addons/mail/static/src/xml/client_action.xml:48
 #, python-format
 msgid "Open chat"
-msgstr ""
+msgstr "Konuşmayı aç"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_res_partner_opt_out
@@ -3369,6 +3436,9 @@ msgid ""
 " named. For example on a project, the parent_id of project subtypes refers "
 "to task-related subtypes."
 msgstr ""
+"Otomatik abonelik için kullanılan alt alt türü. Bu alan doğru bir şekilde "
+"adlandırılmamış. Örneğin, bir projede, proje alt türlerinin parent_id'i, "
+"görevle ilgili alt türlere başvurur."
 
 #. module: mail
 #: model:ir.model,name:mail.model_res_partner
@@ -3398,7 +3468,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mail.field_mail_message_needaction_partner_ids
 #: model:ir.model.fields,field_description:mail.field_survey_mail_compose_message_needaction_partner_ids
 msgid "Partners with Need Action"
-msgstr ""
+msgstr "Eylem İhtiyacı Olan İş Ortakları"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_email_template_preview_auto_delete
@@ -3706,7 +3776,7 @@ msgstr "Yeni Şablon olarak kaydet"
 #: code:addons/mail/static/src/js/chat_window.js:36
 #, python-format
 msgid "Say something"
-msgstr ""
+msgstr "Bir şey söyle"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_email_template_preview_scheduled_date
@@ -3833,7 +3903,7 @@ msgstr ""
 #: model:ir.ui.view,arch_db:mail.mail_shortcode_view_form
 #: model:ir.ui.view,arch_db:mail.mail_shortcode_view_tree
 msgid "Shortcodes"
-msgstr ""
+msgstr "Kısa kodlar"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_shortcode_source
@@ -3844,7 +3914,7 @@ msgstr "Kısayol"
 #: code:addons/mail/models/mail_channel.py:632
 #, python-format
 msgid "Show an helper message"
-msgstr ""
+msgstr "Bir yardımcı mesajı göster"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_email_template_preview_ref_ir_value
@@ -4031,7 +4101,7 @@ msgstr ""
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_shortcode_substitution
 msgid "The escaped html code replacing the shortcut"
-msgstr ""
+msgstr "Kısayolun yerine geçen çıkış kodu"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_alias_alias_model_id
@@ -4088,7 +4158,7 @@ msgstr ""
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_shortcode_source
 msgid "The shortcut which must be replaced in the Chat Messages"
-msgstr ""
+msgstr "Konuşma Mesajlarında, değişmesi gereken kısayollar"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_email_template_preview_model_id
@@ -4108,7 +4178,7 @@ msgstr ""
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.message_origin_link
 msgid "This"
-msgstr ""
+msgstr "Bu"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_channel_image
@@ -4124,6 +4194,8 @@ msgid ""
 "This group is visible by non members. Invisible groups can add members "
 "through the invite button."
 msgstr ""
+"Bu grup üye olmayanlar tarafından görülebilir. Görünmez gruplar, davet "
+"butonuyla üye ekleyebilir."
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.view_mail_search
@@ -4192,6 +4264,8 @@ msgid ""
 "Tracked values are stored in a separate model. This field allow to "
 "reconstruct the tracking and to generate statistics on the model."
 msgstr ""
+"Takip edilen değerler ayrı modellerde depolanır. Bu alan, takip etmeyi "
+"yeniden oluşturmaya ve model üzerinde istatistik oluşturmanıza imkan verir."
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.view_message_form
@@ -4202,13 +4276,13 @@ msgstr "İzleme"
 #: model:ir.ui.view,arch_db:mail.view_mail_tracking_value_form
 #: model:ir.ui.view,arch_db:mail.view_mail_tracking_value_tree
 msgid "Tracking Value"
-msgstr ""
+msgstr "İzleme Değeri"
 
 #. module: mail
 #: model:ir.actions.act_window,name:mail.action_view_mail_tracking_value
 #: model:ir.ui.menu,name:mail.menu_mail_tracking_value
 msgid "Tracking Values"
-msgstr ""
+msgstr "İzleme Değerleri"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message_tracking_value_ids
@@ -4216,7 +4290,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mail.field_mail_message_tracking_value_ids
 #: model:ir.model.fields,field_description:mail.field_survey_mail_compose_message_tracking_value_ids
 msgid "Tracking values"
-msgstr ""
+msgstr "İzleme Değerleri"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message_message_type
@@ -4236,6 +4310,7 @@ msgstr "UUID"
 #, python-format
 msgid "Unable to send email, please configure the sender's email address."
 msgstr ""
+"E-posta gönderilemiyor, lütfen alıcının e-posta adresini yapılandırın."
 
 #. module: mail
 #. openerp-web
@@ -4398,14 +4473,14 @@ msgstr "Okunmamış mesajlar"
 #: code:addons/mail/static/src/xml/client_action.xml:136
 #, python-format
 msgid "Unstar all"
-msgstr ""
+msgstr "Tüm Yıldızları Kaldır"
 
 #. module: mail
 #. openerp-web
 #: code:addons/mail/static/src/xml/client_action.xml:136
 #, python-format
 msgid "Unstar all messages"
-msgstr ""
+msgstr "Tüm Yıldızları Kaldır"
 
 #. module: mail
 #. openerp-web
@@ -4468,7 +4543,7 @@ msgstr "Kullanıcılar"
 #: code:addons/mail/models/mail_channel.py:676
 #, python-format
 msgid "Users in this channel: %s %s and you."
-msgstr ""
+msgstr "Bu kanaldaki kullanıcılar: %s %s ve siz."
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:672
@@ -4516,14 +4591,14 @@ msgstr "Mesaj bir iç notu olsun (comment modu)"
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.mail_channel_view_form
 msgid "Who can follow the group's activities?"
-msgstr ""
+msgstr "Grubun faaliyetlerini kim takip edebilir?"
 
 #. module: mail
 #. openerp-web
 #: code:addons/mail/static/src/xml/composer.xml:18
 #, python-format
 msgid "Write something..."
-msgstr ""
+msgstr "Bir şey yaz.."
 
 #. module: mail
 #. openerp-web
@@ -4537,7 +4612,7 @@ msgstr "Dün"
 #: code:addons/mail/static/src/js/client_action.js:78
 #, python-format
 msgid "You added <b>%s</b> to the conversation."
-msgstr ""
+msgstr "Sohbete <b>%s</b> eklediniz."
 
 #. module: mail
 #: code:addons/mail/models/mail_channel.py:673
@@ -4564,6 +4639,8 @@ msgstr "<b>#%s</b> kanalındasınız."
 msgid ""
 "You can mark any message as 'starred', and it shows up in this channel."
 msgstr ""
+"Herhangi bir mesajı \"yıldızlı\" olarak işaretleyebilirsiniz ve bu kanalda "
+"gösterilir."
 
 #. module: mail
 #: code:addons/mail/models/res_users.py:45
@@ -4592,11 +4669,12 @@ msgid ""
 "You could also add a new %(document)s by sending an email to: "
 "%(email_link)s."
 msgstr ""
+"Ayrıca yeni bir %(document)s e-posta gönderilmek üzere: %(email_link)s."
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.message_user_assigned
 msgid "You have been assigned to the"
-msgstr ""
+msgstr "Size atanan"
 
 #. module: mail
 #. openerp-web
@@ -4620,14 +4698,14 @@ msgstr ""
 #: code:addons/mail/static/src/js/chat_manager.js:516
 #, python-format
 msgid "You unpinned your conversation with <b>%s</b>."
-msgstr ""
+msgstr "Sohbeti bu kişiyle <b>%s</b>bitirdiniz."
 
 #. module: mail
 #. openerp-web
 #: code:addons/mail/static/src/js/chat_manager.js:514
 #, python-format
 msgid "You unsubscribed from <b>%s</b>."
-msgstr ""
+msgstr "Abonelikten çıktınız <b>%s</b>."
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.view_server_action_form_template
@@ -4640,7 +4718,7 @@ msgstr ""
 #: code:addons/mail/models/ir_actions.py:33
 #, python-format
 msgid "Your template should define email_from"
-msgstr ""
+msgstr "Şablonunuz email_from tanımlanabilir"
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:968
@@ -4662,7 +4740,7 @@ msgstr "base.config.settings"
 #. module: mail
 #: model:mail.channel,name:mail.channel_2
 msgid "board-meetings"
-msgstr ""
+msgstr "yönetim kurulu toplantıları"
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.view_mail_form
@@ -4707,7 +4785,7 @@ msgstr "genel"
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.message_origin_link
 msgid "has been"
-msgstr ""
+msgstr "olmuştur"
 
 #. module: mail
 #: model:ir.model,name:mail.model_ir_actions_server
@@ -4740,20 +4818,20 @@ msgstr ""
 #: code:addons/mail/models/mail_thread.py:943
 #, python-format
 msgid "model %s does not accept document creation"
-msgstr ""
+msgstr "model %s belge oluşturmayı kabul etmiyor"
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:938
 #, python-format
 msgid "model %s does not accept document update"
-msgstr ""
+msgstr "model %s belge güncelleme kabul etmiyor"
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:931
 #, python-format
 msgid ""
 "model %s does not accept document update, fall back on document creation"
-msgstr ""
+msgstr "model %s belge güncelleme kabul etmiyor, belge oluşturmaya geri dönün"
 
 #. module: mail
 #: model:ir.ui.view,arch_db:mail.message_origin_link
@@ -4787,13 +4865,15 @@ msgid ""
 "posting a message without model should be with a null res_id (private "
 "message), received %s"
 msgstr ""
+"modelsiz bir mesaj gönderme, boş bir res_id (private message) ile alınmış "
+"olmalı %s"
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:917
 #, python-format
 msgid ""
 "posting a message without model should be with a parent_id (private message)"
-msgstr ""
+msgstr "modelsiz bir mesaj gönderme parent_id ile olmalıdır (özel mesaj)"
 
 #. module: mail
 #: model:ir.model,name:mail.model_publisher_warranty_contract
@@ -4803,7 +4883,7 @@ msgstr "publisher_warranty.contract"
 #. module: mail
 #: model:mail.channel,name:mail.channel_3
 msgid "rd"
-msgstr ""
+msgstr "rd"
 
 #. module: mail
 #. openerp-web
@@ -4828,19 +4908,19 @@ msgstr "kayıt:"
 #: code:addons/mail/models/mail_thread.py:935
 #, python-format
 msgid "reply to missing document (%s,%s)"
-msgstr ""
+msgstr "eksik belgeyi yanıtla (%s,%s)"
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:928
 #, python-format
 msgid "reply to missing document (%s,%s), fall back on new document creation"
-msgstr ""
+msgstr "eksik belgeyi yanıtla (%s,%s), yeni belge oluşturmaya geri dön"
 
 #. module: mail
 #: code:addons/mail/models/mail_thread.py:913
 #, python-format
 msgid "resetting thread_id"
-msgstr ""
+msgstr "thread_id sıfırlanıyor"
 
 #. module: mail
 #: model:mail.channel,name:mail.channel_1
@@ -4869,4 +4949,4 @@ msgstr "bu belgede"
 #: code:addons/mail/models/mail_thread.py:906
 #, python-format
 msgid "unknown target model %s"
-msgstr ""
+msgstr "bilinmeyen hedef model %s"

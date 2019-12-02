@@ -3,14 +3,17 @@
 # * web
 # 
 # Translators:
-# Jeffery CHEN <jeffery9@gmail.com>, 2016
+# Jeffery CHEN Fan <jeffery9@gmail.com>, 2016
+# liAnGjiA <liangjia@qq.com>, 2016
+# 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2018
+# Martin Trigaux, 2018
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-23 13:28+0000\n"
 "PO-Revision-Date: 2017-06-23 13:28+0000\n"
-"Last-Translator: Jeffery CHEN <jeffery9@gmail.com>, 2016\n"
+"Last-Translator: Martin Trigaux, 2018\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/odoo/teams/41243/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -118,6 +121,9 @@ msgid ""
 "                        &lt;body class=\"ie9\"&gt;\n"
 "                    &lt;![endif]--&gt;"
 msgstr ""
+"&lt;!--[if lt IE 10]&gt;\n"
+"                        &lt;body class=\"ie9\"&gt;\n"
+"                    &lt;![endif]--&gt;"
 
 #. module: web
 #. openerp-web
@@ -724,7 +730,7 @@ msgstr "停用技术功能"
 #: code:addons/web/static/src/xml/base.xml:425
 #, python-format
 msgid "Discard"
-msgstr "丢弃"
+msgstr "取消"
 
 #. module: web
 #. openerp-web
@@ -766,7 +772,7 @@ msgstr "域:"
 #: code:addons/web/static/src/js/framework/misc.js:16
 #, python-format
 msgid "Don't leave yet,<br />it's still loading..."
-msgstr "请不要离开，<br />它还在加载中..."
+msgstr "稍安勿躁，<br />大菜烹饪中..."
 
 #. module: web
 #. openerp-web
@@ -1032,6 +1038,9 @@ msgid ""
 "\n"
 "Tip: try to flip axis, filter further or reduce the number of measures."
 msgstr ""
+"为了兼容Excel，如果列数超过256，则不能导出数据。\n"
+"\n"
+"提示：尝试翻转轴，进一步过滤或减少测量次数。"
 
 #. module: web
 #. openerp-web
@@ -1108,7 +1117,7 @@ msgstr "图像"
 #: code:addons/web/static/src/xml/base.xml:1093
 #, python-format
 msgid "Import-Compatible Export"
-msgstr "导入兼容导出"
+msgstr "导入兼容"
 
 #. module: web
 #. openerp-web
@@ -1132,7 +1141,7 @@ msgstr "无效的数据"
 msgid ""
 "Invalid database name. Only alphanumerical characters, underscore, hyphen "
 "and dot are allowed."
-msgstr ""
+msgstr "数据库名称无效。只允许字母数字字符，下划线，连字符和点。"
 
 #. module: web
 #. openerp-web
@@ -1422,14 +1431,14 @@ msgstr "没有该数据透视表的数据。尝试添加一些记录，或确定
 #: code:addons/web/static/src/js/views/graph_widget.js:95
 #, python-format
 msgid "No data to display"
-msgstr "无数据可供显示"
+msgstr "空空如也。"
 
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/xml/base.xml:606
 #, python-format
 msgid "No data to display."
-msgstr "无数据可供显示"
+msgstr "空空如也。"
 
 #. module: web
 #. openerp-web
@@ -1678,7 +1687,7 @@ msgstr "由<span>Odoo</span>提供技术支持"
 #: code:addons/web/static/src/xml/base.xml:1271
 #, python-format
 msgid "Preferences"
-msgstr "首选项"
+msgstr "个人设置"
 
 #. module: web
 #. openerp-web
@@ -1793,7 +1802,7 @@ msgstr "保存字段列表"
 #: code:addons/web/static/src/xml/base.xml:1141
 #, python-format
 msgid "Saved exports:"
-msgstr "已保存的导出结果："
+msgstr "保存的导出："
 
 #. module: web
 #. openerp-web
@@ -1990,10 +1999,7 @@ msgstr "打开"
 #: code:addons/web/static/src/js/framework/misc.js:18
 #, python-format
 msgid "Take a minute to get a coffee,<br />because it's loading..."
-msgstr ""
-"稍安勿躁, <br />r\n"
-"\n"
-"大菜烹饪中 : )"
+msgstr "稍安勿躁,<br />大菜烹饪中..."
 
 #. module: web
 #. openerp-web
@@ -2030,7 +2036,7 @@ msgstr "下列字段无效："
 msgid ""
 "The line has been modified, your changes will be discarded. Are you sure you"
 " want to discard the changes ?"
-msgstr "明细已被修改，你的更改将被丢弃。你确定要放弃更改？"
+msgstr "是否取消更改？"
 
 #. module: web
 #: code:addons/web/controllers/main.py:718
@@ -2066,7 +2072,7 @@ msgstr "无法在数据库中找到此字段"
 msgid ""
 "The record has been modified, your changes will be discarded. Are you sure "
 "you want to leave this page ?"
-msgstr "该记录已被修改，你的更改将被丢弃。你确定要离开这个页面？"
+msgstr "是否取消更改？"
 
 #. module: web
 #. openerp-web
@@ -2604,7 +2610,7 @@ msgstr "为真"
 #: code:addons/web/static/src/js/framework/utils.js:303
 #, python-format
 msgid "kMGTPE"
-msgstr ""
+msgstr "kMGTPE"
 
 #. module: web
 #. openerp-web

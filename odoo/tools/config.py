@@ -12,6 +12,10 @@ import logging
 import odoo.release as release
 import appdirs
 
+from passlib.context import CryptContext
+crypt_context = CryptContext(schemes=['pbkdf2_sha512', 'plaintext'],
+                             deprecated=['plaintext'])
+
 class MyOption (optparse.Option, object):
     """ optparse Option with two additional attributes.
 
@@ -255,7 +259,7 @@ class configmanager(object):
                          type="int")
         group.add_option("--unaccent", dest="unaccent", my_default=False, action="store_true",
                          help="Use the unaccent function provided by the database when available.")
-        group.add_option("--geoip-db", dest="geoip_database", my_default='/usr/share/GeoIP/GeoLiteCity.dat',
+        group.add_option("--geoip-db", dest="geoip_database", my_default='/usr/share/GeoIP/GeoLite2-City.mmdb',
                          help="Absolute path to the GeoIP database file.")
         parser.add_option_group(group)
 
@@ -266,10 +270,12 @@ class configmanager(object):
                              help="Specify the number of workers, 0 disable prefork mode.",
                              type="int")
             group.add_option("--limit-memory-soft", dest="limit_memory_soft", my_default=2048 * 1024 * 1024,
-                             help="Maximum allowed virtual memory per worker, when reached the worker be reset after the current request (default 671088640 aka 640MB).",
+                             help="Maximum allowed virtual memory per worker, when reached the worker be "
+                             "reset after the current request (default 2048MiB).",
                              type="int")
             group.add_option("--limit-memory-hard", dest="limit_memory_hard", my_default=2560 * 1024 * 1024,
-                             help="Maximum allowed virtual memory per worker, when reached, any memory allocation will fail (default 805306368 aka 768MB).",
+                             help="Maximum allowed virtual memory per worker, when reached, any memory "
+                             "allocation will fail (default 2560MiB).",
                              type="int")
             group.add_option("--limit-time-cpu", dest="limit_time_cpu", my_default=60,
                              help="Maximum allowed CPU time per request (default 60).",
@@ -446,6 +452,8 @@ class configmanager(object):
                     os.path.abspath(os.path.expanduser(os.path.expandvars(x.strip())))
                       for x in self.options['addons_path'].split(','))
 
+        self.options['data_dir'] = os.path.abspath(os.path.expanduser(os.path.expandvars(self.options['data_dir'].strip())))
+
         self.options['init'] = opt.init and dict.fromkeys(opt.init.split(','), 1) or {}
         self.options['demo'] = (dict(self.options['init'])
                                 if not self.options['without_demo'] else {})
@@ -605,5 +613,20 @@ class configmanager(object):
 
     def filestore(self, dbname):
         return os.path.join(self['data_dir'], 'filestore', dbname)
+
+    def set_admin_password(self, new_password):
+        self.options['admin_passwd'] = crypt_context.encrypt(new_password)
+
+    def verify_admin_password(self, password):
+        """Verifies the super-admin password, possibly updating the stored hash if needed"""
+        stored_hash = self.options['admin_passwd']
+        if not stored_hash:
+            # empty password/hash => authentication forbidden
+            return False
+        result, updated_hash = crypt_context.verify_and_update(password, stored_hash)
+        if result:
+            if updated_hash:
+                self.options['admin_passwd'] = updated_hash
+            return True
 
 config = configmanager()

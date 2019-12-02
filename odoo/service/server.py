@@ -25,9 +25,25 @@ if os.name == 'posix':
     import fcntl
     import resource
     import psutil
+    try:
+        import inotify
+        from inotify.adapters import InotifyTrees
+        from inotify.constants import IN_MODIFY, IN_CREATE, IN_MOVED_TO
+        INOTIFY_LISTEN_EVENTS = IN_MODIFY | IN_CREATE | IN_MOVED_TO
+    except ImportError:
+        inotify = None
 else:
     # Windows shim
     signal.SIGHUP = -1
+    inotify = None
+
+if not inotify:
+    try:
+        import watchdog
+        from watchdog.observers import Observer
+        from watchdog.events import FileCreatedEvent, FileModifiedEvent, FileMovedEvent
+    except ImportError:
+        watchdog = None
 
 # Optional process names for workers
 try:
@@ -42,13 +58,6 @@ import odoo.tools.config as config
 from odoo.tools import stripped_sys_argv, dumpstacks, log_ormcache_stats
 
 _logger = logging.getLogger(__name__)
-
-try:
-    import watchdog
-    from watchdog.observers import Observer
-    from watchdog.events import FileCreatedEvent, FileModifiedEvent, FileMovedEvent
-except ImportError:
-    watchdog = None
 
 SLEEP_INTERVAL = 60     # 1 min
 
@@ -91,9 +100,6 @@ class RequestHandler(werkzeug.serving.WSGIRequestHandler):
         me = threading.currentThread()
         me.name = 'odoo.service.http.request.%s' % (me.ident,)
 
-# _reexec() should set LISTEN_* to avoid connection refused during reload time. It
-# should also work with systemd socket activation. This is currently untested
-# and not yet used.
 
 class ThreadedWSGIServerReloadable(LoggingBaseWSGIServerMixIn, werkzeug.serving.ThreadedWSGIServer):
     """ werkzeug Threaded WSGI Server patched to allow reusing a listen socket
@@ -105,14 +111,15 @@ class ThreadedWSGIServerReloadable(LoggingBaseWSGIServerMixIn, werkzeug.serving.
                                                            handler=RequestHandler)
 
     def server_bind(self):
-        envfd = os.environ.get('LISTEN_FDS')
-        if envfd and os.environ.get('LISTEN_PID') == str(os.getpid()):
+        SD_LISTEN_FDS_START = 3
+        if os.environ.get('LISTEN_FDS') == '1' and os.environ.get('LISTEN_PID') == str(os.getpid()):
             self.reload_socket = True
-            self.socket = socket.fromfd(int(envfd), socket.AF_INET, socket.SOCK_STREAM)
-            # should we os.close(int(envfd)) ? it seem python duplicate the fd.
+            self.socket = socket.fromfd(SD_LISTEN_FDS_START, socket.AF_INET, socket.SOCK_STREAM)
+            _logger.info('HTTP service (werkzeug) running through socket activation')
         else:
             self.reload_socket = False
             super(ThreadedWSGIServerReloadable, self).server_bind()
+            _logger.info('HTTP service (werkzeug) running on %s:%s', self.server_name, self.server_port)
 
     def server_activate(self):
         if not self.reload_socket:
@@ -121,7 +128,25 @@ class ThreadedWSGIServerReloadable(LoggingBaseWSGIServerMixIn, werkzeug.serving.
 #----------------------------------------------------------
 # FileSystem Watcher for autoreload and cache invalidation
 #----------------------------------------------------------
-class FSWatcher(object):
+class FSWatcherBase(object):
+    def handle_file(self, path):
+        if path.endswith('.py') and not os.path.basename(path).startswith('.~'):
+            try:
+                # Forward-ports: watch out PY3 compatibility!
+                source = open(path, 'rb').read() + '\n'
+                compile(source, path, 'exec')
+            except IOError:
+                _logger.error('autoreload: python code change detected, IOError for %s', path)
+            except SyntaxError:
+                _logger.error('autoreload: python code change detected, SyntaxError in %s', path)
+            else:
+                if not getattr(odoo, 'phoenix', False):
+                    _logger.info('autoreload: python code updated, autoreload activated')
+                    restart()
+                    return True
+
+
+class FSWatcherWatchdog(FSWatcherBase):
     def __init__(self):
         self.observer = Observer()
         for path in odoo.modules.module.ad_paths:
@@ -132,23 +157,59 @@ class FSWatcher(object):
         if isinstance(event, (FileCreatedEvent, FileModifiedEvent, FileMovedEvent)):
             if not event.is_directory:
                 path = getattr(event, 'dest_path', event.src_path)
-                if path.endswith('.py'):
-                    try:
-                        source = open(path, 'rb').read() + '\n'
-                        compile(source, path, 'exec')
-                    except SyntaxError:
-                        _logger.error('autoreload: python code change detected, SyntaxError in %s', path)
-                    else:
-                        _logger.info('autoreload: python code updated, autoreload activated')
-                        restart()
+                self.handle_file(path)
 
     def start(self):
         self.observer.start()
-        _logger.info('AutoReload watcher running')
+        _logger.info('AutoReload watcher running with watchdog')
 
     def stop(self):
         self.observer.stop()
         self.observer.join()
+
+
+class FSWatcherInotify(FSWatcherBase):
+    def __init__(self):
+        self.started = False
+        # ignore warnings from inotify in case we have duplicate addons paths.
+        inotify.adapters._LOGGER.setLevel(logging.ERROR)
+        # recreate a list as InotifyTrees' __init__ deletes the list's items
+        paths_to_watch = []
+        for path in odoo.modules.module.ad_paths:
+            paths_to_watch.append(path)
+            _logger.info('Watching addons folder %s', path)
+        self.watcher = InotifyTrees(paths_to_watch, mask=INOTIFY_LISTEN_EVENTS, block_duration_s=.5)
+
+    def run(self):
+        _logger.info('AutoReload watcher running with inotify')
+        dir_creation_events = set(('IN_MOVED_TO', 'IN_CREATE'))
+        while self.started:
+            for event in self.watcher.event_gen(timeout_s=0, yield_nones=False):
+                (_, type_names, path, filename) = event
+                if 'IN_ISDIR' not in type_names:
+                    # despite not having IN_DELETE in the watcher's mask, the
+                    # watcher sends these events when a directory is deleted.
+                    if 'IN_DELETE' not in type_names:
+                        full_path = os.path.join(path, filename)
+                        if self.handle_file(full_path):
+                            return
+                elif dir_creation_events.intersection(type_names):
+                    full_path = os.path.join(path, filename)
+                    for root, _, files in os.walk(full_path):
+                        for file in files:
+                            if self.handle_file(os.path.join(root, file)):
+                                return
+
+    def start(self):
+        self.started = True
+        self.thread = threading.Thread(target=self.run, name="odoo.service.autoreload.watcher")
+        self.thread.setDaemon(True)
+        self.thread.start()
+
+    def stop(self):
+        self.started = False
+        self.thread.join()
+
 
 #----------------------------------------------------------
 # Servers: Threaded, Gevented and Prefork
@@ -215,14 +276,11 @@ class ThreadedServer(CommonServer):
             registries = odoo.modules.registry.Registry.registries
             _logger.debug('cron%d polling for jobs', number)
             for db_name, registry in registries.iteritems():
-                while registry.ready:
+                if registry.ready:
                     try:
-                        acquired = odoo.addons.base.ir.ir_cron.ir_cron._acquire_job(db_name)
-                        if not acquired:
-                            break
+                        odoo.addons.base.ir.ir_cron.ir_cron._acquire_job(db_name)
                     except Exception:
                         _logger.warning('cron%d encountered an Exception:', number, exc_info=True)
-                        break
 
     def cron_spawn(self):
         """ Start the above runner function in a daemon thread.
@@ -254,7 +312,6 @@ class ThreadedServer(CommonServer):
         t = threading.Thread(target=self.http_thread, name="odoo.service.httpd")
         t.setDaemon(True)
         t.start()
-        _logger.info('HTTP service (werkzeug) running on %s:%s', self.interface, self.port)
 
     def start(self, stop=False):
         _logger.debug("Setting signal handlers")
@@ -362,17 +419,20 @@ class GeventServer(CommonServer):
 
     def start(self):
         import gevent
-        from gevent.wsgi import WSGIServer
+        try:
+            from gevent.pywsgi import WSGIServer
+        except ImportError:
+            from gevent.wsgi import WSGIServer
 
-        # Set process memory limit as an extra safeguard
-        _, hard = resource.getrlimit(resource.RLIMIT_AS)
-        resource.setrlimit(resource.RLIMIT_AS, (config['limit_memory_hard'], hard))
 
         if os.name == 'posix':
+            # Set process memory limit as an extra safeguard
+            _, hard = resource.getrlimit(resource.RLIMIT_AS)
+            resource.setrlimit(resource.RLIMIT_AS, (config['limit_memory_hard'], hard))
             signal.signal(signal.SIGQUIT, dumpstacks)
             signal.signal(signal.SIGUSR1, log_ormcache_stats)
-
-        gevent.spawn(self.watchdog)
+            gevent.spawn(self.watchdog)
+        
         self.httpd = WSGIServer((self.interface, self.port), self.app)
         _logger.info('Evented Service (longpolling) running on %s:%s', self.interface, self.port)
         try:
@@ -493,7 +553,7 @@ class PreforkServer(CommonServer):
                 raise KeyboardInterrupt
             elif sig == signal.SIGQUIT:
                 # dump stacks on kill -3
-                self.dumpstacks()
+                dumpstacks()
             elif sig == signal.SIGUSR1:
                 # log ormcache stats on kill -SIGUSR1
                 log_ormcache_stats()
@@ -815,7 +875,6 @@ class WorkerCron(Worker):
 
             import odoo.addons.base as base
             base.ir.ir_cron.ir_cron._acquire_job(db_name)
-            odoo.modules.registry.Registry.delete(db_name)
 
             # dont keep cursors in multi database mode
             if len(db_names) > 1:
@@ -870,7 +929,8 @@ def _reexec(updated_modules=None):
         args += ["-u", ','.join(updated_modules)]
     if not args or args[0] != exe:
         args.insert(0, exe)
-    os.execv(sys.executable, args)
+    # We should keep the LISTEN_* environment variabled in order to support socket activation on reexec
+    os.execve(sys.executable, args, os.environ)
 
 def load_test_file_yml(registry, test_file):
     with registry.cursor() as cr:
@@ -941,21 +1001,28 @@ def start(preload=None, stop=False):
         server = ThreadedServer(odoo.service.wsgi_server.application)
 
     watcher = None
-    if 'reload' in config['dev_mode']:
-        if watchdog:
-            watcher = FSWatcher()
+    if 'reload' in config['dev_mode'] and not odoo.evented:
+        if inotify:
+            watcher = FSWatcherInotify()
+            watcher.start()
+        elif watchdog:
+            watcher = FSWatcherWatchdog()
             watcher.start()
         else:
-            _logger.warning("'watchdog' module not installed. Code autoreload feature is disabled")
+            if os.name == 'posix' and platform.system() != 'Darwin':
+                module = 'inotify'
+            else:
+                module = 'watchdog'
+            _logger.warning("'%s' module not installed. Code autoreload feature is disabled", module)
     if 'werkzeug' in config['dev_mode']:
         server.app = DebuggedApplication(server.app, evalex=True)
 
     rc = server.run(preload, stop)
 
+    if watcher:
+        watcher.stop()
     # like the legend of the phoenix, all ends with beginnings
     if getattr(odoo, 'phoenix', False):
-        if watcher:
-            watcher.stop()
         _reexec()
 
     return rc if rc else 0

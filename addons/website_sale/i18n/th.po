@@ -3,17 +3,22 @@
 # * website_sale
 # 
 # Translators:
-# Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2016
-# Martin Trigaux <mat@odoo.com>, 2016
 # Seksan Poltree <seksan.poltree@gmail.com>, 2016
 # monchai7 <montchye@gmail.com>, 2016
+# Martin Trigaux, 2016
+# Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2017
+# Somchart Jabsung <jabsung.s@gmail.com>, 2018
+# gsong <gsong2014@foxmail.com>, 2018
+# Panupong Jantapoon <panupong.jtp@gmail.com>, 2019
+# Pornvibool Tippayawat <pornvibool.t@gmail.com>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-18 14:21+0000\n"
-"PO-Revision-Date: 2017-07-18 14:21+0000\n"
-"Last-Translator: monchai7 <montchye@gmail.com>, 2016\n"
+"POT-Creation-Date: 2017-11-30 14:34+0000\n"
+"PO-Revision-Date: 2016-09-07 09:34+0000\n"
+"Last-Translator: Pornvibool Tippayawat <pornvibool.t@gmail.com>, 2019\n"
 "Language-Team: Thai (https://www.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -83,7 +88,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.confirmation
 msgid "<i class=\"fa fa-print\"/> Print"
-msgstr ""
+msgstr "<i class=\"fa fa-print\"/> พิมพ์"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.header
@@ -124,6 +129,8 @@ msgid ""
 "<span class=\"col-xs-6 text-right text-muted\" title=\"Taxes may be updated "
 "after providing shipping address\"> Taxes:</span>"
 msgstr ""
+"<span class=\"col-xs-6 text-right text-muted\" title=\"Taxes may be updated "
+"after providing shipping address\"> ภาษี:</span>"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.total
@@ -1113,7 +1120,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_sale.field_product_product_website_description
 #: model:ir.model.fields,field_description:website_sale.field_product_template_website_description
 msgid "Description for the website"
-msgstr ""
+msgstr "รายละเอียดสำหรับเว็บไซต์"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_delivery_carrier_website_sequence
@@ -1488,6 +1495,11 @@ msgid "List displaying"
 msgstr ""
 
 #. module: website_sale
+#: model:ir.ui.view,arch_db:website_sale.address
+msgid "Log In"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
 msgid "Logo"
 msgstr "โลโก้"
@@ -1674,7 +1686,7 @@ msgstr ""
 #: model:ir.ui.menu,name:website_sale.menu_orders
 #: model:ir.ui.menu,name:website_sale.menu_orders_orders
 msgid "Orders"
-msgstr ""
+msgstr "คำสั่ง #"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_public_category_parent_id
@@ -1721,7 +1733,7 @@ msgstr "ข้อมูลการจ่ายเงิน"
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.payment
 msgid "Payment Method:"
-msgstr ""
+msgstr "วิธีการจ่ายเงิน:"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_planner
@@ -1914,7 +1926,7 @@ msgstr "โปรโมต"
 #: model:ir.model.fields,field_description:website_sale.field_rating_rating_website_published
 #: model:ir.ui.view,arch_db:website_sale.product_template_search_view_website
 msgid "Published"
-msgstr ""
+msgstr "เผยแพร่"
 
 #. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
@@ -2275,6 +2287,11 @@ msgid "Show pricelists to customers"
 msgstr ""
 
 #. module: website_sale
+#: model:ir.ui.view,arch_db:website_sale.address
+msgid "Sign Up"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.ui.view,arch_db:website_sale.website_sale
 msgid "Size"
 msgstr "ขนาด"
@@ -2625,7 +2642,7 @@ msgstr "มองเห็นได้จากเว็บไซต์"
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_rating_rating_website_published
 msgid "Visible on the website as a comment"
-msgstr ""
+msgstr "ให้แสดงคอมเมนต์ในเว็บไซต์"
 
 #. module: website_sale
 #: selection:product.template,availability:0
