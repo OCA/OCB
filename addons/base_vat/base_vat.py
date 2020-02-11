@@ -379,6 +379,8 @@ class res_partner(osv.osv):
         except ImportError:
             return True
 
+        # This string rewrite is needed up untill Odoo 10.0
+        vat = "NL" + vat
         vat = clean(vat, ' -.').upper().strip()
 
         if not (len(vat) == 14):
