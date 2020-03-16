@@ -237,7 +237,7 @@ class TestMailgateway(BaseFunctionalTest, MockEmails):
     def test_message_process_alias_partners_bounce(self):
         """ Incoming email from an unknown partner on a Partners only alias -> bounce + test bounce email """
         self.env['ir.config_parameter'].set_param('mail.bounce.alias', 'bounce.test')
-        self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'example.com')
+        self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'test.com')
         self.alias.write({'alias_contact': 'partners'})
 
         # Test: no group created, email bounced
@@ -248,7 +248,7 @@ class TestMailgateway(BaseFunctionalTest, MockEmails):
         # Test bounce email
         self.assertEqual(self._mails[0].get('subject'), 'Re: Should Bounce')
         self.assertEqual(self._mails[0].get('email_to')[0], 'whatever-2a840@postmaster.twitter.com')
-        self.assertEqual(self._mails[0].get('email_from'), 'MAILER-DAEMON <bounce.test@example.com>')
+        self.assertEqual(self._mails[0].get('email_from'), 'MAILER-DAEMON <bounce.test@test.com>')
 
     @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models.unlink', 'odoo.addons.mail.models.mail_mail')
     def test_message_process_alias_followers_bounce(self):
@@ -322,7 +322,7 @@ class TestMailgateway(BaseFunctionalTest, MockEmails):
 
     @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models')
     def test_message_process_alias_domain_confusion_no_domain(self):
-        """ Incoming email: write to alias even if no domain set: considered as valid alias """
+        """ Incoming email: write to external address similar to alias without alias domain: considered as valid alias """
         self.env['ir.config_parameter'].set_param('mail.catchall.domain', '')
 
         new_groups = self.format_and_process(
@@ -357,8 +357,28 @@ class TestMailgateway(BaseFunctionalTest, MockEmails):
         self.assertEqual(new_rec._name, new_alias_2.alias_model_id.model)
 
     @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models')
+    def test_message_process_alias_forward_domain_confusion_external(self):
+        """ Incoming email: write to alias of another model: external address not taken into account """
+        new_alias_2 = self.env['mail.alias'].create({
+            'alias_name': 'test',
+            'alias_user_id': False,
+            'alias_model_id': self.env['ir.model']._get('mail.test').id,
+            'alias_contact': 'everyone',
+        })
+        new_rec = self.format_and_process(
+            MAIL_TEMPLATE,
+            subject='Test Subject',
+            email_from='valid.other@gmail.com',
+            to='%s@%s, %s@%s' % (self.alias.alias_name, self.catchall_domain, new_alias_2.alias_name, 'another.domain.com'),
+            msg_id='<whatever.JavaMail.diff1@agrolait.com>'
+        )
+        # Test: one channel (alias 2) created
+        self.assertEqual(len(new_rec), 1, 'message_process: a new mail.test should have been created')
+        self.assertEqual(new_rec._name, self.alias.alias_model_id.model)
+
+    @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models')
     def test_message_process_alias_forward_domain_confusion_no_domain(self):
-        """ Incoming email: write to alias of another model: forward to new alias even if no catchall domain """
+        """ Incoming email: write to alias of another model: forward to new alias if no catchall domain """
         new_alias_2 = self.env['mail.alias'].create({
             'alias_name': 'test',
             'alias_user_id': False,
@@ -626,17 +646,6 @@ class TestMailgateway(BaseFunctionalTest, MockEmails):
                           MAIL_TEMPLATE,
                           to='noone@example.com', subject='spam', extra='',
                           msg_id='<1198923581.41972151344608186760.JavaMail.new5@agrolait.com>')
-
-    @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models')
-    def test_message_process_crash_alien_domain_same_alias(self):
-        """Incoming email to the same address in an alien domain must raise."""
-        self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'example.com')
-        with self.assertRaises(ValueError):
-            self.format_and_process(
-                MAIL_TEMPLATE,
-                email_from='Valid Lelitre <valid.lelitre@agrolait.com>',
-                to='groups@alien.com, other@gmail.com',
-            )
 
     @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models')
     def test_message_process_fallback(self):
