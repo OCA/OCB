@@ -24,6 +24,7 @@ env:
   - INCLUDE="applications" EXCLUDE="base"
   - INCLUDE="no_applications" TESTS="1" EXCLUDE="test_mail"
   - INCLUDE="localization" EXCLUDE="l10n_ch"
+  - TESTS=1
 
 install:
   - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
