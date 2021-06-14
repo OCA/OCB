@@ -44,7 +44,7 @@
             </xpath>
             <xpath expr="//field[@name='client_order_ref']" position="after">
                 <field name="require_payment" widget="radio"/>
-                <field name="website_description" invisible="1"/>
+                <field name="website_description" readonly="1" invisible="1"/>
             </xpath>
         </field>
     </record>
