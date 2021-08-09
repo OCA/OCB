@@ -18,6 +18,7 @@ The actual till still requires one user but an unlimited number of employees can
         'views/point_of_sale.xml',
         'views/pos_order_view.xml',
         'views/pos_order_report_view.xml',
+        'views/hr_employee_view.xml',
     ],
     'installable': True,
     'auto_install': True,

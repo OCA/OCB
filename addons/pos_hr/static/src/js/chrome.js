@@ -88,6 +88,11 @@ odoo.define('pos_hr.chrome', function (require) {
         },
     });
     chrome.Chrome.include({
+        loading_hide: function() {
+            this._super();
+            var self = this;
+            self.pos.gui.show_screen("login");
+        },
         lock_button_widget: {
             'name':   'lock_button',
             'widget': HeaderLockButtonWidget,

@@ -2,7 +2,7 @@
 
 from functools import partial
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class PosConfig(models.Model):
@@ -11,3 +11,4 @@ class PosConfig(models.Model):
     employee_ids = fields.Many2many(
         'hr.employee', string="Employees with access",
         help='If left empty, all employees can log in to the PoS session')
+    module_pos_hr = fields.Boolean(help="Show employee login screen")

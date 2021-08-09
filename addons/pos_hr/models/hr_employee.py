@@ -3,12 +3,29 @@
 
 import hashlib
 
-from odoo import api, models, _
+from odoo import api, models, _, fields
 from odoo.exceptions import UserError
 
 class HrEmployee(models.Model):
 
     _inherit = 'hr.employee'
+
+    pin = fields.Char(string="PIN", groups="hr.group_hr_user", copy=False,
+        help="PIN used to Check In/Out in Kiosk Mode (if enabled in Configuration).")
+    barcode = fields.Char(string="Badge ID",
+                          help="ID used for employee identification.",
+                          groups="hr.group_hr_user", copy=False)
+
+    _sql_constraints = [
+        ('barcode_uniq', 'unique (barcode)', "The Badge ID must be unique, this one is already assigned to another employee."),
+        ('user_uniq', 'unique (user_id, company_id)', "A user cannot be linked to multiple employees in the same company.")
+    ]
+
+    @api.constrains('pin')
+    def _verify_pin(self):
+        for employee in self:
+            if employee.pin and not employee.pin.isdigit():
+                raise ValidationError(_("The PIN must be a sequence of digits."))
 
     def get_barcodes_and_pin_hashed(self):
         if not self.env.user.has_group('point_of_sale.group_pos_user'):
@@ -16,6 +33,7 @@ class HrEmployee(models.Model):
         # Apply visibility filters (record rules)
         visible_emp_ids = self.search([('id', 'in', self.ids)])
         employees_data = self.sudo().search_read([('id', 'in', visible_emp_ids.ids)], ['barcode', 'pin'])
+        # employees_data = self.sudo().search_read([('id', 'in', visible_emp_ids.ids)], ['pin'])
 
         for e in employees_data:
             e['barcode'] = hashlib.sha1(e['barcode'].encode('utf8')).hexdigest() if e['barcode'] else False

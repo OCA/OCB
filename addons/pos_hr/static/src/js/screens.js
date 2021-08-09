@@ -18,20 +18,21 @@ ScreenWidget.include({
         var employees = this.pos.employees;
         var prom;
         for(var i = 0, len = employees.length; i < len; i++){
-            if(employees[i].barcode === Sha1.hash(code.code)){
+            // if(employees[i].barcode === Sha1.hash(code.code)){
                 if (employees[i].id !== this.pos.get_cashier().id && employees[i].pin) {
                     prom =  this.gui.ask_password(employees[i].pin).then(function(){
                         self.pos.set_cashier(employees[i]);
                         self.chrome.widget.username.renderElement();
                         return true;
                     });
-                } else {
+                }
+                // else {
                     this.pos.set_cashier(employees[i]);
                     this.chrome.widget.username.renderElement();
                     prom = Promise.resolve(true);
-                }
+                // }
                 break;
-            }
+            // }
         }
         if (!prom){
             this.barcode_error_action(code);
@@ -64,7 +65,7 @@ var LoginScreenWidget = ScreenWidget.extend({
     /**
      * @override
      */
-    show: function() {
+    start: function() {
         var self = this;
         this.$('.select-employee').click(function() {
             self.gui.select_employee({

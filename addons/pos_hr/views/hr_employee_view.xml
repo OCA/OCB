@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_employee_form_inherit_pos_hr" model="ir.ui.view">
+        <field name="name">hr.employee</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='hr_settings']/group/group[@name='active_group']"
+                   position="after">
+                <group string="Attendance" name="identification_group">
+                    <field name="pin" string="PIN Code"/>
+                    <label for="barcode"/>
+                    <div class="o_row">
+                        <field name="barcode"/>
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
