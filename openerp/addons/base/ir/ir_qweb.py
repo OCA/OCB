@@ -12,6 +12,7 @@ import re
 import sys
 import textwrap
 import uuid
+from contextlib import closing
 from subprocess import Popen, PIPE
 from urlparse import urlparse
 
@@ -29,7 +30,7 @@ import openerp.tools.lru
 from openerp.http import request
 from openerp.tools.safe_eval import safe_eval as eval
 from openerp.osv import osv, orm, fields
-from openerp.tools import html_escape as escape
+from openerp.tools import html_escape as escape, file_open
 from openerp.tools.translate import _
 
 _logger = logging.getLogger(__name__)
@@ -1421,7 +1422,7 @@ class WebAsset(object):
             if self._filename:
                 if not self._filename.lower().endswith(EXTENSIONS):
                     raise ValueError("Unsupported path: %s" % self._filename)
-                with open(self._filename, 'rb') as fp:
+                with closing(file_open(self._filename, 'rb')) as fp:
                     return fp.read().decode('utf-8')
             else:
                 return self._ir_attach['datas'].decode('base64')
