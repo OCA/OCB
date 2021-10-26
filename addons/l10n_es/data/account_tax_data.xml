@@ -638,7 +638,7 @@
         <field name="amount" eval="0"/>
         <field name="amount_type">percent</field>
         <field name="tax_group_id" ref="tax_group_iva_0"/>
-        <field name="tag_ids" eval="[(6, False, [ref('mod_303_61')])]"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_120')])]"/>
     </record>
     <record id="account_tax_template_s_iva_ns_b" model="account.tax.template">
         <field name="description">S_IVA_NS_B</field>
@@ -648,17 +648,17 @@
         <field name="amount" eval="0"/>
         <field name="amount_type">percent</field>
         <field name="tax_group_id" ref="tax_group_iva_0"/>
-        <field name="tag_ids" eval="[(6, False, [ref('mod_303_61')])]"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_120')])]"/>
     </record>
     <record id="account_tax_template_s_iva_e" model="account.tax.template">
         <field name="description">S_IVA_SP_E</field>
         <field name="type_tax_use">sale</field>
-        <field name="name">IVA 0% Prestación de servicios extracomunitaria</field> <!--TODO OCO 122-->
+        <field name="name">IVA 0% Prestación de servicios extracomunitaria</field>
         <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
         <field name="amount" eval="0"/>
         <field name="amount_type">percent</field>
         <field name="tax_group_id" ref="tax_group_iva_0"/>
-        <field name="tag_ids" eval="[(6, False, [ref('mod_303_61')])]"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_122')])]"/>
     </record>
     <record id="account_tax_template_p_iva4_ibc" model="account.tax.template">
         <field name="description">P_IVA4_IBC</field>
@@ -1461,13 +1461,13 @@
     </record>
     <record id="account_tax_template_s_iva0_isp" model="account.tax.template">
         <field name="description">S_IVA0_ISP</field>
-        <field name="name">IVA 0% Venta con Inversión del Sujeto Pasivo</field><!--TODO OCO 122-->
+        <field name="name">IVA 0% Venta con Inversión del Sujeto Pasivo</field>
         <field name="type_tax_use">sale</field>
         <field name="amount_type">percent</field>
         <field name="amount" eval="0"/>
         <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
         <field name="tax_group_id" ref="tax_group_iva_0"/>
-        <field name="tag_ids" eval="[(6, False, [ref('mod_303_61')])]"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_122')])]"/>
     </record>
     <record id="account_tax_template_p_iva4_isp_1" model="account.tax.template">
         <field name="name">IVA 4% Compra con Inversión del Sujeto Pasivo Nacional (1)</field>
