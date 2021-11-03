@@ -4667,7 +4667,8 @@ jQuery.event = {
                 // Find delegate handlers
                 // Black-hole SVG <use> instance trees (#13180)
                 // Avoid non-left-click bubbling in Firefox (#3861)
-                if ( delegateCount && cur.nodeType && (!event.button || event.type !== "click") ) {
+                if ( delegateCount && cur.nodeType &&
+                        ( event.type !== "click" || isNaN( event.button ) || event.button < 1 ) ) {
 
                         /* jshint eqeqeq: false */
                         for ( ; cur != this; cur = cur.parentNode || this ) {
