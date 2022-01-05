@@ -21,6 +21,7 @@ from odoo.tools import func, misc
 import logging
 _logger = logging.getLogger(__name__)
 
+EXTENSIONS = (".js", ".css", ".scss", ".sass", ".less")
 MAX_CSS_RULES = 4095
 
 
@@ -557,6 +558,8 @@ class WebAsset(object):
         try:
             self.stat()
             if self._filename:
+                if not self._filename.lower().endswith(EXTENSIONS):
+                    raise ValueError("Unsupported path: %s" % self._filename)
                 with open(self._filename, 'rb') as fp:
                     return fp.read().decode('utf-8')
             else:
