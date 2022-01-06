@@ -18,7 +18,7 @@ except ImportError:
     slugify_lib = None
 
 from odoo import api, fields, models
-from odoo import tools
+from odoo import tools, http
 from odoo.tools import ustr
 from odoo.http import request
 from odoo.tools.translate import _
@@ -82,7 +82,7 @@ def is_multilang_url(local_url, langs=None):
         url = local_url.split('?')
         path = url[0]
         query_string = url[1] if len(url) > 1 else None
-        router = request.httprequest.app.get_db_router(request.db).bind('')
+        router = http.root.get_db_router(request.db).bind('')
         # Force to check method to POST. Odoo uses methods : ['POST'] and ['GET', 'POST']
         func = router.match(path, method='POST', query_args=query_string)[0]
         return (func.routing.get('website', False) and
@@ -367,7 +367,7 @@ class Website(models.Model):
                     arguments[key] = val.with_context(lang=lang)
             return router.build(request.endpoint, arguments)
 
-        router = request.httprequest.app.get_db_router(request.db).bind('')
+        router = http.root.get_db_router(request.db).bind('')
         for code, dummy in self.get_languages():
             lg_path = ('/' + code) if code != default else ''
             lg_codes = code.split('_')
@@ -528,7 +528,7 @@ class Website(models.Model):
             :rtype: list({name: str, url: str})
         """
         request.context = dict(request.context, **self.env.context)
-        router = request.httprequest.app.get_db_router(request.db)
+        router = http.root.get_db_router(request.db)
         # Force enumeration to be performed as public user
         url_set = set()
         for rule in router.iter_rules():

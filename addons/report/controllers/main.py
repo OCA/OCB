@@ -8,6 +8,7 @@ from werkzeug.datastructures import Headers
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 
+from odoo import http
 from odoo.http import Controller, route, request
 from odoo.tools import html_escape
 from odoo.addons.web.controllers.main import _serialize_exception, content_disposition
@@ -111,7 +112,7 @@ class ReportController(Controller):
                 return response
             elif type == 'controller':
                 reqheaders = Headers(request.httprequest.headers)
-                response = Client(request.httprequest.app, BaseResponse).get(url, headers=reqheaders, follow_redirects=True)
+                response = Client(http.root, BaseResponse).get(url, headers=reqheaders, follow_redirects=True)
                 response.set_cookie('fileToken', token)
                 return response
             else:
