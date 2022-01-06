@@ -749,7 +749,7 @@ class Proxy(openerpweb.Controller):
         from werkzeug.test import Client
         from werkzeug.wrappers import BaseResponse
 
-        return Client(req.httprequest.app, BaseResponse).get(path).data
+        return Client(http._root, BaseResponse).get(path).data
 
 class Database(openerpweb.Controller):
     _cp_path = "/web/database"

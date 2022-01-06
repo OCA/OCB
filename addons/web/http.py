@@ -511,6 +511,9 @@ class Root(object):
     """Root WSGI application for the OpenERP Web Client.
     """
     def __init__(self):
+        global _root
+        if _root is None:
+            _root = self
         self.addons = {}
         self.statics = {}
 
@@ -536,7 +539,6 @@ class Root(object):
         """
         request = werkzeug.wrappers.Request(environ)
         request.parameter_storage_class = werkzeug.datastructures.ImmutableDict
-        request.app = self
 
         handler = self.find_handler(*(request.path.split('/')[1:]))
 
@@ -626,5 +628,8 @@ class Root(object):
 
 def wsgi_postload():
     openerp.wsgi.register_wsgi_handler(Root())
+
+#  main wsgi handler
+_root = None
 
 # vim:et:ts=4:sw=4:
