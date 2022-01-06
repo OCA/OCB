@@ -357,7 +357,8 @@ class Cursor(object):
         return getattr(self._obj, name)
 
 class PsycoConnection(psycopg2.extensions.connection):
-    pass
+    def lobject(*args, **kwargs):
+        pass
 
 class ConnectionPool(object):
     """ The pool of connections to database(s)
