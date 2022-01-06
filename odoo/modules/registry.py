@@ -104,6 +104,7 @@ class Registry(Mapping):
 
         registry.ready = True
         registry.registry_invalidated = bool(update_module)
+        registry.new = registry.init = registry.registries = None
 
         return registry
 
