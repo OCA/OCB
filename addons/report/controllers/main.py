@@ -19,6 +19,7 @@
 #
 ##############################################################################
 
+from openerp import http
 from openerp.addons.web.http import Controller, route, request
 from openerp.addons.web.controllers.main import _serialize_exception, content_disposition
 from openerp.osv import osv
@@ -127,7 +128,7 @@ class ReportController(Controller):
                 return response
             elif type =='controller':
                 reqheaders = Headers(request.httprequest.headers)
-                response = Client(request.httprequest.app, BaseResponse).get(url, headers=reqheaders, follow_redirects=True)
+                response = Client(http.root, BaseResponse).get(url, headers=reqheaders, follow_redirects=True)
                 response.set_cookie('fileToken', token)
                 return response
             else:
