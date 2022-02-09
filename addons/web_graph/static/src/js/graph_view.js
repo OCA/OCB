@@ -123,7 +123,9 @@ instance.web_graph.GraphView = instance.web.View.extend({
 
         _.each(searchdata.groupbys, function (data) {
             data = (_.isString(data)) ? py.eval(data) : data;
-            result.group_by = result.group_by.concat(data.group_by);
+            if (!_.isEmpty(data.group_by)) {
+                result.group_by = result.group_by.concat(data.group_by);
+            }
             if (data.col_group_by) {
                 result.col_group_by = result.col_group_by.concat(data.col_group_by);
             }
