@@ -1224,13 +1224,17 @@ var FieldBinaryFile = FieldBinary.extend({
         if (this.get("effective_readonly")) {
             // Filename from saved state (might render from a discard operation)
             filename = this.view.datarecord[this.node.attrs.filename]; // do not forward-port >= 11.0
-            var visible = !!(this.value && this.res_id);
-            this.$el.empty().css('cursor', 'not-allowed');
-            this.do_toggle(visible);
-            if (visible) {
-                this.$el.empty().css('cursor', 'pointer')
-                                .text(this.filename_value || '')
-                                .prepend('<span class="fa fa-download"/>', ' ');
+            this.do_toggle(!!this.get('value'));
+            if (this.get('value')) {
+                this.$el.empty().append($("<span/>").addClass('fa fa-download'));
+                if (this.view.datarecord.id) {
+                    this.$el.css('cursor', 'pointer');
+                } else {
+                    this.$el.css('cursor', 'not-allowed');
+                }
+                if (filename) {
+                    this.$el.append(" " + filename);
+                }
             }
         } else {
             // Filename at the moment (might be unsaved state)
