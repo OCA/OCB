@@ -28,7 +28,7 @@ WARNING_MESSAGE = [
                    ('block','Blocking Message')
                    ]
 
-WARNING_HELP = _('Selecting the "Warning" option will notify user with the message, Selecting "Blocking Message" will throw an exception with the message and block the flow. The Message has to be written in the next field.')
+WARNING_HELP = 'Selecting the "Warning" option will notify user with the message, Selecting "Blocking Message" will throw an exception with the message and block the flow. The Message has to be written in the next field.'
 
 class res_partner(osv.osv):
     _inherit = 'res.partner'
