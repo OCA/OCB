@@ -138,7 +138,10 @@ def init_logger():
     # which has no fileno() method. (mod_wsgi.Log is what is being bound to
     # sys.stderr when the logging.StreamHandler is being constructed above.)
     def is_a_tty(stream):
-        return hasattr(stream, 'fileno') and os.isatty(stream.fileno())
+        try:
+            return hasattr(stream, 'fileno') and os.isatty(stream.fileno())
+        except OSError:
+            return False
 
     if os.name == 'posix' and isinstance(handler, logging.StreamHandler) and is_a_tty(handler.stream):
         formatter = ColoredFormatter(format)
