@@ -19,6 +19,7 @@ var WebsiteNavbar = publicWidget.RootWidget.extend({
         'mouseover > ul > li.dropdown:not(.show)': '_onMenuHovered',
         'click .o_mobile_menu_toggle': '_onMobileMenuToggleClick',
         'mouseover #oe_applications:not(:has(.dropdown-item))': '_onOeApplicationsHovered',
+        'click #oe_applications:not(:has(.dropdown-item))': '_onOeApplicationsHovered',
     }),
     custom_events: _.extend({}, publicWidget.RootWidget.prototype.custom_events || {}, {
         'action_demand': '_onActionDemand',
