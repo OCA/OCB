@@ -324,6 +324,7 @@ class Field(object):
         'groups': None,                 # csv list of group xml ids
         'change_default': False,        # whether the field may trigger a "user-onchange"
         'deprecated': None,             # whether the field is deprecated
+        'selectable': True,             # whether the field is selectable in advanced search
 
         'inverse_fields': (),           # collection of inverse fields (objects)
         'computed_fields': (),          # fields computed with the same method as self
@@ -676,6 +677,7 @@ class Field(object):
     _description_groups = property(attrgetter('groups'))
     _description_change_default = property(attrgetter('change_default'))
     _description_deprecated = property(attrgetter('deprecated'))
+    _description_selectable = property(attrgetter('selectable'))
 
     @property
     def _description_searchable(self):
