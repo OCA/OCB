@@ -174,6 +174,7 @@ class ir_mail_server(osv.osv):
         'smtp_debug': fields.boolean('Debugging', help="If enabled, the full output of SMTP sessions will "
                                                        "be written to the server log at DEBUG level"
                                                        "(this is very verbose and may include confidential info!)"),
+        'smtp_timeout': fields.float('Timeout', help="If greater than zero, timeout in seconds"),
         'sequence': fields.integer('Priority', help="When no specific mail server is requested for a mail, the highest priority one "
                                                     "is used. Default priority is 10 (smaller number = higher priority)"),
         'active': fields.boolean('Active')
@@ -203,7 +204,7 @@ class ir_mail_server(osv.osv):
             try:
                 smtp = self.connect(smtp_server.smtp_host, smtp_server.smtp_port, user=smtp_server.smtp_user,
                                     password=smtp_server.smtp_pass, encryption=smtp_server.smtp_encryption,
-                                    smtp_debug=smtp_server.smtp_debug)
+                                    smtp_debug=smtp_server.smtp_debug, timeout=smtp_server.smtp_timeout)
             except Exception, e:
                 raise osv.except_osv(_("Connection Test Failed!"), _("Here is what we got instead:\n %s") % tools.ustr(e))
             finally:
@@ -214,7 +215,7 @@ class ir_mail_server(osv.osv):
                     pass
         raise osv.except_osv(_("Connection Test Succeeded!"), _("Everything seems properly set up!"))
 
-    def connect(self, host, port, user=None, password=None, encryption=False, smtp_debug=False):
+    def connect(self, host, port, user=None, password=None, encryption=False, smtp_debug=False, timeout=None):
         """Returns a new SMTP connection to the give SMTP server, authenticated
            with ``user`` and ``password`` if provided, and encrypted as requested
            by the ``encryption`` parameter.
@@ -226,16 +227,18 @@ class ir_mail_server(osv.osv):
            :param string encryption: optional, ``'ssl'`` | ``'starttls'``
            :param bool smtp_debug: toggle debugging of SMTP sessions (all i/o
                               will be output in logs)
+           :param float timeout: if greater than zero, timeout in seconds
         """
+        timeout = timeout if timeout is not None and timeout > 0 else None
         if encryption == 'ssl':
             if not 'SMTP_SSL' in smtplib.__all__:
                 raise osv.except_osv(
                              _("SMTP-over-SSL mode unavailable"),
                              _("Your OpenERP Server does not support SMTP-over-SSL. You could use STARTTLS instead."
                                "If SSL is needed, an upgrade to Python 2.6 on the server-side should do the trick."))
-            connection = smtplib.SMTP_SSL(host, port)
+            connection = smtplib.SMTP_SSL(host, port, timeout=timeout)
         else:
-            connection = smtplib.SMTP(host, port)
+            connection = smtplib.SMTP(host, port, timeout=timeout)
         connection.set_debuglevel(smtp_debug)
         if encryption == 'starttls':
             # starttls() will perform ehlo() if needed first
@@ -386,7 +389,7 @@ class ir_mail_server(osv.osv):
 
     def send_email(self, cr, uid, message, mail_server_id=None, smtp_server=None, smtp_port=None,
                    smtp_user=None, smtp_password=None, smtp_encryption=None, smtp_debug=False,
-                   context=None):
+                   context=None, smtp_timeout=None):
         """Sends an email directly (no queuing).
 
         No retries are done, the caller should handle MailDeliveryException in order to ensure that
@@ -409,6 +412,7 @@ class ir_mail_server(osv.osv):
         :param smtp_user: optional SMTP user, if mail_server_id is not passed
         :param smtp_password: optional SMTP password to use, if mail_server_id is not passed
         :param smtp_debug: optional SMTP debug flag, if mail_server_id is not passed
+        :param smtp_timeout: optional SMTP timeout in seconds, if mail_server_id is not passed and greater than zero
         :return: the Message-ID of the message that was just sent, if successfully sent, otherwise raises
                  MailDeliveryException and logs root cause.
         """
@@ -463,6 +467,7 @@ class ir_mail_server(osv.osv):
             smtp_port = mail_server.smtp_port
             smtp_encryption = mail_server.smtp_encryption
             smtp_debug = smtp_debug or mail_server.smtp_debug
+            smtp_timeout = mail_server.smtp_timeout
         else:
             # we were passed an explicit smtp_server or nothing at all
             smtp_server = smtp_server or tools.config.get('smtp_server')
@@ -471,6 +476,7 @@ class ir_mail_server(osv.osv):
             smtp_password = smtp_password or tools.config.get('smtp_password')
             if smtp_encryption is None and tools.config.get('smtp_ssl'):
                 smtp_encryption = 'starttls' # STARTTLS is the new meaning of the smtp_ssl flag as of v7.0
+            smtp_timeout = tools.config.get('smtp_timeout') if smtp_timeout is None else smtp_timeout
 
         if not smtp_server:
             raise osv.except_osv(
@@ -490,7 +496,7 @@ class ir_mail_server(osv.osv):
 
             smtp = None
             try:
-                smtp = self.connect(smtp_server, smtp_port, smtp_user, smtp_password, smtp_encryption or False, smtp_debug)
+                smtp = self.connect(smtp_server, smtp_port, smtp_user, smtp_password, smtp_encryption or False, smtp_debug, smtp_timeout)
                 smtp.sendmail(smtp_from, smtp_to_list, message.as_string())
             finally:
                 if smtp is not None:
