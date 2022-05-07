@@ -135,6 +135,7 @@ class res_users(osv.osv):
 
     def set_pw(self, cr, uid, id, name, value, args, context):
         if value:
+            self.write(cr, uid, [id], {})  # force update of write_date
             self._set_encrypted_password(cr, id, value)
         del value
 
