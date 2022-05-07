@@ -305,7 +305,7 @@ class product_pricelist(osv.osv):
                         price = currency_obj.compute(cr, uid,
                                 ptype_src, pricelist.currency_id.id,
                                 price_tmp, round=False,
-                                context=context)
+                                context=context) if price_tmp is not False else False
                 elif rule.base == -2:
                     seller = False
                     for seller_id in product.seller_ids:
