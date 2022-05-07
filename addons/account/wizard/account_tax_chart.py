@@ -20,6 +20,7 @@
 ##############################################################################
 
 from openerp.osv import fields, osv
+from datetime import date
 
 class account_tax_chart(osv.osv_memory):
     """
@@ -34,12 +35,31 @@ class account_tax_chart(osv.osv_memory):
        'target_move': fields.selection([('posted', 'All Posted Entries'),
                                         ('all', 'All Entries'),
                                         ], 'Target Moves', required=True),
+       'fiscalyear_id': fields.many2one('account.fiscalyear', 'Fiscal Year', required=True),
     }
 
     def _get_period(self, cr, uid, context=None):
         """Return default period value"""
         period_ids = self.pool.get('account.period').find(cr, uid, context=context)
         return period_ids and period_ids[0] or False
+
+    def _actual_fiscal_year(self, cr, uid, context=None):
+        today = date.today()
+        fiscalyear_obj = self.pool.get('account.fiscalyear').search(cr, uid,
+                                                                    [('date_start', '<=', today),
+                                                                     ('date_stop', '>=', today)],
+                                                                    context=context)
+        if fiscalyear_obj:
+            return fiscalyear_obj[0]
+
+    def onchange_fiscalyear_id(self, cr, uid, ids, fiscalyear_id=False, context=None):
+        if not fiscalyear_id:
+            return {'domain': {'period_id': [('id', '!=', False)]}}
+        # self.period_id = False
+        period_ids = self.pool.get('account.period').search(cr, uid, [('fiscalyear_id', '=', fiscalyear_id)],
+                                                            context=context)
+        return {'value': {'period_id': False},
+                'domain': {'period_id': [('id', 'in', period_ids)]}}
 
     def account_tax_chart_open_window(self, cr, uid, ids, context=None):
         """
@@ -58,20 +78,18 @@ class account_tax_chart(osv.osv_memory):
         id = result and result[1] or False
         result = act_obj.read(cr, uid, [id], context=context)[0]
         if data.period_id:
-            result['context'] = str({'period_id': data.period_id.id, \
-                                     'fiscalyear_id': data.period_id.fiscalyear_id.id, \
-                                        'state': data.target_move})
+            result['context'] = str({'period_id': data.period_id.id,
+                                     'fiscalyear_id': data.fiscalyear_id.id,
+                                     'state': data.target_move})
             period_code = data.period_id.code
             result['name'] += period_code and (':' + period_code) or ''
         else:
-            result['context'] = str({'state': data.target_move})
-
+            result['context'] = str({'state': data.target_move,
+                                     'fiscalyear_id': data.fiscalyear_id.id})
         return result
 
     _defaults = {
         'period_id': _get_period,
-        'target_move': 'posted'
+        'target_move': 'posted',
+        'fiscalyear_id': _actual_fiscal_year,
     }
-
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

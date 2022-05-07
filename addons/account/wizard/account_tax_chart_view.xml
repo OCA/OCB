@@ -8,11 +8,8 @@
             <field name="arch" type="xml">
                 <form string="Account tax charts">
                     <group>
-                        <label for="period_id"/>
-                        <div>
-                            <field name="period_id" class="oe_inline"/>
-                            <label string="(If you do not select a specific period, all open periods will be selected)" class="oe_inline"/>
-                        </div>
+                        <field name="fiscalyear_id" on_change="onchange_fiscalyear_id(fiscalyear_id)"/>
+                        <field name="period_id"/>
                         <field name="target_move"/>
 	                </group>
                     <footer>
