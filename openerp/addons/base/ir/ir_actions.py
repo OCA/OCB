@@ -968,6 +968,7 @@ class ir_actions_server(osv.osv):
             'uid': uid,
             'context': context,
             'user': env.user,
+            '_logger': _logger,
         }
 
     def run(self, cr, uid, ids, context=None):
