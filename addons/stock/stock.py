@@ -30,6 +30,7 @@ from openerp.tools.translate import _
 from openerp import netsvc
 from openerp import tools
 from openerp.tools import float_compare, float_round, DEFAULT_SERVER_DATETIME_FORMAT
+from openerp import SUPERUSER_ID
 import openerp.addons.decimal_precision as dp
 import logging
 _logger = logging.getLogger(__name__)
@@ -2488,7 +2489,20 @@ class stock_move(osv.osv):
                             self.action_done(cr, uid, [move.move_dest_id.id], context=context)
 
             self._update_average_price(cr, uid, move, context=context)
-            self._create_product_valuation_moves(cr, uid, move, context=context)
+            # Use SUPERUSER_ID, otherwise warehouse users would need to
+            # be given access to Finance objects.
+            # We need to force company_id to company_id of present user,
+            # because SUPERUSER_ID might have a different company.
+            local_context = context.copy()
+            if ((not uid == SUPERUSER_ID)
+            and ('force_company' not in local_context)):
+                users_model = self.pool.get('res.users')
+                user_record = users_model.read(
+                    cr, uid, uid, ['company_id'], context=context)
+                local_context['force_company'] = (
+                    user_record['company_id'][0])
+            self._create_product_valuation_moves(
+                cr, SUPERUSER_ID, move, context=local_context)
             if move.state not in ('confirmed','done','assigned'):
                 self.action_confirm(cr, uid, [move.id], context=context)
             self.write(cr, uid, [move.id], 
