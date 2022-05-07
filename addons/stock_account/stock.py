@@ -136,13 +136,10 @@ class stock_move(osv.osv):
             context = {}
         fp_obj = self.pool.get('account.fiscal.position')
         # Get account_id
-        name = False
         if inv_type in ('out_invoice', 'out_refund'):
             account_id = move.product_id.property_account_income.id
             if not account_id:
                 account_id = move.product_id.categ_id.property_account_income_categ.id
-            if move.procurement_id and move.procurement_id.sale_line_id:
-                name = move.procurement_id.sale_line_id.name
         else:
             account_id = move.product_id.property_account_expense.id
             if not account_id:
@@ -163,7 +160,7 @@ class stock_move(osv.osv):
         taxes_ids = self._get_taxes(cr, uid, move, context=context)
 
         return {
-            'name': name or move.name,
+            'name': move.name,
             'account_id': account_id,
             'product_id': move.product_id.id,
             'uos_id': uos_id,
