@@ -369,12 +369,18 @@ openerp.testing.section('list.edition.onwrite', {
                 'should have id of created + on_write');
             strictEqual(l.records.length, 2,
                 'should have record of created + on_write');
-            strictEqual(
-                $fix.find('tbody tr:eq(1)').css('color'), 'rgb(255, 0, 0)',
-                'shoud have color applied');
-            notStrictEqual(
-                $fix.find('tbody tr:eq(2)').css('color'), 'rgb(255, 0, 0)',
-                'should have default color applied');
+            var d = new jQuery.Deferred();
+            // UI is updated in next animation frame
+            window.requestAnimationFrame(function() {
+                strictEqual(
+                    $fix.find('tbody tr:eq(1)').css('color'), 'rgb(255, 0, 0)',
+                    'shoud have color applied');
+                notStrictEqual(
+                    $fix.find('tbody tr:eq(2)').css('color'), 'rgb(255, 0, 0)',
+                    'should have default color applied');
+                return d.resolve();
+            });
+            return d.promise();
         });
     });
 });

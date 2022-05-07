@@ -1502,46 +1502,43 @@ instance.web.ListView.Groups = instance.web.Class.extend( /** @lends instance.we
 
         var fields = _.pluck(_.select(this.columns, function(x) {return x.tag == "field";}), 'name');
         var options = { offset: page * limit, limit: limit, context: {bin_size: true} };
-        //TODO xmo: investigate why we need to put the setTimeout
-        return $.async_when().then(function() {
-            return dataset.read_slice(fields, options).then(function (records) {
-                // FIXME: ignominious hacks, parents (aka form view) should not send two ListView#reload_content concurrently
-                if (self.records.length) {
-                    self.records.reset(null, {silent: true});
-                }
-                if (!self.datagroup.openable) {
-                    view.configure_pager(dataset);
+        return dataset.read_slice(fields, options).then(function (records) {
+            // FIXME: ignominious hacks, parents (aka form view) should not send two ListView#reload_content concurrently
+            if (self.records.length) {
+                self.records.reset(null, {silent: true});
+            }
+            if (!self.datagroup.openable) {
+                view.configure_pager(dataset);
+            } else {
+                if (dataset.size() == records.length) {
+                    // only one page
+                    self.$row.find('td.oe_list_group_pagination').find('button').remove();
+                    self.$row.find('td.oe_list_group_pagination').find('span').remove();
                 } else {
-                    if (dataset.size() == records.length) {
-                        // only one page
-                        self.$row.find('td.oe_list_group_pagination').find('button').remove();
-                        self.$row.find('td.oe_list_group_pagination').find('span').remove();
-                    } else {
-                        var pages = Math.ceil(dataset.size() / limit);
-                        self.$row
-                            .find('.oe_list_pager_state')
-                                .text(_.str.sprintf(_t("%(page)d/%(page_count)d"), {
-                                    page: page + 1,
-                                    page_count: pages
-                                }))
-                            .end()
-                            .find('button[data-pager-action=previous]')
-                                .css('visibility',
-                                     page === 0 ? 'hidden' : '')
-                            .end()
-                            .find('button[data-pager-action=next]')
-                                .css('visibility',
-                                     page === pages - 1 ? 'hidden' : '');
-                    }
+                    var pages = Math.ceil(dataset.size() / limit);
+                    self.$row
+                        .find('.oe_list_pager_state')
+                            .text(_.str.sprintf(_t("%(page)d/%(page_count)d"), {
+                                page: page + 1,
+                                page_count: pages
+                            }))
+                        .end()
+                        .find('button[data-pager-action=previous]')
+                            .css('visibility',
+                                 page === 0 ? 'hidden' : '')
+                        .end()
+                        .find('button[data-pager-action=next]')
+                            .css('visibility',
+                                 page === pages - 1 ? 'hidden' : '');
                 }
+            }
 
-                self.records.add(records, {silent: true});
-                list.render();
-                if (_.isEmpty(records)) {
-                    view.no_result();
-                }
-                return list;
-            });
+            self.records.add(records, {silent: true});
+            list.render();
+            if (_.isEmpty(records)) {
+                view.no_result();
+            }
+            return list;
         });
     },
     setup_resequence_rows: function (list, dataset) {
@@ -1631,8 +1628,10 @@ instance.web.ListView.Groups = instance.web.Class.extend( /** @lends instance.we
                 self.view.$pager.find('.oe_pager_group').css('display', '');
                 self.render_dataset(dataset).then(function (list) {
                     self.children[null] = list;
-                    self.elements =
-                        [list.$current.replaceAll($el)[0]];
+                    // do the actual rendering outside the event handling
+                    window.requestAnimationFrame(function() {
+                        self.elements = [list.$current.replaceAll($el)[0]];
+                    });
                     self.setup_resequence_rows(list, dataset);
                 }).always(function() {
                     if (post_render) { post_render(); }

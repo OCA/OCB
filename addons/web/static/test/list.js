@@ -35,19 +35,19 @@ openerp.testing.section('list.buttons', {
         }, ds, false, {editable: 'top'});
         return l.appendTo($fix)
         .then(l.proxy('reload_content'))
-        .then(function () {
+        // we render elements within an animation frame, so we need to test
+        // it within one too
+        .then(window.requestAnimationFrame.bind(window, function () {
             var d = $.Deferred();
             l.records.bind('remove', function () {
+                strictEqual(l.records.length, 2,
+                            "should have 2 records left");
+                strictEqual($fix.find('table tbody tr[data-id]').length, 2,
+                            "should have 2 rows left");
                 d.resolve();
             });
             $fix.find('table tbody tr:eq(1) button').click();
             return d.promise();
-        })
-        .then(function () {
-            strictEqual(l.records.length, 2,
-                        "should have 2 records left");
-            strictEqual($fix.find('table tbody tr[data-id]').length, 2,
-                        "should have 2 rows left");
-        });
+        }));
     });
 });
