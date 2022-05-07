@@ -156,7 +156,8 @@ class module(osv.osv):
         res = dict.fromkeys(ids, '')
         for module in self.browse(cr, uid, ids, context=context):
             overrides = dict(embed_stylesheet=False, doctitle_xform=False,
-                             output_encoding='unicode', xml_declaration=False)
+                             output_encoding='unicode', xml_declaration=False,
+                             file_insertion_enabled=False)
             output = publish_string(source=module.description, settings_overrides=overrides, writer=MyWriter())
             res[module.id] = html_sanitize(output)
         return res
