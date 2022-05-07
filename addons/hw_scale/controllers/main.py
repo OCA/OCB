@@ -6,7 +6,7 @@ import time
 
 from collections import namedtuple
 from os import listdir
-from threading import Thread, Lock
+from threading import Thread, Lock, Condition
 
 import openerp.addons.hw_proxy.controllers.main as hw_proxy
 from openerp import http
@@ -127,12 +127,18 @@ class Scale(Thread):
         self.device = None
         self.path_to_scale = ''
         self.protocol = None
+        self.cv = Condition()
+        self.go = False
 
     def lockedstart(self):
         with self.lock:
             if not self.isAlive():
                 self.daemon = True
                 self.start()
+        self.cv.acquire()
+        self.go = True
+        self.cv.notify()
+        self.cv.release()
 
     def set_status(self, status, message=None):
         if status == self.status['status']:
@@ -261,7 +267,6 @@ class Scale(Thread):
         return self.weight_info
 
     def get_status(self):
-        self.lockedstart()
         return self.status
 
     def read_weight(self):
@@ -333,6 +338,11 @@ class Scale(Thread):
         self.device = None
 
         while True:
+            self.cv.acquire()
+            while not self.go:
+                self.cv.wait()
+            self.go = False
+            self.cv.release()
             if self.device:
                 old_weight = self.weight
                 self.read_weight()
