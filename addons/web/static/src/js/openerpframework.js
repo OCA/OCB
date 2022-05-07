@@ -1081,11 +1081,8 @@ openerp.Session = openerp.Class.extend(openerp.PropertiesMixin, {
             }).always(function() {
                 self.avoid_recursion = false;
             });
-        } else {
-            // normal use case, just use the cookie
-            self.session_id = openerp.get_cookie("session_id");
-            return $.when();
         }
+        return $.when();
     },
     /**
      * Executes an RPC call, registering the provided callbacks.
