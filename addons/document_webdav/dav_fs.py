@@ -396,6 +396,7 @@ class openerp_dav_handler(dav_interface):
         u = urlparse.urlsplit(uri)
         h = u.hostname
         d = h.split('.')[0]
+        d, h = re.escape(d), re.escape(h)
         r = openerp.tools.config['dbfilter'].replace('%h', h).replace('%d',d)
         dbs = [i for i in self._all_db_list() if re.match(r, i)]
         return dbs
