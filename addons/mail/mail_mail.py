@@ -329,6 +329,39 @@ class mail_mail(osv.Model):
                 if res:
                     mail.write({'state': 'sent', 'message_id': res})
                     mail_sent = True
+                    # ADD Logic to save sent mail in imap server
+                    if mail.email_from:
+                        user_mail = tools.email_split(mail.email_from)[0]
+                        mail_server_obj = self.pool['fetchmail.server']
+                        server_ids = mail_server_obj.search(
+                            cr, uid, [('user','=', user_mail)])
+                    if not server_ids:
+                        server_ids = mail_server_obj.search(cr, uid, [])
+                    server_id = server_ids[0]
+                    server = self.pool['fetchmail.server'].browse(
+                        cr, uid, [server_id])
+                    if server.type == 'imap':
+                        try:
+                            imap_server = server.connect()
+                            imap_server.select()
+                        except Exception, e:
+                            _logger.exception(
+                                "Failed to connect to %s server %s.",
+                                imap_server.type, imap_server.name)
+                            raise osv.except_osv(
+                                _("Connection test failed!"),
+                                _("Here is what we got instead:\n %s.")
+                                % tools.ustr(e))
+                        # if put time.time() it raise error
+                        # imaplib.Time2Internaldate(time.time())
+                        success = imap_server.append(
+                            'Inbox.Sent', '\\Seen',
+                            False, str(msg)
+                        )
+                        if success != True:
+                            print(imap_server.lastErrorText())
+
+                        print("Mail saved to Inbox.Sent")
 
                 # /!\ can't use mail.state here, as mail.refresh() will cause an error
                 # see revid:odo@openerp.com-20120622152536-42b2s28lvdv3odyr in 6.1
