@@ -207,8 +207,13 @@ class account_analytic_account(osv.osv):
         if child_ids:
             #Search all invoice lines not in cancelled state that refer to this analytic account
             inv_line_obj = self.pool.get("account.invoice.line")
-            inv_lines = inv_line_obj.search(cr, uid, ['&', ('account_analytic_id', 'in', child_ids), ('invoice_id.state', 'not in', ['draft', 'cancel']), ('invoice_id.type', 'in', ['out_invoice', 'out_refund'])], context=context)
+            inv_lines = inv_line_obj.search(cr, uid, [('account_analytic_id', 'in', child_ids)], context=context)
             for line in inv_line_obj.browse(cr, uid, inv_lines, context=context):
+                if line.invoice_id.state not in ('draft', 'cancel'):
+                    continue
+                if line.invoice_id.type not in ('out_invoice', 'out_refund'):
+                    continue
+
                 if line.invoice_id.type == 'out_refund':
                     res[line.account_analytic_id.id] -= line.price_subtotal
                 else:
@@ -311,8 +316,16 @@ class account_analytic_account(osv.osv):
         inv_ids = []
         for account in self.browse(cr, uid, ids, context=context):
             res[account.id] = 0.0
-            line_ids = lines_obj.search(cr, uid, [('account_id','=', account.id), ('invoice_id','!=',False), ('to_invoice','!=', False), ('journal_id.type', '=', 'general'), ('invoice_id.type', 'in', ['out_invoice', 'out_refund'])], context=context)
+            line_ids = lines_obj.search(
+                cr, uid,
+                [('account_id','=', account.id),
+                 ('invoice_id','!=',False),
+                 ('to_invoice','!=', False),
+                 ('journal_id.type', '=', 'general')],
+                context=context)
             for line in lines_obj.browse(cr, uid, line_ids, context=context):
+                if line.invoice_id.type not in ('out_invoice', 'out_refund'):
+                    continue
                 if line.invoice_id not in inv_ids:
                     inv_ids.append(line.invoice_id)
                     if line.invoice_id.type == 'out_refund':
