@@ -140,7 +140,11 @@ class wizard_user(osv.osv_memory):
             if wizard_user.in_portal:
                 # create a user if necessary, and make sure it is in the portal group
                 if not user:
-                    user = self._create_user(cr, SUPERUSER_ID, wizard_user, context)
+                    if wizard_user.partner_id.company_id:
+                        company_id = wizard_user.partner_id.company_id.id
+                    else:
+                        company_id = self.pool['res.users'].browse(cr, SUPERUSER_ID, uid, context=context).company_id.id
+                    user = self._create_user(cr, SUPERUSER_ID, wizard_user, dict(context, company_id=company_id))
                 if (not user.active) or (portal not in user.groups_id):
                     user.write({'active': True, 'groups_id': [(4, portal.id)]})
                     # prepare for the signup process
@@ -177,6 +181,8 @@ class wizard_user(osv.osv_memory):
         res_users = self.pool.get('res.users')
         create_context = dict(context or {}, noshortcut=True)       # to prevent shortcut creation
         values = {
+            'company_id': context['company_id'],
+            'company_ids': [(6, 0, [context['company_id']])],
             'login': extract_email(wizard_user.email),
             'partner_id': wizard_user.partner_id.id,
             'groups_id': [(6, 0, [])],
