@@ -1405,7 +1405,7 @@
             <field name="code">4009</field>
             <field name="reconcile" eval="True"/>
             <field name="name">Proveedores, facturas pendientes de recibir o de formalizar</field>
-            <field name="user_type_id" ref="account.data_account_type_payable"/>
+            <field name="user_type_id" ref="account.data_account_type_current_liabilities"/>
             <field name="chart_template_id" ref="account_chart_template_common"/>
             <field name="group_id" ref="l10n_es.account_group_4009" />
         </record>
@@ -1685,7 +1685,7 @@
             <field name="code">438</field>
             <field name="reconcile" eval="True"/>
             <field name="name">Anticipos de clientes</field>
-            <field name="user_type_id" ref="account.data_account_type_receivable"/>
+            <field name="user_type_id" ref="account.data_account_type_current_liabilities"/>
             <field name="chart_template_id" ref="account_chart_template_common"/>
             <field name="group_id" ref="l10n_es.account_group_438" />
         </record>
