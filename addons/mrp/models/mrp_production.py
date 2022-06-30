@@ -804,23 +804,24 @@ class MrpProduction(models.Model):
     def _log_manufacture_exception(self, documents, cancel=False):
 
         def _render_note_exception_quantity_mo(rendering_context):
-            visited_objects = []
-            order_exceptions = {}
-            for exception in rendering_context:
-                order_exception, visited = exception
-                order_exceptions.update(order_exception)
-                visited_objects += visited
-            visited_objects = self.env[visited_objects[0]._name].concat(*visited_objects)
-            impacted_object = []
-            if visited_objects and visited_objects._name == 'stock.move':
-                visited_objects |= visited_objects.mapped('move_orig_ids')
-                impacted_object = visited_objects.filtered(lambda m: m.state not in ('done', 'cancel')).mapped('picking_id')
-            values = {
-                'production_order': self,
-                'order_exceptions': order_exceptions,
-                'impacted_object': impacted_object,
-                'cancel': cancel
-            }
-            return self.env.ref('mrp.exception_on_mo').render(values=values)
+            for record in self:
+                visited_objects = []
+                order_exceptions = {}
+                for exception in rendering_context:
+                    order_exception, visited = exception
+                    order_exceptions.update(order_exception)
+                    visited_objects += visited
+                visited_objects = self.env[visited_objects[0]._name].concat(*visited_objects)
+                impacted_object = []
+                if visited_objects and visited_objects._name == 'stock.move':
+                    visited_objects |= visited_objects.mapped('move_orig_ids')
+                    impacted_object = visited_objects.filtered(lambda m: m.state not in ('done', 'cancel')).mapped('picking_id')
+                values = {
+                    'production_order': record,
+                    'order_exceptions': order_exceptions,
+                    'impacted_object': impacted_object,
+                    'cancel': cancel
+                }
+                return self.env.ref('mrp.exception_on_mo').render(values=values)
 
         self.env['stock.picking']._log_activity(_render_note_exception_quantity_mo, documents)
