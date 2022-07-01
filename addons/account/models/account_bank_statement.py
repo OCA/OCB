@@ -370,14 +370,21 @@ class AccountBankStatementLine(models.Model):
                 st_line.journal_entry_ids.unlink()
                 move_id.unlink()
             else:
+                created_move_ids = st_line.journal_entry_ids.filtered(lambda r: r.move_id.journal_id.id in [10, 53]).mapped('move_id')
+
                 payment = self.env['account.payment'].search([('statement_line_id', '=', st_line.id),
                                                               ('state', '!=', 'cancelled')])
                 if payment:
+                    payment.move_line_ids.filtered(lambda x: x.full_reconcile_id).remove_move_reconcile()
                     payment.cancel()
-                # todo: unreconcile
+                # todo: ara devirleri sil
                 st_line.write({
                     'journal_entry_ids': [(6, 0, [])], # Empty account move lines
                 })
+                if created_move_ids:
+                    created_move_ids.button_cancel()
+                    created_move_ids.mapped('line_ids').unlink()
+                    created_move_ids.unlink()
 
 
     ####################################################
