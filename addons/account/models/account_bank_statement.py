@@ -362,34 +362,23 @@ class AccountBankStatementLine(models.Model):
 
     @api.multi
     def button_cancel_reconciliation(self):
-        aml_to_unbind = self.env['account.move.line']
-        aml_to_cancel = self.env['account.move.line']
-        payment_to_unreconcile = self.env['account.payment']
-        payment_to_cancel = self.env['account.payment']
+
         for st_line in self:
-            aml_to_unbind |= st_line.journal_entry_ids
-            for line in st_line.journal_entry_ids:
-                payment_to_unreconcile |= line.payment_id
-                if st_line.move_name and line.payment_id.payment_reference == st_line.move_name:
-                    #there can be several moves linked to a statement line but maximum one created by the line itself
-                    aml_to_cancel |= line
-                    payment_to_cancel |= line.payment_id
-        aml_to_unbind = aml_to_unbind - aml_to_cancel
+            if not st_line.partner_id:
+                move_id = st_line.journal_entry_ids.mapped('move_id')
+                move_id.button_cancel()
+                st_line.journal_entry_ids.unlink()
+                move_id.unlink()
+            else:
+                payment = self.env['account.payment'].search([('statement_line_id', '=', st_line.id),
+                                                              ('state', '!=', 'cancelled')])
+                if payment:
+                    payment.cancel()
+                # todo: unreconcile
+                st_line.write({
+                    'journal_entry_ids': [(6, 0, [])], # Empty account move lines
+                })
 
-        if aml_to_unbind:
-            aml_to_unbind.write({'statement_line_id': False})
-
-        payment_to_unreconcile = payment_to_unreconcile - payment_to_cancel
-        if payment_to_unreconcile:
-            payment_to_unreconcile.unreconcile()
-
-        if aml_to_cancel:
-            aml_to_cancel.remove_move_reconcile()
-            moves_to_cancel = aml_to_cancel.mapped('move_id')
-            moves_to_cancel.button_cancel()
-            moves_to_cancel.unlink()
-        if payment_to_cancel:
-            payment_to_cancel.unlink()
 
     ####################################################
     # Reconciliation methods
@@ -638,13 +627,15 @@ class AccountBankStatementLine(models.Model):
 
                 payment_methods = (total>0) and self.journal_id.inbound_payment_method_ids or self.journal_id.outbound_payment_method_ids
                 currency = self.journal_id.currency_id or self.company_id.currency_id
+
                 payment = self.env['account.payment'].create({
                     'payment_method_id': payment_methods and payment_methods[0].id or False,
-                    'payment_type': total >0 and 'inbound' or 'outbound',
+                    'payment_type': total > 0 and 'inbound' or 'outbound',
                     'partner_id': partner_id.id,
                     'partner_type': partner_type,
                     'journal_id': self.statement_id.journal_id.id,
                     'payment_date': self.date,
+                    'statement_line_id': self.id,
                     'state': 'draft',
                     'payment_reference': self.name,
                     'currency_id': currency.id,
@@ -692,9 +683,6 @@ class AccountBankStatementLine(models.Model):
                 amls_to_reconcile.reconcile()
                 if not amls_to_reconcile.mapped('full_reconcile_id'):
                     raise UserError(_('Full reconcilation process is failed. Aborted.\n'))
-
-            payment and payment.write({'payment_reference': self.statement_id.name})
-
         else:
             move_vals = self._prepare_reconciliation_move(self.statement_id.name)
             aml_to_create = []
