@@ -640,7 +640,7 @@ class AccountBankStatementLine(models.Model):
                 currency = self.journal_id.currency_id or self.company_id.currency_id
                 payment = self.env['account.payment'].create({
                     'payment_method_id': payment_methods and payment_methods[0].id or False,
-                    'payment_type': total > 0 and 'inbound' or 'outbound',
+                    'payment_type': total >0 and 'inbound' or 'outbound',
                     'partner_id': partner_id.id,
                     'partner_type': partner_type,
                     'journal_id': self.statement_id.journal_id.id,
@@ -670,6 +670,7 @@ class AccountBankStatementLine(models.Model):
             for aml_dict in new_aml_dicts:
                 aml_dict['partner_id'] = self.partner_id.id
                 aml_dict['statement_line_id'] = self.id
+
                 account_id = self.env['account.account'].browse(aml_dict['account_id'])
                 if account_id.code == '100.D':
                     aml_dict['journal_id'] = 10

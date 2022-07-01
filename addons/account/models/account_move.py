@@ -872,8 +872,8 @@ class AccountMoveLine(models.Model):
                 (all(amls.mapped('tax_exigible')) or all(matched_percentages[aml.move_id.id] >= 1.0 for aml in caba_connected_amls))
                 and
                 (
-                    currency and float_is_zero(total_amount_currency, precision_rounding=currency.rounding) or
-                    multiple_currency and float_compare(total_debit, total_credit, precision_rounding=digits_rounding_precision) == 0
+                    currency and float_is_zero(total_amount_currency, precision_rounding=0.01) or
+                    multiple_currency and float_compare(total_debit, total_credit, precision_rounding=0.01) == 0
                 )
         ):
 
