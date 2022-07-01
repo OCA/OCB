@@ -759,7 +759,6 @@ class AccountBankStatementLine(models.Model):
                 aml_dict['currency_id'] = aml_dict['move_line'].currency_id.id
                 aml_dict['debit'] = aml_dict['move_line'].debit
                 aml_dict['credit'] = aml_dict['move_line'].credit
-                #todo check if amount residual and amout are same or solve other way
             else:
                 aml_dict['amount_currency'] = aml_dict['debit'] - aml_dict['credit']
                 aml_dict['currency_id'] = partner_currency.id
