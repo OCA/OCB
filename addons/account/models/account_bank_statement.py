@@ -585,7 +585,7 @@ class AccountBankStatementLine(models.Model):
         counterpart_aml_dicts = counterpart_aml_dicts or []
         payment_aml_rec = payment_aml_rec or self.env['account.move.line']
         new_aml_dicts = new_aml_dicts or []
-
+        no_full_reconcile = False
         aml_obj = self.env['account.move.line']
         # Check and prepare received data
         if any(rec.statement_id for rec in payment_aml_rec):
@@ -683,14 +683,16 @@ class AccountBankStatementLine(models.Model):
                 aml_dict['debit'] = aml_dict['credit']
                 aml_dict['credit'] = debit
                 self._prepare_move_line_for_currency(aml_dict, date)
-                amls_to_reconcile |= amls_to_reconcile._create_writeoff([aml_dict])
+                if account_id not in self.partner_id.property_account_receivable_id + self.partner_id.property_account_payable_id:
+                    amls_to_reconcile |= amls_to_reconcile._create_writeoff([aml_dict])
+                else:
+                    no_full_reconcile = True
 
-            # Create counterpart move lines and reconcile them
-            # for aml_dict in counterpart_aml_dicts:
-            #     aml_dict['move_line'].write({'statement_line_id': self.id,
-            #                                  'payment_id': payment and payment.id or False})
+            if not no_full_reconcile:
+                amls_to_reconcile.reconcile()
+                if not amls_to_reconcile.mapped('full_reconcile_id'):
+                    raise UserError(_('Full reconcilation process is failed. Aborted.\n'))
 
-            amls_to_reconcile.reconcile()
             payment and payment.write({'payment_reference': self.statement_id.name})
 
         else:
