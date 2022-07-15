@@ -3,6 +3,7 @@
      © 2011-2019 Ignacio Ibeas - Acysos
      © 2014 Pablo Cayuela - Aserti Global Solutions
      © 2014 Ángel Moya - Domatix
+     © 2017 Ángel Moya - PESOL
      © 2015 Carlos Liébana - Factor Libre
      © 2015 Albert Cabedo - GAFIC consultores
      © 2015 Vicent Cubells
@@ -729,6 +730,18 @@
         <field name="tax_group_id" ref="tax_group_iva_4"/>
         <field name="tag_ids" eval="[(6, False, [ref('mod_303_28_29'), ref('mod_303_40_41')])]"/>
     </record>
+    <record id="account_tax_template_p_iva5_sc" model="account.tax.template">
+        <field name="description"/> <!-- for resetting the value on existing DBs -->
+        <field name="type_tax_use">purchase</field>
+        <field name="account_id" ref="l10n_es.account_common_472"/>
+        <field name="name">5% IVA soportado</field>
+        <field name="refund_account_id" ref="l10n_es.account_common_472"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="amount" eval="5"/>
+        <field name="amount_type">percent</field>
+        <field name="tax_group_id" ref="tax_group_iva_5"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_28_29'), ref('mod_303_40_41')])]"/>
+    </record>
     <record id="account_tax_template_p_iva10_bi" model="account.tax.template">
         <field name="description">P_IVA10_BI</field>
         <field name="type_tax_use">purchase</field>
@@ -887,6 +900,18 @@
         <field name="amount" eval="4"/>
         <field name="amount_type">percent</field>
         <field name="tax_group_id" ref="tax_group_iva_4"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_01_03'), ref('mod_303_14_15_sale')])]"/>
+    </record>
+    <record id="account_tax_template_s_iva5s" model="account.tax.template">
+        <field name="description"/> <!-- for resetting the value on existing DBs -->
+        <field name="type_tax_use">sale</field>
+        <field name="account_id" ref="l10n_es.account_common_477"/>
+        <field name="name">IVA 5%</field>
+        <field name="refund_account_id" ref="l10n_es.account_common_477"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="amount" eval="5"/>
+        <field name="amount_type">percent</field>
+        <field name="tax_group_id" ref="tax_group_iva_5"/>
         <field name="tag_ids" eval="[(6, False, [ref('mod_303_01_03'), ref('mod_303_14_15_sale')])]"/>
     </record>
     <record id="account_tax_template_s_iva10s" model="account.tax.template">
