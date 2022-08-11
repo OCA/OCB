@@ -4532,7 +4532,7 @@ class AccountMoveLine(models.Model):
             # company.
             currency_id = vals.get('currency_id') or move.company_id.currency_id.id
             if currency_id == move.company_id.currency_id.id:
-                balance = vals.get('debit', 0.0) - vals.get('credit', 0.0)
+                balance = float(vals.get('debit', 0.0)) - float(vals.get('credit', 0.0))
                 vals.update({
                     'currency_id': currency_id,
                     'amount_currency': balance,
