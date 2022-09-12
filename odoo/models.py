@@ -2501,13 +2501,14 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         cr = self._cr
         cols = [name for name, field in self._fields.items()
                      if field.store and field.column_type]
-        cr.execute("SELECT a.attname, a.attnotnull"
-                   "  FROM pg_class c, pg_attribute a"
+   cr.execute("SELECT a.attname, a.attnotnull"
+                   "  FROM pg_class c JOIN pg_namespace n ON (n.oid = c.relnamespace), pg_attribute a"
                    " WHERE c.relname=%s"
                    "   AND c.oid=a.attrelid"
                    "   AND a.attisdropped=%s"
                    "   AND pg_catalog.format_type(a.atttypid, a.atttypmod) NOT IN ('cid', 'tid', 'oid', 'xid')"
-                   "   AND a.attname NOT IN %s", (self._table, False, tuple(cols))),
+                   "   AND a.attname NOT IN %s"
+                   "   AND n.nspname = current_schema", (self._table, False, tuple(cols))),
 
         for row in cr.dictfetchall():
             if log:
