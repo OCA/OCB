@@ -9,6 +9,7 @@
      © 2015 Vicent Cubells
      © 2013-2016 Pedro M. Baeza
      © 2020 Harald Panten - Sygel Technology
+     © 2022 Omar Castiñeira - Comunitea
      License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
 <odoo>
 
@@ -1601,6 +1602,117 @@
         <field name="tag_ids" eval="[(6, False, [ref('mod_303_28_29'), ref('mod_303_40_41'), ref('mod_303_12_13'), ref('mod_303_14_15_purchase')])]"/>
         <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
         <field name="tax_group_id" ref="tax_group_iva_21"/>
+    </record>
+    <record id="account_tax_template_p_iva4_isp_bi_1" model="account.tax.template">
+        <field name="name">IVA 4% ISP (bienes de inversión) (1)</field>
+        <field name="description">P_IVA4_ISP_BI_1</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">percent</field>
+        <field name="amount" eval="4"/>
+        <field name="sequence" eval="10"/>
+        <field name="refund_account_id" ref="l10n_es.account_common_472"/>
+        <field name="account_id" ref="l10n_es.account_common_472"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_4"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_30_31'), ref('mod_303_40_41')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva4_isp_bi_2" model="account.tax.template">
+        <field name="name">IVA 4% ISP (bienes de inversión) (2)</field>
+        <field name="description">P_IVA4_ISP_BI_2</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">percent</field>
+        <field name="amount" eval="-4"/>
+        <field name="sequence" eval="20"/>
+        <field name="refund_account_id" ref="l10n_es.account_common_477"/>
+        <field name="account_id" ref="l10n_es.account_common_477"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_4"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_12_13'), ref('mod_303_14_15_purchase')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva4_isp_bi" model="account.tax.template">
+        <field name="name">IVA 4% ISP (bienes de inversión)</field>
+        <field name="description">P_IVA4_ISP_BI</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">group</field>
+        <field name="amount" eval="100"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_4"/>
+        <field name="children_tax_ids" eval="[(6, 0, [ref('account_tax_template_p_iva4_isp_bi_1'), ref('account_tax_template_p_iva4_isp_bi_2')])]"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_30_31'), ref('mod_303_12_13'), ref('mod_303_40_41'), ref('mod_303_14_15_purchase')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva10_isp_bi_1" model="account.tax.template">
+        <field name="name">IVA 10% ISP (bienes de inversión) (1)</field>
+        <field name="description">P_IVA10_ISP_BI_1</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">percent</field>
+        <field name="amount" eval="10"/>
+        <field name="sequence" eval="10"/>
+        <field name="refund_account_id" ref="l10n_es.account_common_472"/>
+        <field name="account_id" ref="l10n_es.account_common_472"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_10"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_30_31'), ref('mod_303_40_41')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva10_isp_bi_2" model="account.tax.template">
+        <field name="name">IVA 10% ISP (bienes de inversión) (2)</field>
+        <field name="description">P_IVA10_ISP_BI_2</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">percent</field>
+        <field name="amount" eval="-10"/>
+        <field name="sequence" eval="20"/>
+        <field name="refund_account_id" ref="l10n_es.account_common_477"/>
+        <field name="account_id" ref="l10n_es.account_common_477"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_10"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_12_13'), ref('mod_303_14_15_purchase')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva10_isp_bi" model="account.tax.template">
+        <field name="name">IVA 10% ISP (bienes de inversión)</field>
+        <field name="description">P_IVA10_ISP_BI</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">group</field>
+        <field name="amount" eval="100"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_10"/>
+        <field name="children_tax_ids" eval="[(6, 0, [ref('account_tax_template_p_iva10_isp_bi_1'), ref('account_tax_template_p_iva10_isp_bi_2')])]"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_30_31'), ref('mod_303_12_13'), ref('mod_303_40_41'), ref('mod_303_14_15_purchase')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva21_isp_bi_1" model="account.tax.template">
+        <field name="name">IVA 21% ISP (bienes de inversión) (1)</field>
+        <field name="description">P_IVA21_ISP_BI_1</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">percent</field>
+        <field name="amount" eval="21"/>
+        <field name="sequence" eval="10"/>
+        <field name="refund_account_id" ref="l10n_es.account_common_472"/>
+        <field name="account_id" ref="l10n_es.account_common_472"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_21"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_30_31'), ref('mod_303_40_41')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva21_isp_bi_2" model="account.tax.template">
+        <field name="name">IVA 21% ISP (bienes de inversión) (2)</field>
+        <field name="description">P_IVA21_ISP_BI_2</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">percent</field>
+        <field name="amount" eval="-21"/>
+        <field name="sequence" eval="20"/>
+        <field name="refund_account_id" ref="l10n_es.account_common_477"/>
+        <field name="account_id" ref="l10n_es.account_common_477"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_21"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_12_13'), ref('mod_303_14_15_purchase')])]"/>
+    </record>
+    <record id="account_tax_template_p_iva21_isp_bi" model="account.tax.template">
+        <field name="name">IVA 21% ISP (bienes de inversión)</field>
+        <field name="description">P_IVA21_ISP_BI</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount_type">group</field>
+        <field name="amount" eval="100"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="tax_group_id" ref="tax_group_iva_21"/>
+        <field name="children_tax_ids" eval="[(6, 0, [ref('account_tax_template_p_iva21_isp_bi_1'), ref('account_tax_template_p_iva21_isp_bi_2')])]"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_303_30_31'), ref('mod_303_12_13'), ref('mod_303_40_41'), ref('mod_303_14_15_purchase')])]"/>
     </record>
     <record id="account_tax_template_p_rp19" model="account.tax.template">
         <field name="type_tax_use">purchase</field>
