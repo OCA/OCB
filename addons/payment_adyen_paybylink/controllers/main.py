@@ -44,7 +44,7 @@ class AdyenPayByLinkController(AdyenController):
             # Check whether the event of the notification succeeded and
             # reshape the notification data for parsing
             event_code = post['eventCode']
-            if event_code == 'AUTHORISATION' and post['success'] == 'true':
+            if event_code in ('AUTHORISATION', 'REFUND') and post['success'] == 'true':
                 post['authResult'] = 'AUTHORISED'
 
                 # Handle the notification data
