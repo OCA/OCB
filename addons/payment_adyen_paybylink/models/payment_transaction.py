@@ -51,3 +51,36 @@ class PaymentTransaction(models.Model):
         invalid parameters.
         """
         return []
+
+    def process_fraud_case(self, post):
+        """ Handle the case when Adyen informs us of a fraud and executes a
+        chargeback. In this case we block the SO and make a note on the
+        SO and (if existing) invoices
+        """
+        for so in self.sale_order_ids:
+            try:
+                so.action_cancel()
+            except Exception as e:
+                so.block_shipment = True
+                message = (
+                    'Order {order_name} cancellation failed with {error_m}.'
+                    ' Order is blocked instead. If DSV is the fulfillment'
+                    ' center call them and stop the shipment'.format(
+                        order_name=so.name,
+                        error_m=str(e)))
+                so.message_post(body=message)
+                _logger.error(message)
+                return False
+
+        tran_message = (
+            "Adyen notification with event code {event_code} cancelled the "
+            "transaction {tran_num} with reason: {reason}; - and reason code "
+            "{reason_code}. Related Sale Order is cancelled/blocked".format(
+                event_code=post.get('eventCode'),
+                tran_num=post.get('merchantReference'),
+                reason=post.get('reason'),
+                reason_code=post.get('additionalData.chargebackReasonCode'))
+        )
+        _logger.info(tran_message)
+        self.state_message = tran_message
+        self._set_transaction_cancel()

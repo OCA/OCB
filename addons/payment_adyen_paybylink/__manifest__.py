@@ -4,9 +4,11 @@
     'category': 'Accounting',
     'summary': "Payment Acquirer: Adyen Pay by Link Patch",
     'version': '1.0',
-    'description': """ This module migrates the Adyen implementation from 
+    'description': """ This module migrates the Adyen implementation from
         the Hosted Payment Pages API to the Pay by Link API. """,
-    'depends': ['payment_adyen'],
+    'depends': ['payment_adyen',
+                'sale_block_delivery',
+                ],
     'data': [
         'data/payment_acquirer_data.xml',
         'views/payment_views.xml',
