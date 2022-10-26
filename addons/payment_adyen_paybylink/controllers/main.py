@@ -50,6 +50,12 @@ class AdyenPayByLinkController(AdyenController):
                 # Handle the notification data
                 request.env['payment.transaction'].sudo().form_feedback(
                     post, 'adyen')
+
+            # Handle fraud cases
+            elif (event_code == 'NOTIFICATION_OF_CHARGEBACK' and
+                    post['success'] == 'true'):
+                tx_sudo.process_fraud_case(post)
+
         # Acknowledge the notification to avoid getting spammed
         except ValidationError:
             _logger.exception(
