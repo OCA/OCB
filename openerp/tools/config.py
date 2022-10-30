@@ -205,6 +205,8 @@ class configmanager(object):
                          help="specify the the maximum number of physical connections to posgresql")
         group.add_option("--db-template", dest="db_template", my_default="template1",
                          help="specify a custom database template to create a new database")
+        group.add_option("--db-cleanup-timeout", dest="db_cleanup_timeout",
+                         help="enable cleanup of DB connections older than N seconds")
         parser.add_option_group(group)
 
         group = optparse.OptionGroup(parser, "Internationalisation options",
@@ -362,7 +364,7 @@ class configmanager(object):
 
         # if defined dont take the configfile value even if the defined value is None
         keys = ['xmlrpc_interface', 'xmlrpc_port', 'longpolling_port',
-                'db_name', 'db_user', 'db_password', 'db_host',
+                'db_name', 'db_user', 'db_password', 'db_host', 'db_cleanup_timeout',
                 'db_port', 'db_template', 'logfile', 'pidfile', 'smtp_port',
                 'email_from', 'smtp_server', 'smtp_user', 'smtp_password',
                 'db_maxconn', 'import_partial', 'addons_path',

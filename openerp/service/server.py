@@ -221,6 +221,7 @@ class ThreadedServer(CommonServer):
                     except Exception:
                         _logger.warning('cron%d encountered an Exception:', number, exc_info=True)
                         break
+            openerp.sql_db.cleanup()
 
     def cron_spawn(self):
         """ Start the above runner function in a daemon thread.
