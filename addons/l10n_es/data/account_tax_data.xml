@@ -37,6 +37,14 @@
         <field name="name">mod111[09]</field>
         <field name="applicability">taxes</field>
     </record>
+    <record id="mod_111_11" model="account.account.tag">
+        <field name="name">mod111[11]</field>
+        <field name="applicability">taxes</field>
+    </record>
+    <record id="mod_111_12" model="account.account.tag">
+        <field name="name">mod111[12]</field>
+        <field name="applicability">taxes</field>
+    </record>
 
     <record id="mod_115_02_03" model="account.account.tag">
         <field name="name">mod115[02-03]</field>
@@ -1432,6 +1440,30 @@
         <field name="amount_type">percent</field>
         <field name="tax_group_id" ref="tax_group_retenciones_21"/>
         <field name="tag_ids" eval="[(6, False, [ref('mod_111_05'), ref('mod_111_06')])]"/>
+    </record>
+    <record id="account_tax_template_p_irpf15e" model="account.tax.template">
+        <field name="description">P_IRPF15E</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="account_id" ref="l10n_es.account_common_4751"/>
+        <field name="name">Retenciones IRPF 15% en especie</field>
+        <field name="refund_account_id" ref="l10n_es.account_common_4751"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="amount" eval="-15"/>
+        <field name="amount_type">percent</field>
+        <field name="tax_group_id" ref="tax_group_retenciones_15"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_111_11'), ref('mod_111_12')])]"/>
+    </record>
+    <record id="account_tax_template_p_irpf7e" model="account.tax.template">
+        <field name="description">S_IRPF7E</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="account_id" ref="l10n_es.account_common_4751"/>
+        <field name="name">Retenciones IRPF 7% en especie</field>
+        <field name="refund_account_id" ref="l10n_es.account_common_4751"/>
+        <field name="chart_template_id" ref="l10n_es.account_chart_template_common"/>
+        <field name="amount" eval="-7"/>
+        <field name="amount_type">percent</field>
+        <field name="tax_group_id" ref="tax_group_retenciones_7"/>
+        <field name="tag_ids" eval="[(6, False, [ref('mod_111_11'), ref('mod_111_12')])]"/>
     </record>
     <record id="account_tax_template_p_irpf20" model="account.tax.template">
         <field name="description">P_IRPF20</field>
