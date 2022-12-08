@@ -237,7 +237,13 @@ var TimeCounter = AbstractField.extend({
         } else {
             clearTimeout(this.timer);
         }
-        this.$el.html($('<span>' + moment.utc(this.duration).format("HH:mm:ss") + '</span>'));
+        var hours = Math.trunc(moment.duration(this.duration).asHours());
+        var hoursString = hours >= 100 && hours || (('0' + hours).slice(-2));
+        this.$el.html($('<span>'
+            + hoursString
+            + ':'
+            + moment.utc(this.duration).format("mm:ss")
+            + '</span>'));
     },
 });
 
