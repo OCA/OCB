@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import logging
+
 from odoo.addons.sale.tests.test_sale_common import TestSale
 from odoo.exceptions import UserError
 
+_logger = logging.getLogger(__name__)
 
 class TestSaleStock(TestSale):
     def test_00_sale_stock_invoice(self):
@@ -494,3 +497,54 @@ class TestSaleStock(TestSale):
         self.assertEqual(so1.picking_ids.state, 'done')
         self.assertEqual(so1.order_line.mapped('qty_delivered'), [1, 1, 1])
 
+    def test_08_overserve_make_to_order_product(self):
+        uom_unit = self.env.ref('product.product_uom_unit')
+        item1    = self.products['prod_del']
+        route_ids = self.env.ref('stock.route_warehouse0_mto')
+        try:
+            route_ids |= self.env.ref('purchase.route_warehouse0_buy')
+        except:
+            _logger.info("Apparently purchase not installed. Skipping test test_08_overserve_make_to_order_product.")
+            return
+        item1.route_ids = route_ids
+        item1.seller_ids = self.env['product.supplierinfo'].create({
+            'name': self.env.ref('base.res_partner_12').id
+        })
+        so1 = self.env['sale.order'].create({
+            'partner_id': self.partner.id,
+            'order_line': [
+                (0, 0, {
+                    'name': item1.name,
+                    'product_id': item1.id,
+                    'product_uom_qty': 1,
+                    'product_uom': uom_unit.id,
+                    'price_unit': item1.list_price,
+                }),
+            ],
+        })
+        so1.action_confirm()
+        self.assertEqual(len(so1.picking_ids), 1)
+        picking = so1.picking_ids
+        self.assertEqual(len(picking.move_lines), 1)
+        # picking.group_id == so1.procurement_group_id == po.order_line.move_dest_ids.group_id
+        self.assertTrue(picking.state, 'waiting')
+        po = self.env['purchase.order'].search([('order_line.move_dest_ids.group_id', '=', picking.group_id.id)])
+        self.assertTrue(len(po) == 1)
+        po.button_confirm()
+        po.picking_ids.move_line_ids[0].qty_done = 1
+        po.picking_ids.action_done()
+        self.assertTrue(picking.state, 'assigned')
+        picking.move_line_ids[0].qty_done = 3
+        picking.action_done()
+        self.assertTrue(len(so1.picking_ids) == 2)
+        new_picking = so1.picking_ids - picking
+        new_po      = self.env['purchase.order'].search([('order_line.move_dest_ids.group_id', '=', picking.group_id.id)]) - po
+        self.assertEqual(picking.state, 'done')
+        self.assertEqual(picking.move_lines.quantity_done        , 1) # since no more stock available
+        self.assertEqual(picking.move_lines.reserved_availability, 0)
+        self.assertEqual(new_picking.move_lines.product_uom_qty  , 2)
+        self.assertEqual(new_picking.state, 'waiting')
+        self.assertEqual(new_picking.move_lines.quantity_done        , 0)
+        self.assertEqual(new_picking.move_lines.reserved_availability, 0)
+        self.assertEqual(new_picking.move_lines.product_uom_qty      , 2)
+        self.assertEqual(new_po.order_line.product_qty, 2)

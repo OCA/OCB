@@ -240,7 +240,7 @@ class StockMove(models.Model):
         self.product_qty = self.product_uom._compute_quantity(self.product_uom_qty, self.product_id.uom_id, rounding_method=rounding_method)
 
     def _get_move_lines(self):
-        """ This will return the move lines to consider when applying _quantity_done_compute on a stock.move. 
+        """ This will return the move lines to consider when applying _quantity_done_compute on a stock.move.
         In some context, such as MRP, it is necessary to compute quantity_done on filtered sock.move.line."""
         self.ensure_one()
         return self.move_line_ids or self.move_line_nosuggest_ids
@@ -289,7 +289,7 @@ class StockMove(models.Model):
         and is represented by the aggregated `product_qty` on the linked move lines. If the move
         is force assigned, the value will be 0.
         """
-        result = {data['move_id'][0]: data['product_qty'] for data in 
+        result = {data['move_id'][0]: data['product_qty'] for data in
             self.env['stock.move.line'].read_group([('move_id', 'in', self.ids)], ['move_id','product_qty'], ['move_id'])}
         for rec in self:
             rec.reserved_availability = rec.product_id.uom_id._compute_quantity(result.get(rec.id, 0.0), rec.product_uom, rounding_method='HALF-UP')
@@ -553,7 +553,7 @@ class StockMove(models.Model):
     def _prepare_merge_move_sort_method(self, move):
         move.ensure_one()
         return [
-            move.product_id.id, move.price_unit, move.product_packaging.id, move.procure_method, 
+            move.product_id.id, move.price_unit, move.product_packaging.id, move.procure_method,
             move.product_uom.id, move.restrict_partner_id.id, move.scrapped, move.origin_returned_move_id.id
         ]
 
@@ -1060,7 +1060,7 @@ class StockMove(models.Model):
         """ If the quantity done on a move exceeds its quantity todo, this method will create an
         extra move attached to a (potentially split) move line. If the previous condition is not
         met, it'll return an empty recordset.
-        
+
         The rationale for the creation of an extra move is the application of a potential push
         rule that will handle the extra quantities.
         """
@@ -1119,10 +1119,12 @@ class StockMove(models.Model):
         for move in moves:
             if move.state == 'cancel' or move.quantity_done <= 0:
                 continue
-            # extra move will not be merged in mrp
-            if not move.picking_id:
-                moves_todo |= move
-            moves_todo |= move._create_extra_move()
+            moves_todo |= move
+            extra_move = move._create_extra_move()
+            if extra_move != move:
+                for ml in move.move_line_ids:
+                    ml.qty_done = ml.product_uom_qty
+            moves_todo |= extra_move
 
         # Split moves where necessary and move quants
         for move in moves_todo:
@@ -1152,7 +1154,8 @@ class StockMove(models.Model):
             if len(result_package.quant_ids.mapped('location_id')) > 1:
                 raise UserError(_('You should not put the contents of a package in different locations.'))
         picking = moves_todo and moves_todo[0].picking_id or False
-        moves_todo.write({'state': 'done', 'date': fields.Datetime.now()})
+        moves_todo.filtered(lambda x: x.state in ('assigned', 'confirmed', 'partially_available'))\
+                  .write({'state': 'done', 'date': fields.Datetime.now()})
         moves_todo.mapped('move_dest_ids')._action_assign()
 
         # We don't want to create back order for scrap moves
