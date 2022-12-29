@@ -71,4 +71,4 @@ class Planner(models.Model):
 
     @api.model
     def is_module_installed(self, module_name=None):
-        return module_name in self.env['ir.module.module']._installed()
+        return module_name in self.env.registry._init_modules
