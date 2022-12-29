@@ -345,6 +345,8 @@ class SaleOrder(models.Model):
         for invoice in invoices.values():
             if not invoice.invoice_line_ids:
                 raise UserError(_('There is no invoicable line.'))
+            # Compute taxes to check total amount
+            invoice.compute_taxes()
             # If invoice is negative, do a refund invoice instead
             if invoice.amount_total < 0:
                 invoice.type = 'out_refund'
