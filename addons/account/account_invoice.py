@@ -1680,12 +1680,13 @@ class mail_compose_message(models.Model):
     @api.multi
     def send_mail(self):
         context = self._context
+        ret = super(mail_compose_message, self).send_mail()
         if context.get('default_model') == 'account.invoice' and \
                 context.get('default_res_id') and context.get('mark_invoice_as_sent'):
             invoice = self.env['account.invoice'].browse(context['default_res_id'])
             invoice = invoice.with_context(mail_post_autofollow=True)
             invoice.write({'sent': True})
             invoice.message_post(body=_("Invoice sent"))
-        return super(mail_compose_message, self).send_mail()
+        return ret
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
