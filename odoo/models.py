@@ -3089,6 +3089,13 @@ class BaseModel(object):
             # not all records may be accessible, try with only current record
             result = self.read([f.name for f in fs], load='_classic_write')
 
+        # ensure relational_fields are declared into self._prefetch
+        for f in fs:
+            if not f.relational:
+                continue
+            for values in result:
+                self._prefetch[f.comodel_name].update(_normalize_ids(values[f.name]))
+
         # check the cache, and update it if necessary
         if field not in self._cache:
             for values in result:
