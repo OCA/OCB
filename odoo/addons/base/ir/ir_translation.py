@@ -160,11 +160,18 @@ class IrTranslationImport(object):
                        (tuple(src_relevant_fields), tuple(src_relevant_fields)))
 
         # Step 3: insert new translations
-        cr.execute(""" INSERT INTO %s(name, lang, res_id, src, type, value, module, state, comments)
+        cr.execute(""" INSERT INTO %(_model_table)s(name, lang, res_id, src, type, value, module, state, comments)
                        SELECT name, lang, res_id, src, type, value, module, state, comments
-                       FROM %s AS ti
-                       WHERE NOT EXISTS(SELECT 1 FROM ONLY %s AS irt WHERE %s);
-                   """ % (self._model_table, self._table, self._model_table, find_expr),
+                       FROM %(_table)s AS ti
+                       WHERE NOT EXISTS(SELECT 1 FROM ONLY %(_model_table)s AS irt WHERE %(find_expr)s) AND
+                             NOT EXISTS(SELECT 1 FROM ONLY %(_model_table)s AS irt
+                                        WHERE (irt.type, irt.name, irt.lang, irt.res_id, md5(irt.src)) =
+                                                  (ti.type, ti.name, ti.lang, ti.res_id, md5(ti.src))) AND
+                             NOT EXISTS(SELECT 1 FROM %(_table)s AS tj
+                                        WHERE (tj.type, tj.name, tj.lang, tj.res_id, md5(tj.src)) =
+                                                   (ti.type, ti.name, ti.lang, ti.res_id, md5(ti.src)) AND
+                                              tj.id > ti.id);
+                   """ % dict(_model_table=self._model_table, _table=self._table, find_expr=find_expr),
                    (tuple(src_relevant_fields), tuple(src_relevant_fields)))
 
         if self._debug:
@@ -281,8 +288,18 @@ class IrTranslation(models.Model):
             cr.execute('CREATE INDEX ir_translation_src_md5 ON ir_translation (md5(src))')
             cr.commit()
 
-        if 'ir_translation_ltn' not in indexes:
-            cr.execute('CREATE INDEX ir_translation_ltn ON ir_translation (name, lang, type)')
+        if 'ir_translation_unique' not in indexes:
+            # remove duplicated translations before unique index creation
+            cr.execute('''
+                DELETE FROM ir_translation t
+                USING    (SELECT type, name, lang, res_id, md5(src) AS md5_src, max(id) AS max_id
+                    FROM ir_translation
+                    GROUP BY type, name, lang, res_id, md5(src)
+                    HAVING COUNT(id) > 1) dup
+                WHERE    (t.type, t.name, t.lang, t.res_id, md5(t.src)) = (dup.type, dup.name, dup.lang, dup.res_id, dup.md5_src)
+                    AND t.id <> dup.max_id
+            ''')
+            cr.execute('CREATE UNIQUE INDEX ir_translation_unique ON ir_translation (type, name, lang, res_id, md5(src))')
             cr.commit()
         return res
 
