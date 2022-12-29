@@ -26,10 +26,10 @@ class SaleOrder(models.Model):
                 order.delivery_price = order.company_id.currency_id.with_context(date=order.date_order).compute(
                     order.carrier_id.with_context(order_id=order.id).price, order.pricelist_id.currency_id)
 
-    @api.onchange('partner_id')
+    @api.onchange('partner_shipping_id')
     def onchange_partner_id_dtype(self):
-        if self.partner_id:
-            self.carrier_id = self.partner_id.property_delivery_carrier_id
+        if self.partner_shipping_id:
+            self.carrier_id = self.partner_shipping_id.property_delivery_carrier_id.filtered('active')
 
     @api.multi
     def action_confirm(self):
