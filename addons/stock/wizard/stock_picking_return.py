@@ -34,7 +34,6 @@ class ReturnPicking(models.TransientModel):
             raise UserError("You may only return one picking at a time!")
         res = super(ReturnPicking, self).default_get(fields)
 
-        Quant = self.env['stock.quant']
         move_dest_exists = False
         product_return_moves = []
         picking = self.env['stock.picking'].browse(self.env.context.get('active_id'))
@@ -46,15 +45,7 @@ class ReturnPicking(models.TransientModel):
                     continue
                 if move.move_dest_id:
                     move_dest_exists = True
-                # Sum the quants in that location that can be returned (they should have been moved by the moves that were included in the returned picking)
-                quantity = sum(quant.qty for quant in Quant.search([
-                    ('history_ids', 'in', move.id),
-                    ('qty', '>', 0.0), ('location_id', 'child_of', move.location_dest_id.id)
-                ]).filtered(
-                    lambda quant: not quant.reservation_id or quant.reservation_id.origin_returned_move_id != move)
-                )
-                quantity = move.product_id.uom_id._compute_quantity(quantity, move.product_uom)
-                product_return_moves.append((0, 0, {'product_id': move.product_id.id, 'quantity': quantity, 'move_id': move.id}))
+                product_return_moves.append((0, 0, self._prepare_stock_return_picking_line_vals_from_move(move)))
 
             if not product_return_moves:
                 raise UserError(_("No products to return (only lines in Done state and not fully returned yet can be returned)!"))
@@ -72,6 +63,19 @@ class ReturnPicking(models.TransientModel):
                     location_id = picking.picking_type_id.return_picking_type_id.default_location_dest_id.id
                 res['location_id'] = location_id
         return res
+
+    @api.model
+    def _prepare_stock_return_picking_line_vals_from_move(self, move):
+        Quant = self.env['stock.quant']
+        # Sum the quants in that location that can be returned (they should have been moved by the moves that were included in the returned picking)
+        quantity = sum(quant.qty for quant in Quant.search([
+            ('history_ids', 'in', move.id),
+            ('qty', '>', 0.0), ('location_id', 'child_of', move.location_dest_id.id)
+        ]).filtered(
+            lambda quant: not quant.reservation_id or quant.reservation_id.origin_returned_move_id != move)
+        )
+        quantity = move.product_id.uom_id._compute_quantity(quantity, move.product_uom)
+        return {'product_id': move.product_id.id, 'quantity': quantity, 'move_id': move.id}
 
     @api.multi
     def _create_returns(self):
