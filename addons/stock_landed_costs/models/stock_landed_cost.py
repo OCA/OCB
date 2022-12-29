@@ -366,10 +366,11 @@ class AdjustmentLines(models.Model):
 
             # TDE FIXME: oh dear
             if self.env.user.company_id.anglo_saxon_accounting:
+                expense_account_id = self.product_id.product_tmpl_id.get_product_accounts()['expense'].id
                 debit_line = dict(base_line,
                                   name=(self.name + ": " + str(qty_out) + _(' already out')),
                                   quantity=0,
-                                  account_id=credit_account_id)
+                                  account_id=expense_account_id)
                 credit_line = dict(base_line,
                                    name=(self.name + ": " + str(qty_out) + _(' already out')),
                                    quantity=0,
