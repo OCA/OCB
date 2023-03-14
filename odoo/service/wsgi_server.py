@@ -26,6 +26,7 @@ import werkzeug.contrib.fixers
 
 import odoo
 from odoo.tools import config
+from odoo.tools.misc import frozendict
 
 _logger = logging.getLogger(__name__)
 
@@ -97,7 +98,12 @@ def _patch_xmlrpc_marshaller():
     def dump_bytes(marshaller, value, write):
         marshaller.dump_unicode(odoo.tools.ustr(value), write)
 
+    def dump_frozen_dict(marshaller, value, write):
+        value = dict(value)
+        marshaller.dump_struct(value, write)
+
     xmlrpclib.Marshaller.dispatch[bytes] = dump_bytes
+    xmlrpclib.Marshaller.dispatch[frozendict] = dump_frozen_dict
 
 def wsgi_xmlrpc(environ, start_response):
     """ Two routes are available for XML-RPC
