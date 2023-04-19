@@ -55,10 +55,6 @@ class AccountMove(models.Model):
     def _sequence_yearly_regex(self):
         return self.journal_id.sequence_override_regex or super()._sequence_yearly_regex
 
-    @property
-    def _sequence_fixed_regex(self):
-        return self.journal_id.sequence_override_regex or super()._sequence_fixed_regex
-
     @api.model
     def _search_default_journal(self, journal_types):
         company_id = self._context.get('default_company_id', self.env.company.id)
@@ -1201,8 +1197,6 @@ class AccountMove(models.Model):
                 try:
                     if not move.posted_before:
                         move._constrains_date_sequence()
-                    # Has already a name or is not posted, we don't add to a batch
-                    continue
                 except ValidationError:
                     # Has never been posted and the name doesn't match the date: recompute it
                     pass
