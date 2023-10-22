@@ -4080,6 +4080,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         self._check_qorder(order_spec)
 
         order_by_elements = []
+        order_by_fields = []
         for order_part in order_spec.split(','):
             order_split = order_part.strip().split(' ')
             order_field = order_split[0].strip()
@@ -4094,6 +4095,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
             if order_field == 'id':
                 order_by_elements.append('"%s"."%s" %s' % (alias, order_field, order_direction))
+                order_by_fields.append('"%s"."%s"' % (alias, order_field))
             else:
                 if field.inherited:
                     field = field.base_field
@@ -4101,16 +4103,19 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                     key = (field.model_name, field.comodel_name, order_field)
                     if key not in seen:
                         seen.add(key)
-                        order_by_elements += self._generate_m2o_order_by(alias, order_field, query, do_reverse, seen)
+                        elements, fields = self._generate_m2o_order_by(alias, order_field, query, do_reverse, seen)
+                        order_by_elements += elements
+                        order_by_fields += fields
                 elif field.store and field.column_type:
                     qualifield_name = self._inherits_join_calc(alias, order_field, query, implicit=False, outer=True)
                     if field.type == 'boolean':
                         qualifield_name = "COALESCE(%s, false)" % qualifield_name
-                    order_by_elements.append("%s %s" % (qualifield_name, order_direction))
+                    order_by_elements.append('%s %s' % (qualifield_name, order_direction))
+                    order_by_fields.append(qualifield_name)
                 else:
                     continue  # ignore non-readable or "non-joinable" fields
 
-        return order_by_elements
+        return (order_by_elements, order_by_fields)
 
     @api.model
     def _generate_order_by(self, order_spec, query):
@@ -4123,11 +4128,34 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         order_by_clause = ''
         order_spec = order_spec or self._order
         if order_spec:
-            order_by_elements = self._generate_order_by_inner(self._table, order_spec, query)
+            order_by_elements, _ = self._generate_order_by_inner(self._table, order_spec, query)
             if order_by_elements:
                 order_by_clause = ",".join(order_by_elements)
 
         return order_by_clause and (' ORDER BY %s ' % order_by_clause) or ''
+
+    @api.model
+    def _generate_order_by_for_distinct(self, order_spec, query):
+        """
+        Like _generate_order_by, but returns a tuple with the return
+        value of _generate_order_by, and as the second item the list of 
+        fields in the ORDER BY clause.
+
+        :raise ValueError in case order_spec is malformed
+        """
+        order_by_clause = ''
+        order_spec = order_spec or self._order
+        if order_spec:
+            order_by_elements, order_by_fields = self._generate_order_by_inner(
+                self._table, order_spec, query
+            )
+            if order_by_elements:
+                order_by_clause = ",".join(order_by_elements)
+
+        return (
+            ' ORDER BY %s ' % order_by_clause,
+            order_by_fields
+        )
 
     @api.model
     def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
@@ -4149,33 +4177,29 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
         query = self._where_calc(args)
         self._apply_ir_rules(query, 'read')
-        order_by = self._generate_order_by(order, query)
+        order_by, order_by_fields = self._generate_order_by_for_distinct(order, query)
         from_clause, where_clause, where_clause_params = query.get_sql()
+        order_by_fields_str = ', ' + ','.join(order_by_fields)
 
         where_str = where_clause and (" WHERE %s" % where_clause) or ''
 
         if count:
             # Ignore order, limit and offset when just counting, they don't make sense and could
             # hurt performance
-            query_str = 'SELECT count(1) FROM ' + from_clause + where_str
+            query_str = 'SELECT COUNT(DISTINCT("%s".id)) FROM ' % self._table + from_clause + where_str
             self._cr.execute(query_str, where_clause_params)
             res = self._cr.fetchone()
             return res[0]
 
         limit_str = limit and ' limit %d' % limit or ''
         offset_str = offset and ' offset %d' % offset or ''
-        query_str = 'SELECT "%s".id FROM ' % self._table + from_clause + where_str + order_by + limit_str + offset_str
+        # TODO: Don't use DISTINCT(...) when there is only one table in FROM,
+        #       to prevent unnecessary overhead.
+        query_str = ('SELECT DISTINCT("%s".id)' + order_by_fields_str + ' FROM ') % self._table + from_clause + where_str + order_by + limit_str + offset_str
         self._cr.execute(query_str, where_clause_params)
         res = self._cr.fetchall()
 
-        # TDE note: with auto_join, we could have several lines about the same result
-        # i.e. a lead with several unread messages; we uniquify the result using
-        # a fast way to do it while preserving order (http://www.peterbe.com/plog/uniqifiers-benchmark)
-        def _uniquify_list(seq):
-            seen = set()
-            return [x for x in seq if x not in seen and not seen.add(x)]
-
-        return _uniquify_list([x[0] for x in res])
+        return [x[0] for x in res]
 
     @api.multi
     @api.returns(None, lambda value: value[0])
