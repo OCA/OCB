@@ -62,7 +62,19 @@ _logger = logging.getLogger(__name__)
 _schema = logging.getLogger(__name__ + '.schema')
 _unlink = logging.getLogger(__name__ + '.unlink')
 
-regex_order = re.compile('^(\s*([a-z0-9:_]+|"[a-z0-9:_]+")(\s+(desc|asc))?\s*(,|$))+(?<!,)$', re.I)
+regex_alphanumeric = re.compile(r'^[a-z0-9_]+$')
+regex_order = re.compile(r'''
+    ^
+    (\s*
+        ((?P<field>[a-z0-9:_]+|"[a-z0-9:_]+")(\.(?P<property>[a-z0-9_]+))?)
+        (\s+(?P<direction>desc|asc))?
+        (\s+(?P<nulls>nulls\ first|nulls\ last))?
+        \s*
+        (,|$)
+    )+
+    (?<!,)
+    $
+''', re.IGNORECASE | re.VERBOSE)
 regex_object_name = re.compile(r'^[a-z0-9_.]+$')
 regex_pg_name = re.compile(r'^[a-z_][a-z0-9_$]*$', re.I)
 onchange_v7 = re.compile(r"^([a-zA-Z]\w+)\((.*)\)$")
@@ -110,6 +122,10 @@ def check_method_name(name):
     """ Raise an ``AccessError`` if ``name`` is a private method name. """
     if regex_private.match(name):
         raise AccessError(_('Private methods (such as %s) cannot be called remotely.') % (name,))
+
+def check_property_field_value_name(property_name):
+    if not regex_alphanumeric.match(property_name):
+        raise ValueError(_("Wrong property field value name %r.", property_name))
 
 def same_name(f, g):
     """ Test whether functions ``f`` and ``g`` are identical or have the same name """
@@ -3784,11 +3800,17 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
         order_by_elements = []
         for order_part in order_spec.split(','):
-            order_split = order_part.strip().split(' ')
-            order_field = order_split[0].strip()
-            order_direction = order_split[1].strip().upper() if len(order_split) == 2 else ''
+            order_match = regex_order.match(order_part)
+            order_field = order_match['field']
+            property_name = order_match['property']
+            if property_name:
+                check_property_field_value_name(property_name)
+            order_direction = (order_match['direction'] or '').upper()
+            order_nulls = (order_match['nulls'] or '').upper()
             if reverse_direction:
                 order_direction = 'ASC' if order_direction == 'DESC' else 'DESC'
+                if order_nulls:
+                        order_nulls = 'NULLS LAST' if order_nulls == 'NULLS FIRST' else 'NULLS FIRST'
             do_reverse = order_direction == 'DESC'
 
             field = self._fields.get(order_field)
@@ -3796,12 +3818,18 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 raise ValueError(_("Sorting field %s not found on model %s") % (order_field, self._name))
 
             if order_field == 'id':
-                order_by_elements.append('"%s"."%s" %s' % (alias, order_field, order_direction))
+                order_by_elements.append(f'"{alias}"."{order_field}" {order_direction} {order_nulls}')
             else:
                 if field.inherited:
                     field = field.base_field
                 if field.store and field.type == 'many2one':
                     key = (field.model_name, field.comodel_name, order_field)
+                    if order_nulls:
+                        qname = self._inherits_join_calc(alias, order_field, query)
+                        if order_nulls == 'NULLS LAST':
+                            order_by_elements.append(f"{qname} IS NULL")
+                        elif order_nulls == 'NULLS FIRST':
+                            order_by_elements.append(f"{qname} IS NOT NULL")
                     if key not in seen:
                         seen.add(key)
                         order_by_elements += self._generate_m2o_order_by(alias, order_field, query, do_reverse, seen)
@@ -3809,7 +3837,9 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                     qualifield_name = self._inherits_join_calc(alias, order_field, query, implicit=False, outer=True)
                     if field.type == 'boolean':
                         qualifield_name = "COALESCE(%s, false)" % qualifield_name
-                    order_by_elements.append("%s %s" % (qualifield_name, order_direction))
+                    elif field.type == 'properties' and property_name:
+                        qualifield_name = f"({qualifield_name} -> '{property_name}')"
+                    order_by_elements.append(f"{qualifield_name} {order_direction} {order_nulls}")
                 else:
                     continue  # ignore non-readable or "non-joinable" fields
 
