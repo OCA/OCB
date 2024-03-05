@@ -76,7 +76,11 @@ class PaypalController(http.Controller):
             new_post['cmd'] = '_notify-synch'  # command is different in PDT than IPN/DPN
         validate_url = paypal_urls['paypal_form_url']
         urequest = urllib2.Request(validate_url, werkzeug.url_encode(new_post))
-        uopen = urllib2.urlopen(urequest)
+        try:
+            uopen = urllib2.urlopen(urequest)
+        except Exception as e:
+            _logger.exception('PayPal: validation request failed, with url %s, data %s, exception %s', validate_url, new_post, e)
+            return res
         resp = uopen.read()
         if pdt_request:
             resp, post = self._parse_pdt_response(resp)
