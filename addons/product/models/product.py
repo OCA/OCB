@@ -409,7 +409,7 @@ class ProductProduct(models.Model):
             # if we copy a variant or create one, we keep the same template
             default['product_tmpl_id'] = self.product_tmpl_id.id
         elif 'name' not in default:
-            default['name'] = self.name
+            default['name'] = _("%s (copy)") % (self.name)
 
         return super(ProductProduct, self).copy(default=default)
 
