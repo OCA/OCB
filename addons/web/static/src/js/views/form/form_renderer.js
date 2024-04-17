@@ -194,11 +194,11 @@ var FormRenderer = BasicRenderer.extend({
      */
     getLocalState: function () {
         var state = {};
-        this.$('div.o_notebook').each(function () {
+        this.$('div.o_notebook').each(function (k) {
             var $notebook = $(this);
-            var name = $notebook.data('name');
+            var name = k;
             var index = -1;
-            $notebook.find('.nav-link').each(function (i) {
+            $notebook.children('ul').find('.nav-link').each(function (i) {
                 if ($(this).hasClass('active')) {
                     index = i;
                 }
@@ -228,9 +228,9 @@ var FormRenderer = BasicRenderer.extend({
      * @param {Object} state the result from a getLocalState call
      */
     setLocalState: function (state) {
-        this.$('div.o_notebook').each(function () {
+        this.$('div.o_notebook').each(function (k) {
             var $notebook = $(this);
-            var name = $notebook.data('name');
+            var name = k;
             if (name in state) {
                 var $page = $notebook.find('> ul > li').eq(state[name]);
                 if (!$page.hasClass('o_invisible_modifier')) {
