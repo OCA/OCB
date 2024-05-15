@@ -115,7 +115,7 @@ class StockMoveLine(models.Model):
                         # no need to adapt `remaining_qty` and `remaining_value` as `_run_fifo` took care of it
                         move_vals['value'] = move_id.value - correction_value
                     elif move_id._is_out() and qty_difference < 0:
-                        candidates_receipt = self.env['stock.move'].search(move_id._get_in_domain(), order='date, id desc', limit=1)
+                        candidates_receipt = self.env['stock.move'].search(move_id._get_in_domain(), order='date desc, id desc', limit=1)
                         if candidates_receipt:
                             candidates_receipt.write({
                                 'remaining_qty': candidates_receipt.remaining_qty + -qty_difference,
