@@ -28,7 +28,9 @@ class MassMailController(http.Controller):
         """Dummy route so placeholder is not prefixed by language, MUST have multilang=False"""
         raise werkzeug.exceptions.NotFound()
 
-    @http.route(['/mail/mailing/<int:mailing_id>/unsubscribe'], type='http', website=True, auth='public')
+    # csrf is disabled here because it will be called by the MUA with unpredictable session at that time
+    @http.route(['/mail/mailing/<int:mailing_id>/unsubscribe'], type='http', website=True, auth='public',
+                csrf=False)
     def mailing(self, mailing_id, email=None, res_id=None, token="", **post):
         mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
         if mailing.exists():
