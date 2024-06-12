@@ -84,7 +84,7 @@ class SaleOrder(models.Model):
             ])
             if domain_inv:
                 refund_ids = self.env['account.invoice'].search(expression.AND([
-                    ['&', ('type', '=', 'out_refund'), ('origin', '!=', False)], 
+                    ['&', ('type', '=', 'out_refund'), ('origin', '!=', False)],
                     domain_inv
                 ]))
             else:
@@ -131,6 +131,13 @@ class SaleOrder(models.Model):
         """
         for order in self:
             order.order_line._compute_tax_id()
+
+            for line in order.order_line:
+                line.price_unit =\
+                    self.env['account.tax']._fix_tax_included_price_company(
+                        line._get_display_price(line.product_id),
+                        line.product_id.taxes_id,
+                        line.tax_id, order.company_id)
 
     @api.multi
     def _get_payment_type(self):
