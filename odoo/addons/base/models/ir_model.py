@@ -886,7 +886,12 @@ class IrModelFields(models.Model):
                 keys = [key for key in new_vals if old_vals[key] != new_vals[key]]
                 self.pool.post_init(record.modified, keys)
                 old_vals.update(new_vals)
-            if module and (module == model._original_module or module in field._modules):
+            if module and (module == model._original_module or module in field._modules or any(
+                    # module introduced field on model by inheritance
+                    name in self.env[parent]._fields
+                    for parent, parent_module in model._inherit_module.items()
+                    if module == parent_module
+                )):
                 # remove this and only keep the else clause if version >= saas-12.4
                 if field.manual:
                     self.pool.loaded_xmlids.add(
