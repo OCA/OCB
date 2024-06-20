@@ -155,8 +155,12 @@ return AbstractModel.extend({
                 fields = fields.concat(this.chart.measure);
             }
         }
-
-        var context = _.extend({fill_temporal: true}, this.chart.context);
+        var context = _.extend({
+            fill_temporal: this.chart.timeRange.length ? {
+                'fill_from': this.chart.timeRange[1][2],
+                'fill_to': this.chart.timeRange[2][2],
+            } : {}
+        }, this.chart.context);
         var defs = [];
         defs.push(this._rpc({
             model: this.modelName,
@@ -169,10 +173,16 @@ return AbstractModel.extend({
         }).then(this._processData.bind(this, 'data')));
 
         if (this.chart.compare) {
+            var context_compare = _.extend({
+                fill_temporal: this.chart.comparisonTimeRange.length ? {
+                    'fill_from': this.chart.comparisonTimeRange[1][2],
+                    'fill_to': this.chart.comparisonTimeRange[2][2],
+                } : {}
+            }, this.chart.context);
             defs.push(this._rpc({
                 model: this.modelName,
                 method: 'read_group',
-                context: context,
+                context: context_compare,
                 domain: this.chart.domain.concat(this.chart.comparisonTimeRange),
                 fields: fields,
                 groupBy: groupedBy,
