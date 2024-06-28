@@ -964,7 +964,7 @@ class MrpProduction(models.Model):
     def _get_move_raw_values(self, product_id, product_uom_qty, product_uom, operation_id=False, bom_line=False):
         source_location = self.location_src_id
         origin = self.name
-        if self.orderpoint_id:
+        if self.orderpoint_id and self.origin:
             origin = self.origin.replace(
                 '%s - ' % (self.orderpoint_id.display_name), '')
             origin = '%s,%s' % (origin, self.name)
