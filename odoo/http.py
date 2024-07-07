@@ -148,11 +148,8 @@ import werkzeug.wsgi
 from werkzeug.urls import URL, url_parse, url_encode, url_quote
 from werkzeug.exceptions import (HTTPException, BadRequest, Forbidden,
                                  NotFound, InternalServerError)
-try:
-    from werkzeug.middleware.proxy_fix import ProxyFix as ProxyFix_
-    ProxyFix = functools.partial(ProxyFix_, x_for=1, x_proto=1, x_host=1)
-except ImportError:
-    from werkzeug.contrib.fixers import ProxyFix
+
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 try:
     from werkzeug.utils import send_file as _send_file
