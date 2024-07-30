@@ -606,18 +606,20 @@ class test_m2m(CreatorCase):
     def test_single_subfield(self):
         self.assertEqual(
             self.export([(0, False, {'value': 42})],
-                        fields=['value', 'value/value']),
-            [[u'export.many2many.other:42', u'42']])
+                        fields=['value', 'value/value'],
+                        context={'import_compat': False}),
+            [[u'export.many2many.other:42', 42]])
 
     def test_integrate_one_in_parent(self):
         self.assertEqual(
             self.export([(0, False, {'value': 42})],
-                        fields=['const', 'value/value']),
-            [[u'4', u'42']])
+                        fields=['const', 'value/value'],
+                        context={'import_compat': False}),
+            [[4, 42]])
 
     def test_multiple_records(self):
         self.assertEqual(
-            self.export(self.commands, fields=['const', 'value/value']),
+            self.export(self.commands, fields=['const', 'value/value'], context={'import_compat': False}),
             [
                 [u'4', u'4'],
                 [u'', u'42'],
@@ -630,7 +632,13 @@ class test_m2m(CreatorCase):
         self.assertEqual(
             self.export(self.commands, fields=['const', 'value']),
             [
-                [u'4', u'export.many2many.other:4'],
+                [4, 'export.many2many.other:4,export.many2many.other:42,export.many2many.other:36,export.many2many.other:4,export.many2many.other:13'],
+            ])
+
+        self.assertEqual(
+            self.export(self.commands, fields=['const', 'value'], context={'import_compat': False}),
+            [
+                [4, u'export.many2many.other:4'],
                 ['', u'export.many2many.other:42'],
                 ['', u'export.many2many.other:36'],
                 ['', u'export.many2many.other:4'],
@@ -663,6 +671,10 @@ class test_m2m(CreatorCase):
         self.assertEqual(
             r.with_context(import_compat=True)._export_rows([['value', 'id']]),
             [['__t__.record000,__t__.record001,__t__.record010,__t__.record011,__t__.record100']]
+        )
+        self.assertEqual(
+            r.with_context(import_compat=True)._export_rows([['value'], ['value', 'id']]),
+            [['', '__t__.record000,__t__.record001,__t__.record010,__t__.record011,__t__.record100']]
         )
 
         self.assertEqual(
