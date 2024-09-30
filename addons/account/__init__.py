@@ -47,7 +47,9 @@ def _auto_install_l10n(env):
         elif country_code == 'MC':
             module_list.append('l10n_fr')
         else:
-            if env['ir.module.module'].search([('name', '=', 'l10n_' + country_code.lower())]):
+            if env['ir.module.module'].search([('name', '=', 'l10n_%s_oca' % country_code.lower())]):
+                module_list.append('l10n_%s_oca' % country_code.lower())
+            elif env['ir.module.module'].search([('name', '=', 'l10n_' + country_code.lower())]):
                 module_list.append('l10n_' + country_code.lower())
             else:
                 module_list.append('l10n_generic_coa')
