@@ -178,8 +178,8 @@ class MailMail(models.Model):
         ]
         if 'filters' in self._context:
             filters.extend(self._context['filters'])
-        # TODO: make limit configurable
-        filtered_ids = self.search(filters, limit=10000).ids
+        batch_size = int(self.env['ir.config_parameter'].sudo().get_param('mail.mail.queue.batch.size', 10000))
+        filtered_ids = self.search(filters, limit=batch_size).ids
         if not ids:
             ids = filtered_ids
         else:
