@@ -618,7 +618,7 @@ var KanbanRecord = Widget.extend(WidgetAdapterMixin, {
             const formatter = r.type ? field_utils.format[r.type] : _.identity;
 
             r.raw_value = value;
-            r.value = formatter(value, this.fields[name], recordData, this.state);
+            r.value = formatter && formatter(value, this.fields[name], recordData, this.state) || value;
             switch (r.type) {
             case 'date': case 'datetime':
                 r.raw_value = value && value.toDate();
