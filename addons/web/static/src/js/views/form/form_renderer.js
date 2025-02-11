@@ -198,7 +198,7 @@ var FormRenderer = BasicRenderer.extend({
             var $notebook = $(this);
             var name = $notebook.data('name');
             var index = -1;
-            $notebook.find('.nav-link').each(function (i) {
+            $notebook.find('> ul > li > a.nav-link').each(function (i) {
                 if ($(this).hasClass('active')) {
                     index = i;
                 }
