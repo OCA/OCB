@@ -1581,7 +1581,7 @@ class Lead(models.Model):
             name_from_email = self.partner_name or self.contact_name
             emails_normalized = tools.email_normalize_all(email)
             email_normalized = emails_normalized[0] if emails_normalized else False
-            if email.lower() == self.email_from.lower() or (email_normalized and self.email_normalized == email_normalized):
+            if (email and self.email_from and email.lower() == self.email_from.lower()) or (email_normalized and self.email_normalized == email_normalized):
                 partner_info['full_name'] = tools.formataddr((
                     name_from_email,
                     ','.join(emails_normalized) if emails_normalized else email))
