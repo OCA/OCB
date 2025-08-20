@@ -1722,8 +1722,8 @@ class AccountMove(models.Model):
 
             balance_multiplicator = -1 if move.is_inbound() else 1
 
-            tax_lines = move.line_ids.filtered('tax_line_id')
-            base_lines = move.line_ids.filtered('tax_ids')
+            tax_lines = move.line_ids.filtered(lambda r: r.tax_line_id and not r.display_type)
+            base_lines = move.line_ids.filtered(lambda r: r.tax_ids and not r.display_type)
 
             tax_group_mapping = defaultdict(lambda: {
                 'base_lines': set(),
