@@ -747,3 +747,13 @@ class TestSaleOrder(TestSaleCommon):
         })
         so_no_analytic_account.action_confirm()
         self.assertFalse(sol_no_analytic_account.analytic_tag_ids.id, "The compute should not overwrite what the user has set.")
+
+    def test_onchange_price_unit(self):
+        order_form = Form(self.sale_order)
+        with order_form.order_line.edit(1) as line:
+            line.product_uom_qty = 9999.9999
+            line.price_unit = 0.33333
+            self.assertEqual(line.price_unit, 0.33)
+        amount_untaxed_before_save = order_form.amount_untaxed
+        order_form.save()
+        self.assertEqual(amount_untaxed_before_save, self.sale_order.amount_untaxed)
