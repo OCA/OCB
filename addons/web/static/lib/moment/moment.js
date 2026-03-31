@@ -1846,6 +1846,17 @@ function loadLocale(name) {
             getSetGlobalLocale(oldLocale);
         } catch (e) {}
     }
+    if (locales[name] === undefined && name) {
+        var normalized = String(name).toLowerCase().replace(/_/g, '-');
+        var shortName = normalized.split('-')[0];
+        if (locales[normalized] !== undefined) {
+            locales[name] = locales[normalized];
+        } else if (locales[shortName] !== undefined) {
+            locales[name] = locales[shortName];
+        } else {
+            locales[name] = locales['en'];
+        }
+    }
     return locales[name];
 }
 
