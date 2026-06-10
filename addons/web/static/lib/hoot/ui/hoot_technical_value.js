@@ -9,9 +9,18 @@ import {
     useState,
 } from "@odoo/owl";
 import { isNode, toSelector } from "@web/../lib/hoot-dom/helpers/dom";
-import { isIterable } from "@web/../lib/hoot-dom/hoot_dom_utils";
+import { isInstanceOf, isIterable, isPromise } from "@web/../lib/hoot-dom/hoot_dom_utils";
 import { logger } from "../core/logger";
-import { getTypeOf, Markup, S_ANY, S_NONE, stringify, toExplicitString } from "../hoot_utils";
+import {
+    getTypeOf,
+    isSafe,
+    Markup,
+    S_ANY,
+    S_CIRCULAR,
+    S_NONE,
+    stringify,
+    toExplicitString,
+} from "../hoot_utils";
 
 /**
  * @typedef {{
@@ -36,12 +45,13 @@ const {
  *
  * @type {typeof String.raw}
  */
-const xml = (template, ...substitutions) =>
-    owlXml({
+function xml(template, ...substitutions) {
+    return owlXml({
         raw: String.raw(template, ...substitutions)
             .replace(/>\s+/g, ">")
             .replace(/\s+</g, "<"),
     });
+}
 
 const INVARIABLE_OBJECTS = [Promise, RegExp];
 
@@ -87,7 +97,7 @@ export class HootTechnicalValue extends Component {
                 <t>/&gt;</t>
             </button>
         </t>
-        <t t-elif="value === S_ANY or value === S_NONE">
+        <t t-elif="SPECIAL_SYMBOLS.includes(value)">
             <span class="italic">
                 &lt;<t t-esc="symbolValue(value)" />&gt;
             </span>
@@ -166,8 +176,7 @@ export class HootTechnicalValue extends Component {
     stringify = stringify;
     toSelector = toSelector;
 
-    S_ANY = S_ANY;
-    S_NONE = S_NONE;
+    SPECIAL_SYMBOLS = [S_ANY, S_CIRCULAR, S_NONE];
 
     get explicitValue() {
         return toExplicitString(this.value);
@@ -184,6 +193,7 @@ export class HootTechnicalValue extends Component {
         onWillRender(() => {
             this.isMarkup = Markup.isMarkup(this.props.value);
             this.value = toRaw(this.props.value);
+            this.isSafe = isSafe(this.value);
         });
         onWillUpdateProps((nextProps) => {
             this.state.open = false;
@@ -197,10 +207,10 @@ export class HootTechnicalValue extends Component {
     }
 
     getLabelAndSize() {
-        if (this.value instanceof Date) {
+        if (isInstanceOf(this.value, Date)) {
             return [this.value.toISOString(), null];
         }
-        if (this.value instanceof RegExp) {
+        if (isInstanceOf(this.value, RegExp)) {
             return [String(this.value), null];
         }
         return [this.value.constructor.name, this.getSize()];
@@ -208,9 +218,12 @@ export class HootTechnicalValue extends Component {
 
     getSize() {
         for (const Class of INVARIABLE_OBJECTS) {
-            if (this.value instanceof Class) {
+            if (isInstanceOf(this.value, Class)) {
                 return null;
             }
+        }
+        if (!this.isSafe) {
+            return 0;
         }
         const values = isIterable(this.value) ? [...this.value] : $keys(this.value);
         return values.length;
@@ -236,7 +249,7 @@ export class HootTechnicalValue extends Component {
     }
 
     wrapPromiseValue(promise) {
-        if (!(promise instanceof Promise)) {
+        if (!isPromise(promise)) {
             return;
         }
         this.state.promiseState = ["pending", null];

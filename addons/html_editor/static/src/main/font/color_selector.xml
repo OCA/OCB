@@ -1,6 +1,6 @@
 <templates xml:space="preserve">
     <t t-name="html_editor.ColorSelector">
-        <Dropdown state="dropdown">
+        <Dropdown state="dropdown" menuRef="menuRef">
             <button class="btn btn-light" t-attf-class="o-select-color-{{props.type}} {{dropdown.isOpen ? 'active' : ''}}" t-att-title="props.title">
                 <t t-if="mode === 'color'">
                     <i class="fa fa-fw fa-font py-1" t-att-style="this.getSelectedColorStyle()"/>
@@ -40,11 +40,13 @@
                                 t-on-mouseover="onColorHover"
                                 t-on-mouseout="onColorHoverOut">
                                 <div class="o_colorpicker_section">
-                                    <button data-color="o-color-1" t-attf-style="background-color: var(--o-color-1)" class="btn o_color_button"/>
-                                    <button data-color="o-color-3" t-attf-style="background-color: var(--o-color-3)" class="btn o_color_button"/>
-                                    <button data-color="o-color-2" t-attf-style="background-color: var(--o-color-2)" class="btn o_color_button"/>
-                                    <button data-color="o-color-4" t-attf-style="background-color: var(--o-color-4)" class="ms-2 btn o_color_button"/>
-                                    <button data-color="o-color-5" t-attf-style="background-color: var(--o-color-5)" class="btn o_color_button"/>
+                                    <t t-if="props.useDefaultThemeColors">
+                                        <button data-color="o-color-1" t-attf-style="background-color: var(--o-color-1)" class="btn o_color_button"/>
+                                        <button data-color="o-color-3" t-attf-style="background-color: var(--o-color-3)" class="btn o_color_button"/>
+                                        <button data-color="o-color-2" t-attf-style="background-color: var(--o-color-2)" class="btn o_color_button"/>
+                                        <button data-color="o-color-4" t-attf-style="background-color: var(--o-color-4)" class="ms-2 btn o_color_button"/>
+                                        <button data-color="o-color-5" t-attf-style="background-color: var(--o-color-5)" class="btn o_color_button"/>
+                                    </t>
                                 </div>
 
                                 <t t-foreach="DEFAULT_COLORS" t-as="line" t-key="line_index">
@@ -60,7 +62,7 @@
                             <div class="p-1">
                                 <div class="o_colorpicker_section" t-on-click="onColorApply" t-on-mouseover="onColorHover" t-on-mouseout="onColorHoverOut">
                                     <t t-foreach="this.usedCustomColors" t-as="color" t-key="color_index">
-                                        <button t-if="color !== this.currentCustomColor.color.toLowerCase()" class="o_color_button btn" t-att-data-color="color" t-attf-style="background-color: {{color}}"/>
+                                        <button t-if="color !== this.currentCustomColor.color?.toLowerCase()" class="o_color_button btn" t-att-data-color="color" t-attf-style="background-color: {{color}}"/>
                                     </t>
                                     <button class="o_color_button btn selected" t-att-data-color="this.currentCustomColor.color" t-attf-style="background-color: {{this.currentCustomColor.color}}"/>
                                 </div>
@@ -75,7 +77,7 @@
                                     <button data-color="white" class="o_color_button btn bg-white"></button>
                                 </div>
                                 <Colorpicker
-                                    defaultColor="this.defaultColor"
+                                    defaultColor="this.currentCustomColor.color"
                                     onColorSelect.bind="(color) => this.applyColor(color.cssColor)"
                                     onColorPreview.bind="onColorPreview" />
                             </div>

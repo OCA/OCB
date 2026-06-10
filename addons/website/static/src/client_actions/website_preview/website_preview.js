@@ -492,6 +492,7 @@ export class WebsitePreview extends Component {
         this.iframe.el.contentDocument.addEventListener('keyup', ev => {
             this.iframe.el.dispatchEvent(new KeyboardEvent('keyup', ev));
         });
+        this.iframefallback.el?.contentDocument.documentElement.replaceChildren();
     }
 
     /**
@@ -521,10 +522,12 @@ export class WebsitePreview extends Component {
         // If the iframe is currently displaying an XML file, the body does not
         // exist, so we do not replace the iframefallback content.
         // The iframefallback is hidden in test mode
-        if (!this.websiteContext.edition && this.iframe.el.contentDocument.body && this.iframefallback.el) {
-            this.iframefallback.el.contentDocument.body.replaceWith(this.iframe.el.contentDocument.body.cloneNode(true));
-            this.iframefallback.el.classList.remove('d-none');
-            getScrollingElement(this.iframefallback.el.contentDocument).scrollTop = getScrollingElement(this.iframe.el.contentDocument).scrollTop;
+        const websiteDoc = this.iframe.el?.contentDocument;
+        const fallbackDoc = this.iframefallback.el?.contentDocument;
+        if (!this.websiteContext.edition && websiteDoc && fallbackDoc) {
+            fallbackDoc.documentElement.replaceWith(websiteDoc.documentElement.cloneNode(true));
+            this.iframefallback.el.classList.remove("d-none");
+            getScrollingElement(fallbackDoc).scrollTop = getScrollingElement(websiteDoc).scrollTop;
             this._cleanIframeFallback();
         }
     }

@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import base64
+import contextlib
 import email
 import email.policy
 import json
@@ -17,6 +18,7 @@ from random import randint
 from unittest.mock import patch
 
 from odoo.addons.base.models.ir_mail_server import IrMailServer
+from odoo import fields
 from odoo.addons.base.tests.common import MockSmtplibCase
 from odoo.addons.bus.models.bus import ImBus, json_dump
 from odoo.addons.mail.models.mail_mail import MailMail
@@ -201,7 +203,7 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
                            with_user=None, **kwargs):
         self.assertFalse(self.env[target_model].search([(target_field, '=', subject)]))
         if not msg_id:
-            msg_id = "<%.7f-%5d-test@iron.sky>" % (time.time(), randint(0, 99998))
+            msg_id = "<%.7f-%05d-test@iron.sky>" % (time.time(), randint(0, 99998))
 
         if kwargs.pop('debug_log', False):
             _logger.info(
@@ -748,28 +750,32 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
         else:
             raise AssertionError('mail.mail exists for message %s / recipients %s but should not exist' % (mail_message, recipients.ids))
         finally:
-            self.assertNotSentEmail(recipients)
+            self.assertNotSentEmail(recipients=recipients, message_id=mail_message.message_id if mail_message else None)
 
-    def assertNotSentEmail(self, recipients=None):
+    def assertNotSentEmail(self, recipients=None, message_id=None):
         """Check no email was generated during gateway mock.
 
         :param recipients:
             List of partner for which we will check that no email have been sent
             Or list of email address
-            If None, we will check that no email at all have been sent
+            If empty, we will check that no email at all have been sent
+        :param message_id:
+            message-id associated with the email. Allows to identify emails originating
+            from the a specific message in odoo.
         """
-        if recipients is None:
-            mails = self._mails
-        else:
+        mails = self._mails
+        if message_id:
+            mails = [mail for mail in self._mails if mail['message_id'] == message_id]
+        if recipients:
             all_emails = [
-                email_to.email if isinstance(email_to, self.env['res.partner'].__class__)
+                email_to.email_formatted if isinstance(email_to, self.env['res.partner'].__class__)
                 else email_to
                 for email_to in recipients
             ]
 
             mails = [
                 mail
-                for mail in self._mails
+                for mail in mails
                 if any(email in all_emails for email in mail['email_to'])
             ]
 
@@ -1020,7 +1026,6 @@ class MailCase(MockEmail):
         cls.email_template = cls.env['mail.template'].create(create_values)
         return cls.email_template
 
-
     def _generate_notify_recipients(self, partners, record=None):
         """ Tool method to generate recipients data according to structure used
         in notification methods. Purpose is to allow testing of internals of
@@ -1040,6 +1045,29 @@ class MailCase(MockEmail):
              'ushare': all(user.share for user in partner.user_ids) if partner.user_ids else False,
             } for partner in partners
         ]
+
+    def _get_mail_composer_web_context(self, records, add_web=True, **values):
+        """ Helper to generate composer context. Will make tests a bit less
+        verbose.
+
+        :param bool add_web: add web context, generally making noise especially in
+          mass mail mode (active_id/ids both present in context)
+        """
+        base_context = {
+            'default_model': records._name,
+            'default_res_ids': records.ids,
+        }
+        if len(records) == 1:
+            base_context['default_composition_mode'] = 'comment'
+        else:
+            base_context['default_composition_mode'] = 'mass_mail'
+        if add_web:
+            base_context['active_model'] = records._name
+            base_context['active_id'] = records[0].id
+            base_context['active_ids'] = records.ids
+        if values:
+            base_context.update(**values)
+        return base_context
 
     # ------------------------------------------------------------
     # MAIL ASSERTS WRAPPERS
@@ -1195,13 +1223,18 @@ class MailCase(MockEmail):
                     mbody in message.body and message.message_type == mtype and
                     message.subtype_id == msubtype
                 ))
+                debug_info = '\n'.join(
+                    f'Msg: message_type {message.message_type}, subtype {message.subtype_id.name}, content {message.body}'
+                    for message in messages
+                )
             else:
                 message = self.env['mail.message'].sudo().search([
                     ('body', 'ilike', mbody),
                     ('message_type', '=', mtype),
                     ('subtype_id', '=', msubtype.id)
                 ], limit=1, order='id DESC')
-            self.assertTrue(message, 'Mail: not found message (content: %s, message_type: %s, subtype: %s)' % (mbody, mtype, msubtype.name))
+                debug_info = ''
+            self.assertTrue(message, 'Mail: not found message (content: %s, message_type: %s, subtype: %s\n%s)' % (mbody, mtype, msubtype.name, debug_info))
 
             # check message values
             message_values = message_info.get('message_values', {})
@@ -1342,7 +1375,7 @@ class MailCase(MockEmail):
                         )
 
             if not any(p for recipients in email_groups.values() for p in recipients):
-                self.assertNoMail(partners, mail_message=message, author=message.author_id)
+                self.assertNoMail(self.env['res.partner'], mail_message=message, author=message.author_id)
 
         return done_msgs, done_notifs
 
@@ -1393,7 +1426,7 @@ class MailCase(MockEmail):
         notif_messages = [n.message for n in bus_notifs]
         for expected in message_items or []:
             for notification in notif_messages:
-                if json_dump(expected) == notification:
+                if json.loads(json_dump(expected)) == json.loads(notification):
                     break
             else:
                 matching_notifs = [m for m in notif_messages if json.loads(m).get("type") == expected.get("type")]
@@ -1779,3 +1812,18 @@ class MailCommon(common.TransactionCase, MailCase):
                 data.pop("rating_avg", None)
                 data.pop("rating_count", None)
         return list(threads_data)
+
+
+@contextlib.contextmanager
+def freeze_all_time(dt=None):
+    """Freeze both `cr.now` and `Datetime.now`. ORM `create_date` and `write_date`
+    are based on `cursor.now()`. Domains often use `Datetime.now()` which can
+    lead to inconsistencies when using `freeze_time`.
+
+    :param dt: Datetime to freeze the time to. Defaults to `Datetime.now()`.
+    :type dt: datetime.datetime
+    """
+    if not dt:
+        dt = fields.Datetime.now()
+    with patch('odoo.sql_db.Cursor.now', return_value=dt), freeze_time(dt):
+        yield

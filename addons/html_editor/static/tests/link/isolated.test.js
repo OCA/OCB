@@ -5,9 +5,10 @@ import { descendants } from "@html_editor/utils/dom_traversal";
 import { tick } from "@odoo/hoot-mock";
 import { getContent, setSelection } from "../_helpers/selection";
 import { cleanLinkArtifacts } from "../_helpers/format";
-import { animationFrame, pointerDown, pointerUp, queryOne, waitFor } from "@odoo/hoot-dom";
+import { animationFrame, pointerDown, pointerUp, queryOne } from "@odoo/hoot-dom";
 import { dispatchNormalize } from "../_helpers/dispatch";
 import { nodeSize } from "@html_editor/utils/position";
+import { expectElementCount } from "../_helpers/ui_expectations";
 
 test("should pad a link with ZWNBSPs and add visual indication", async () => {
     await testEditor({
@@ -63,8 +64,7 @@ test("should keep isolated link after a delete and typing", async () => {
 
 test("should delete the content from the link when popover is active", async () => {
     const { editor, el } = await setupEditor('<p><a href="#/">abc[]abc</a></p>');
-    await waitFor(".o-we-linkpopover");
-    expect(".o-we-linkpopover").toHaveCount(1);
+    await expectElementCount(".o-we-linkpopover", 1);
     deleteBackward(editor);
     deleteBackward(editor);
     deleteBackward(editor);
@@ -353,16 +353,55 @@ test("should remove zwnbsp from middle of the link (2)", async () => {
     });
 });
 
-test("should zwnbps-pad links with .btn class", async () => {
-    await testEditor({
-        contentBefore: '<p><a class="btn">content</a></p>',
-        contentBeforeEdit: '<p>\ufeff<a class="btn">\ufeffcontent\ufeff</a>\ufeff</p>',
+describe("button", () => {
+    test("should zwnbps-pad links with .btn class", async () => {
+        await testEditor({
+            contentBefore: '<p><a class="btn">content</a></p>',
+            contentBeforeEdit: '<p>\ufeff<a class="btn">\ufeffcontent\ufeff</a>\ufeff</p>',
+        });
     });
-});
 
-test("should not add visual indication to a button", async () => {
-    await testEditor({
-        contentBefore: '<p><a class="btn">[]content</a></p>',
-        contentBeforeEdit: '<p>\ufeff<a class="btn">\ufeffcontent\ufeff</a>\ufeff</p>',
+    test("should not add visual indication to a button", async () => {
+        await testEditor({
+            contentBefore: '<p><a class="btn">[]content</a></p>',
+            contentBeforeEdit: '<p>\ufeff<a class="btn">\ufeffcontent\ufeff</a>\ufeff</p>',
+        });
+    });
+
+    test("should type inside button after backspacing into it", async () => {
+        const { editor, el } = await setupEditor(
+            '<p>before<a class="btn" href="#/">in</a>x[]after</p>'
+        );
+        expect(getContent(el)).toBe(
+            '<p>before\ufeff<a class="btn" href="#/">\ufeffin\ufeff</a>\ufeffx[]after</p>'
+        );
+        deleteBackward(editor);
+        expect(getContent(el)).toBe(
+            '<p>before\ufeff<a class="btn" href="#/">\ufeffin\ufeff</a>\ufeff[]after</p>'
+        );
+        deleteBackward(editor);
+        expect(getContent(el)).toBe(
+            '<p>before\ufeff<a class="btn" href="#/">\ufeffin[]\ufeff</a>\ufeffafter</p>'
+        );
+        await insertText(editor, "side");
+        expect(getContent(el)).toBe(
+            '<p>before\ufeff<a class="btn" href="#/">\ufeffinside[]\ufeff</a>\ufeffafter</p>'
+        );
+    });
+
+    test("should delete previous character without errors when backspacing with the cursor in between a zwnbsp and the left edge of a button", async () => {
+        const { editor, el } = await setupEditor(
+            '<p>before[]<a class="btn" href="#/">in</a>after</p>'
+        );
+        const p = el.querySelector("p");
+        setSelection({ anchorNode: p, anchorOffset: 2 });
+        await tick();
+        expect(getContent(el)).toBe(
+            '<p>before\ufeff[]<a class="btn" href="#/">\ufeffin\ufeff</a>\ufeffafter</p>'
+        );
+        deleteBackward(editor);
+        expect(getContent(el)).toBe(
+            '<p>befor[]\ufeff<a class="btn" href="#/">\ufeffin\ufeff</a>\ufeffafter</p>'
+        );
     });
 });

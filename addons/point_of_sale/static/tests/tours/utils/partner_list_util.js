@@ -1,8 +1,9 @@
-export function clickPartner(name = "") {
+export function clickPartner(name = "", { expectUnloadPage = false } = {}) {
     return {
         content: `click partner '${name}' from partner list screen`,
         trigger: `.modal .partner-list b:contains(${name})`,
         run: "click",
+        expectUnloadPage,
     };
 }
 export function clickPartnerOptions(name) {
@@ -17,6 +18,14 @@ export function checkDropDownItemText(text) {
     return {
         content: `check for dropdown item containing text`,
         trigger: `.o-dropdown-item:contains("${text}")`,
+    };
+}
+
+export function clickDropDownItem(text) {
+    return {
+        content: `click for dropdown item containing text`,
+        trigger: `.o-dropdown-item:contains("${text}")`,
+        run: "click",
     };
 }
 

@@ -59,7 +59,7 @@ class StockRule(models.Model):
     sequence = fields.Integer('Sequence', default=20)
     company_id = fields.Many2one('res.company', 'Company',
         default=lambda self: self.env.company,
-        domain="[('id', '=?', route_company_id)]")
+        domain="[('id', '=?', route_company_id)]", index=True)
     location_dest_id = fields.Many2one('stock.location', 'Destination Location', required=True, check_company=True, index=True)
     location_src_id = fields.Many2one('stock.location', 'Source Location', check_company=True, index=True)
     location_dest_from_rule = fields.Boolean(
@@ -205,6 +205,16 @@ class StockRule(models.Model):
     def _compute_picking_type_code_domain(self):
         self.picking_type_code_domain = False
 
+    def _get_push_new_date(self, move):
+        """ Get the new date for a push rule.
+
+        :param move: The stock move being processed
+        :type move: stock.move
+        :return: The new date as a string
+        :rtype: str
+        """
+        return fields.Datetime.to_string(move.date + relativedelta(days=self.delay))
+
     def _run_push(self, move):
         """ Apply a push rule on a move.
         If the rule is 'no step added' it will modify the destination location
@@ -215,7 +225,7 @@ class StockRule(models.Model):
         in stock_move.py inside the method _push_apply
         """
         self.ensure_one()
-        new_date = fields.Datetime.to_string(move.date + relativedelta(days=self.delay))
+        new_date = self._get_push_new_date(move)
         if self.auto == 'transparent':
             old_dest_location = move.location_dest_id
             move.write({'date': new_date, 'location_dest_id': self.location_dest_id.id})
@@ -243,8 +253,11 @@ class StockRule(models.Model):
         company_id = self.company_id.id
         copied_quantity = move_to_copy.quantity
         final_location_id = False
+        location_dest_id = self.location_dest_id.id
         if move_to_copy.location_final_id and not move_to_copy.location_dest_id._child_of(move_to_copy.location_final_id):
             final_location_id = move_to_copy.location_final_id.id
+        if move_to_copy.location_final_id and move_to_copy.location_final_id._child_of(self.location_dest_id):
+            location_dest_id = move_to_copy.location_final_id.id
         if float_compare(move_to_copy.product_uom_qty, 0, precision_rounding=move_to_copy.product_uom.rounding) < 0:
             copied_quantity = move_to_copy.product_uom_qty
         if not company_id:
@@ -253,7 +266,7 @@ class StockRule(models.Model):
             'product_uom_qty': copied_quantity,
             'origin': move_to_copy.origin or move_to_copy.picking_id.name or "/",
             'location_id': move_to_copy.location_dest_id.id,
-            'location_dest_id': self.location_dest_id.id,
+            'location_dest_id': location_dest_id,
             'location_final_id': final_location_id,
             'rule_id': self.id,
             'date': new_date,
@@ -262,7 +275,7 @@ class StockRule(models.Model):
             'picking_id': False,
             'picking_type_id': self.picking_type_id.id,
             'propagate_cancel': self.propagate_cancel,
-            'warehouse_id': self.warehouse_id.id,
+            'warehouse_id': self.warehouse_id.id or move_to_copy.location_dest_id.warehouse_id.id,
             'procure_method': 'make_to_order',
             'description_picking': move_to_copy.product_id.with_context(lang=move_to_copy._get_lang())._get_description(
                 self.picking_type_id) or move_to_copy.description_picking,
@@ -640,7 +653,7 @@ class ProcurementGroup(models.Model):
 
     @api.model
     def _check_intercomp_location(self, locations):
-        if self.env.user.has_group('base.group_multi_company') and locations.filtered(lambda location: location.usage == 'transit'):
+        if locations.filtered(lambda location: location.usage == 'transit'):
             inter_comp_location = self.env.ref('stock.stock_location_inter_company', raise_if_not_found=False)
             return inter_comp_location and inter_comp_location.id in locations.ids
 

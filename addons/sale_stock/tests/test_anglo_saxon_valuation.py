@@ -1784,6 +1784,72 @@ class TestAngloSaxonValuation(ValuationReconciliationTestCommon):
             {'debit': 60, 'credit': 0, 'account_id': account_expense.id, 'reconciled': False},
         ])
 
+    def test_anglo_saxon_cogs_partial_down_payment_credit_note(self):
+        """Create a SO with a product invoiced on ordered quantity.
+        Do a partial down payment, invoice the rest.
+        Create a credit note. The credit note should reverse the cogs"""
+        self.product.standard_price = 4
+        self.env['stock.quant'].with_context(inventory_mode=True).create({
+            'product_id': self.product.id,
+            'inventory_quantity': 20,
+            'location_id': self.company_data['default_warehouse'].lot_stock_id.id,
+        }).action_apply_inventory()
+
+        # Create the SO
+        so = self.env['sale.order'].create({
+            'partner_id': self.partner_a.id,
+            'order_line': [
+                Command.create({
+                    'name': self.product.name,
+                    'product_id': self.product.id,
+                    'product_uom_qty': 10.0,
+                    'product_uom': self.product.uom_id.id,
+                    'price_unit': 10,
+                    'tax_id': False,
+                })],
+        })
+        so.action_confirm()
+
+        # Do a 25% down payment
+        down_payment = self.env['sale.advance.payment.inv'].create({
+            'advance_payment_method': 'percentage',
+            'amount': 25,
+            'sale_order_ids': so.ids,
+        })
+        down_payment.create_invoices()
+        # Invoice the the down payment
+        down_payment_invoices = so.invoice_ids
+        down_payment_invoices.action_post()
+
+        # Invoice the rest
+        invoice_wizard = self.env['sale.advance.payment.inv'].with_context(
+            active_ids=so.ids
+        ).create({})
+        action = invoice_wizard.create_invoices()
+        invoice = self.env['account.move'].browse(action['res_id'])
+        invoice.action_post()
+
+        move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=invoice.ids).create({
+            'journal_id': invoice.journal_id.id,
+        })
+        reversal = move_reversal.refund_moves()
+        credit_note = self.env['account.move'].browse(reversal['res_id'])
+        credit_note.action_post()
+
+        # Check the resulting accounting entries
+        account_stock_out = self.company_data['default_account_stock_out']
+        account_expense = self.company_data['default_account_expense']
+        invoice_cogs = invoice.line_ids.filtered(lambda l: l.display_type == 'cogs').sorted('debit')
+        credit_note_cogs = credit_note.line_ids.filtered(lambda l: l.display_type == 'cogs').sorted('debit')
+        self.assertRecordValues(invoice_cogs, [
+            {'debit': 0, 'credit': 40, 'account_id': account_stock_out.id},
+            {'debit': 40, 'credit': 0, 'account_id': account_expense.id},
+        ])
+        self.assertRecordValues(credit_note_cogs, [
+            {'debit': 0, 'credit': 40, 'account_id': account_expense.id},
+            {'debit': 40, 'credit': 0, 'account_id': account_stock_out.id},
+        ])
+
     def test_anglo_saxon_cogs_validate_invoice(self):
         """ Having some FIFO + real-time valued product with an established price i.e., from an in
         move: generating a delivery via sale, processing that delivery in multiple parts, and
@@ -1855,3 +1921,39 @@ class TestAngloSaxonValuation(ValuationReconciliationTestCommon):
                 {'credit': 0, 'debit': 500},
             ]
         )
+
+    def test_svl_account_move_analytic_account_model_change_from_SO(self):
+        """ Tests whether, when an analytic account rule is set, and user changes manually the analytic account on
+        the SO, it is the same that is mentioned in the account move created by the svl.
+        """
+        # Required for `analytic.group_analytic_accounting` to be visible in the view
+        self.env.user.groups_id += self.env.ref('analytic.group_analytic_accounting')
+        analytic_plan = self.env['account.analytic.plan'].create({'name': 'Plan Test'})
+        analytic_account_default = self.env['account.analytic.account'].create({'name': 'default', 'plan_id': analytic_plan.id})
+        analytic_account_manual = self.env['account.analytic.account'].create({'name': 'manual', 'plan_id': analytic_plan.id})
+        self.product.categ_id.property_cost_method = 'standard'
+        self.product.standard_price = 10
+        self.env['stock.quant']._update_available_quantity(self.product, self.company_data['default_warehouse'].lot_stock_id, 1)
+
+        self.env['account.analytic.distribution.model'].create({
+            'analytic_distribution': {analytic_account_default.id: 100},
+            'product_id': self.product.id,
+        })
+        analytic_distribution_manual = {str(analytic_account_manual.id): 100}
+
+        so_form = Form(self.env['sale.order'].with_context(tracking_disable=True))
+        so_form.partner_id = self.partner_a
+        with so_form.order_line.new() as so_line_form:
+            so_line_form.name = self.product.name
+            so_line_form.product_id = self.product
+            so_line_form.product_uom_qty = 1.0
+            so_line_form.price_unit = 10
+            so_line_form.analytic_distribution = analytic_distribution_manual
+
+        sale_order = so_form.save()
+        sale_order.action_confirm()
+        sale_order.picking_ids.button_validate()
+
+        amls = sale_order.picking_ids.move_ids.stock_valuation_layer_ids.account_move_id.line_ids
+        self.assertEqual(amls[0].analytic_distribution, analytic_distribution_manual)
+        self.assertEqual(amls[1].analytic_distribution, analytic_distribution_manual)

@@ -105,6 +105,7 @@ class TestMessageController(HttpCaseWithUserDemo):
                     "id": self.attachments[0].id,
                     "filename": "File 1",
                     "name": "File 1",
+                    "res_model": self.attachments[0].res_model,
                     "size": 0,
                     "res_name": "Test channel",
                     "mimetype": "application/octet-stream",
@@ -163,6 +164,7 @@ class TestMessageController(HttpCaseWithUserDemo):
                     "id": self.attachments[0].id,
                     "filename": "File 1",
                     "name": "File 1",
+                    "res_model": self.attachments[0].res_model,
                     "size": 0,
                     "res_name": "Test channel",
                     "mimetype": "application/octet-stream",
@@ -177,6 +179,7 @@ class TestMessageController(HttpCaseWithUserDemo):
                     "id": self.attachments[1].id,
                     "filename": "File 2",
                     "name": "File 2",
+                    "res_model": self.attachments[1].res_model,
                     "size": 0,
                     "res_name": "Test channel",
                     "mimetype": "application/octet-stream",
@@ -215,6 +218,7 @@ class TestMessageController(HttpCaseWithUserDemo):
                     "name": "File 1",
                     "size": 0,
                     "res_name": "Test channel",
+                    "res_model": self.attachments[0].res_model,
                     "mimetype": "application/octet-stream",
                     "thread": {"id": self.channel.id, "model": "discuss.channel"},
                     "voice": False,
@@ -227,6 +231,7 @@ class TestMessageController(HttpCaseWithUserDemo):
                     "id": self.attachments[1].id,
                     "filename": "File 2",
                     "name": "File 2",
+                    "res_model": self.attachments[1].res_model,
                     "size": 0,
                     "res_name": "Test channel",
                     "mimetype": "application/octet-stream",
@@ -327,6 +332,7 @@ class TestMessageController(HttpCaseWithUserDemo):
             self.env["res.partner"].search_count([('email', '=', "john@test.be")]),
             "guest should not be allowed to create a partner from an email from message_post",
         )
+        self.assertEqual(0, self.env["res.partner"].search_count([('email', '=', "bob@test.be")], limit=1))
         demo = self.authenticate("demo", "demo")
         res3 = self.url_open(
             url="/mail/partner/from_email",
@@ -335,8 +341,11 @@ class TestMessageController(HttpCaseWithUserDemo):
                     "params": {
                         "thread_model": "discuss.channel",
                         "thread_id": self.channel.id,
-                        "emails": ["john@test.be"],
-                        'additional_values': {"john@test.be": {'phone': '123456789'}},
+                        "emails": ["john@test.be", "bob@test.be"],
+                        'additional_values': {
+                            "john@test.be": {'phone': '123456789'},
+                            '"bob" <bob@test.be>': {'phone': '987654321'},
+                        },
                     },
                 }
             ),
@@ -344,9 +353,13 @@ class TestMessageController(HttpCaseWithUserDemo):
         )
         self.assertEqual(res3.status_code, 200)
         self.assertEqual(
-            1,
-            self.env["res.partner"].search_count([('email', '=', "john@test.be"), ('phone', '=', "123456789")]),
-            "authenticated users can create a partner from an email",
+            2,
+            self.env["res.partner"].search_count([
+                '|',
+                '&', ('email', '=', 'john@test.be'), ('phone', '=', '123456789'),
+                '&', ('email', '=', 'bob@test.be'), ('phone', '=', '987654321'),
+            ], limit=2),
+            "authenticated users can create partners from emails",
         )
         # should not create another partner with same email
         res4 = self.url_open(
@@ -519,7 +532,7 @@ class TestMessageLinks(MailCommon, HttpCase):
             self.assertEqual(res.url, expected_url)
         with self.subTest(private_message_id=private_message_id):
             res = self.url_open(f'/mail/message/{private_message_id}')
-            self.assertEqual(res.status_code, 401)
+            self.assertEqual(res.status_code, 404)
 
     @users('employee')
     def test_message_link_by_public(self):

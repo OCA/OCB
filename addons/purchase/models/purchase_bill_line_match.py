@@ -12,19 +12,19 @@ class PurchaseBillMatch(models.Model):
     _auto = False
     _order = 'product_id, aml_id, pol_id'
 
-    pol_id = fields.Many2one(comodel_name='purchase.order.line')
-    aml_id = fields.Many2one(comodel_name='account.move.line')
-    company_id = fields.Many2one(comodel_name='res.company')
-    partner_id = fields.Many2one(comodel_name='res.partner')
-    product_id = fields.Many2one(comodel_name='product.product')
-    line_qty = fields.Float()
-    line_uom_id = fields.Many2one(comodel_name='uom.uom')
-    qty_invoiced = fields.Float()
-    purchase_order_id = fields.Many2one(comodel_name='purchase.order')
-    account_move_id = fields.Many2one(comodel_name='account.move')
-    line_amount_untaxed = fields.Monetary()
-    currency_id = fields.Many2one(comodel_name='res.currency')
-    state = fields.Char()
+    pol_id = fields.Many2one(comodel_name='purchase.order.line', readonly=True)
+    aml_id = fields.Many2one(comodel_name='account.move.line', readonly=True)
+    company_id = fields.Many2one(comodel_name='res.company', readonly=True)
+    partner_id = fields.Many2one(comodel_name='res.partner', readonly=True)
+    product_id = fields.Many2one(comodel_name='product.product', readonly=True)
+    line_qty = fields.Float(readonly=True)
+    line_uom_id = fields.Many2one(comodel_name='uom.uom', readonly=True)
+    qty_invoiced = fields.Float(readonly=True)
+    purchase_order_id = fields.Many2one(comodel_name='purchase.order', readonly=True)
+    account_move_id = fields.Many2one(comodel_name='account.move', readonly=True)
+    line_amount_untaxed = fields.Monetary(readonly=True)
+    currency_id = fields.Many2one(comodel_name='res.currency', readonly=True)
+    state = fields.Char(readonly=True)
 
     product_uom_id = fields.Many2one(comodel_name='uom.uom', related='product_id.uom_id')
     product_uom_qty = fields.Float(compute='_compute_product_uom_qty', inverse='_inverse_product_uom_qty', readonly=False)
@@ -95,7 +95,7 @@ class PurchaseBillMatch(models.Model):
               FROM purchase_order_line pol
          LEFT JOIN purchase_order po ON pol.order_id = po.id
              WHERE pol.state in ('purchase', 'done')
-               AND pol.product_qty > pol.qty_invoiced
+               AND (pol.product_qty > pol.qty_invoiced OR pol.qty_to_invoice != 0)
                 OR ((pol.display_type = '' OR pol.display_type IS NULL) AND pol.is_downpayment AND pol.qty_invoiced > 0)
         """)
 
@@ -180,8 +180,11 @@ class PurchaseBillMatch(models.Model):
     def action_add_to_po(self):
         if not self or not self.aml_id:
             raise UserError(_("Select Vendor Bill lines to add to a Purchase Order"))
+        partner = self.mapped("partner_id.commercial_partner_id")
+        if len(partner) > 1:
+            raise UserError(_("Please select bill lines with the same vendor."))
         context = {
-            'default_partner_id': self.partner_id.id,
+            'default_partner_id': partner.id,
             'dialog_size': 'medium',
             'has_products': bool(self.aml_id.product_id),
         }

@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* pos_restaurant
-# 
+# * pos_restaurant
+#
 # Translators:
 # Tiffany Chang, 2024
 # Svante Suominen <svante.suominen@web-veistamo.fi>, 2024
@@ -20,26 +20,25 @@
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2024
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2025
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2025
-# 
+# Jessica Jakara, 2025
+# Wil Odoo, 2025
+# "Jessica Tuulia Sade Jäkärä (jtsj)" <jtsj@odoo.com>, 2025.
+# Saara Hakanen <sahak@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 13:39+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2025\n"
-"Language-Team: Finnish (https://app.transifex.com/odoo/teams/41243/fi/)\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-03-29 12:12+0000\n"
+"Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-18/"
+"pos_restaurant/fi/>\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: fi\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-#. module: pos_restaurant
-#. odoo-javascript
-#: code:addons/pos_restaurant/static/src/overrides/components/receipt_screen/order_receipt/order_receipt.xml:0
-msgid ", Guests:"
-msgstr ", Vieraat:"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -71,8 +70,8 @@ msgid ""
 "sauce"
 msgstr ""
 "200G irlantilaista Black Angus -naudanlihaa, karamellisoitua sipulia "
-"paprikalla, hienonnettua jäävuorisalaattia, punasipulia, grillattua pekonia,"
-" tomaattikastiketta, suolakurkkua, grillikastiketta"
+"paprikalla, hienonnettua jäävuorisalaattia, punasipulia, grillattua pekonia, "
+"tomaattikastiketta, suolakurkkua, grillikastiketta"
 
 #. module: pos_restaurant
 #: model_terms:ir.ui.view,arch_db:pos_restaurant.view_restaurant_floor_kanban
@@ -87,7 +86,8 @@ msgstr "<strong>Kassa: </strong>"
 #. module: pos_restaurant
 #: model_terms:ir.actions.act_window,help:pos_restaurant.action_restaurant_floor_form
 msgid ""
-"A restaurant floor represents the place where customers are served, this is where you can\n"
+"A restaurant floor represents the place where customers are served, this is "
+"where you can\n"
 "                define and position the tables."
 msgstr "Pöytäkartta kuvaa ravintolan asiakastilaa."
 
@@ -187,7 +187,7 @@ msgstr "Mahdollistaa laskun tulostamisen ennen maksua."
 #: model:ir.model.fields,field_description:pos_restaurant.field_res_config_settings__pos_takeaway_fp_id
 #: model_terms:ir.ui.view,arch_db:pos_restaurant.res_config_settings_view_form
 msgid "Alternative Fiscal Position"
-msgstr "Vaihtoehtoinen verokanta"
+msgstr "Vaihtoehtoinen verokantasääntö"
 
 #. module: pos_restaurant
 #: model:product.attribute.value,name:pos_restaurant.product_attribute_value_anchovy
@@ -487,12 +487,12 @@ msgstr "Tiedosto"
 #. module: pos_restaurant
 #: model:ir.model,name:pos_restaurant.model_account_fiscal_position
 msgid "Fiscal Position"
-msgstr "Verokanta"
+msgstr "Verokantasääntö"
 
 #. module: pos_restaurant
 #: model_terms:ir.ui.view,arch_db:pos_restaurant.res_config_settings_view_form
 msgid "Fiscal Positions"
-msgstr "Verokannat"
+msgstr "Verokantasäännöt"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_restaurant_table__floor_id
@@ -617,8 +617,8 @@ msgstr "Jäätee"
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_restaurant_table__active
 msgid ""
-"If false, the table is deactivated and will not be available in the point of"
-" sale"
+"If false, the table is deactivated and will not be available in the point of "
+"sale"
 msgstr ""
 "Jos arvo on epätosi, pöytä poistetaan käytöstä, eikä se ole käytettävissä "
 "kassassa"
@@ -776,8 +776,7 @@ msgstr "Online-varaus ravintolaan"
 #. odoo-javascript
 #: code:addons/pos_restaurant/static/src/app/floor_screen/floor_screen.js:0
 msgid "Only web-compatible Image formats such as .png or .jpeg are supported."
-msgstr ""
-"Vain web-yhteensopivia kuvaformaatteja, kuten .png tai .jpeg, tuetaan."
+msgstr "Vain web-yhteensopivia kuvaformaatteja, kuten .png tai .jpeg, tuetaan."
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -879,42 +878,42 @@ msgstr "Suunnittele"
 #. module: pos_restaurant
 #: model:ir.model,name:pos_restaurant.model_pos_config
 msgid "Point of Sale Configuration"
-msgstr "Kassan asetukset"
+msgstr "Kassajärjestelmän asetukset"
 
 #. module: pos_restaurant
 #: model:ir.model,name:pos_restaurant.model_pos_order
 msgid "Point of Sale Orders"
-msgstr "Kassan tilaukset"
+msgstr "Kassajärjestelmän tilaukset"
 
 #. module: pos_restaurant
 #: model:ir.model,name:pos_restaurant.model_pos_payment
 msgid "Point of Sale Payments"
-msgstr "Kassan maksut"
+msgstr "Kassajärjestelmän maksut"
 
 #. module: pos_restaurant
 #: model:ir.model,name:pos_restaurant.model_pos_session
 msgid "Point of Sale Session"
-msgstr "Kassan istunto"
+msgstr "Kassajärjestelmän istunto"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_restaurant_floor__pos_config_ids
 msgid "Point of Sales"
-msgstr "Kassa"
+msgstr "Kassajärjestelmä"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_res_config_settings__pos_iface_printbill
 msgid "Pos Iface Printbill"
-msgstr "Kassan Iface tulostuslasku"
+msgstr "Kassajärjestelmän Iface-tulostuslasku"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_res_config_settings__pos_iface_splitbill
 msgid "Pos Iface Splitbill"
-msgstr "Kassan Iface laskun jako"
+msgstr "Kassajärjestelmän Iface-jakolasku"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_res_config_settings__pos_set_tip_after_payment
 msgid "Pos Set Tip After Payment"
-msgstr "Kassa aseta juomaraha maksun jälkeen"
+msgstr "Kassajärjestelmä: määritä juomaraha maksun jälkeen"
 
 #. module: pos_restaurant
 #: model:product.attribute.value,name:pos_restaurant.product_attribute_value_potato_thyme
@@ -1063,7 +1062,7 @@ msgstr "Järjestys"
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_pos_config__set_tip_after_payment
 msgid "Set Tip After Payment"
-msgstr "Aseta juomaraha maksun jälkeen"
+msgstr "Lisää tippi maksun jälkeen"
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -1080,7 +1079,7 @@ msgstr "Muoto"
 #. module: pos_restaurant
 #: model:product.attribute,name:pos_restaurant.product_sides_buns_pizza
 msgid "Sides"
-msgstr "Sivuilla"
+msgstr "Lisukkeet"
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -1164,12 +1163,23 @@ msgstr "Vaihda Mukaan otettaviin"
 #. odoo-javascript
 #: code:addons/pos_restaurant/static/src/app/floor_screen/floor_screen.xml:0
 #: code:addons/pos_restaurant/static/src/overrides/components/navbar/navbar.xml:0
-#: code:addons/pos_restaurant/static/src/overrides/components/receipt_screen/order_receipt/order_receipt.xml:0
 #: code:addons/pos_restaurant/static/src/overrides/components/ticket_screen/ticket_screen.js:0
 #: code:addons/pos_restaurant/static/src/overrides/components/ticket_screen/ticket_screen.xml:0
 #: model:ir.model.fields,field_description:pos_restaurant.field_pos_order__table_id
 msgid "Table"
 msgstr "Pöytä"
+
+#. module: pos_restaurant
+#. odoo-javascript
+#: code:addons/pos_restaurant/static/src/overrides/components/receipt_header_patch.js:0
+msgid "Table %(number)s"
+msgstr "Pöytä %(number)s"
+
+#. module: pos_restaurant
+#. odoo-javascript
+#: code:addons/pos_restaurant/static/src/overrides/components/receipt_header_patch.js:0
+msgid "Table %(number)s, Guests: %(count)s"
+msgstr "Pöytä %(number)s, vieraat: %(count)s"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_pos_config__module_pos_restaurant_appointment
@@ -1261,8 +1271,7 @@ msgstr "Pöytä, johon tämä tilaus tarjoiltiin"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_restaurant_table__color
-msgid ""
-"The table's color, expressed as a valid 'background' CSS property value"
+msgid "The table's color, expressed as a valid 'background' CSS property value"
 msgstr ""
 "Taulukon väri, ilmaistuna CSS-ominaisuuden 'background' kelvollisena arvona"
 
@@ -1274,8 +1283,8 @@ msgstr "Taulukon korkeus pikseleinä"
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_restaurant_table__position_h
 msgid ""
-"The table's horizontal position from the left side to the table's center, in"
-" pixels"
+"The table's horizontal position from the left side to the table's center, in "
+"pixels"
 msgstr ""
 "Taulukon vaakasuora sijainti vasemmasta reunasta taulukon keskelle, "
 "pikseleinä"
@@ -1285,8 +1294,7 @@ msgstr ""
 msgid ""
 "The table's vertical position from the top to the table's center, in pixels"
 msgstr ""
-"Taulukon pystysuora sijainti yläreunasta taulukon keskipisteeseen, "
-"pikseleinä"
+"Taulukon pystysuora sijainti yläreunasta taulukon keskipisteeseen, pikseleinä"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_restaurant_table__width
@@ -1297,8 +1305,8 @@ msgstr "Taulukon leveys pikseleinä"
 #: model:ir.model.fields,help:pos_restaurant.field_pos_config__takeaway_fp_id
 #: model:ir.model.fields,help:pos_restaurant.field_res_config_settings__pos_takeaway_fp_id
 msgid ""
-"This is useful for restaurants with onsite and take-away services that imply"
-" specific tax rates."
+"This is useful for restaurants with onsite and take-away services that imply "
+"specific tax rates."
 msgstr ""
 "Tämä on hyödyllistä ravintoloissa, joilla on erilaiset verokannat riippuen "
 "siitä, syövätkö asiakkaat paikan päällä vai ottavatko ruuan mukaansa."
@@ -1460,18 +1468,6 @@ msgstr "Et voi poistaa kassassa käytettyä pöytää, sulje istunto(t) ensin."
 
 #. module: pos_restaurant
 #. odoo-javascript
-#: code:addons/pos_restaurant/static/src/app/tip_receipt/tip_receipt.xml:0
-msgid "________________________"
-msgstr "________________________"
-
-#. module: pos_restaurant
-#. odoo-javascript
-#: code:addons/pos_restaurant/static/src/app/tip_receipt/tip_receipt.xml:0
-msgid "______________________________________________"
-msgstr "______________________________________________"
-
-#. module: pos_restaurant
-#. odoo-javascript
 #: code:addons/pos_restaurant/static/src/overrides/components/product_screen/product_screen.xml:0
 msgid "changes"
 msgstr "muutokset"
@@ -1487,3 +1483,9 @@ msgstr "kohdetta"
 #: code:addons/pos_restaurant/static/src/overrides/components/order_widget/order_widget.js:0
 msgid "or book the table for later"
 msgstr "tai varaa pöytä myöhemmäksi"
+
+#~ msgid "________________________"
+#~ msgstr "________________________"
+
+#~ msgid "______________________________________________"
+#~ msgstr "______________________________________________"

@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.5alpha1+e\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-27 12:37+0000\n"
-"PO-Revision-Date: 2023-09-27 12:37+0000\n"
+"POT-Creation-Date: 2026-02-20 19:04+0000\n"
+"PO-Revision-Date: 2026-02-20 19:04+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -26,14 +26,6 @@ msgid "- under customs procedure 63"
 msgstr ""
 
 #. module: l10n_pl
-#: model_terms:ir.ui.view,arch_db:l10n_pl.res_config_settings_view_form
-msgid ""
-"<span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-"
-"specific.\" aria-label=\"Values set here are company-specific.\" "
-"groups=\"base.group_multi_company\" role=\"img\"/>"
-msgstr ""
-
-#. module: l10n_pl
 #: model:ir.model,name:l10n_pl.model_account_chart_template
 msgid "Account Chart Template"
 msgstr ""
@@ -41,21 +33,18 @@ msgstr ""
 #. module: l10n_pl
 #: model:ir.model.fields,field_description:l10n_pl.field_account_bank_statement_line__l10n_pl_vat_b_mpv_prowizja
 #: model:ir.model.fields,field_description:l10n_pl.field_account_move__l10n_pl_vat_b_mpv_prowizja
-#: model:ir.model.fields,field_description:l10n_pl.field_account_payment__l10n_pl_vat_b_mpv_prowizja
 msgid "B_MPV_Prowizja"
 msgstr ""
 
 #. module: l10n_pl
 #: model:ir.model.fields,field_description:l10n_pl.field_account_bank_statement_line__l10n_pl_vat_b_spv
 #: model:ir.model.fields,field_description:l10n_pl.field_account_move__l10n_pl_vat_b_spv
-#: model:ir.model.fields,field_description:l10n_pl.field_account_payment__l10n_pl_vat_b_spv
 msgid "B_SPV"
 msgstr ""
 
 #. module: l10n_pl
 #: model:ir.model.fields,field_description:l10n_pl.field_account_bank_statement_line__l10n_pl_vat_b_spv_dostawa
 #: model:ir.model.fields,field_description:l10n_pl.field_account_move__l10n_pl_vat_b_spv_dostawa
-#: model:ir.model.fields,field_description:l10n_pl.field_account_payment__l10n_pl_vat_b_spv_dostawa
 msgid "B_SPV_Dostawa"
 msgstr ""
 
@@ -196,13 +185,6 @@ msgid "Created on"
 msgstr ""
 
 #. module: l10n_pl
-#. odoo-python
-#: code:addons/l10n_pl/models/account_move.py:0
-#, python-format
-msgid "Credit notes can't have a total amount greater than the invoice's"
-msgstr ""
-
-#. module: l10n_pl
 #: model:ir.model.fields,field_description:l10n_pl.field_l10n_pl_l10n_pl_tax_office__name
 msgid "Description"
 msgstr ""
@@ -210,6 +192,16 @@ msgstr ""
 #. module: l10n_pl
 #: model:ir.model.fields,field_description:l10n_pl.field_l10n_pl_l10n_pl_tax_office__display_name
 msgid "Display Name"
+msgstr ""
+
+#. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_7
+msgid "Financial expenses"
+msgstr ""
+
+#. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_3
+msgid "Financial income"
 msgstr ""
 
 #. module: l10n_pl
@@ -321,6 +313,31 @@ msgid "Links With Company"
 msgstr ""
 
 #. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_5
+msgid "Operating expenses / COGS"
+msgstr ""
+
+#. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_6
+msgid "Other operating expenses"
+msgstr ""
+
+#. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_2
+msgid "Other operating income"
+msgstr ""
+
+#. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_8
+msgid "Other taxable costs"
+msgstr ""
+
+#. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_4
+msgid "Other taxable income"
+msgstr ""
+
+#. module: l10n_pl
 #: model_terms:ir.ui.view,arch_db:l10n_pl.view_move_form_l10n_pl
 msgid "PL Extra"
 msgstr ""
@@ -341,9 +358,13 @@ msgid "Product"
 msgstr ""
 
 #. module: l10n_pl
+#: model:account.account.tag,name:l10n_pl.K_1
+msgid "Revenues from core operations"
+msgstr ""
+
+#. module: l10n_pl
 #: model:ir.model.fields,help:l10n_pl.field_account_bank_statement_line__l10n_pl_vat_b_mpv_prowizja
 #: model:ir.model.fields,help:l10n_pl.field_account_move__l10n_pl_vat_b_mpv_prowizja
-#: model:ir.model.fields,help:l10n_pl.field_account_payment__l10n_pl_vat_b_mpv_prowizja
 msgid ""
 "Supply of agency and other services pertaining to the transfer of a single-"
 "purpose voucher"
@@ -352,7 +373,6 @@ msgstr ""
 #. module: l10n_pl
 #: model:ir.model.fields,help:l10n_pl.field_account_bank_statement_line__l10n_pl_vat_b_spv_dostawa
 #: model:ir.model.fields,help:l10n_pl.field_account_move__l10n_pl_vat_b_spv_dostawa
-#: model:ir.model.fields,help:l10n_pl.field_account_payment__l10n_pl_vat_b_spv_dostawa
 msgid ""
 "Supply of goods and/or services covered by a single-purpose voucher to a "
 "taxpayer"
@@ -509,7 +529,6 @@ msgstr ""
 #. module: l10n_pl
 #: model:ir.model.fields,help:l10n_pl.field_account_bank_statement_line__l10n_pl_vat_b_spv
 #: model:ir.model.fields,help:l10n_pl.field_account_move__l10n_pl_vat_b_spv
-#: model:ir.model.fields,help:l10n_pl.field_account_payment__l10n_pl_vat_b_spv
 msgid ""
 "Transfer of a single-purpose voucher effected by a taxable person acting on "
 "his/its own behalf"
@@ -519,4 +538,9 @@ msgstr ""
 #: model:account.report.line,name:l10n_pl.account_tax_report_line_triangular_2nd_payer
 #: model:account.report.line,name:l10n_pl.account_tax_report_line_triangular_buyer_2nd_payer
 msgid "Triangular transaction 2. VAT payer"
+msgstr ""
+
+#. module: l10n_pl
+#: model_terms:ir.ui.view,arch_db:l10n_pl.res_config_settings_view_form
+msgid "Values set here are company-specific."
 msgstr ""

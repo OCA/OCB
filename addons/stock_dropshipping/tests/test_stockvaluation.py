@@ -21,7 +21,7 @@ class TestStockValuation(ValuationReconciliationTestCommon):
             'taxes_id': [(6, 0, [])],
         })
 
-    def _dropship_product1(self):
+    def _dropship_product1(self, bill_price=None):
         # enable the dropship route on the product
         dropshipping_route = self.env.ref('stock_dropshipping.route_drop_shipping')
         self.product1.write({'route_ids': [(6, 0, [dropshipping_route.id])]})
@@ -69,6 +69,8 @@ class TestStockValuation(ValuationReconciliationTestCommon):
         for i in range(len(self.purchase_order1.order_line)):
             with move_form.invoice_line_ids.edit(i) as line_form:
                 line_form.tax_ids.clear()
+                if bill_price:
+                    line_form.price_unit = bill_price
         self.vendor_bill1 = move_form.save()
         self.vendor_bill1.action_post()
 
@@ -339,3 +341,112 @@ class TestStockValuation(ValuationReconciliationTestCommon):
 
         self.assertTrue(8 in return_pick_2.move_ids.stock_valuation_layer_ids.mapped('value'))
         self.assertTrue(-8 in return_pick_2.move_ids.stock_valuation_layer_ids.mapped('value'))
+
+    def test_dropship_cogs_multiple_invoices(self):
+        self.env.company.anglo_saxon_accounting = True
+        self.product1.product_tmpl_id.categ_id.property_cost_method = 'fifo'
+        self.product1.product_tmpl_id.categ_id.property_valuation = 'real_time'
+        self.product1.product_tmpl_id.invoice_policy = 'order'
+        account_output = self.product1.product_tmpl_id.categ_id.property_stock_account_output_categ_id
+
+        # --- Create Dropship 1 --- #
+        self._dropship_product1()
+
+        # Check Dropship 1 COGS
+        dropship1_layers = self.purchase_order1.order_line.move_ids.stock_valuation_layer_ids
+        self.assertEqual(len(dropship1_layers), 2)
+        self.assertEqual(dropship1_layers[0].value, 8)
+        dropship1_cogs_line = self.customer_invoice1.line_ids.filtered(lambda aml: aml.account_id.id == account_output.id)
+        self.assertEqual(dropship1_cogs_line.balance, -8)
+
+        # --- Create Dropship 2 --- #
+        self.sale_order1.order_line.product_uom_qty = 2  # Should create a new PO
+        self.purchase_order2 = self.env['purchase.order'].search(
+            [('group_id', '=', self.sale_order1.procurement_group_id.id), ('state', '=', 'draft')]
+        )
+        self.purchase_order2.order_line.price_unit = 16
+        self.purchase_order2.button_confirm()
+
+        # Validate dropship transfer
+        dropship2 = self.sale_order1.picking_ids.filtered(lambda pck: pck.state != "done")
+        dropship2.move_ids.quantity = 1
+        dropship2.move_ids.picked = True
+        dropship2._action_done()
+        self.assertEqual(dropship2.state, "done")
+
+        # create the customer invoice
+        customer_invoice2 = self.sale_order1._create_invoices()
+        customer_invoice2.action_post()
+
+        # Check Dropship 2 COGS
+        dropship2_layers = dropship2.move_ids.stock_valuation_layer_ids
+        self.assertEqual(len(dropship2_layers), 2)
+        self.assertEqual(dropship2_layers[0].value, 16)
+        dropship2_cogs_line = customer_invoice2.line_ids.filtered(lambda aml: aml.account_id.id == account_output.id)
+        self.assertEqual(dropship2_cogs_line.balance, -16)
+
+        # --- Create Dropship 3 --- #
+        self.sale_order1.order_line.product_uom_qty = 3  # Should create a new PO
+        self.purchase_order3 = self.env['purchase.order'].search(
+            [('group_id', '=', self.sale_order1.procurement_group_id.id), ('state', '=', 'draft')]
+        )
+        self.purchase_order3.order_line.price_unit = 24
+        self.purchase_order3.button_confirm()
+
+        # Validate dropship transfer
+        dropship3 = self.sale_order1.picking_ids.filtered(lambda pck: pck.state != "done")
+        dropship3.move_ids.quantity = 1
+        dropship3.move_ids.picked = True
+        dropship3._action_done()
+        self.assertEqual(dropship3.state, "done")
+
+        # Return dropship
+        ret_model = self.env['stock.return.picking'].with_context(active_id=dropship3.id, active_model='stock.picking')
+        pck_return_wiz = Form(ret_model).save()
+        pck_return_wiz.product_return_moves.quantity = 1.0
+        pck_return_action = pck_return_wiz.action_create_returns()
+        dropship3_return = self.env['stock.picking'].browse(pck_return_action['res_id'])
+        dropship3_return.move_ids.quantity = 1
+        dropship3_return.move_ids.picked = True
+        dropship3_return._action_done()
+
+        # Return the dropship return
+        ret_model = ret_model.with_context(active_id=dropship3_return.id)
+        pck_return_wiz = Form(ret_model).save()
+        pck_return_wiz.product_return_moves.quantity = 1.0
+        pck_return_action = pck_return_wiz.action_create_returns()
+        dropship3_return_return = self.env['stock.picking'].browse(pck_return_action['res_id'])
+        dropship3_return_return.move_ids.quantity = 1
+        dropship3_return_return.move_ids.picked = True
+        dropship3_return_return._action_done()
+
+        # create the customer invoice
+        customer_invoice3 = self.sale_order1._create_invoices()
+        customer_invoice3.action_post()
+
+        # Check Dropship 3 COGS
+        dropship3_pcks = dropship3 | dropship3_return | dropship3_return_return
+        dropship3_layers = dropship3_pcks.move_ids.stock_valuation_layer_ids
+        self.assertEqual(len(dropship3_layers), 6)
+        self.assertEqual(dropship3_layers[0].value, 24)
+        dropship3_cogs_line = customer_invoice3.line_ids.filtered(lambda aml: aml.account_id.id == account_output.id)
+        self.assertEqual(dropship3_cogs_line.balance, -24)
+
+    def test_dropship_avco_anglo_saxon_price_diff_bill(self):
+        """ Check that the correction amls from expense to stock interim receipt
+        is created for a dropshipped avco product with automated valuation
+        """
+        self.env.company.anglo_saxon_accounting = True
+        self.product1.product_tmpl_id.categ_id.property_cost_method = 'average'
+        self.product1.product_tmpl_id.categ_id.property_valuation = 'real_time'
+
+        all_amls = self._dropship_product1(bill_price=6)
+
+        expected_aml = {
+            self.company_data['default_account_payable'].id:        (0.0, 6.0),
+            self.company_data['default_account_expense'].id:        (8.0, 2.0),
+            self.company_data['default_account_stock_in'].id:       (8.0, 8.0),
+            self.company_data['default_account_stock_out'].id:      (8.0, 8.0),
+        }
+
+        self._check_results(expected_aml, 12, all_amls)

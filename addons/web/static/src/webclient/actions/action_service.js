@@ -517,27 +517,36 @@ export function makeActionManager(env, router = _router) {
                 }
             }
         } else if (state.model) {
+            const storedAction = browser.sessionStorage.getItem("current_action");
+            const lastAction = JSON.parse(storedAction || "{}");
+            if (lastAction.context) {
+                // If this method is called because of a company switch, the
+                // stored allowed_company_ids is incorrect.
+                delete lastAction.context.allowed_company_ids;
+            }
             if (state.resId || state.view_type === "form") {
-                actionRequest = {
-                    res_model: state.model,
-                    res_id: state.resId === "new" ? undefined : state.resId,
-                    type: "ir.actions.act_window",
-                    views: [[state.view_id ? state.view_id : false, "form"]],
-                };
+                if (lastAction.res_model === state.model) {
+                    actionRequest = lastAction;
+                    options.props = { resId: state.resId === "new" ? undefined : state.resId };
+                    if (state.view_id) {
+                        actionRequest.views = [[state.view_id, "form"]];
+                    }
+                    options.viewType = "form";
+                } else {
+                    actionRequest = {
+                        res_model: state.model,
+                        res_id: state.resId === "new" ? undefined : state.resId,
+                        type: "ir.actions.act_window",
+                        views: [[state.view_id ? state.view_id : false, "form"]],
+                    };
+                }
             } else {
                 // This is a window action on a multi-record view => restores it from
                 // the session storage
-                const storedAction = browser.sessionStorage.getItem("current_action");
-                const lastAction = JSON.parse(storedAction || "{}");
                 if (lastAction.help) {
                     lastAction.help = markup(lastAction.help);
                 }
                 if (lastAction.res_model === state.model) {
-                    if (lastAction.context) {
-                        // If this method is called because of a company switch, the
-                        // stored allowed_company_ids is incorrect.
-                        delete lastAction.context.allowed_company_ids;
-                    }
                     actionRequest = lastAction;
                     options.viewType = state.view_type;
                 }
@@ -1110,8 +1119,10 @@ export function makeActionManager(env, router = _router) {
         if (url && !(url.startsWith("http") || url.startsWith("/"))) {
             url = "/" + url;
         }
-        if (action.target === "download" || action.target === "self") {
+        if (action.target === "self") {
             browser.location.assign(url);
+        } else if (action.target === "download") {
+            browser.open(url, "_blank");
         } else {
             const w = browser.open(url, "_blank");
             if (!w || w.closed || typeof w.closed === "undefined") {
@@ -1293,6 +1304,12 @@ export function makeActionManager(env, router = _router) {
         for (const handler of handlers) {
             const result = await handler(action, options, env);
             if (result) {
+                const { onClose } = options;
+                if (action.close_on_report_download) {
+                    return doAction({ type: "ir.actions.act_window_close" }, { onClose });
+                } else if (onClose) {
+                    onClose();
+                }
                 return result;
             }
         }

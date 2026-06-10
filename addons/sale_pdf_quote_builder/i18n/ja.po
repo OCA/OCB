@@ -1,26 +1,29 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* sale_pdf_quote_builder
-# 
+# * sale_pdf_quote_builder
+#
 # Translators:
 # Tiffany Chang, 2024
 # Noma Yuki, 2024
 # Wil Odoo, 2024
 # Junko Augias, 2025
-# 
+#
+# "Junko Augias (juau)" <juau@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 13:40+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Junko Augias, 2025\n"
-"Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
+"POT-Creation-Date: 2025-12-29 18:37+0000\n"
+"PO-Revision-Date: 2026-04-24 07:52+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-18/"
+"sale_pdf_quote_builder/ja/>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.actions.report,print_report_name:sale_pdf_quote_builder.action_report_saleorder_raw
@@ -45,17 +48,21 @@ msgstr "<span>ドキュメントタイプ:</span>"
 #. odoo-python
 #: code:addons/sale_pdf_quote_builder/models/sale_pdf_form_field.py:0
 msgid ""
-"A form field set as used in product documents can't be linked to a quotation"
-" document."
-msgstr "プロダクトドキュメントで使用するように設定されたフォームフィールドは、見積ドキュメントにリンクできません。"
+"A form field set as used in product documents can't be linked to a quotation "
+"document."
+msgstr ""
+"プロダクトドキュメントで使用するように設定されたフォームフィールドは、見積ド"
+"キュメントにリンクできません。"
 
 #. module: sale_pdf_quote_builder
 #. odoo-python
 #: code:addons/sale_pdf_quote_builder/models/sale_pdf_form_field.py:0
 msgid ""
-"A form field set as used in quotation documents can't be linked to a product"
-" document."
-msgstr "見積で使用されるように設定されたフォームフィールドは、プロダクトドキュメントにリンクできません。"
+"A form field set as used in quotation documents can't be linked to a product "
+"document."
+msgstr ""
+"見積で使用されるように設定されたフォームフィールドは、プロダクトドキュメント"
+"にリンクできません。"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.model.fields,field_description:sale_pdf_quote_builder.field_quotation_document__access_token
@@ -65,7 +72,7 @@ msgstr "アクセストークン"
 #. module: sale_pdf_quote_builder
 #: model:ir.model.fields,field_description:sale_pdf_quote_builder.field_quotation_document__active
 msgid "Active"
-msgstr "アクティブ"
+msgstr "有効"
 
 #. module: sale_pdf_quote_builder
 #: model_terms:ir.ui.view,arch_db:sale_pdf_quote_builder.quotation_document_search_view
@@ -82,19 +89,25 @@ msgstr "全てのファイルがアップロードされました"
 #: model:ir.model.fields,help:sale_pdf_quote_builder.field_product_document__attached_on_sale
 msgid ""
 "Allows you to share the document with your customers within a sale.\n"
-"Leave it empty if you don't want to share this document with sales customer.\n"
-"On quote: the document will be sent to and accessible by customers at any time.\n"
+"Leave it empty if you don't want to share this document with sales "
+"customer.\n"
+"On quote: the document will be sent to and accessible by customers at any "
+"time.\n"
 "e.g. this option can be useful to share Product description files.\n"
-"On order confirmation: the document will be sent to and accessible by customers.\n"
-"e.g. this option can be useful to share User Manual or digital content bought on ecommerce. \n"
-"Inside quote: The document will be included in the pdf of the quotation and sale order between the header pages and the quote table. "
+"On order confirmation: the document will be sent to and accessible by "
+"customers.\n"
+"e.g. this option can be useful to share User Manual or digital content "
+"bought on ecommerce. \n"
+"Inside quote: The document will be included in the pdf of the quotation and "
+"sale order between the header pages and the quote table. "
 msgstr ""
 "販売内で顧客とドキュメントを共有できます。\n"
 "このドキュメントを販売顧客と共有したくない場合は、空のままにして下さい。\n"
 "見積時:ドキュメントは顧客に送信され、顧客はいつでもアクセスできます。\n"
 "例: このオプションはプロダクト説明ファイルを共有するのに便利です。\n"
 "オーダ確認時: ドキュメントは顧客に送信され、顧客はアクセスできます。\n"
-"例: このオプションはユーザマニュアルやeコマースで購入したデジタルコンテンツを共有するのに便利です。\n"
+"例: このオプションはユーザマニュアルやeコマースで購入したデジタルコンテンツを"
+"共有するのに便利です。\n"
 "見積書内:ドキュメントはヘッダページと見積テーブルの間の見積書\n"
 "と販売オーダのPDFに含まれます。"
 
@@ -229,7 +242,7 @@ msgstr "ファイルコンテンツ(base64)"
 #. module: sale_pdf_quote_builder
 #: model:ir.model.fields,field_description:sale_pdf_quote_builder.field_quotation_document__raw
 msgid "File Content (raw)"
-msgstr "フィールドの内容(生)"
+msgstr "ファイル内容 (raw)"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.model.fields,field_description:sale_pdf_quote_builder.field_quotation_document__file_size
@@ -264,7 +277,9 @@ msgstr "フォームフィールドを含む"
 #. module: sale_pdf_quote_builder
 #: model:ir.model.constraint,message:sale_pdf_quote_builder.constraint_sale_pdf_form_field_unique_name_per_doc_type
 msgid "Form field name must be unique for a given document type."
-msgstr "フォームフィールド名は、指定されたドキュメントタイプに対して一意でなければなりません。"
+msgstr ""
+"フォームフィールド名は、指定されたドキュメントタイプに対して一意でなければな"
+"りません。"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.model,name:sale_pdf_quote_builder.model_sale_pdf_form_field
@@ -317,7 +332,9 @@ msgstr "ID"
 msgid ""
 "If unchecked, it will allow you to hide the header or footer without "
 "removing it."
-msgstr "チェックを外すと、ヘッダーまたはフッターを削除せずに非表示にすることができます。"
+msgstr ""
+"チェックを外すと、ヘッダーまたはフッターを削除せずに非表示にすることができま"
+"す。"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.model.fields,field_description:sale_pdf_quote_builder.field_quotation_document__image_height
@@ -350,7 +367,9 @@ msgstr "見積書PDF内"
 msgid ""
 "Invalid form field name %(field_name)s. A form field name in a header or a "
 "footer can not start with \"sol_id_\"."
-msgstr "無効なフィールド名 %(field_name)s。ヘッダまたはフッタのフォームフィールド名は \"sol_id_\" で始まることはできません。"
+msgstr ""
+"無効なフィールド名 %(field_name)s。ヘッダまたはフッタのフォームフィールド名"
+"は \"sol_id_\" で始まることはできません。"
 
 #. module: sale_pdf_quote_builder
 #. odoo-python
@@ -358,7 +377,9 @@ msgstr "無効なフィールド名 %(field_name)s。ヘッダまたはフッタ
 msgid ""
 "Invalid form field name %(field_name)s. It should only contain "
 "alphanumerics, hyphens or underscores."
-msgstr "無効なフィールド名 %(field_name)s。 英数字、ハイフン、アンダースコアのみが可能です。"
+msgstr ""
+"無効なフィールド名 %(field_name)s。 英数字、ハイフン、アンダースコアのみが可"
+"能です。"
 
 #. module: sale_pdf_quote_builder
 #. odoo-python
@@ -366,7 +387,8 @@ msgstr "無効なフィールド名 %(field_name)s。 英数字、ハイフン�
 msgid ""
 "Invalid path %(path)s. It should only contain alphanumerics, hyphens, "
 "underscores or points."
-msgstr "無効なパス%(path)s。 英数字、ハイフン、アンダースコアまたは点のみ可能です。"
+msgstr ""
+"無効なパス%(path)s。 英数字、ハイフン、アンダースコアまたは点のみ可能です。"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.model.fields,field_description:sale_pdf_quote_builder.field_sale_order__is_pdf_quote_builder_available
@@ -385,7 +407,8 @@ msgid ""
 "It seems that we're not able to process this pdf inside a quotation. It is "
 "either encrypted, or encoded in a format we do not support."
 msgstr ""
-"このpdfを見積書内で処理することができないようです。暗号化されているか、弊社がサポートしていない形式でエンコードされているかのどちらかです。"
+"このpdfを見積書内で処理することができないようです。暗号化されているか、弊社が"
+"サポートしていない形式でエンコードされているかのどちらかです。"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.model.fields,field_description:sale_pdf_quote_builder.field_quotation_document__key
@@ -485,17 +508,25 @@ msgstr "プロダクトドキュメント"
 #. module: sale_pdf_quote_builder
 #: model_terms:ir.ui.view,arch_db:sale_pdf_quote_builder.sale_order_template_form
 msgid ""
-"Provide header pages and footer pages to compose an attractive quotation with more information\n"
-"                        about your company, your products and you services. <br/>\n"
-"                        The pdf of your quotes will be built by putting together header pages, product descriptions,\n"
-"                        details of the quote and then the footer pages. <br/>\n"
-"                        If empty, it will use those define in the company settings. <br/>"
+"Provide header pages and footer pages to compose an attractive quotation "
+"with more information\n"
+"                        about your company, your products and you services. "
+"<br/>\n"
+"                        The pdf of your quotes will be built by putting "
+"together header pages, product descriptions,\n"
+"                        details of the quote and then the footer pages. <br/"
+">\n"
+"                        If empty, it will use those define in the company "
+"settings. <br/>"
 msgstr ""
 "会社、プロダクト、サービスに関する詳細な情報を含む\n"
-"                        魅力的な見積書を作成するためのヘッダーページとフッターページを提供します。<br/>\n"
+"                        魅力的な見積書を作成するためのヘッダーページとフッ"
+"ターページを提供します。<br/>\n"
 "                        見積書のPDFは、ヘッダーページ、\n"
-"                        プロダクト説明、見積詳細、そしてフッターページで構成されます。<br/>\n"
-"                        空の場合は、会社設定で定義されたものを使用します。 <br/>"
+"                        プロダクト説明、見積詳細、そしてフッターページで構成"
+"されます。<br/>\n"
+"                        空の場合は、会社設定で定義されたものを使用します。 "
+"<br/>"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.actions.report,name:sale_pdf_quote_builder.action_report_saleorder_raw
@@ -572,7 +603,8 @@ msgstr "販売 : 以下で表示"
 #. module: sale_pdf_quote_builder
 #: model:ir.actions.server,name:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields_ir_actions_server
 msgid "Sale Pdf Quote Builder: assign form fields to documents post upgrade"
-msgstr "販売PDF見積ビルダ: アップグレード後のドキュメントにフォームフィールドを割当"
+msgstr ""
+"販売PDF見積ビルダ: アップグレード後のドキュメントにフォームフィールドを割当"
 
 #. module: sale_pdf_quote_builder
 #: model:ir.model,name:sale_pdf_quote_builder.model_sale_order
@@ -665,7 +697,9 @@ msgstr "ウェブサイト"
 #. odoo-python
 #: code:addons/sale_pdf_quote_builder/models/product_document.py:0
 msgid "When attached inside a quote, the document must be a file, not a URL."
-msgstr "引用の中に添付する場合、ドキュメントはURLではなくファイルでなければなりません。"
+msgstr ""
+"引用の中に添付する場合、ドキュメントはURLではなくファイルでなければなりませ"
+"ん。"
 
 #. module: sale_pdf_quote_builder
 #. odoo-python
@@ -678,7 +712,9 @@ msgstr "はい"
 msgid ""
 "You can either upload a file from your computer or copy/paste an internet "
 "link to your file."
-msgstr "利用中のコンピュータから、もしくはインターネットのリンクをコピーペーストでファイルをアップロードすることができます。"
+msgstr ""
+"利用中のコンピュータから、もしくはインターネットのリンクをコピーペーストで"
+"ファイルをアップロードすることができます。"
 
 #. module: sale_pdf_quote_builder
 #: model_terms:ir.ui.view,arch_db:sale_pdf_quote_builder.quotation_document_form

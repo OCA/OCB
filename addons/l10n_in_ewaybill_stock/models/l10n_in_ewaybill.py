@@ -264,9 +264,42 @@ class Ewaybill(models.Model):
             'state': 'challan',
         })
 
+    def action_print(self):
+        self.ensure_one()
+        if self.state in ['pending', 'cancel']:
+            raise UserError(_("Please generate the E-Waybill or mark the document as a Challan to print it."))
+
+        doc_label = _("Challan") if self.state == 'challan' else _("E-Waybill")
+        body = _("%s has been generated", doc_label)
+        filename = "%s - %s.pdf" % (doc_label, self.document_number)
+        pdf_content = self.env['ir.actions.report']._render_qweb_pdf(
+            'l10n_in_ewaybill_stock.action_report_ewaybill', res_ids=[self.id])[0]
+        attachment = self.env['ir.attachment'].create({
+            'name': filename,
+            'type': 'binary',
+            'datas': base64.b64encode(pdf_content),
+            'res_model': 'l10n.in.ewaybill',
+            'res_id': self.id,
+            'mimetype': 'application/pdf',
+        })
+        self.message_post(body=body, attachment_ids=[attachment.id])
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+        }
+
     def _is_overseas(self):
         self.ensure_one()
         return self._get_gst_treatment()[1] in ('overseas', 'special_economic_zone')
+
+    @api.model
+    def _get_default_help_message(self, status):
+        return self.env._(
+            "Somehow this E-waybill has been %s in the government portal before. "
+            "You can verify by checking the details into the government "
+            "(https://ewaybillgst.gov.in/Others/EBPrintnew.aspx)",
+            status
+        )
 
     def _check_configuration(self):
         error_message = []
@@ -283,7 +316,7 @@ class Ewaybill(models.Model):
 
     def _check_transporter(self):
         error_message = []
-        if self.transporter_id and not self.transporter_id.vat:
+        if self.transporter_id and not self.transporter_id.vat and (self.mode != "1" or not self.vehicle_no):
             error_message.append(_("- Transporter %s does not have a GST Number", self.transporter_id.name))
         if self.mode == "4" and self.vehicle_no and self.vehicle_type == "R":
             error_message.append(_("- Vehicle type can not be regular when the transportation mode is ship"))
@@ -386,7 +419,7 @@ class Ewaybill(models.Model):
         self._handle_internal_warning_if_present(ewaybill_error.error_json)
         error_message = ewaybill_error.get_all_error_message()
         blocking_level = "error"
-        if "404" in ewaybill_error.error_codes:
+        if "access_error" in ewaybill_error.error_codes:
             blocking_level = "warning"
         self._write_error(error_message, blocking_level)
 
@@ -394,15 +427,16 @@ class Ewaybill(models.Model):
         cancel_json = {
             "ewbNo": int(self.name),
             "cancelRsnCode": int(self.cancel_reason),
-            "CnlRem": self.cancel_remarks,
+            "cancelRmrk": self.cancel_remarks,
         }
         ewb_api = EWayBillApi(self.company_id)
         self._lock_ewaybill()
         try:
-            ewb_api._ewaybill_cancel(cancel_json)
+            response = ewb_api._ewaybill_cancel(cancel_json)
         except EWayBillError as error:
             self._handle_error(error)
             return False
+        self._handle_internal_warning_if_present(response)  # In case of error 312
         self._write_successfully_response({'state': 'cancel'})
         self._cr.commit()
 
@@ -458,8 +492,10 @@ class Ewaybill(models.Model):
         return fields.Datetime.to_string(utc_time)
 
     @api.model
-    def _get_partner_state_code(self, partner):
-        return int(partner.state_id.l10n_in_tin) if partner.country_id.code == "IN" else 99
+    def _get_partner_state_code(self, partner, is_to_state=False):
+        if partner.country_id.code != "IN" or (is_to_state and partner.l10n_in_gst_treatment == "special_economic_zone"):
+            return 99
+        return int(partner.state_id.l10n_in_tin)
 
     def _l10n_in_tax_details(self):
         tax_details = {
@@ -500,9 +536,9 @@ class Ewaybill(models.Model):
         AccountEDI = self.env['account.edi.format']
         product = line.product_id
         line_details = {
-            "productName": product.name,
+            "productName": product.name[:100],
             "hsnCode": AccountEDI._l10n_in_edi_extract_digits(product.l10n_in_hsn_code),
-            "productDesc": product.name,
+            "productDesc": line.description_picking[:100] if line.description_picking else "",
             "quantity": line.quantity,
             "qtyUnit": line.product_uom.l10n_in_code and line.product_uom.l10n_in_code.split("-")[
                 0] or "OTH",
@@ -551,7 +587,7 @@ class Ewaybill(models.Model):
 
         def prepare_details(key_paired_function, partner_detail):
             return {
-                f"{place}{key}": fun(partner)
+                f"{place}{key}": fun(partner, place) if key == "StateCode" else fun(partner)
                 for key, fun in key_paired_function
                 for place, partner in partner_detail
             }
@@ -568,13 +604,13 @@ class Ewaybill(models.Model):
                 ),
                 "transDistance": str(self.distance),
                 "docNo": self.document_number,
-                "docDate": (self.document_date or fields.Datetime.now()).strftime("%d/%m/%Y"),
+                "docDate": fields.Date.context_today(self.with_context(tz='Asia/Kolkata'), self.document_date).strftime("%d/%m/%Y"),
                 # bill details
                 **prepare_details(
                     key_paired_function={
                         'Gstin': lambda p: p.commercial_partner_id.vat or "URP",
                         'TrdName': lambda p: p.commercial_partner_id.name,
-                        'StateCode': self._get_partner_state_code,
+                        'StateCode': lambda p, place: self._get_partner_state_code(p, is_to_state=place == 'to'),
                     }.items(),
                     partner_detail={'from': self.partner_bill_from_id, 'to': self.partner_bill_to_id}.items()
                 ),

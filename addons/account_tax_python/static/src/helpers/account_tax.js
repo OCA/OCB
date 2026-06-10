@@ -17,12 +17,13 @@ patch(accountTaxHelpers, {
             price_unit: evaluation_context.price_unit,
             quantity: evaluation_context.quantity,
             product: evaluation_context.product,
+            uom: evaluation_context.uom,
             base: raw_base,
         };
         return evaluateExpr(tax.formula_decoded_info.js_formula, formula_context);
     },
 
-    /** override **/
+    // EXTENDS 'account'
     eval_tax_amount_fixed_amount(tax, batch, raw_base, evaluation_context) {
         if (tax.amount_type === "code") {
             return this.eval_tax_amount_formula(tax, raw_base, evaluation_context);

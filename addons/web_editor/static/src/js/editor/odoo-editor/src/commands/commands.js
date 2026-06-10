@@ -336,7 +336,7 @@ export const editorCommands = {
                         const [left, right] = splitElement(currentNode.parentElement, offset);
                         if (isUnbreakable(nodeToInsert) && container.childNodes.length === 1) {
                             fillEmpty(right);
-                        } else if (isEmptyBlock(right)) {
+                        } else if (isEmptyBlock(right) && !insertBefore) {
                             right.remove();
                         }
                         currentNode = insertBefore && right.isConnected ? right : left;
@@ -449,7 +449,13 @@ export const editorCommands = {
     // Change tags
     setTag(editor, tagName, extraClass = "") {
         const range = getDeepRange(editor.editable, { correctTripleClick: true });
-        const selectedBlocks = [...new Set(getTraversedNodes(editor.editable, range).map(closestBlock))];
+        const selectedBlocks = [
+            ...new Set(
+                getTraversedNodes(editor.editable, range)
+                    .map(closestBlock)
+                    .filter((block) => block.isContentEditable)
+            ),
+        ];
         const deepestSelectedBlocks = selectedBlocks.filter(block => (
             !descendants(block).some(descendant => selectedBlocks.includes(descendant)) &&
             block.isContentEditable
@@ -570,7 +576,7 @@ export const editorCommands = {
             element.style.removeProperty('color');
             element.style.removeProperty('background');
             element.style.removeProperty('-webkit-text-fill-color');
-            if (hasAnyFontSizeClass(element)) {
+            if (!hasFontSizeClass && closestElement(node, hasAnyFontSizeClass)) {
                 hasFontSizeClass = true;
             }
         }
@@ -740,9 +746,19 @@ export const editorCommands = {
         if (isEmptyBlock(range.endContainer)) {
             selectionNodes.push(range.endContainer, ...descendants(range.endContainer));
         }
-        const selectedNodes = mode === "backgroundColor"
+        let selectedNodes = mode === "backgroundColor"
             ? selectionNodes.filter(node => !closestElement(node, 'table.o_selected_table'))
             : selectionNodes;
+        const findTopMostDecoration = (current) => {
+            const decoration = closestElement(current.parentNode, "s, u");
+            return decoration?.textContent === current.textContent
+                ? findTopMostDecoration(decoration)
+                : current;
+        };
+        selectedNodes = selectedNodes.map((node) => {
+            return findTopMostDecoration(node);
+        });
+
         const selectedFieldNodes = new Set(getSelectedNodes(editor.editable)
                 .map(n => closestElement(n, "*[t-field],*[t-out],*[t-esc]"))
                 .filter(Boolean));
@@ -755,7 +771,7 @@ export const editorCommands = {
                 if (
                     font &&
                     (font.nodeName === "FONT" || (font.nodeName === "SPAN" && font.style[mode])) &&
-                    (isColorGradient(color) || !hasInlineGradient)
+                    (isColorGradient(color) || color === "" || !hasInlineGradient)
                 ) {
                     // Partially selected <font>: split it.
                     const selectedChildren = children.filter(child => selectedNodes.includes(child));

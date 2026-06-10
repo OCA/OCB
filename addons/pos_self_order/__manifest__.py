@@ -26,10 +26,12 @@
     "assets": {
         # Assets
         'point_of_sale._assets_pos': [
+            'pos_self_order/static/src/backend/qr_order_button/*',
             'pos_self_order/static/src/overrides/**/*',
         ],
         'web.assets_backend': [
             "pos_self_order/static/src/upgrade_selection_field.js",
+            'pos_self_order/static/src/backend/qr_order_button/*',
         ],
         "pos_self_order.assets": [
             "pos_self_order/static/src/app/primary_variables.scss",
@@ -38,6 +40,7 @@
             'web/static/src/core/currency.js',
             'barcodes/static/src/barcode_service.js',
             'point_of_sale/static/src/utils.js',
+            'point_of_sale/static/src/app/utils/init_lna.js',
             'web/static/lib/bootstrap/js/dist/util/index.js',
             'web/static/lib/bootstrap/js/dist/dom/data.js',
             'web/static/lib/bootstrap/js/dist/dom/event-handler.js',

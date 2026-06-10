@@ -1,62 +1,18 @@
-# -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+import json
+import math
 from collections import defaultdict
-from urllib3.util.ssl_ import create_urllib3_context
-from urllib3.contrib.pyopenssl import inject_into_urllib3
-from OpenSSL.crypto import load_certificate, load_privatekey, FILETYPE_PEM
 
-from odoo import fields, models, _
-from odoo.exceptions import UserError
+import requests
+
+from odoo import _, fields, models
 from odoo.tools import html_escape, zeep
 from odoo.tools.float_utils import float_round
 
-import base64
-import math
-import json
-import requests
-
+from odoo.addons.certificate.tools import CertificateAdapter
 
 # Custom patches to perform the WSDL requests.
 # Avoid failure on servers where the DH key is too small
 EUSKADI_CIPHERS = "DEFAULT:!DH"
-
-
-class PatchedHTTPAdapter(requests.adapters.HTTPAdapter):
-    """ An adapter to block DH ciphers which may not work for the tax agencies called"""
-
-    def init_poolmanager(self, *args, **kwargs):
-        # OVERRIDE
-        inject_into_urllib3()
-        kwargs['ssl_context'] = create_urllib3_context(ciphers=EUSKADI_CIPHERS)
-        return super().init_poolmanager(*args, **kwargs)
-
-    def cert_verify(self, conn, url, verify, cert):
-        # OVERRIDE
-        # The last parameter is only used by the super method to check if the file exists.
-        # In our case, cert is an odoo record 'certificate.certificate' so not a path to a file.
-        # By putting 'None' as last parameter, we ensure the check about TLS configuration is
-        # still made without checking temporary files exist.
-        super().cert_verify(conn, url, verify, None)
-        conn.cert_file = cert
-        conn.key_file = None
-
-    def get_connection(self, url, proxies=None):
-        # OVERRIDE
-        # Patch the OpenSSLContext to decode the certificate in-memory.
-        conn = super().get_connection(url, proxies=proxies)
-        context = conn.conn_kw['ssl_context']
-
-        def patched_load_cert_chain(l10n_es_odoo_certificate, keyfile=None, password=None):
-            certificate = l10n_es_odoo_certificate
-            cert_obj = load_certificate(FILETYPE_PEM, base64.b64decode(certificate.sudo().pem_certificate))
-            pkey_obj = load_privatekey(FILETYPE_PEM, base64.b64decode(certificate.sudo().private_key_id.pem_key))
-
-            context._ctx.use_certificate(cert_obj)
-            context._ctx.use_privatekey(pkey_obj)
-
-        context.load_cert_chain = patched_load_cert_chain
-
-        return conn
 
 
 class AccountEdiFormat(models.Model):
@@ -173,7 +129,7 @@ class AccountEdiFormat(models.Model):
 
             else:
                 # Vendor bills
-                if tax_values['l10n_es_type'] in ('sujeto', 'sujeto_isp', 'no_sujeto', 'no_sujeto_loc', 'dua'):
+                if tax_values['l10n_es_type'] in ('sujeto', 'sujeto_isp', 'no_sujeto', 'no_sujeto_loc', 'dua', 'sujeto_agricultura'):
                     tax_amount_deductible += tax_values['tax_amount']
                 elif tax_values['l10n_es_type'] == 'retencion':
                     tax_amount_retention += tax_values['tax_amount']
@@ -244,29 +200,7 @@ class AccountEdiFormat(models.Model):
         }
 
     def _l10n_es_edi_get_partner_info(self, partner):
-        eu_country_codes = set(self.env.ref('base.europe').country_ids.mapped('code'))
-
-        partner_info = {}
-        IDOtro_ID = partner.vat or 'NO_DISPONIBLE'
-
-        if (not partner.country_id or partner.country_id.code == 'ES') and partner.vat:
-            # ES partner with VAT.
-            partner_info['NIF'] = partner.vat[2:] if partner.vat.startswith('ES') else partner.vat
-            if self.env.context.get('error_1117'):
-                partner_info['IDOtro'] = {'IDType': '07', 'ID': IDOtro_ID}
-
-        elif partner.country_id.code in eu_country_codes and partner.vat:
-            # European partner.
-            partner_info['IDOtro'] = {'IDType': '02', 'ID': IDOtro_ID}
-        else:
-            partner_info['IDOtro'] = {'ID': IDOtro_ID}
-            if partner.vat:
-                partner_info['IDOtro']['IDType'] = '04'
-            else:
-                partner_info['IDOtro']['IDType'] = '06'
-            if partner.country_id:
-                partner_info['IDOtro']['CodigoPais'] = partner.country_id.code
-        return partner_info
+        return partner._l10n_es_edi_get_partner_info()
 
     def _l10n_es_edi_get_invoices_info(self, invoices):
         eu_country_codes = set(self.env.ref('base.europe').country_ids.mapped('code'))
@@ -279,7 +213,7 @@ class AccountEdiFormat(models.Model):
             info = {
                 'PeriodoLiquidacion': {
                     'Ejercicio': str(invoice.date.year),
-                    'Periodo': str(invoice.date.month).zfill(2),
+                    'Periodo': invoice._l10n_es_edi_get_period(),
                 },
                 'IDFactura': {
                     'FechaExpedicionFacturaEmisor': invoice.invoice_date.strftime('%d-%m-%Y'),
@@ -391,11 +325,6 @@ class AccountEdiFormat(models.Model):
                         invoice_node.setdefault('TipoDesglose', {})
                         invoice_node['TipoDesglose'].setdefault('DesgloseTipoOperacion', {})
                         invoice_node['TipoDesglose']['DesgloseTipoOperacion']['Entrega'] = tax_details_info_consu_vals['tax_details_info']
-                    if not invoice_node.get('TipoDesglose'):
-                        raise UserError(_(
-                            "In case of a foreign customer, you need to configure the tax scope on taxes:\n%s",
-                            "\n".join(invoice.line_ids.tax_ids.mapped('name'))
-                        ))
 
                     invoice_node['ImporteTotal'] = float_round(sign * (
                         tax_details_info_service_vals['tax_details']['base_amount']
@@ -480,6 +409,15 @@ class AccountEdiFormat(models.Model):
                 'test_url': 'https://sii-prep.egoitza.gipuzkoa.eus/JBS/HACI/SSII-FACT/ws/fr/SiiFactFRV1SOAP',
             }
 
+    def _l10n_es_edi_web_service_navarra_vals(self, invoices):
+        wsdl = 'SuministroFactEmitidas' if invoices[0].is_sale_document() else 'SuministroFactRecibidas'
+        return {
+            'url': f'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/{wsdl}.wsdl',
+            'address': 'https://siihacienda.navarra.es/SII_PRODUCCION.proxy/SiiMensajesXsdHandlet.ashx',
+            'test_url': 'https://siihacienda.navarra.es/SII_PRUEBAS.proxy/SiiMensajesXsdHandlet.ashx',
+            'custom_navarra': True,
+        }
+
     def _l10n_es_edi_call_web_service_sign(self, invoices, info_list):
         return self._l10n_es_edi_call_web_service_sign_common(invoices, info_list)
 
@@ -511,9 +449,17 @@ class AccountEdiFormat(models.Model):
 
         session = requests.Session()
         session.cert = company.l10n_es_sii_certificate_id
-        session.mount('https://', PatchedHTTPAdapter())
+        session.mount('https://', CertificateAdapter(ciphers=EUSKADI_CIPHERS))
 
         client = zeep.Client(connection_vals['url'], operation_timeout=60, timeout=60, session=session)
+
+        if connection_vals.get('custom_navarra'):
+            # We Inject the namespaces directly in the header dictionary
+            # This makes Odoo serializer to include them in the Envelope
+            header['_attributes'] = {
+                'xmlns:sum': 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroLR.xsd',
+                'xmlns:sum1': 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroInformacion.xsd',
+            }
 
         if invoices[0].is_sale_document():
             service_name = 'SuministroFactEmitidas'
@@ -669,8 +615,10 @@ class AccountEdiFormat(models.Model):
 
         if not move.company_id.vat:
             res.append(_("VAT number is missing on company %s", move.company_id.display_name))
+        total_taxes = self.env['account.tax']
         for line in move.invoice_line_ids.filtered(lambda line: line.display_type not in ('line_note', 'line_section')):
             taxes = line.tax_ids.flatten_taxes_hierarchy()
+            total_taxes |= taxes
             recargo_count = taxes.mapped('l10n_es_type').count('recargo')
             retention_count = taxes.mapped('l10n_es_type').count('retencion')
             sujeto_count = taxes.mapped('l10n_es_type').count('sujeto')
@@ -688,6 +636,11 @@ class AccountEdiFormat(models.Model):
                 res.append(_("Line %s should only have one no sujeto (localizations) tax.", line.display_name))
             if sujeto_count + no_sujeto_loc_count + no_sujeto_count > 1:
                 res.append(_("Line %s should only have one main tax.", line.display_name))
+        if move.is_inbound() and move.commercial_partner_id._l10n_es_is_foreign() and not any(t.tax_scope for t in total_taxes):
+            res.append(
+                _("In case of a foreign customer, you need to configure the tax scope on taxes:\n%s",
+                  "\n".join(total_taxes.mapped('name')))
+            )
         if move.move_type in ('in_invoice', 'in_refund'):
             if not move.ref:
                 res.append(_("You should put a vendor reference on this vendor bill. "))

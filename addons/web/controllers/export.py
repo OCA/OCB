@@ -11,11 +11,11 @@ from collections import OrderedDict
 
 from werkzeug.exceptions import InternalServerError
 
-from odoo import http
+from odoo import http, models
 from odoo.exceptions import UserError
 from odoo.http import content_disposition, request
 from odoo.tools import lazy_property, osutil
-from odoo.tools.misc import xlsxwriter
+from odoo.tools.misc import xlsxwriter, split_every
 
 
 _logger = logging.getLogger(__name__)
@@ -228,7 +228,7 @@ class ExportXlsxWriter:
                 # fails note that you can't export
                 cell_value = cell_value.decode()
             except UnicodeDecodeError:
-                raise UserError(request.env._("Binary fields can not be exported to Excel unless their content is base64-encoded. That does not seem to be the case for %s.", self.field_names)[column]) from None
+                raise UserError(request.env._("Binary fields can not be exported to Excel unless their content is base64-encoded. That does not seem to be the case for %s.", self.columns_headers[column])) from None
         elif isinstance(cell_value, (list, tuple, dict)):
             cell_value = str(cell_value)
 
@@ -564,7 +564,7 @@ class ExportFormat(object):
 
         groupby = params.get('groupby')
         if not import_compat and groupby:
-            groupby_type = [Model._fields[x.split(':')[0]].type for x in groupby]
+            groupby_type = [Model._fields[x.split(':', 1)[0].split('.', 1)[0]].type for x in groupby]
             domain = [('id', 'in', ids)] if ids else domain
             read_context = Model.env.context
             if ids:
@@ -582,8 +582,13 @@ class ExportFormat(object):
         else:
             records = Model.browse(ids) if ids else Model.search(domain, offset=0, limit=False, order=False)
 
-            export_data = records.export_data(field_names).get('datas', [])
-            response_data = self.from_data(fields, columns_headers, export_data)
+            all_rows = []
+            for batch in split_every(models.PREFETCH_MAX, records.ids, Model.browse):
+                export_data = batch.export_data(field_names).get('datas', [])
+                all_rows.extend(export_data)
+                batch.invalidate_recordset()
+
+            response_data = self.from_data(fields, columns_headers, all_rows)
 
         _logger.info(
             "User %d exported %d %r records from %s. Fields: %s. %s: %s",

@@ -4,16 +4,21 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-12 13:15+0000\n"
-"PO-Revision-Date: 2025-03-12 13:15+0000\n"
+"POT-Creation-Date: 2026-04-10 19:06+0000\n"
+"PO-Revision-Date: 2026-04-10 19:06+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: l10n_ar
+#: model_terms:ir.ui.view,arch_db:l10n_ar.report_invoice_document
+msgid "% VAT"
+msgstr ""
 
 #. module: l10n_ar
 #. odoo-python
@@ -85,26 +90,6 @@ msgid "09 - Other Perceptions"
 msgstr ""
 
 #. module: l10n_ar
-#: model:ir.model.fields.selection,name:l10n_ar.selection__account_tax_group__l10n_ar_vat_afip_code__4
-msgid "10.5%"
-msgstr ""
-
-#. module: l10n_ar
-#: model:ir.model.fields.selection,name:l10n_ar.selection__account_tax_group__l10n_ar_vat_afip_code__9
-msgid "2,5%"
-msgstr ""
-
-#. module: l10n_ar
-#: model:ir.model.fields.selection,name:l10n_ar.selection__account_tax_group__l10n_ar_vat_afip_code__5
-msgid "21%"
-msgstr ""
-
-#. module: l10n_ar
-#: model:ir.model.fields.selection,name:l10n_ar.selection__account_tax_group__l10n_ar_vat_afip_code__6
-msgid "27%"
-msgstr ""
-
-#. module: l10n_ar
 #: model:ir.model.fields.selection,name:l10n_ar.selection__account_tax_group__l10n_ar_tribute_afip_code__99
 msgid "99 - Others"
 msgstr ""
@@ -139,11 +124,6 @@ msgstr ""
 #. module: l10n_ar
 #: model_terms:ir.ui.view,arch_db:l10n_ar.report_invoice_document
 msgid "<br/><strong>Source:</strong>"
-msgstr ""
-
-#. module: l10n_ar
-#: model_terms:ir.ui.view,arch_db:l10n_ar.report_invoice_document
-msgid "<span>% VAT</span>"
 msgstr ""
 
 #. module: l10n_ar
@@ -1214,16 +1194,13 @@ msgid "FORM 1116 RT"
 msgstr ""
 
 #. module: l10n_ar
-#: model_terms:ir.ui.view,arch_db:l10n_ar.report_invoice_document
-msgid "Fiscal Transparency Regime for the Final Consumer (Law 27.743)"
+#: model:ir.model,name:l10n_ar.model_account_fiscal_position
+msgid "Fiscal Position"
 msgstr ""
 
 #. module: l10n_ar
-#: model:account.account,name:l10n_ar.3_base_fondo_comun_de_inversion
-#: model:account.account,name:l10n_ar.4_base_fondo_comun_de_inversion
-#: model:account.account,name:l10n_ar.5_base_fondo_comun_de_inversion
-#: model:account.account.template,name:l10n_ar.base_fondo_comun_de_inversion
-msgid "Fondo común de inversión"
+#: model_terms:ir.ui.view,arch_db:l10n_ar.report_invoice_document
+msgid "Fiscal Transparency Regime for the Final Consumer (Law 27.743)"
 msgstr ""
 
 #. module: l10n_ar
@@ -1743,13 +1720,7 @@ msgstr ""
 #. module: l10n_ar
 #. odoo-python
 #: code:addons/l10n_ar/models/account_move.py:0
-#, python-format
 msgid "Other National Ind. Taxes %s"
-msgstr ""
-
-#. module: l10n_ar
-#: model:account.tax.group,name:l10n_ar.tax_group_otras_percepciones
-msgid "Other Perceptions"
 msgstr ""
 
 #. module: l10n_ar
@@ -2036,6 +2007,11 @@ msgid "Tax Group"
 msgstr ""
 
 #. module: l10n_ar
+#: model_terms:ir.ui.view,arch_db:l10n_ar.report_invoice_document
+msgid "Taxes"
+msgstr ""
+
+#. module: l10n_ar
 #: model:product.template,name:l10n_ar.product_product_telefonia_product_template
 msgid "Telephone service (VAT 27)"
 msgstr ""
@@ -2154,13 +2130,6 @@ msgid "Untaxed"
 msgstr ""
 
 #. module: l10n_ar
-#. odoo-python
-#: code:addons/l10n_ar/models/account_move.py:0
-#, python-format
-msgid "Untaxed Amount"
-msgstr ""
-
-#. module: l10n_ar
 #: model:product.template,name:l10n_ar.product_product_no_gravado_product_template
 msgid "Untaxed concepts (VAT NT)"
 msgstr ""
@@ -2187,20 +2156,14 @@ msgid "VAT AFIP Code"
 msgstr ""
 
 #. module: l10n_ar
-#: model:l10n_latam.document.type,name:l10n_ar.dc_a_rg1415
-msgid "VOUCHERS A OF SECTION A, INC. F), G.R. Nº 1415"
-msgstr ""
-
-#. module: l10n_ar
 #. odoo-python
 #: code:addons/l10n_ar/models/account_move.py:0
-#, python-format
 msgid "VAT Content %s"
 msgstr ""
 
 #. module: l10n_ar
-#: model:account.tax.group,name:l10n_ar.tax_group_iva_exento
-msgid "VAT Exempt"
+#: model:l10n_latam.document.type,name:l10n_ar.dc_a_rg1415
+msgid "VOUCHERS A OF SECTION A, INC. F), G.R. Nº 1415"
 msgstr ""
 
 #. module: l10n_ar
@@ -2216,6 +2179,12 @@ msgstr ""
 #. module: l10n_ar
 #: model:l10n_latam.document.type,name:l10n_ar.dc_m_rg1415
 msgid "VOUCHERS M OF ANNEX I, SECTION A, INC. F), G.R. NO. 1415"
+msgstr ""
+
+#. module: l10n_ar
+#. odoo-python
+#: code:addons/l10n_ar/models/template_ar_base.py:0
+msgid "Ventas Preimpreso"
 msgstr ""
 
 #. module: l10n_ar

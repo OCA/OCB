@@ -56,12 +56,17 @@ patch(LoginScreen.prototype, {
             this.pos.login = false;
         } else {
             const employee = await this.selectCashier();
-            if (
-                employee &&
-                (employee._role === "manager" || employee.user_id?.id === this.pos.user.id)
-            ) {
+            if (employee && employee.user_id?.id === this.pos.user.id) {
                 super.clickBack();
                 return;
+            } else if (employee) {
+                this.pos.notification.add(
+                    _t(
+                        "Only the cashier linked to the logged-in user (%s) can proceed to the Backend.",
+                        this.pos.user.name
+                    ),
+                    { type: "danger" }
+                );
             }
         }
     },

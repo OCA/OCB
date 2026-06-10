@@ -1,6 +1,16 @@
-import { Component, onWillDestroy, useEffect, useExternalListener, useRef, xml } from "@odoo/owl";
+import {
+    Component,
+    onWillDestroy,
+    useEffect,
+    useExternalListener,
+    useRef,
+    useState,
+    useSubEnv,
+    xml,
+} from "@odoo/owl";
 import { usePosition } from "@web/core/position/position_hook";
 import { useActiveElement } from "@web/core/ui/ui_service";
+import { closestScrollableY } from "@web/core/utils/scrolling";
 
 export class EditorOverlay extends Component {
     static template = xml`
@@ -19,6 +29,7 @@ export class EditorOverlay extends Component {
         history: Object,
         close: Function,
         isOverlayOpen: Function,
+        getCustomRect: { type: Function, optional: true },
 
         // Props from createOverlay
         positionOptions: { type: Object, optional: true },
@@ -90,6 +101,9 @@ export class EditorOverlay extends Component {
             },
         };
         position = usePosition("root", getTarget, positionOptions);
+
+        this.overlayState = useState({ isOverlayVisible: true });
+        useSubEnv({ overlayState: this.overlayState });
     }
 
     getSelectionTarget() {
@@ -109,7 +123,10 @@ export class EditorOverlay extends Component {
             }
             range = this.lastSelection.range;
         }
-        let rect = range.getBoundingClientRect();
+        let rect =
+            this.props.getCustomRect?.() ||
+            this.lastSelection.rect ||
+            range.getBoundingClientRect();
         if (rect.x === 0 && rect.width === 0 && rect.height === 0) {
             // Attention, using disableObserver and enableObserver is always dangerous (when we add or remove nodes)
             // because if another mutation uses the target that is not observed, that mutation can never be applied
@@ -137,7 +154,10 @@ export class EditorOverlay extends Component {
         if (this.env.isSmall) {
             return;
         }
-        const containerRect = this.props.getContainer().getBoundingClientRect();
-        overlayElement.style.visibility = solution.top > containerRect.top ? "visible" : "hidden";
+        const container = closestScrollableY(this.props.editable) || this.props.getContainer();
+        const containerRect = container.getBoundingClientRect();
+        const shouldBeVisible = solution.top > containerRect.top;
+        overlayElement.style.visibility = shouldBeVisible ? "visible" : "hidden";
+        this.overlayState.isOverlayVisible = shouldBeVisible;
     }
 }

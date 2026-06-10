@@ -29,7 +29,6 @@ class Animal extends models.Model {
     });
 
     _views = {
-        search: `<search/>`,
         [["search", 1]]: `
             <search>
                 <filter name="filter" string="True domain" domain="[(1, '=', 1)]"/>
@@ -122,13 +121,7 @@ test("load search view description if not provided and loadSearchView=true", asy
     onRpc("get_views", ({ method, kwargs }) => {
         expect.step(method);
         delete kwargs.options.mobile;
-        expect(kwargs).toEqual({
-            context: {
-                allowed_company_ids: [1],
-                lang: "en",
-                tz: "taht",
-                uid: 7,
-            },
+        expect(kwargs).toMatchObject({
             options: {
                 action_id: false,
                 load_filters: false,

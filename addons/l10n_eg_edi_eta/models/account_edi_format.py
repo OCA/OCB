@@ -7,8 +7,8 @@ import logging
 import requests
 from werkzeug.urls import url_quote
 from base64 import b64encode
+from json import JSONDecodeError
 from odoo.addons.account.tools import LegacyHTTPAdapter
-from json.decoder import JSONDecodeError
 
 from odoo import api, models, _
 from odoo.tools.float_utils import json_float_round
@@ -216,7 +216,7 @@ class AccountEdiFormat(models.Model):
         AccountTax = self.env['account.tax']
         base_amls = invoice.line_ids.filtered(lambda x: x.display_type == 'product')
         base_lines = [invoice._prepare_product_base_line_for_taxes_computation(x) for x in base_amls]
-        tax_amls = invoice.line_ids.filtered(lambda x: x.display_type == 'tax')
+        tax_amls = invoice.line_ids.filtered('tax_repartition_line_id')
         tax_lines = [invoice._prepare_tax_line_for_taxes_computation(x) for x in tax_amls]
         AccountTax._add_tax_details_in_base_lines(base_lines, invoice.company_id)
         AccountTax._round_base_lines_tax_details(base_lines, invoice.company_id, tax_lines=tax_lines)
@@ -224,6 +224,8 @@ class AccountEdiFormat(models.Model):
         # Tax amounts per line.
 
         def grouping_function_base_line(base_line, tax_data):
+            if not tax_data:
+                return None
             tax = tax_data['tax']
             code_split = tax.l10n_eg_eta_code.split('_')
             return {
@@ -238,14 +240,16 @@ class AccountEdiFormat(models.Model):
         # Tax amounts for the whole document.
 
         def grouping_function_global(base_line, tax_data):
+            if not tax_data:
+                return None
             tax = tax_data['tax']
             code_split = tax.l10n_eg_eta_code.split('_')
             return {
                 'tax_type': code_split[0].upper(),
             }
-            
+
         def grouping_function_total_amount(base_line, tax_data):
-            return True
+            return True if tax_data else None
 
         base_lines_aggregated_values_total_amount = AccountTax._aggregate_base_lines_tax_details(base_lines, grouping_function_total_amount)
         values_per_grouping_key_total_amount = AccountTax._aggregate_base_lines_aggregated_values(base_lines_aggregated_values_total_amount)

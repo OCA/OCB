@@ -1,6 +1,15 @@
 from odoo import fields, models
 
 
+class AccountEdiXmlUBL21(models.AbstractModel):
+    _inherit = 'account.edi.xml.ubl_21'
+
+    def _get_customization_ids(self):
+        vals = super()._get_customization_ids()
+        vals['pint_jp'] = 'urn:peppol:pint:billing-1@jp-1'
+        return vals
+
+
 class AccountEdiXmlUBLPINTJP(models.AbstractModel):
     _inherit = "account.edi.xml.ubl_bis3"
     _name = 'account.edi.xml.pint_jp'
@@ -20,14 +29,22 @@ class AccountEdiXmlUBLPINTJP(models.AbstractModel):
         # EXTENDS account_edi_ubl_cii
         return f"{invoice.name.replace('/', '_')}_pint_jp.xml"
 
+    # -------------------------------------------------------------------------
+    # EXPORT: Old helpers
+    # -------------------------------------------------------------------------
+
     def _get_partner_address_vals(self, partner):
         # EXTENDS account_edi_ubl_cii
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals = super()._get_partner_address_vals(partner)
         vals.pop('country_subentity_code', None)
         return vals
 
     def _get_partner_party_legal_entity_vals_list(self, partner):
         # EXTENDS account_edi_ubl_cii
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals_list = super()._get_partner_party_legal_entity_vals_list(partner)
         for vals in vals_list:
             vals.pop('company_id')  # optional, if set: scheme_id should be taken from ISO/IEC 6523 list
@@ -35,6 +52,8 @@ class AccountEdiXmlUBLPINTJP(models.AbstractModel):
 
     def _get_invoice_period_vals_list(self, invoice):
         # EXTENDS
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals_list = super()._get_invoice_period_vals_list(invoice)
         # [aligned-ibrp-052] An Invoice MUST have an invoice period (ibg-14) or an Invoice line period (ibg-26).
         vals_list.append({
@@ -44,6 +63,9 @@ class AccountEdiXmlUBLPINTJP(models.AbstractModel):
         return vals_list
 
     def _get_invoice_tax_totals_vals_list(self, invoice, taxes_vals):
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
+
         # [aligned-ibr-jp-06]-Tax category tax amount (ibt-117) with currency code JPY and tax category tax amount
         # in accounting currency (ibt-190) shall not have decimal.
         # see also: https://docs.peppol.eu/poac/jp/pint-jp/bis/#_rounding
@@ -77,6 +99,8 @@ class AccountEdiXmlUBLPINTJP(models.AbstractModel):
 
     def _export_invoice_vals(self, invoice):
         # EXTENDS account_edi_ubl_cii
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals = super()._export_invoice_vals(invoice)
         vals['vals'].update({
             # see https://docs.peppol.eu/poac/jp/pint-jp/bis/#profiles
@@ -96,3 +120,69 @@ class AccountEdiXmlUBLPINTJP(models.AbstractModel):
                 if partner.country_id.code == "JP" and partner.vat:
                     party_vals['party_vals']['party_tax_scheme_vals'][0]['company_id'] = partner.vat
         return vals
+
+    # -------------------------------------------------------------------------
+    # EXPORT: New (dict_to_xml) helpers
+    # -------------------------------------------------------------------------
+
+    def _ubl_default_tax_subtotal_grouping_key(self, tax_category_grouping_key, vals):
+        # EXTENDS account.edi.xml.ubl_bis3
+        tax_subtotal_grouping_key = super()._ubl_default_tax_subtotal_grouping_key(tax_category_grouping_key, vals)
+
+        # If there is a TaxTotal section in company currency,
+        # its TaxSubtotals nodes should contain a 'Percent' node.
+        currency = vals['currency_id']
+        company = vals['company']
+        if (
+            currency != company.currency_id
+            and tax_subtotal_grouping_key['currency'] == company.currency_id
+        ):
+            tax_subtotal_grouping_key['percent'] = tax_category_grouping_key['percent']
+
+        return tax_subtotal_grouping_key
+
+    def _ubl_get_tax_subtotal_node(self, vals, tax_subtotal):
+        # EXTENDS account.edi.xml.ubl_bis3
+        tax_subtotal_node = super()._ubl_get_tax_subtotal_node(vals, tax_subtotal)
+
+        # If there is a TaxTotal section in company currency,
+        # its TaxSubtotals nodes should contain a 'Percent' node.
+        currency = vals['currency_id']
+        company = vals['company']
+        if (
+            currency != company.currency_id
+            and tax_subtotal['currency'] == company.currency_id
+        ):
+            tax_subtotal_node['cbc:Percent'] = {'_text': tax_subtotal['percent']}
+
+        return tax_subtotal_node
+
+    def _ubl_tax_totals_node_grouping_key(self, base_line, tax_data, vals, currency):
+        # OVERRIDE
+        return self.env['account.edi.ubl']._ubl_tax_totals_node_grouping_key(base_line, tax_data, vals, currency)
+
+    def _add_invoice_header_nodes(self, document_node, vals):
+        invoice = vals['invoice']
+        super()._add_invoice_header_nodes(document_node, vals)
+
+        # see https://docs.peppol.eu/poac/jp/pint-jp/bis/#profiles
+        document_node['cbc:CustomizationID'] = {'_text': self._get_customization_ids()['pint_jp']}
+        document_node['cbc:ProfileID'] = {'_text': 'urn:peppol:bis:billing'}
+
+        # [aligned-ibrp-052] An Invoice MUST have an invoice period (ibg-14) or an Invoice line period (ibg-26).
+        document_node['cac:InvoicePeriod'] = {
+            'cbc:StartDate': {'_text': invoice.invoice_date},
+            'cbc:EndDate': {'_text': invoice.invoice_date},
+        }
+
+    def _ubl_add_party_legal_entity_nodes(self, vals):
+        # EXTENDS account.edi.ubl_bis3
+        super()._ubl_add_party_legal_entity_nodes(vals)
+        nodes = vals['party_node']['cac:PartyLegalEntity']
+        partner = vals['party_vals']['partner']
+        commercial_partner = partner.commercial_partner_id
+
+        # optional, if set: scheme_id should be taken from ISO/IEC 6523 list
+        if commercial_partner.country_code == 'JP':
+            for node in nodes:
+                node['cbc:CompanyID'] = None

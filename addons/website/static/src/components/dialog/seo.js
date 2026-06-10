@@ -114,9 +114,10 @@ class ImageSelector extends Component {
             useMediaLibrary: true,
             save: image => {
                 let existingImage;
+                const src = image.getAttribute('src');
                 this.state.images = this.state.images.map(img => {
                     img.active = false;
-                    if (img.src === image.src) {
+                    if (img.src === src) {
                         existingImage = img;
                         img.active = true;
                     }
@@ -124,12 +125,12 @@ class ImageSelector extends Component {
                 });
                 if (!existingImage) {
                     this.state.images.push({
-                        src: image.src,
+                        src: src,
                         active: true,
                         custom: true,
                     });
                 }
-                this.seoContext.metaImage = image.src;
+                this.seoContext.metaImage = src;
             },
         });
     }
@@ -267,10 +268,10 @@ class SEOPreview extends Component {
     };
 
     get description() {
-        if (this.props.description.length > 160) {
+        if (this.props.description?.length > 160) {
             return this.props.description.substring(0, 159) + '…';
         }
-        return this.props.description;
+        return this.props.description || "";
     }
 }
 class TitleDescription extends Component {
@@ -399,6 +400,9 @@ export class OptimizeSEODialog extends Component {
         this.contentClass = "oe_seo_configuration";
 
         onWillStart(async () => {
+            // Wait for the preview iframe because this dialog reads directly
+            // from the iframe DOM.
+            await this.waitForIframe();
             const { metadata: { mainObject, seoObject, path } } = this.website.currentWebsite;
 
             this.object = seoObject || mainObject;
@@ -410,7 +414,9 @@ export class OptimizeSEODialog extends Component {
             this.canEditSeo = this.data.can_edit_seo;
             this.canEditDescription = this.canEditSeo && 'website_meta_description' in this.data;
             this.canEditTitle = this.canEditSeo && 'website_meta_title' in this.data;
-            this.canEditUrl = this.canEditSeo && 'seo_name' in this.data;
+            // The URL must not be customizable if it does not contain an editable slug.
+            const editableSlugPattern = new RegExp(`.*/(${this.data.seo_name || ""}|${this.data.seo_name_default || ""})-\\d+.*`);
+            this.canEditUrl = this.canEditSeo && Boolean(new URL(path).pathname.match(editableSlugPattern));
             seoContext.title = this.canEditTitle && this.data.website_meta_title;
 
             // If website.page, hide the google preview & tell user his page is currently unindexed
@@ -434,6 +440,16 @@ export class OptimizeSEODialog extends Component {
 
             this.canEditKeywords = 'website_meta_keywords' in this.data;
             seoContext.keywords = this.getMeta({ name: 'keywords' });
+        });
+    }
+
+    async waitForIframe() {
+        await new Promise((resolve) => {
+            const iframeEl = document.querySelector(".o_iframe");
+            if (!iframeEl || iframeEl.contentDocument?.readyState === "complete") {
+                return resolve();
+            }
+            iframeEl.addEventListener("load", resolve, { once: true });
         });
     }
 

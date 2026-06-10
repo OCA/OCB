@@ -1,4 +1,4 @@
-import { parseDateTime, deserializeDate } from "@web/core/l10n/dates";
+import { parseDateTime, deserializeDateTime } from "@web/core/l10n/dates";
 import { roundDecimals, floatIsZero } from "@web/core/utils/numbers";
 
 /*
@@ -21,7 +21,8 @@ export function uuidv4() {
  * @returns {string}
  */
 export function deduceUrl(url) {
-    const { protocol } = window.location;
+    const protocol = odoo.use_lna ? "http:" : window.location.protocol;
+    url = odoo.use_lna ? url.replace(/^(\d+)-(\d+)-(\d+)-(\d+).*/, "$1.$2.$3.$4") : url;
     if (!url.includes("//")) {
         url = `${protocol}//${url}`;
     }
@@ -198,8 +199,8 @@ export function computeProductPricelistCache(service, data = []) {
 
     for (const item of pricelistItems) {
         if (
-            (item.date_start && deserializeDate(item.date_start) > date) ||
-            (item.date_end && deserializeDate(item.date_end) < date)
+            (item.date_start && deserializeDateTime(item.date_start) > date) ||
+            (item.date_end && deserializeDateTime(item.date_end) < date)
         ) {
             continue;
         }

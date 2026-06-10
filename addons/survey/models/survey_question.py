@@ -70,6 +70,9 @@ class SurveyQuestion(models.Model):
     scoring_type = fields.Selection(related='survey_id.scoring_type', string='Scoring Type', readonly=True)
     sequence = fields.Integer('Sequence', default=10)
     session_available = fields.Boolean(related='survey_id.session_available', string='Live Session available', readonly=True)
+    survey_session_speed_rating = fields.Boolean(related="survey_id.session_speed_rating")
+    survey_session_speed_rating_time_limit = fields.Integer(related="survey_id.session_speed_rating_time_limit", string="General Time limit (seconds)")
+
     # page specific
     is_page = fields.Boolean('Is a page?')
     question_ids = fields.One2many('survey.question', string='Questions', compute="_compute_question_ids")
@@ -502,12 +505,22 @@ class SurveyQuestion(models.Model):
         return {}
 
     def _validate_choice(self, answer, comment):
-        # Empty comment
-        if not self.survey_id.users_can_go_back \
-                and self.constr_mandatory \
-                and not answer \
-                and not (self.comments_allowed and self.comment_count_as_answer and comment):
+        """ Validates choice-based questions.
+        - Checks that mandatory questions have at least one answer.
+        - For 'simple_choice', ensures that exactly one answer is provided.
+        """
+        answers = answer if isinstance(answer, list) else ([answer] if answer else [])
+
+        valid_answers_count = len(answers)
+        if comment and self.comment_count_as_answer:
+            valid_answers_count += 1
+
+        if valid_answers_count == 0 and self.constr_mandatory and not self.survey_id.users_can_go_back:
             return {self.id: self.constr_error_msg or _('This question requires an answer.')}
+
+        if valid_answers_count > 1 and self.question_type == 'simple_choice':
+            return {self.id: _('For this question, you can only select one answer.')}
+
         return {}
 
     def _validate_matrix(self, answers):
@@ -637,11 +650,11 @@ class SurveyQuestion(models.Model):
             'value': _('Other (see comments)') if not suggested_answer else suggested_answer.value_label,
             'suggested_answer': suggested_answer,
             'count': count_data[suggested_answer],
-            'count_text': _("%s Votes", count_data[suggested_answer]),
+            'count_text': self.env._("%s Votes", count_data[suggested_answer]),
             }
             for suggested_answer in suggested_answers]
         graph_data = [{
-            'text': _('Other (see comments)') if not suggested_answer else suggested_answer.value_label,
+            'text': self.env._('Other (see comments)') if not suggested_answer else suggested_answer.value_label,
             'count': count_data[suggested_answer]
             }
             for suggested_answer in suggested_answers]

@@ -1,4 +1,5 @@
 import { closestElement } from "@html_editor/utils/dom_traversal";
+import { isElement } from "./dom_info";
 
 export const COLOR_PALETTE_COMPATIBILITY_COLOR_NAMES = [
     "primary",
@@ -13,6 +14,8 @@ export const COLOR_PALETTE_COMPATIBILITY_COLOR_NAMES = [
     "warning",
     "danger",
 ];
+
+export const RGBA_OPACITY = 0.6;
 
 /**
  * Colors of the default palette, used for substitution in shapes/illustrations.
@@ -223,8 +226,29 @@ export function isColorGradient(value) {
     return value && value.includes("-gradient(");
 }
 
-export const TEXT_CLASSES_REGEX = /\btext-[^\s]*\b/;
+export const TEXT_CLASSES_REGEX =
+    /\btext-(primary|secondary|success|danger|warning|info|light|dark|body|muted|white|black|reset|gradient|opacity-\d{1,3}|o-[^\s]+|\d+)\b/;
 export const BG_CLASSES_REGEX = /\bbg-[^\s]*\b/;
+
+/**
+ * Returns true if the given element has a visible color applied
+ * by `TEXT_CLASSES_REGEX` or `BG_CLASSES_REGEX`
+ *
+ * @param {Element} element
+ * @param {string} mode 'color' or 'backgroundColor'
+ * @returns {boolean}
+ */
+export function hasTextColorClass(element, mode) {
+    if (!element || !isElement(element)) {
+        return false;
+    }
+    const classRegex = mode === "color" ? TEXT_CLASSES_REGEX : BG_CLASSES_REGEX;
+    const parent = element.parentNode;
+    return (
+        classRegex.test(element.className) &&
+        (!parent || getComputedStyle(element)[mode] !== getComputedStyle(parent)[mode])
+    );
+}
 
 /**
  * Returns true if the given element has a visible color (fore- or
@@ -237,7 +261,10 @@ export const BG_CLASSES_REGEX = /\bbg-[^\s]*\b/;
 export function hasColor(element, mode) {
     const style = element.style;
     const parent = element.parentNode;
-    const classRegex = mode === "color" ? TEXT_CLASSES_REGEX : BG_CLASSES_REGEX;
+    if (element.classList.contains("btn")) {
+        // Ignore style applied on buttons from color detection
+        return false;
+    }
     if (isColorGradient(style["background-image"])) {
         if (element.classList.contains("text-gradient")) {
             if (mode === "color") {
@@ -253,8 +280,7 @@ export function hasColor(element, mode) {
         (style[mode] &&
             style[mode] !== "inherit" &&
             (!parent || style[mode] !== parent.style[mode])) ||
-        (classRegex.test(element.className) &&
-            (!parent || getComputedStyle(element)[mode] !== getComputedStyle(parent)[mode]))
+        hasTextColorClass(element, mode)
     );
 }
 
@@ -273,4 +299,28 @@ export function hasAnyNodesColor(nodes, mode) {
         }
     }
     return false;
+}
+
+export function computeBackgroundColorForElement(el) {
+    const elStyle = getComputedStyle(el);
+    const backgroundImage = elStyle.backgroundImage;
+    const hasGradient = isColorGradient(backgroundImage);
+    const hasTextGradientClass = el.classList.contains("text-gradient");
+
+    let backgroundColor = elStyle.backgroundColor;
+    const activeTab = document
+        .querySelector(".o_font_color_selector button.active")
+        ?.innerHTML.trim();
+    if (backgroundColor.startsWith("rgba") && activeTab === "Solid") {
+        // Buttons in the solid tab of color selector have no
+        // opacity, hence to match selected color correctly,
+        // we need to remove applied 0.6 opacity.
+        const values = backgroundColor.match(RGBA_REGEX) || [];
+        const alpha = parseFloat(values.pop()); // Extract alpha value
+        if (alpha === RGBA_OPACITY) {
+            backgroundColor = `rgb(${values.slice(0, 3).join(", ")})`; // Remove alpha
+        }
+    }
+
+    return hasGradient && !hasTextGradientClass ? backgroundImage : rgbaToHex(backgroundColor);
 }

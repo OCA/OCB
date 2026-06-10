@@ -91,6 +91,8 @@ class Partner extends models.Model {
 }
 
 class PartnerType extends models.Model {
+    _name = "partner.type";
+
     color = fields.Integer({ string: "Color index" });
     name = fields.Char({ string: "Partner Type" });
 
@@ -215,51 +217,51 @@ test("char field translatable", async () => {
     serverState.lang = "en_US";
     serverState.multiLang = true;
 
-    await mountView({ type: "form", resModel: "res.partner", resId: 1 });
+    await mountView({
+        type: "form",
+        resModel: "res.partner",
+        resId: 1,
+    });
 
-    let call_get_field_translations = 0;
-    onRpc(async ({ args, method, model }) => {
-        if (method === "get_installed" && model === "res.lang") {
+    let callGetFieldTranslations = 0;
+    onRpc("res.lang", "get_installed", () => [
+        ["en_US", "English"],
+        ["fr_BE", "French (Belgium)"],
+        ["es_ES", "Spanish"],
+    ]);
+    onRpc("res.partner", "get_field_translations", () => {
+        if (callGetFieldTranslations++ === 0) {
             return [
-                ["en_US", "English"],
-                ["fr_BE", "French (Belgium)"],
-                ["es_ES", "Spanish"],
+                [
+                    { lang: "en_US", source: "yop", value: "yop" },
+                    { lang: "fr_BE", source: "yop", value: "yop français" },
+                    { lang: "es_ES", source: "yop", value: "yop español" },
+                ],
+                { translation_type: "char", translation_show_source: false },
+            ];
+        } else {
+            return [
+                [
+                    { lang: "en_US", source: "bar", value: "bar" },
+                    { lang: "fr_BE", source: "bar", value: "yop français" },
+                    { lang: "es_ES", source: "bar", value: "bar" },
+                ],
+                { translation_type: "char", translation_show_source: false },
             ];
         }
-        if (method === "get_field_translations" && model === "res.partner") {
-            if (call_get_field_translations === 0) {
-                call_get_field_translations = 1;
-                return [
-                    [
-                        { lang: "en_US", source: "yop", value: "yop" },
-                        { lang: "fr_BE", source: "yop", value: "yop français" },
-                        { lang: "es_ES", source: "yop", value: "yop español" },
-                    ],
-                    { translation_type: "char", translation_show_source: false },
-                ];
+    });
+    onRpc("res.partner", "update_field_translations", function ({ args, kwargs }) {
+        expect(args[2]).toEqual(
+            { en_US: "bar", es_ES: false },
+            {
+                message:
+                    "the new translation value should be written and the value false voids the translation",
             }
-            if (call_get_field_translations === 1) {
-                return [
-                    [
-                        { lang: "en_US", source: "bar", value: "bar" },
-                        { lang: "fr_BE", source: "bar", value: "yop français" },
-                        { lang: "es_ES", source: "bar", value: "bar" },
-                    ],
-                    { translation_type: "char", translation_show_source: false },
-                ];
-            }
+        );
+        for (const record of this.env["res.partner"].browse(args[0])) {
+            record[args[1]] = args[2][kwargs.context.lang];
         }
-        if (method === "update_field_translations" && model === "res.partner") {
-            expect(args[2]).toEqual(
-                { en_US: "bar", es_ES: false },
-                {
-                    message:
-                        "the new translation value should be written and the value false voids the translation",
-                }
-            );
-            Partner._records[0].name = "bar";
-            return true;
-        }
+        return true;
     });
     expect("[name=name] input").toHaveClass("o_field_translate");
     await contains("[name=name] input").click();
@@ -935,4 +937,105 @@ test("edit a char field should display the status indicator buttons without flic
         message: "form view is dirty",
     });
     expect.verifySteps(["onchange"]);
+});
+
+test("translating a char field inside one2many saves the parent record", async () => {
+    Partner._fields.type_id = fields.Many2one({
+        relation: "partner.type",
+    });
+    PartnerType._fields.partner_ids = fields.One2many({
+        string: "Partners",
+        relation: "res.partner",
+        relation_field: "type_id",
+    });
+    Partner._fields.name.translate = true;
+
+    PartnerType._records[0].partner_ids = [1];
+
+    serverState.lang = "en_US";
+    serverState.multiLang = true;
+
+    onRpc("res.lang", "get_installed", () => [
+        ["en_US", "English"],
+        ["fr_BE", "French (Belgium)"],
+    ]);
+
+    onRpc("res.partner", "get_field_translations", () => [
+        [
+            { lang: "en_US", source: "move things", value: "move things" },
+            { lang: "fr_BE", source: "move things", value: "breakfast" },
+        ],
+        {
+            translation_type: "char",
+            translation_show_source: false,
+        },
+    ]);
+
+    onRpc("web_save", ({ model }) => {
+        expect.step(model);
+    });
+
+    await mountView({
+        type: "form",
+        resModel: "partner.type",
+        resId: 12,
+        arch: `
+        <form>
+            <field name="partner_ids">
+                <list editable="bottom">
+                    <field name="name"/>
+                </list>
+            </field>
+        </form>`,
+    });
+
+    await contains(".o_list_char").click();
+    await fieldInput("name").edit("move things", { confirm: false });
+    await contains(".o_selected_row .o_field_char .btn.o_field_translate").click();
+
+    expect.verifySteps(["partner.type"]);
+});
+
+test("translation dialog opens in editable list when the required field is set", async () =>{
+    Partner._fields.name.translate = true;
+    Partner._fields.name.required = true;
+
+    serverState.lang = "en_US";
+    serverState.multiLang = true;
+
+    onRpc("res.lang", "get_installed", () => [
+        ["en_US", "English"],
+        ["fr_BE", "French (Belgium)"],
+    ]);
+
+    onRpc("res.partner", "get_field_translations", () => [
+        [
+            { lang: "en_US", source: "Hello", value: "Hello" },
+            { lang: "fr_BE", source: "Hello", value: "Hii" },
+        ],
+        {
+            translation_type: "char",
+            translation_show_source: false,
+        },
+    ]);
+
+    await mountView({
+        type: "list",
+        resModel: "res.partner",
+        arch: `
+            <list editable="bottom">
+                <field name="name"/>
+            </list>`,
+    });
+
+    await contains(".o_list_button_add").click();
+
+    await fieldInput("name").edit("", { confirm: false });
+    await contains(".btn.o_field_translate").click();
+    expect(".o_translation_dialog").toHaveCount(0);
+    expect(".o_notification").toHaveCount(1);
+
+    await fieldInput("name").edit("Hello", { confirm: false });
+    await contains(".btn.o_field_translate").click();
+    expect(".o_translation_dialog").toHaveCount(1);
 });

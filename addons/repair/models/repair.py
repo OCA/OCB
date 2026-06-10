@@ -32,7 +32,7 @@ class Repair(models.Model):
     # Common Fields
     name = fields.Char(
         'Repair Reference',
-        default='New', index='trigram',
+        default=lambda self: _('New'), index='trigram',
         copy=False, required=True,
         readonly=True)
     company_id = fields.Many2one(
@@ -285,7 +285,15 @@ class Repair(models.Model):
         # Force to prefetch more than 1000 by 1000
         all_moves._fields['forecast_availability'].compute_value(all_moves)
         for repair in repairs:
-            if any(float_compare(move.forecast_availability, move.product_qty, precision_rounding=move.product_id.uom_id.rounding) < 0 for move in repair.move_ids):
+            if any(
+                move.product_id
+                and float_compare(
+                    move.forecast_availability,
+                    move.product_qty,
+                    precision_rounding=move.product_id.uom_id.rounding
+                ) < 0
+                for move in repair.move_ids
+            ):
                 repair.parts_availability = _('Not Available')
                 repair.parts_availability_state = 'late'
                 continue
@@ -316,7 +324,7 @@ class Repair(models.Model):
     @api.depends('move_ids.quantity', 'move_ids.product_uom_qty', 'move_ids.product_uom.rounding')
     def _compute_has_uncomplete_moves(self):
         for repair in self:
-            repair.has_uncomplete_moves = any(float_compare(move.quantity, move.product_uom_qty, precision_rounding=move.product_uom.rounding) < 0 for move in repair.move_ids)
+            repair.has_uncomplete_moves = any(move.product_uom and float_compare(move.quantity, move.product_uom_qty, precision_rounding=move.product_uom.rounding) < 0 for move in repair.move_ids)
 
     @api.depends('move_ids', 'state', 'move_ids.product_uom_qty')
     def _compute_unreserve_visible(self):
@@ -375,7 +383,7 @@ class Repair(models.Model):
             )
             if 'picking_type_id' not in vals:
                 vals['picking_type_id'] = picking_type.id
-            if not vals.get('name', False) or vals['name'] == 'New':
+            if not vals.get('name', False) or vals['name'] == _('New'):
                 vals['name'] = picking_type.sequence_id.next_by_id()
             if not vals.get('procurement_group_id'):
                 vals['procurement_group_id'] = self.env["procurement.group"].create({'name': vals['name']}).id
@@ -415,7 +423,7 @@ class Repair(models.Model):
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_confirmed(self):
-        repairs_to_cancel = self.filtered(lambda ro: ro.state not in ('draft', 'cancel'))
+        repairs_to_cancel = self.filtered(lambda ro: ro.state != 'cancel')
         repairs_to_cancel.action_repair_cancel()
 
     def action_assign(self):
@@ -545,10 +553,6 @@ class Repair(models.Model):
                 repair.move_id = move_id
         all_moves = self.move_ids + product_moves
         all_moves._action_done(cancel_backorder=True)
-
-        for sale_line in self.move_ids.sale_line_id:
-            price_unit = sale_line.price_unit
-            sale_line.write({'product_uom_qty': sale_line.qty_delivered, 'price_unit': price_unit})
 
         self.state = 'done'
         return True

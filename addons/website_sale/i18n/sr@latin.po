@@ -1,29 +1,30 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* website_sale
+# * website_sale
 #
 # Translators:
 # Đorđe Cvijanović <cdorde@gmail.com>, 2022
 # Uros Kalajdzic <ukalajdzic@gmail.com>, 2022
 # Slobodan Simić <slsimic@gmail.com>, 2022
 # Martin Trigaux, 2022
-# Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2023
-#
+# Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2023, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 08:43+0000\n"
-"PO-Revision-Date: 2022-09-22 05:57+0000\n"
-"Last-Translator: Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, "
-"2023\n"
-"Language-Team: Serbian (https://app.transifex.com/odoo/teams/41243/sr/)\n"
-"Language: sr\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-11-15 18:12+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Serbian (Latin script) <https://translate.odoo.com/projects/"
+"odoo-18/website_sale/sr_Latn/>\n"
+"Language: sr@latin\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
@@ -40,6 +41,11 @@ msgstr ""
 "porudžbine kako bi pratili svoju porudžbinu."
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_image_view_kanban
+msgid "#{record.name.value}"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product
 msgid "%s review"
 msgstr "%s ocena"
@@ -50,20 +56,19 @@ msgid "%s reviews"
 msgstr "%s ocene"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.address_on_payment
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
 msgid "&amp; Delivery"
-msgstr ""
+msgstr "&amp; Dostava"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.address
-msgid "&amp;nbsp;(<i>Your delivery address will be requested later)</i>"
-msgstr ""
+#: model_terms:ir.ui.view,arch_db:website_sale.products_item
+msgid "&amp;nbsp;"
+msgstr "&amp;nbsp;"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.checkout_layout
 msgid "&amp;nbsp;item(s)&amp;nbsp;-&amp;nbsp;"
-msgstr ""
+msgstr "&amp;nbsp;stavka(e)&amp;nbsp;-&amp;nbsp;"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
@@ -71,29 +76,14 @@ msgid "'. Showing results for '"
 msgstr "'. Prikazuje rezultate za '"
 
 #. module: website_sale
-#: model:ir.model.fields.selection,name:website_sale.selection__website__product_page_image_width__100_pc
-msgid "100 %"
-msgstr "100 %"
-
-#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "100 percent"
 msgstr "100 posto"
 
 #. module: website_sale
-#: model:ir.model.fields.selection,name:website_sale.selection__website__product_page_image_width__50_pc
-msgid "50 %"
-msgstr "50 %"
-
-#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "50 percent"
 msgstr "50 posto"
-
-#. module: website_sale
-#: model:ir.model.fields.selection,name:website_sale.selection__website__product_page_image_width__66_pc
-msgid "66 %"
-msgstr "66 %"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -103,11 +93,12 @@ msgstr "66 posto"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.checkout_layout
 msgid "<b class=\"w-100\">Order summary</b>"
-msgstr ""
+msgstr "<b class=\"w-100\">Pregled porudžbine</b>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.o_wsale_offcanvas
 #: model_terms:ir.ui.view,arch_db:website_sale.products_categories_list
+#: model_terms:ir.ui.view,arch_db:website_sale.products_categories_list_collapsible
 msgid "<b>Categories</b>"
 msgstr "<b>Kategorije</b>"
 
@@ -119,13 +110,13 @@ msgstr "<b>Komunikacija: </b>"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address_on_payment
 msgid "<b>Deliver to pickup point: </b>"
-msgstr ""
+msgstr "<b>Dostava do mesta preuzimanja: </b>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address_on_payment
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
 msgid "<b>Delivery: </b>"
-msgstr ""
+msgstr "<b>Dostava: </b>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.filter_products_price
@@ -146,7 +137,7 @@ msgstr "<b>Sortiraj po</b>"
 #: model_terms:ir.ui.view,arch_db:website_sale.filter_products_tags
 #: model_terms:ir.ui.view,arch_db:website_sale.o_wsale_offcanvas
 msgid "<b>Tags</b>"
-msgstr ""
+msgstr "<b>Oznake</b>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_custom_text
@@ -156,7 +147,7 @@ msgid ""
 "                Shipping: 2-3 Business Days"
 msgstr ""
 "<br/>\n"
-"                30 dana garancije na povraćaja novca<br/>\n"
+"                30 dana garancije na povraćaj novca<br/>\n"
 "                Dostava: 2-3 radna dana"
 
 #. module: website_sale
@@ -165,6 +156,8 @@ msgid ""
 "<i class=\"fa fa-angle-left me-2 fw-light\"/>\n"
 "                                    Return to shipping"
 msgstr ""
+"<i class=\"fa fa-angle-left me-2 fw-light\"/>\n"
+"                                    Povratak na isporuku"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_buy_now
@@ -172,6 +165,8 @@ msgid ""
 "<i class=\"fa fa-bolt me-2\"/>\n"
 "                Buy now"
 msgstr ""
+"<i class=\"fa fa-bolt me-2\"/>\n"
+"                Kupi odmah"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.s_add_to_cart
@@ -196,19 +191,19 @@ msgstr "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
 #: model_terms:ir.ui.view,arch_db:website_sale.address_kanban
 #: model_terms:ir.ui.view,arch_db:website_sale.address_on_payment
 msgid "<i class=\"fa fa-pencil me-1\"/>Edit"
-msgstr ""
+msgstr "<i class=\"fa fa-pencil me-1\"/>Uredi"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.row_addresses
+#: model_terms:ir.ui.view,arch_db:website_sale.address_row
 msgid ""
-"<i class=\"fa fa-plus me-md-2\"/><span class=\"d-none d-md-inline\">Add "
-"address</span>"
+"<i class=\"fa fa-plus me-md-2\"/>\n"
+"                    <span class=\"d-none d-md-inline\">Add address</span>"
 msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
 msgid "<i class=\"fa fa-print me-2\"/>Print"
-msgstr ""
+msgstr "<i class=\"fa fa-print me-2\"/>Štampaj"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.sale_order_re_order_btn
@@ -220,31 +215,55 @@ msgstr ""
 "                    Poruči ponovo"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.optional_product_items
-msgid "<i class=\"fa fa-shopping-cart add-optionnal-item\"/> Add to cart"
-msgstr ""
-
-#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product
 msgid ""
 "<i class=\"fa fa-shopping-cart me-2\"/>\n"
 "                                                Add to cart"
 msgstr ""
+"<i class=\"fa fa-shopping-cart me-2\"/>\n"
+"                                                Dodaj u korpu"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "<i class=\"fw-light fa fa-angle-left me-2\"/>Discard"
+msgstr "<i class=\"fw-light fa fa-angle-left me-2\"/>Odbaci"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product
+msgid ""
+"<i class=\"oi oi-chevron-left d-lg-none me-1\" role=\"presentation\"/>All "
+"Products"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product
+msgid ""
+"<i class=\"oi oi-chevron-left me-1\" role=\"presentation\"/>All Products"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.shop_product_carousel
+msgid ""
+"<i class=\"oi oi-chevron-left oe_unmovable border bg-white text-900\" "
+"role=\"img\" aria-label=\"Previous\" title=\"Previous\"/>"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.shop_product_carousel
+msgid ""
+"<i class=\"oi oi-chevron-right oe_unmovable border bg-white text-900\" "
+"role=\"img\" aria-label=\"Next\" title=\"Next\"/>"
 msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "<option value=\"\">Country...</option>"
-msgstr ""
+msgstr "<option value=\"\">Zemlja...</option>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "<option value=\"\">State / Province...</option>"
-msgstr ""
+msgstr "<option value=\"\">Država / Pokrajina...</option>"
 
 #. module: website_sale
 #. odoo-python
@@ -258,10 +277,13 @@ msgid ""
 "encourage them!</p>\n"
 "                    "
 msgstr ""
-"<p class=\"o_view_nocontent_smiling_face\"> >\n"
-"                        Sve napuštene korpe možete pronaći ovde, </p>\n"
-"                        <p> Trebalo bi da pošaljete e-poruku kupcima da "
-"biste ih ohrabrili!</p> "
+"<p class=\"o_view_nocontent_smiling_face\">\n"
+"                        Ovde možete pronaći sve napuštene korpe, npr. korpe "
+"koje su kreirali posetioci vašeg website-a pre više od sat vremena koje još "
+"uvek nisu potvrđene.</p>\n"
+"                        <p>Trebalo bi da pošaljete e-poruku kupcima da biste "
+"ih ohrabrili!</p>\n"
+"                    "
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.sort
@@ -271,22 +293,19 @@ msgstr "<small class=\"d-none d-lg-inline text-muted\">Sortiraj po:</small>"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid ""
-"<small class=\"form-text text-muted\">Changing company name or VAT number is "
-"not allowed once document(s) have been issued for your account. Please "
-"contact us directly for this operation.</small>"
+"<small class=\"form-text text-muted\">\n"
+"                                                        Changing company "
+"name or VAT number is not allowed once document(s) have been issued for your "
+"account. Please contact us directly for this operation.\n"
+"                                                    </small>"
 msgstr ""
-"<small class=\"form-text text-muted\">Promena naziva kompanije ili PIB broja "
-"nije dozvoljena kada se dokument(i) izdaju za vaš nalog. Kontaktirajte nas "
-"direktno za ovu operaciju.</small>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products_attributes
 msgid ""
 "<small class=\"mx-auto\"><b>Clear Filters</b></small>\n"
-"                        <i class=\"oi oi-close\"/>"
+"                            <i class=\"oi oi-close\" role=\"presentation\"/>"
 msgstr ""
-"<small class=\"mx-auto\"><b>Poništi filtere</b></small>\n"
-"                        <i class=\"oi oi-close\"/>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.suggested_products_list
@@ -295,22 +314,48 @@ msgid ""
 "                            <span class=\"d-none d-md-inline\">Add to cart</"
 "span>"
 msgstr ""
+"<span class=\"d-md-none fa fa-shopping-cart\"/>\n"
+"                            <span class=\"d-none d-md-inline\">Dodaj u "
+"korpu</span>"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
 msgid ""
-"<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-"specific.\" groups=\"website.group_multi_website\"/>"
+"<span class=\"fw-bold\" name=\"product_price\" data-oe-type=\"monetary\" "
+"data-oe-expression=\"data['price']\">\n"
+"                                                <span "
+"class=\"oe_currency_value\">1,500.00</span>\n"
+"                                            </span>"
 msgstr ""
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.configure_optional_products
-msgid "<span class=\"label\">Price</span>"
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid ""
+"<span class=\"fw-bold\" name=\"product_price\" data-oe-type=\"monetary\" "
+"data-oe-expression=\"data['price']\">\n"
+"                                                <span "
+"class=\"oe_currency_value\">140.00</span>\n"
+"                                            </span>"
 msgstr ""
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.configure_optional_products
-msgid "<span class=\"label\">Product</span>"
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid ""
+"<span class=\"fw-bold\" name=\"product_price\" data-oe-type=\"monetary\" "
+"data-oe-expression=\"data['price']\">\n"
+"                                                <span "
+"class=\"oe_currency_value\">33.00</span>\n"
+"                                            </span>"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid ""
+"<span class=\"fw-bold\" name=\"product_price\" data-oe-type=\"monetary\" "
+"data-oe-expression=\"data['price']\">\n"
+"                                                <span "
+"class=\"oe_currency_value\">750.00</span>\n"
+"                                            </span>"
 msgstr ""
 
 #. module: website_sale
@@ -326,27 +371,17 @@ msgid ""
 "                    Select to compute delivery rate\n"
 "                </span>"
 msgstr ""
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.shop_product_carousel
-msgid ""
-"<span class=\"oi oi-chevron-left fa-2x oe_unmovable\" role=\"img\" aria-"
-"label=\"Previous\" title=\"Previous\"/>"
-msgstr ""
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.shop_product_carousel
-msgid ""
-"<span class=\"oi oi-chevron-right fa-2x oe_unmovable\" role=\"img\" aria-"
-"label=\"Next\" title=\"Next\"/>"
-msgstr ""
+"<span class=\"o_wsale_delivery_price_badge float-end fw-bold\" "
+"name=\"price\">\n"
+"                    Izaberite da biste izračunali trošak isporuke\n"
+"                </span>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 #: model_terms:ir.ui.view,arch_db:website_sale.extra_info
 #: model_terms:ir.ui.view,arch_db:website_sale.navigation_buttons
 msgid "<span class=\"px-3\">or</span>"
-msgstr ""
+msgstr "<span class=\"px-3\">ili</span>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.extra_info
@@ -372,6 +407,8 @@ msgid ""
 "<span class=\"text-muted\" invisible=\"product_variant_count &lt;= 1\">Based "
 "on variants</span>"
 msgstr ""
+"<span class=\"text-muted\" invisible=\"product_variant_count &lt;= 1\">Na "
+"osnovu varijanti</span>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
@@ -379,21 +416,14 @@ msgid "<span class=\"visually-hidden\">filters active</span>"
 msgstr "<span class=\"visually-hidden\">aktivni filteri</span>"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.delivery_method
-msgid ""
-"<span>\n"
-"                    <b name=\"o_pickup_location_name\"/>\n"
-"                    <br/>\n"
-"                    <i name=\"o_pickup_location_address\"/>\n"
-"                </span>\n"
-"                <span name=\"o_remove_pickup_location\" class=\"fa fa-times "
-"ms-2\" title=\"Remove this location\" aria-label=\"Remove this location\"/>"
-msgstr ""
+#: model_terms:web_tour.tour,rainbow_man_message:website_sale.test_01_admin_shop_tour
+msgid "<span><b>Good job!</b> You went through all steps of this tour.</span>"
+msgstr "<span><b>Bravo!</b> Prošli ste sve korake ovog putovanja.</span>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "<span>Already have an account?</span>"
-msgstr ""
+msgstr "<span>Već imate nalog?</span>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
@@ -403,7 +433,7 @@ msgstr "<span>Porudžbina</span>"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_document_kanban
 msgid "<span>Publish on website</span>"
-msgstr ""
+msgstr "<span>Objavi na website-u</span>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.payment_confirmation_status
@@ -426,10 +456,9 @@ msgstr "<span>Video predled</span>"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.delivery_form
 msgid "<strong>No suitable delivery method could be found.</strong>"
-msgstr ""
+msgstr "<strong>Nije pronađen odgovarajući način isporuke.</strong>"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.configure_optional_products
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
 msgid "<strong>Total:</strong>"
 msgstr "<strong>Ukupno:</strong>"
@@ -437,7 +466,7 @@ msgstr "<strong>Ukupno:</strong>"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.total
 msgid "<strong>Total</strong>"
-msgstr ""
+msgstr "<strong>Ukupno</strong>"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.cart_lines
@@ -461,24 +490,24 @@ msgid ""
 "                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
 "                    <h1 style=\"color:#A9A9A9;\">THERE'S SOMETHING IN YOUR "
 "CART.</h1>\n"
-"                    Would you like to complete your purchase?<br><br>\n"
+"                    Would you like to complete your purchase?<br/><br/>\n"
 "                    <t t-if=\"object.order_line\">\n"
 "                        <t t-foreach=\"object.website_order_line\" t-"
 "as=\"line\">\n"
-"                            <hr>\n"
+"                            <hr/>\n"
 "                            <table width=\"100%\">\n"
 "                                <tr>\n"
 "                                    <td style=\"padding: 10px; width:150px;"
 "\">\n"
-"                                        <img t-attf-src=\"/web/image/product."
-"product/{{ line.product_id.id }}/image_128\" style=\"width: 100px; height: "
-"100px; object-fit: contain;\" alt=\"Product image\">\n"
+"                                        <img t-attf-src=\"/web/image/"
+"product.product/{{ line.product_id.id }}/image_128\" style=\"width: 100px; "
+"height: 100px; object-fit: contain;\" alt=\"Product image\"/>\n"
 "                                    </td>\n"
 "                                    <td>\n"
-"                                        <strong t-out=\"line.product_id."
-"display_name or ''\">[FURN_7800] Desk Combination</strong><br><t t-"
-"out=\"line.name or ''\">[FURN_7800] Desk Combination Desk combination, black-"
-"brown: chair + desk + drawer.</t>\n"
+"                                        <strong t-"
+"out=\"line.product_id.display_name or ''\">[FURN_7800] Desk Combination</"
+"strong><br/><t t-out=\"line.name or ''\">[FURN_7800] Desk Combination Desk "
+"combination, black-brown: chair + desk + drawer.</t>\n"
 "                                    </td>\n"
 "                                    <td width=\"100px\" align=\"right\">\n"
 "                                        <t t-out=\"int(line.product_uom_qty) "
@@ -487,7 +516,7 @@ msgid ""
 "                                </tr>\n"
 "                            </table>\n"
 "                        </t>\n"
-"                        <hr>\n"
+"                        <hr/>\n"
 "                    </t>\n"
 "                    <div style=\"text-align: center; padding: 16px 0px 16px "
 "0px; font-size: 14px;\">\n"
@@ -499,7 +528,7 @@ msgid ""
 "                        </a>\n"
 "                    </div>\n"
 "                    <t t-set=\"company\" t-value=\"object.company_id or "
-"object.user_id.company_id or user.company_id\"></t>\n"
+"object.user_id.company_id or user.company_id\"/>\n"
 "                    <div style=\"text-align: center;\"><strong>Thank you for "
 "shopping with <t t-out=\"company.name or ''\">My Company (San Francisco)</t>!"
 "</strong></div>\n"
@@ -518,18 +547,36 @@ msgid "<u>Terms and Conditions</u>"
 msgstr "<u>Uslovi ponude i plaćanja</u>"
 
 #. module: website_sale
+#. odoo-python
+#: code:addons/website_sale/controllers/combo_configurator.py:0
+msgid "A combo product can't be empty. Please select at least one option."
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_delivery_carrier__website_description
 msgid ""
 "A description of the Product that you want to communicate to your customers. "
 "This description will be copied to every Sales Order, Delivery Order and "
 "Customer Invoice/Credit Note"
 msgstr ""
+"Opis prozvoda koji želite da komunicirate svojim kupcima. Opis će biti "
+"kopiran na svaku Porudžbenicu, Nalog za dostavu i Fakturu kupcu/Kredit notu"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product
 msgid ""
 "A detailed, formatted description to promote your product on this page. Use "
 "'/' to discover more features."
+msgstr ""
+"Detaljan, formatiran opis za promociju vašeg proizvoda na ovoj stranici. "
+"Koristite '/' da biste otkrili više funkcija."
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
+msgid ""
+"A detailed,formatted description to promote your product "
+"on                                      this page. Use '/' to discover more "
+"features."
 msgstr ""
 
 #. module: website_sale
@@ -538,11 +585,6 @@ msgid ""
 "A product can be either a physical product or a service that you sell to "
 "your customers."
 msgstr "Proizvod može biti fizički proizvod ili usluga koju prodajete kupcima."
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.product
-msgid "A short description that will also appear on documents."
-msgstr "Kratak opis koji će se takođe pojaviti na dokumentima."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_sales_order_filter_ecommerce
@@ -623,12 +665,18 @@ msgstr "Radnja"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_needaction
 msgid "Action Needed"
-msgstr ""
+msgstr "Potrebna akcija"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Add"
 msgstr "Dodaj"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_product_view_form_easy_inherit_website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
+msgid "Add Media"
+msgstr ""
 
 #. module: website_sale
 #. odoo-javascript
@@ -641,12 +689,6 @@ msgstr "Dodaj u korpu"
 #: model:ir.model.fields,field_description:website_sale.field_website__add_to_cart_action
 msgid "Add To Cart Action"
 msgstr "Dodaj u korpu akcija"
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.product_product_view_form_easy_inherit_website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
-msgid "Add a Media"
-msgstr "Dodaj multimediju"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -662,6 +704,15 @@ msgstr ""
 "Dodajte referentnu cenu po JM na proizvode (tj. $/kg), pored prodajne cene"
 
 #. module: website_sale
+#: model:ir.model.fields,help:website_sale.field_product_product__compare_list_price
+#: model:ir.model.fields,help:website_sale.field_product_template__compare_list_price
+#: model:ir.model.fields,help:website_sale.field_res_config_settings__group_product_price_comparison
+msgid ""
+"Add a strikethrough price to your /shop and product pages for comparison "
+"purposes.It will not be displayed if pricelists apply."
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Add a strikethrough price, as a comparison"
 msgstr "Dodajte precrtanu cenu kao poređenje"
@@ -671,7 +722,6 @@ msgstr "Dodajte precrtanu cenu kao poređenje"
 #: code:addons/website_sale/static/src/xml/website_sale_reorder_modal.xml:0
 #: model_terms:ir.ui.view,arch_db:website_sale.cart_lines
 #: model_terms:ir.ui.view,arch_db:website_sale.product_quantity
-#: model_terms:ir.ui.view,arch_db:website_sale.product_quantity_config
 msgid "Add one"
 msgstr "Dodaj jedan"
 
@@ -695,12 +745,6 @@ msgid "Add to Cart Button"
 msgstr "Dugme Dodaj u korpu"
 
 #. module: website_sale
-#. odoo-javascript
-#: code:addons/website_sale/static/src/js/website_sale_product_configurator.js:0
-msgid "Add to cart"
-msgstr ""
-
-#. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__module_website_sale_autocomplete
 msgid "Address Autocomplete"
 msgstr "Automatsko popunjavanje adrese"
@@ -709,10 +753,9 @@ msgstr "Automatsko popunjavanje adrese"
 #: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
 #: model_terms:ir.ui.view,arch_db:website_sale.products_attributes
 msgid "All"
-msgstr ""
+msgstr "Sve"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.product
 #: model_terms:ir.ui.view,arch_db:website_sale.products_categories_list
 #: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_template_options
 msgid "All Products"
@@ -726,12 +769,19 @@ msgstr "Svi cenovnici"
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__website__ecommerce_access__everyone
 msgid "All users"
+msgstr "Svi korisnici"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.view_delivery_carrier_form_website_delivery
+msgid "All websites"
 msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Allow customers to pay in person at your stores"
-msgstr "Dozvolite kupcima da plate lično u vašoj prodavnici"
+msgid ""
+"Allow customers to pick up their online purchases at your store and pay in "
+"person"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -772,12 +822,12 @@ msgstr "Količina napuštenih korpi"
 #. odoo-python
 #: code:addons/website_sale/controllers/delivery.py:0
 msgid "Anonymous express checkout partner for order %s"
-msgstr ""
+msgstr "Anonimni partner za ekspresno poručivanje za porudžbinu %s"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "Apartment, suite, etc."
-msgstr ""
+msgstr "Sprat, stan, itd."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.coupon_form
@@ -788,12 +838,12 @@ msgstr "Primeni"
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/website_sale.editor.js:0
 msgid "Are you sure you want to delete this ribbon?"
-msgstr ""
+msgstr "Da li ste sigurni da želite da obrišete ovu traku?"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Assignment"
-msgstr ""
+msgstr "Zadatak"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -803,7 +853,7 @@ msgstr "Dodeljivanje online porudžbina"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_attachment_count
 msgid "Attachment Count"
-msgstr ""
+msgstr "Brojač priloga"
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_product_attribute_action
@@ -813,13 +863,19 @@ msgid "Attributes"
 msgstr "Atributi"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Automatically send abandoned checkout emails"
+#: model:product.public.category,name:website_sale.public_category_multimedia_augmented_reality
+msgid "Augmented Reality Tools"
 msgstr ""
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.configure_optional_products
-msgid "Available Options:"
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
+msgid "Automatically send abandoned checkout emails"
+msgstr "Automatski šalji email-ove napuštenim porudbžinama"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/product_list/product_list.js:0
+msgid "Available options"
 msgstr ""
 
 #. module: website_sale
@@ -831,13 +887,13 @@ msgstr "Prosečna ocena"
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 msgid "Back to cart"
-msgstr ""
+msgstr "Nazad na korpu"
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 msgid "Back to delivery"
-msgstr ""
+msgstr "Nazad na dostavu"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -847,7 +903,7 @@ msgstr "Pozadina"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_ribbon__bg_color
 msgid "Background Color"
-msgstr ""
+msgstr "Pozadinska boja"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_product__base_unit_count
@@ -872,6 +928,11 @@ msgid "Base Units"
 msgstr "Osnovne jedinice"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_cabinets_bathroom
+msgid "Bathroom Cabinets"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "Be aware!"
 msgstr "Pažnja!"
@@ -879,12 +940,17 @@ msgstr "Pažnja!"
 #. module: website_sale
 #: model:res.country.group,name:website_sale.benelux
 msgid "BeNeLux"
-msgstr "BeNeLux"
+msgstr "Beneluks"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_furnitures_beds
+msgid "Beds"
+msgstr ""
 
 #. module: website_sale
 #: model:product.pricelist,name:website_sale.list_benelux
 msgid "Benelux"
-msgstr "Benelux"
+msgstr "Beneluks"
 
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__website__product_page_image_spacing__big
@@ -892,15 +958,24 @@ msgid "Big"
 msgstr "Veliko"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.address_on_payment
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Big Icons Subtitles"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
 msgid "Billing"
 msgstr "Kreiranje računa"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
-#: model_terms:ir.ui.view,arch_db:website_sale.checkout
+#: model_terms:ir.ui.view,arch_db:website_sale.billing_address_row
 msgid "Billing address"
+msgstr "Adresa za fakturisanje"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.address_on_payment
+msgid "Billing:"
 msgstr ""
 
 #. module: website_sale
@@ -951,12 +1026,12 @@ msgstr "Kutije"
 #. module: website_sale
 #: model:product.attribute,name:website_sale.product_attribute_brand
 msgid "Brand"
-msgstr "Brand"
+msgstr "Brend"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__website_sale_contact_us_button_url
 msgid "Button Url"
-msgstr ""
+msgstr "Url dugmeta"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -980,6 +1055,11 @@ msgstr "Kupi odmah"
 #: code:addons/website_sale/static/src/snippets/s_add_to_cart/options.js:0
 msgid "Buy now"
 msgstr "Kupi odmah"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid "Cabinet with Doors"
+msgstr ""
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.public_category_cabinets
@@ -1047,6 +1127,8 @@ msgid ""
 "Categories are used to browse your products through the\n"
 "                touchscreen interface."
 msgstr ""
+"Kategorije se koriste za pretragu vaših proizvoda putem\n"
+"                touchscreen interfejsa."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_category_extra_link
@@ -1065,9 +1147,19 @@ msgid "Category Description"
 msgstr "Opis kategorije"
 
 #. module: website_sale
+#: model:ir.model.fields,field_description:website_sale.field_product_public_category__website_footer
+msgid "Category Footer"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_category_extra_link
 msgid "Category:"
 msgstr "Kategorija:"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_lamps_ceiling
+msgid "Ceiling Lamps"
+msgstr ""
 
 #. module: website_sale
 #. odoo-python
@@ -1081,6 +1173,18 @@ msgid "Chairs"
 msgstr "Stolice"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_lamps_chandelier
+msgid "Chandeliers"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.delivery_method
+msgid "Change location"
+msgstr ""
+
+#. module: website_sale
+#. odoo-python
+#: code:addons/website_sale/controllers/main.py:0
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid ""
 "Changing VAT number is not allowed once document(s) have been issued for "
@@ -1113,7 +1217,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 msgid "Checkout"
-msgstr ""
+msgstr "Poručivanje"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -1128,6 +1232,19 @@ msgstr "Dečije kategorije"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.delivery_form
 msgid "Choose a delivery method"
+msgstr "Izaberite metod dostave"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "Choose a pick-up point"
+msgstr ""
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+#: code:addons/website_sale/static/src/js/location_selector/map_container/map_container.js:0
+msgid "Choose this location"
 msgstr ""
 
 #. module: website_sale
@@ -1142,8 +1259,14 @@ msgstr "Grad"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.o_wsale_offcanvas
+#: model_terms:ir.ui.view,arch_db:website_sale.products_attributes
 msgid "Clear Filters"
 msgstr "Poništi filtere"
+
+#. module: website_sale
+#: model:ir.model.fields,field_description:website_sale.field_res_config_settings__module_website_sale_collect
+msgid "Click & Collect"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
@@ -1180,12 +1303,28 @@ msgstr "Klikni na ovo dugme kako bi tvoji korisnici mogli da ga vide."
 #: code:addons/website_sale/static/src/js/notification/cart_notification/cart_notification.xml:0
 #: model_terms:ir.ui.view,arch_db:website_sale.o_wsale_offcanvas
 msgid "Close"
-msgstr ""
+msgstr "Zatvori"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_schedule/location_schedule.js:0
+msgid "Closed"
+msgstr "Zatvoren"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Collapse Category Recursive"
 msgstr "Skupi kategoriju rekurzivno"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_boxes_collapsible
+msgid "Collapsible Boxes"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Collapsible sidebar"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -1196,6 +1335,11 @@ msgstr "Boja"
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Columns"
 msgstr "Kolone"
+
+#. module: website_sale
+#: model:ir.ui.menu,name:website_sale.menu_product_combos
+msgid "Combo Choices"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_template_options
@@ -1242,23 +1386,40 @@ msgstr "Izračunajte troškove transporta i dostave Easypost-om"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Compute shipping costs and ship with DHL"
-msgstr "Izračunajte troškove transporta i dostave DHL-om"
+msgid "Compute shipping cost and ship with Shiprocket"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Compute shipping costs and ship with FedEx"
-msgstr "Izračunajte troškove transporta i dostave FedEx-om"
+msgid ""
+"Compute shipping costs and ship with DHL<br/>\n"
+"                            <strong>(please go to Home&gt;Apps to install)</"
+"strong>"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Compute shipping costs and ship with UPS"
-msgstr "Izračunajte troškove transporta i dostave UPS-om"
+msgid ""
+"Compute shipping costs and ship with FedEx<br/>\n"
+"                            <strong>(please go to Home&gt;Apps to install)</"
+"strong>"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Compute shipping costs and ship with USPS"
-msgstr "Izračunajte troškove transporta i dostave USPS-om"
+msgid ""
+"Compute shipping costs and ship with UPS<br/>\n"
+"                            <strong>(please go to Home&gt;Apps to install)</"
+"strong>"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
+msgid ""
+"Compute shipping costs and ship with USPS<br/>\n"
+"                            <strong>(please go to Home&gt;Apps to install)</"
+"strong>"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -1271,6 +1432,17 @@ msgid "Compute shipping costs on orders"
 msgstr "Izračunajte troškove transporta na porudžbinama"
 
 #. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/checkout.js:0
+msgid "Computed after delivery"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid "Conference Chair"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model,name:website_sale.model_res_config_settings
 msgid "Config Settings"
 msgstr "Podešavanje konfiguracije"
@@ -1281,10 +1453,16 @@ msgid "Configure Form"
 msgstr "Konfigurišite obrazac"
 
 #. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/product_configurator_dialog/product_configurator_dialog.js:0
+msgid "Configure your product"
+msgstr "Konfigurišite svoj proizvod"
+
+#. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 msgid "Confirm"
-msgstr ""
+msgstr "Potvrdi"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.navigation_buttons
@@ -1294,7 +1472,7 @@ msgstr "Potvrdi porudžbinu"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.payment
 msgid "Confirm order"
-msgstr ""
+msgstr "Potvrdi porudžbinu"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_sales_order_filter_ecommerce
@@ -1323,16 +1501,17 @@ msgstr "URL dugmeta Kontaktirajte nas"
 
 #. module: website_sale
 #. odoo-javascript
-#: code:addons/website_sale/static/src/js/website_sale_product_configurator.js:0
+#: code:addons/website_sale/static/src/js/combo_configurator_dialog/combo_configurator_dialog.xml:0
+#: code:addons/website_sale/static/src/js/product_configurator_dialog/product_configurator_dialog.xml:0
 msgid "Continue Shopping"
-msgstr ""
+msgstr "Nastavi sa kupovinom"
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "Continue checkout"
-msgstr ""
+msgstr "Nastavite poručivanje"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.extra_info
@@ -1341,12 +1520,15 @@ msgid ""
 "                                    <i class=\"fa fa-angle-right ms-2 fw-"
 "light\"/>"
 msgstr ""
+"Nastavite poručivanje\n"
+"                                    <i class=\"fa fa-angle-right ms-2 fw-"
+"light\"/>"
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 msgid "Continue shopping"
-msgstr ""
+msgstr "Nastavi sa kupovinom"
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.public_category_furnitures_couches
@@ -1354,7 +1536,6 @@ msgid "Couches"
 msgstr "Kauči"
 
 #. module: website_sale
-#: model:ir.model,name:website_sale.model_res_country
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "Country"
 msgstr "Zemlja"
@@ -1377,6 +1558,14 @@ msgstr "Kreiraj novi proizvod"
 #: model:ir.model.fields,field_description:website_sale.field_website_sale_extra_field__create_uid
 msgid "Created by"
 msgstr "Kreirao/la"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_images_subtitles
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_little_icons
+msgid ""
+"Created in 2021, the company is young and dynamic. Discover the composition "
+"of the team and their skills."
+msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image__create_date
@@ -1484,6 +1673,11 @@ msgid "Customers"
 msgstr "Kupci"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid "Customizable Desk"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Customize Abandoned Email Template"
 msgstr "Prilagodite email šablon za napuštene korpe"
@@ -1496,18 +1690,13 @@ msgstr "Prilagodi Email šablone"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "DHL Express Connector"
-msgstr "DHL Express konektor"
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "DHL Shipping Methods"
+msgid "DHL"
 msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product
 msgid "DROP BUILDING BLOCKS HERE TO MAKE THEM AVAILABLE ACROSS ALL PRODUCTS"
-msgstr ""
+msgstr "PREVUCITE BLOKOVE OVDE DA BI BULI DOSTUPNI ZA SVE PROIZVODE"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -1520,6 +1709,11 @@ msgid "Default (1/1)"
 msgstr "Podrazumevano (1/1)"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Default (1x1)"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__currency_id
 msgid "Default Currency"
 msgstr "Podrazumevana valuta"
@@ -1527,7 +1721,7 @@ msgstr "Podrazumevana valuta"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__pricelist_id
 msgid "Default Pricelist if any"
-msgstr ""
+msgstr "Podrazumevani cenovnik, ako postoji"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -1550,49 +1744,46 @@ msgstr "Definiši novu kategoriju"
 #. module: website_sale
 #: model_terms:ir.actions.act_window,help:website_sale.product_ribbon_action
 msgid "Define a new ribbon"
-msgstr ""
+msgstr "Definišite novu traku"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Delete Ribbon"
-msgstr ""
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.address
-msgid "Deliver to the same address"
-msgstr ""
+msgstr "Obriši traku"
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 #: model_terms:ir.ui.view,arch_db:website_sale.total
 msgid "Delivery"
+msgstr "Dostava"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.address_on_payment
+msgid "Delivery &amp;"
 msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_sale_order__amount_delivery
 msgid "Delivery Amount"
-msgstr ""
+msgstr "Iznos dostave"
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_ecommerce_delivery
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Delivery Methods"
-msgstr ""
-
-#. module: website_sale
-#: model:ir.model.fields,field_description:website_sale.field_sale_order__access_point_address
-msgid "Delivery Point Address"
-msgstr ""
+msgstr "Metode dostave"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
-#: model_terms:ir.ui.view,arch_db:website_sale.checkout
+#: model_terms:ir.ui.view,arch_db:website_sale.delivery_address_row
 msgid "Delivery address"
-msgstr ""
+msgstr "Adresa dostave"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.total
-msgid "Delivery will be updated after choosing a new delivery method"
+#: model:product.public.category,name:website_sale.public_category_services_delivery_and_installation
+msgid "Delivery and Installation"
 msgstr ""
 
 #. module: website_sale
@@ -1603,18 +1794,33 @@ msgstr "Opis"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_delivery_carrier_form_website_delivery
 msgid "Description displayed on the eCommerce and on online quotations."
+msgstr "Opis koji se prikazuje na eCommerce-u i na online ponudama."
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_public_category_form_view
+msgid "Description displayed on the eCommerce categories page."
 msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier__website_description
 msgid "Description for Online Quotations"
-msgstr ""
+msgstr "Opis za online ponude"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_product__website_description
 #: model:ir.model.fields,field_description:website_sale.field_product_template__website_description
 msgid "Description for the website"
 msgstr "Opis za website"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_services_design_and_planning
+msgid "Design and Planning"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_lamps_desk
+msgid "Desk Lamps"
+msgstr ""
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.public_category_desks
@@ -1647,12 +1853,18 @@ msgstr "Poništi"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.coupon_form
 msgid "Discount code..."
-msgstr ""
+msgstr "Kod za popust..."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Discounts, Loyalty & Gift Card"
 msgstr "Popusti, lojalnost & poklon kartice"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_images_subtitles
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_little_icons
+msgid "Discover our team"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image__display_name
@@ -1712,9 +1924,14 @@ msgstr ""
 "Da li želite da ispraznite svoju korpu pre nego što u nju dodate proizvode?"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
+msgid "Documentation"
+msgstr "Dokumentacija"
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product
 msgid "Documents"
-msgstr ""
+msgstr "Dokumenta"
 
 #. module: website_sale
 #. odoo-python
@@ -1722,6 +1939,8 @@ msgstr ""
 msgid ""
 "Documents shown on product page cannot be restricted to a specific variant"
 msgstr ""
+"Dokumenta koja se prikazuju na stranici proizvoda ne mogu biti ograničena na "
+"konkretnu varijantu"
 
 #. module: website_sale
 #. odoo-javascript
@@ -1732,14 +1951,17 @@ msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
-msgid "Drag building blocks here to customize the header for \""
-msgstr "Prevucite blokove ovde da biste prilagodili zaglavlje za „"
+msgid ""
+"Drag building blocks here to customize the footer for\n"
+"                                    \""
+msgstr ""
 
 #. module: website_sale
-#. odoo-javascript
-#: code:addons/website_sale/static/src/js/tours/website_sale_shop.js:0
-msgid "Drag this website block and drop it in your page."
-msgstr "Prevucite ovaj blok web stranice i spustite ga na svoju stranicu."
+#: model_terms:ir.ui.view,arch_db:website_sale.products
+msgid ""
+"Drag building blocks here to customize the header for\n"
+"                                    \""
+msgstr ""
 
 #. module: website_sale
 #. odoo-python
@@ -1765,7 +1987,7 @@ msgstr "E-Commerce dodatne informacije koje se prikazuju na stranici proizvoda"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_document_form
 msgid "E-commerce"
-msgstr ""
+msgstr "E-commerce"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_pricelist__code
@@ -1785,12 +2007,27 @@ msgstr "Easypost"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Easypost Shipping Methods"
+msgstr "Easypost metode isporuke"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.website_sale_pricelist_form_view
+msgid "Ecommerce"
 msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__ecommerce_access
 #: model:ir.model.fields,field_description:website_sale.field_website__ecommerce_access
 msgid "Ecommerce Access"
+msgstr "Pristup Ecommerce-u"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
+msgid "Ecommerce Description"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
+msgid "Ecommerce Shop"
 msgstr ""
 
 #. module: website_sale
@@ -1816,7 +2053,13 @@ msgid "Edit this address"
 msgstr "Uredi ovu adresu"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_multimedia_education
+msgid "Education Tools"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
+#: model_terms:ir.ui.view,arch_db:website_sale.product_share_buttons
 msgid "Email"
 msgstr "E-mail"
 
@@ -1828,6 +2071,12 @@ msgstr "Ugradi kod"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Enforce a customer to be logged in to access 'Shop'"
+msgstr "Zahtevajte od kupca da bude prijavljen da bi pristupio „Prodavnici“"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/product_template_attribute_line/product_template_attribute_line.js:0
+msgid "Enter a customized value"
 msgstr ""
 
 #. module: website_sale
@@ -1840,7 +2089,7 @@ msgstr "Unesi ime svog novog proizvoda"
 #. odoo-python
 #: code:addons/website_sale/models/product_public_category.py:0
 msgid "Error! You cannot create recursive categories."
-msgstr ""
+msgstr "Greška! Ne možete krirati rekurzivne kategorije."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -1862,7 +2111,7 @@ msgstr "Dodatni mediji za proizvode"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Extra Step"
-msgstr ""
+msgstr "Dodatni korak"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__enabled_extra_checkout_step
@@ -1882,6 +2131,11 @@ msgstr "Dodatni mediji za varijante"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.extra_info
 msgid "Extra info"
+msgstr "Dodatne informacije"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_share_buttons
+msgid "Facebook"
 msgstr ""
 
 #. module: website_sale
@@ -1894,11 +2148,6 @@ msgstr "Istaknuto"
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "FedEx"
 msgstr "FedEx"
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "FedEx Shipping Methods"
-msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_sale_extra_field__field_id
@@ -1916,6 +2165,11 @@ msgid "Field Name"
 msgstr "Naziv polja"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_drawers_file
+msgid "File Drawers"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Fill"
 msgstr "Unesite"
@@ -1926,25 +2180,42 @@ msgid "Fill in your address"
 msgstr "Unesite svoju adresu"
 
 #. module: website_sale
+#. odoo-python
+#: code:addons/website_sale/models/product_template.py:0
+msgid ""
+"Final price may vary based on selection. Tax will be calculated at checkout."
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__fiscal_position_id
 msgid "Fiscal Position"
+msgstr "Fiskalna pozicija"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_desks_foldable
+msgid "Foldable Desks"
 msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_follower_ids
 msgid "Followers"
-msgstr ""
+msgstr "Pratioci"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_partner_ids
 msgid "Followers (Partners)"
+msgstr "Pratioci (Partneri)"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_bins_storage
+msgid "Food Storage Bins"
 msgstr ""
 
 #. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/checkout.js:0
 msgid "Free"
-msgstr ""
+msgstr "Besplatno"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_sales_order_filter_ecommerce
@@ -1954,7 +2225,7 @@ msgstr "Od Website-a"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "Full name"
-msgstr ""
+msgstr "Puno ime i prezime"
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.public_category_furnitures
@@ -1962,9 +2233,24 @@ msgid "Furnitures"
 msgstr "Nameštaj"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_desks_gaming
+msgid "Gaming Desks"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Gap"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Generate the invoice automatically when the online payment is confirmed"
 msgstr "Automatski generišite fakturu kada se potvrdi plaćanje putem interneta"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_desks_glass
+msgid "Glass Desks"
+msgstr ""
 
 #. module: website_sale
 #. odoo-javascript
@@ -1982,6 +2268,11 @@ msgid "Grid"
 msgstr "Mreža"
 
 #. module: website_sale
+#: model:ir.model.fields,field_description:website_sale.field_website__shop_gap
+msgid "Grid-gap on the shop"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.sale_report_view_search_website
 #: model_terms:ir.ui.view,arch_db:website_sale.view_sales_order_filter_ecommerce_abondand
 msgid "Group By"
@@ -1995,7 +2286,7 @@ msgstr "HTTP rutiranje"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__has_message
 msgid "Has Message"
-msgstr ""
+msgstr "Ima poruku"
 
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__product_attribute__visibility__hidden
@@ -2035,18 +2326,18 @@ msgstr "ID"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_tag_form_view_inherit_website_sale
 msgid "If an image is set, the color will not be used on eCommerce."
-msgstr ""
+msgstr "Ako je slika postavljena, boja se neće koristiti na eCommerce-u."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_template__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr ""
+msgstr "Ako je označeno, nove poruke zahtevaju vašu pažnju."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_template__message_has_error
 #: model:ir.model.fields,help:website_sale.field_product_template__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr ""
+msgstr "Ako je označeno, neke poruke imaju grešku u isporuci."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -2072,6 +2363,9 @@ msgid ""
 "backend. If you wish to change your name or email address, please do so in "
 "the account settings or contact your administrator."
 msgstr ""
+"Ako naručujete za eksternu osobu, molimo vas da naručite preko bekenda. Ako "
+"želite da promenite ime ili email adresu, učinite to u podešavanjima naloga "
+"ili kontaktirajte administratora."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_pricelist__website_id
@@ -2080,6 +2374,9 @@ msgid ""
 "field or make it selectable.Otherwise, the pricelist will not apply to any "
 "website."
 msgstr ""
+"Ako želite da cenovnik bude dostupan na veb-sajtu, morate popuniti ovo polje "
+"ili ga učiniti izbornim. U suprotnom, cenovnik se neće primenjivati ni na "
+"jednom web sajtu."
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image__image_1920
@@ -2114,6 +2411,11 @@ msgid "Image 512"
 msgstr "Slika 512"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Image Menu"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_product_image_form
 msgid "Image Name"
 msgstr "Naziv slike"
@@ -2130,8 +2432,18 @@ msgstr "Zumiranje slika"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Images Ratio"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Images Size"
 msgstr "Veličina slika"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Images Subtitles"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -2164,12 +2476,12 @@ msgstr "Fakturisanje"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Invoicing Policy"
-msgstr ""
+msgstr "Politika fakturisanja"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_is_follower
 msgid "Is Follower"
-msgstr ""
+msgstr "Je pratilac"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier__is_published
@@ -2197,6 +2509,8 @@ msgid ""
 "It seems that a delivery method is not compatible with your address. Please "
 "refresh the page and try again."
 msgstr ""
+"Izgleda da metod dostave nije kompatibilan sa vašom adresom. Osvežite "
+"stranicu i pokušajte ponovo."
 
 #. module: website_sale
 #. odoo-python
@@ -2205,17 +2519,29 @@ msgid ""
 "It seems that there is already a transaction for your order; you can't "
 "change the delivery method anymore."
 msgstr ""
+"Izgleda da već postoji transakcija za vašu porudžbinu; više ne možete "
+"promeniti način isporuke."
 
 #. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/website_sale_utils.js:0
 msgid "Item(s) added to your cart"
-msgstr ""
+msgstr "Stavka(e) dodate u vašu korpu"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_account_move
 msgid "Journal Entry"
 msgstr "Unos u dnevnik"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_cabinets_kitchen
+msgid "Kitchen Cabinets"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_drawers_kitchen
+msgid "Kitchen Drawer Units"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_digest_digest__kpi_website_sale_total_value
@@ -2284,6 +2610,11 @@ msgid "Last Year"
 msgstr "Prošla godina"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_bins_laundry
+msgid "Laundry Bins"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Layout"
 msgstr "Izgled"
@@ -2296,8 +2627,8 @@ msgstr "Levo"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Let the customer enter a shipping address"
-msgstr "Dozvolite kupcima da unesu adresu za dostavu"
+msgid "Let the customer enter a delivery address"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -2307,7 +2638,7 @@ msgstr "Dozvoli kupcima da izaberu mesto isporuke Mondial Relay-a"
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__website__add_to_cart_action__force_dialog
 msgid "Let the user decide (dialog)"
-msgstr ""
+msgstr "Dozvolite korisniku da izabere (dijalog)"
 
 #. module: website_sale
 #. odoo-javascript
@@ -2335,12 +2666,12 @@ msgstr "Sijalica se prodaje odvojeno"
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__show_line_subtotals_tax_selection
 #: model:ir.model.fields,field_description:website_sale.field_website__show_line_subtotals_tax_selection
 msgid "Line Subtotals Tax Display"
-msgstr ""
+msgstr "Prikaz linije poreske osnovice"
 
 #. module: website_sale
-#: model:ir.model.fields,field_description:website_sale.field_sale_order_line__linked_line_id
-msgid "Linked Order Line"
-msgstr "Povezane linije porudžbine"
+#: model_terms:ir.ui.view,arch_db:website_sale.product_share_buttons
+msgid "LinkedIn"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.add_grid_or_list_option
@@ -2349,8 +2680,35 @@ msgid "List"
 msgstr "Lista"
 
 #. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "List view"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Little Icons"
+msgstr ""
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "Loading..."
+msgstr "Učitavam..."
+
+#. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__website__ecommerce_access__logged_in
 msgid "Logged in users"
+msgstr "Prijavljeni korisnici"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Logos"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_boxes_luxury
+msgid "Luxury Boxes"
 msgstr ""
 
 #. module: website_sale
@@ -2370,12 +2728,14 @@ msgstr ""
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Main Image"
-msgstr ""
+msgstr "Glavna slika"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Manage Promotions, coupons, loyalty cards, Gift cards & eWallet"
 msgstr ""
+"Upravljajte promocijama, kuponima, karticama lojalnosti, poklon karticama & "
+"eNovčanikom"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -2393,19 +2753,35 @@ msgid "Mandatory (no guest checkout)"
 msgstr "Obavezno (nema poručivanja od strane posetilaca)"
 
 #. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "Map view"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_cabinets_medicine
+msgid "Medicine Cabinets"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__website__product_page_image_spacing__medium
 msgid "Medium"
 msgstr "Posrednik"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_menu_image_menu
+msgid "Mega menu default image"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_has_error
 msgid "Message Delivery error"
-msgstr ""
+msgstr "Greška u isporuci poruke"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_ids
 msgid "Messages"
-msgstr ""
+msgstr "Poruke"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -2416,6 +2792,12 @@ msgstr "Mondial Relay"
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__module_delivery_mondialrelay
 msgid "Mondial Relay Connector"
 msgstr "Mondial Relay konektor"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.accordion_more_information
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "More Information"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippets_options_web_editor
@@ -2436,6 +2818,11 @@ msgstr "Pomeri na sledeće"
 #: model_terms:ir.ui.view,arch_db:website_sale.snippets_options_web_editor
 msgid "Move to previous"
 msgstr "Pomeri na prethodno"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Multi Menus"
+msgstr ""
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.public_category_multimedia
@@ -2470,7 +2857,7 @@ msgstr "Kratak naziv"
 #. odoo-python
 #: code:addons/website_sale/models/product_public_category.py:0
 msgid "New"
-msgstr ""
+msgstr "Novo"
 
 #. module: website_sale
 #: model:ir.actions.act_window,name:website_sale.product_product_action_add
@@ -2496,8 +2883,20 @@ msgstr "Najnoviji proizvodi"
 #. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/xml/website_sale_image_viewer.xml:0
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid "Next"
+msgstr "Sledeće"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/xml/website_sale_image_viewer.xml:0
 msgid "Next (Right-Arrow)"
 msgstr "Sledeće (Desna strelica)"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_drawers_nightstand
+msgid "Nightstand Drawers"
+msgstr ""
 
 #. module: website_sale
 #. odoo-javascript
@@ -2511,12 +2910,6 @@ msgid "No abandoned carts found"
 msgstr "Nisu pronađene napuštene korpe"
 
 #. module: website_sale
-#. odoo-python
-#: code:addons/website_sale/controllers/delivery.py:0
-msgid "No pick-up point available for that shipping address"
-msgstr ""
-
-#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
 msgid "No product defined"
 msgstr "Nema definisanog proizvoda"
@@ -2524,12 +2917,18 @@ msgstr "Nema definisanog proizvoda"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
 msgid "No product defined in this category."
-msgstr ""
+msgstr "Nema definisanog proizvoda u ovoj kategoriji."
 
 #. module: website_sale
 #: model_terms:ir.actions.act_window,help:website_sale.website_sale_visitor_product_action
 msgid "No product views yet for this visitor"
 msgstr "Još uvek nema pregleda proizvoda za ovog posetioca"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "No result"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products
@@ -2553,13 +2952,14 @@ msgid ""
 "No shipping method is available for your current order and shipping address. "
 "Please contact us for more information."
 msgstr ""
+"Za vašu trenutnu porudžbinu i adresu za isporuku nije dostupan način "
+"isporuke. Kontaktirajte nas za više informacija."
 
 #. module: website_sale
 #. odoo-python
-#: code:addons/website_sale/controllers/main.py:0
-#, python-format
+#: code:addons/website_sale/models/sale_order.py:0
 msgid "No shipping method is selected."
-msgstr ""
+msgstr "Nije izabran način isporuke."
 
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__website__product_page_image_spacing__none
@@ -2574,9 +2974,15 @@ msgstr "Nije objavljeno"
 
 #. module: website_sale
 #. odoo-javascript
+#: code:addons/website_sale/static/src/js/product/product.xml:0
+msgid "Not available for sale"
+msgstr ""
+
+#. module: website_sale
+#. odoo-javascript
 #: code:addons/website_sale/static/src/js/sale_variant_mixin.js:0
 msgid "Not available with %s"
-msgstr ""
+msgstr "Nije dostupno sa %s"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_crm_team__abandoned_carts_count
@@ -2586,12 +2992,12 @@ msgstr "Broj napuštenih korpi"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_needaction_counter
 msgid "Number of Actions"
-msgstr ""
+msgstr "Broj akcija"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_has_error_counter
 msgid "Number of errors"
-msgstr ""
+msgstr "Broj grešaka"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__shop_ppr
@@ -2601,12 +3007,12 @@ msgstr "Broj kolona u tabeli u prodavnici"
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_template__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "Broj poruka koje zahtevaju akciju"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_template__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr ""
+msgstr "Broj poruka sa greškom u isporuci"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__shop_ppg
@@ -2614,9 +3020,14 @@ msgid "Number of products in the grid on the shop"
 msgstr "Broj proizvoda u tabeli u prodavnici"
 
 #. module: website_sale
-#: model:ir.model.fields,field_description:website_sale.field_res_config_settings__module_website_sale_picking
-msgid "On Site Payments & Picking"
-msgstr "Plaćanje & preuzimanje na licu mesta"
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Odoo Menu"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_desks_office
+msgid "Office Desks"
+msgstr ""
 
 #. module: website_sale
 #. odoo-python
@@ -2672,6 +3083,13 @@ msgid "Open Source eCommerce"
 msgstr "E-Commerce otvorenog koda"
 
 #. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location/location.js:0
+#: code:addons/website_sale/static/src/js/location_selector/map_container/map_container.js:0
+msgid "Opening hours"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_image_view_kanban
 msgid ""
 "Optimization required! Reduce the image size or increase your compression "
@@ -2679,24 +3097,6 @@ msgid ""
 msgstr ""
 "Potrebna je optimizacija! Smanjite veličinu slike ili povećajte podešavanja "
 "kompresije."
-
-#. module: website_sale
-#. odoo-python
-#: code:addons/website_sale/models/sale_order_line.py:0
-msgid "Option for: %s"
-msgstr "Opcija za: %s"
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.configure_optional_products
-#: model_terms:ir.ui.view,arch_db:website_sale.optional_product_items
-msgid "Option not available"
-msgstr ""
-
-#. module: website_sale
-#. odoo-python
-#: code:addons/website_sale/models/sale_order_line.py:0
-msgid "Option: %s"
-msgstr "Opcija: %s"
 
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__res_config_settings__account_on_checkout__optional
@@ -2708,11 +3108,6 @@ msgstr "Opciono"
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Options"
 msgstr "Opcije"
-
-#. module: website_sale
-#: model:ir.model.fields,field_description:website_sale.field_sale_order_line__option_line_ids
-msgid "Options Linked"
-msgstr "Povezane opcije"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.payment_confirmation_status
@@ -2735,7 +3130,7 @@ msgstr "Linije porudžbine prikazane na Website-u"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.cart
 msgid "Order overview"
-msgstr ""
+msgstr "Pregled porudžbine"
 
 #. module: website_sale
 #: model:ir.actions.act_window,name:website_sale.action_orders_ecommerce
@@ -2773,28 +3168,33 @@ msgstr "Roditelji i ja"
 #. odoo-python
 #: code:addons/website_sale/controllers/main.py:0
 msgid "Pay now"
-msgstr ""
+msgstr "Plati odmah"
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 msgid "Payment"
-msgstr ""
+msgstr "Plaćanje"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
 msgid "Payment Information"
-msgstr ""
+msgstr "Informacije o plaćanju"
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_ecommerce_payment_methods
 msgid "Payment Methods"
-msgstr ""
+msgstr "Načini plaćanja"
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_ecommerce_payment_providers
 msgid "Payment Providers"
 msgstr "Provajderi plaćanja"
+
+#. module: website_sale
+#: model:ir.model,name:website_sale.model_payment_token
+msgid "Payment Token"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_ecommerce_payment_tokens
@@ -2805,6 +3205,12 @@ msgstr "Tokeni plaćanja"
 #: model:ir.ui.menu,name:website_sale.menu_ecommerce_payment_transactions
 msgid "Payment Transactions"
 msgstr "Platne transakcije"
+
+#. module: website_sale
+#. odoo-python
+#: code:addons/website_sale/controllers/payment.py:0
+msgid "Payment is already being processed."
+msgstr ""
 
 #. module: website_sale
 #. odoo-python
@@ -2821,12 +3227,17 @@ msgstr "Telefon"
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/website_sale_form_editor.js:0
 msgid "Phone Number"
-msgstr ""
+msgstr "Broj telefona"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Pills"
 msgstr "Pilule"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_share_buttons
+msgid "Pinterest"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_product_image_form
@@ -2837,12 +3248,6 @@ msgstr "Molimo unesite ispravan video URL."
 #: model_terms:ir.ui.view,arch_db:website_sale.cart
 msgid "Please proceed your current cart."
 msgstr "Molimo vas nastavite sa svojom trenutnom korpom."
-
-#. module: website_sale
-#. odoo-javascript
-#: code:addons/website_sale/static/src/js/checkout.js:0
-msgid "Please select a pick-up point"
-msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -2864,6 +3269,13 @@ msgstr "Pozicija"
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__website_sale_prevent_zero_price_sale
 msgid "Prevent Sale of Zero Priced Product"
 msgstr "Sprečite prodaju proizvoda sa nultom cenom"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/xml/website_sale_image_viewer.xml:0
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid "Previous"
+msgstr "Prethodno"
 
 #. module: website_sale
 #. odoo-javascript
@@ -2907,9 +3319,19 @@ msgid "Price list available for this Ecommerce/Website"
 msgstr "Cenovnik dostupan za ovaj Ecommerce/Website"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.total
+msgid "Price will be updated after choosing a delivery method"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model,name:website_sale.model_product_pricelist
 msgid "Pricelist"
 msgstr "Cenovnik"
+
+#. module: website_sale
+#: model:ir.model,name:website_sale.model_product_pricelist_item
+msgid "Pricelist Rule"
+msgstr "Pravilo cenovnika"
 
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_catalog_pricelists
@@ -2929,9 +3351,10 @@ msgstr "Štampaj"
 
 #. module: website_sale
 #. odoo-javascript
-#: code:addons/website_sale/static/src/js/website_sale_product_configurator.js:0
+#: code:addons/website_sale/static/src/js/combo_configurator_dialog/combo_configurator_dialog.xml:0
+#: code:addons/website_sale/static/src/js/product_configurator_dialog/product_configurator_dialog.xml:0
 msgid "Proceed to Checkout"
-msgstr ""
+msgstr "Nastavi sa poručivanjem"
 
 #. module: website_sale
 #: model_terms:ir.actions.act_window,help:website_sale.action_unpaid_orders_ecommerce
@@ -2985,12 +3408,10 @@ msgstr "Alat za poređenje proizvoda"
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_document
 msgid "Product Document"
-msgstr ""
+msgstr "Dokument proizvoda"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_image
-#: model_terms:ir.ui.view,arch_db:website_sale.configure_optional_products
-#: model_terms:ir.ui.view,arch_db:website_sale.optional_product_items
 msgid "Product Image"
 msgstr "Slika proizvoda"
 
@@ -3008,7 +3429,7 @@ msgstr "Ime Proizvoda"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_template_options
 msgid "Product Names"
-msgstr ""
+msgstr "Nazivi proizvoda"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -3058,13 +3479,13 @@ msgstr "Referentna cena proizvoda"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_ribbon_view_tree
 msgid "Product Ribbon"
-msgstr ""
+msgstr "Traka proizvoda"
 
 #. module: website_sale
 #: model:ir.actions.act_window,name:website_sale.product_ribbon_action
 #: model:ir.ui.menu,name:website_sale.product_catalog_product_ribbons
 msgid "Product Ribbons"
-msgstr ""
+msgstr "Trake proizvoda"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_tag
@@ -3080,7 +3501,7 @@ msgstr "Oznake proizvoda"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Product Tags Filter"
-msgstr ""
+msgstr "Filter oznaka proizvoda"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_image__product_tmpl_id
@@ -3095,7 +3516,7 @@ msgstr "Linija atributa šablona proizvoda"
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_template_attribute_value
 msgid "Product Template Attribute Value"
-msgstr ""
+msgstr "Vrednost atributa šablona proizvoda"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_public_category__product_tmpl_ids
@@ -3191,7 +3612,7 @@ msgstr ""
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_document__shown_on_product_page
 msgid "Publish on website"
-msgstr ""
+msgstr "Objavi na website-u"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_pages_kanban_view
@@ -3223,7 +3644,6 @@ msgstr "Poguraj gore"
 #. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/xml/website_sale_reorder_modal.xml:0
-#: model_terms:ir.ui.view,arch_db:website_sale.configure_optional_products
 msgid "Quantity"
 msgstr "Količina"
 
@@ -3275,13 +3695,13 @@ msgstr "Brojač ocena"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__rating_ids
 msgid "Ratings"
-msgstr ""
+msgstr "Ocene"
 
 #. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/xml/website_sale_reorder_modal.xml:0
 msgid "Re-Order"
-msgstr ""
+msgstr "Ponovo poruči"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -3308,6 +3728,11 @@ msgid "Recently Viewed Products"
 msgstr "Nedavno pregledani proizvodi"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_furnitures_recliners
+msgid "Recliners"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_sales_order_filter_ecommerce_abondand
 msgid "Recovery Email Sent"
 msgstr "Email za obnovu korpe je poslat"
@@ -3322,6 +3747,11 @@ msgstr "Email za obnovu korpe za poslati"
 #: code:addons/website_sale/models/website_snippet_filter.py:0
 msgid "Reinforced for heavy loads"
 msgstr "Ojačano za velika opterećenja"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_services_relocation_and_moving
+msgid "Relocation and Moving"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.cart_lines
@@ -3344,14 +3774,23 @@ msgstr "Ukloni iz korpe"
 #: code:addons/website_sale/static/src/xml/website_sale_reorder_modal.xml:0
 #: model_terms:ir.ui.view,arch_db:website_sale.cart_lines
 #: model_terms:ir.ui.view,arch_db:website_sale.product_quantity
-#: model_terms:ir.ui.view,arch_db:website_sale.product_quantity_config
 msgid "Remove one"
 msgstr "Ukloni jedan"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_services_repair_and_maintenance
+msgid "Repair and Maintenance"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Replace"
 msgstr "Zameni"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Reset Categories"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_delivery_carrier__website_id
@@ -3360,7 +3799,7 @@ msgstr "Zameni"
 #: model:ir.model.fields,help:website_sale.field_product_tag__website_id
 #: model:ir.model.fields,help:website_sale.field_product_template__website_id
 msgid "Restrict to a specific website."
-msgstr ""
+msgstr "Ograniči na konkretan website."
 
 #. module: website_sale
 #. odoo-python
@@ -3386,13 +3825,18 @@ msgstr "Traka"
 #: code:addons/website_sale/static/src/js/website_sale.editor.js:0
 #: model:ir.model.fields,field_description:website_sale.field_product_ribbon__name
 msgid "Ribbon Name"
-msgstr ""
+msgstr "Naziv trake"
 
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__product_ribbon__position__right
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Right"
 msgstr "Desno"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_boxes_rustic
+msgid "Rustic Boxes"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_public_category__is_seo_optimized
@@ -3403,7 +3847,7 @@ msgstr "SEO optimizovano"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr ""
+msgstr "Greška isporuke SMS-a"
 
 #. module: website_sale
 #: model:product.ribbon,name:website_sale.sale_ribbon
@@ -3454,7 +3898,12 @@ msgstr "Prodajni tim"
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__salesperson_id
 #: model:ir.model.fields,field_description:website_sale.field_website__salesperson_id
 msgid "Salesperson"
-msgstr "Predstavnik prodaje"
+msgstr "Prodavac"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.billing_address_row
+msgid "Same as delivery address"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.dynamic_filter_template_product_product_add_to_cart
@@ -3475,7 +3924,7 @@ msgstr "Uzorak"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "Save address"
-msgstr ""
+msgstr "Sačuvaj adresu"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.view_sales_order_filter_ecommerce_abondand
@@ -3485,7 +3934,7 @@ msgstr "Pretraži napuštene prodajne porudžbine"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Search Bar"
-msgstr ""
+msgstr "Traka za pretragu"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -3508,14 +3957,19 @@ msgid "Select Quantity"
 msgstr "Izaberi količinu"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.delivery_method
+msgid "Select a location"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.website_sale_pricelist_form_view
+msgid "Select a website"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_pricelist__selectable
 msgid "Selectable"
 msgstr "Selektivan"
-
-#. module: website_sale
-#: model:ir.actions.server,name:website_sale.ir_actions_server_sale_cart_recovery_email
-msgid "Send a Cart Recovery Email"
-msgstr "Pošalji Email za povratak korpe"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.sale_order_view_form_cart_recovery
@@ -3530,7 +3984,7 @@ msgstr "Šalji nakon"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.sale_order_view_form_cart_recovery
 msgid "Send by Email"
-msgstr ""
+msgstr "Pošalji Email-om"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__send_abandoned_cart_email
@@ -3551,19 +4005,15 @@ msgid "Sequence"
 msgstr "Niz"
 
 #. module: website_sale
-#: model:product.public.category,name:website_sale.services
+#: model:product.public.category,name:website_sale.public_category_services
 msgid "Services"
 msgstr "Usluge"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_share_buttons
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Share"
 msgstr "Podeli"
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "Shipping"
-msgstr "Dostava"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__group_delivery_invoice_address
@@ -3577,13 +4027,21 @@ msgstr "Troškovi dostave"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Shipping Methods"
+msgstr "Metode isporuke"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
+msgid "Shiprocket"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
+msgid "Shiprocket Shipping Methods"
 msgstr ""
 
 #. module: website_sale
 #: model:website.menu,name:website_sale.menu_shop
-#: model_terms:ir.ui.view,arch_db:website_sale.products
 msgid "Shop"
 msgstr "Prodavnica"
 
@@ -3610,7 +4068,7 @@ msgstr "Prodavnica - Proizvodi"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.payment
 msgid "Shop - Select Payment Method"
-msgstr ""
+msgstr "Prodavnica - Izaberite način plaćanja"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__shop_default_sort
@@ -3620,7 +4078,7 @@ msgstr "Podrazumevano sortiranje u prodavnici"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "Shop, products, cart and wishlist visibility"
-msgstr ""
+msgstr "Vidljivost Prodavnice, proizvoda, korpe i liste želja"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.products_add_to_cart
@@ -3630,33 +4088,33 @@ msgstr "Korpa"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Show B2B Fields"
-msgstr ""
+msgstr "Prikaži B2B polja"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Show Empty"
-msgstr ""
+msgstr "Prikaži prazno"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_document_search
 msgid "Show on Ecommerce"
-msgstr ""
+msgstr "Prikaži na Ecommerce-u"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_template_options
 msgid "Show variants"
-msgstr ""
+msgstr "Prikaži varijante"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Show/hide shopping cart"
-msgstr ""
+msgstr "Prikaži/sakrij korpu"
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website.py:0
 msgid "Sign In"
-msgstr ""
+msgstr "Prijavi se"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
@@ -3702,6 +4160,11 @@ msgid "Small"
 msgstr "Malo"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_furnitures_sofas
+msgid "Sofas"
+msgstr ""
+
+#. module: website_sale
 #: model:product.ribbon,name:website_sale.sold_out_ribbon
 msgid "Sold out"
 msgstr "Rasprodato"
@@ -3716,7 +4179,7 @@ msgstr "Neka obavezna polja su prazna."
 #. odoo-python
 #: code:addons/website_sale/controllers/main.py:0
 msgid "Sorry, we are unable to ship your order."
-msgstr ""
+msgstr "Žao nam je, nismo u mogućnosti da pošaljemo vašu porudžbinu."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -3729,6 +4192,21 @@ msgstr "Sortiraj po"
 #: model_terms:ir.ui.view,arch_db:website_sale.product_template_only_website_form_view
 msgid "Specify unit"
 msgstr "Navedite jedinicu"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_menus_logos
+msgid "Spring collection has arrived!"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_boxes_stackable
+msgid "Stackable Boxes"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_desks_standing
+msgid "Standing Desks"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
@@ -3746,9 +4224,14 @@ msgid "Stay on Product Page"
 msgstr "Ostani na stranici proizvoda"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_cabinets_storage
+msgid "Storage Cabinets"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid "Street and Number"
-msgstr ""
+msgstr "Ulica i broj"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -3758,7 +4241,7 @@ msgstr "Stil"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.total
 msgid "Subtotal"
-msgstr ""
+msgstr "Osnovica"
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_product__alternative_product_ids
@@ -3778,7 +4261,7 @@ msgstr "Predloženi dodaci"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.suggested_products_list
 msgid "Suggested accessories"
-msgstr ""
+msgstr "Preporučeni dodaci"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
@@ -3794,13 +4277,13 @@ msgstr "Oznake"
 #: model:ir.model.fields.selection,name:website_sale.selection__website__show_line_subtotals_tax_selection__tax_excluded
 #: model_terms:ir.ui.view,arch_db:website_sale.tax_indication
 msgid "Tax Excluded"
-msgstr ""
+msgstr "Bez poreza"
 
 #. module: website_sale
 #: model:ir.model.fields.selection,name:website_sale.selection__website__show_line_subtotals_tax_selection__tax_included
 #: model_terms:ir.ui.view,arch_db:website_sale.tax_indication
 msgid "Tax Included"
-msgstr ""
+msgstr "Sa porezom"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -3810,12 +4293,12 @@ msgstr "Poreska oznaka"
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_sale_order__amount_delivery
 msgid "Tax included or excluded depending on the website configuration."
-msgstr ""
+msgstr "Porez je uključen ili isključen u zavisnosti od podešavanja website-a."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.total
 msgid "Taxes"
-msgstr ""
+msgstr "Porezi"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -3825,7 +4308,7 @@ msgstr "Tekst"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_ribbon__text_color
 msgid "Text Color"
-msgstr ""
+msgstr "Boja teksta"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website__prevent_zero_price_sale_text
@@ -3849,11 +4332,10 @@ msgid "The access token is invalid."
 msgstr "Tok za pristup je nevažeći."
 
 #. module: website_sale
-#: model:ir.model.fields,help:website_sale.field_product_product__compare_list_price
-#: model:ir.model.fields,help:website_sale.field_product_template__compare_list_price
-msgid ""
-"The amount will be displayed strikethroughed on the eCommerce product page"
-msgstr "Iznos će biti prikazan precrtan na stranici proizvoda za eCommerce-a"
+#. odoo-python
+#: code:addons/website_sale/controllers/payment.py:0
+msgid "The cart has already been paid. Please refresh the page."
+msgstr ""
 
 #. module: website_sale
 #. odoo-python
@@ -3867,6 +4349,14 @@ msgstr "Korpa je ažurirana. Molimo vas da osvežite stranicu."
 msgid ""
 "The company of the website you are trying to sell from (%(website_company)s) "
 "is different than the one you want to use (%(company)s)"
+msgstr ""
+"Kompanija web sajta sa kojeg pokušavate da prodajete (%(website_company)s) "
+"je drugačija od one koju želite da koristite (%(company)s)"
+
+#. module: website_sale
+#. odoo-python
+#: code:addons/website_sale/models/sale_order.py:0
+msgid "The delivery method is not compatible with your delivery address."
 msgstr ""
 
 #. module: website_sale
@@ -3891,6 +4381,7 @@ msgstr "Dati proizvod ne postoji, pa ga nije moguće dodati u korpu."
 
 #. module: website_sale
 #. odoo-python
+#: code:addons/website_sale/controllers/combo_configurator.py:0
 #: code:addons/website_sale/models/sale_order.py:0
 msgid ""
 "The given product does not have a price therefore it cannot be added to cart."
@@ -3909,7 +4400,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/website_sale/controllers/payment.py:0
 msgid "The order has been cancelled."
-msgstr ""
+msgstr "Porudžbina je otkazana."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_product__public_categ_ids
@@ -3922,6 +4413,12 @@ msgstr ""
 "Proizvod će biti dostupan u svakoj pomenutoj eCommerce kategoriji. Idite na "
 "Prodavnica > Uredi Kliknite na stranicu i omogućite 'Kategorije' da vidite "
 "sve eCommerce kategorije."
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_images_subtitles
+#: model_terms:ir.ui.view,arch_db:website_sale.s_mega_menu_little_icons
+msgid "The team"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.actions.act_window,help:website_sale.action_view_abandoned_tree
@@ -3951,9 +4448,20 @@ msgid "There is no unpaid order from the website yet"
 msgstr "Još uvek nema neplaćenih porudžbina sa website-a"
 
 #. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/map_container/map_container.js:0
+msgid "There was an error loading the map"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product
 msgid "This combination does not exist."
 msgstr "Ova kombinacija ne postoji."
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.accordion_more_information
+msgid "This content will be shared across all product pages."
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.cart
@@ -4005,6 +4513,11 @@ msgid "This promo code is not available."
 msgstr "Ovaj promotivni kod nije dostupan."
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid "Three-Seat Sofa"
+msgstr ""
+
+#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "Thumbnails"
 msgstr "Sličice"
@@ -4016,6 +4529,9 @@ msgid ""
 "list view and click on 'Portal Access Management' option in the dropdown "
 "menu *Action*."
 msgstr ""
+"Da biste poslali pozivnice u B2B režimu, otvorite kontakt ili izaberite "
+"nekoliko u prikazu liste i kliknite na opciju 'Upravljanje pristupom "
+"portalu' u padajućem meniju *Akcija*."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -4042,6 +4558,23 @@ msgstr "Ukupan broj pregledanih proizvoda"
 #: model:ir.model.fields,help:website_sale.field_website_visitor__visitor_product_count
 msgid "Total number of views on products"
 msgstr "Ukupan broj pregleda na proizvodima"
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/combo_configurator_dialog/combo_configurator_dialog.js:0
+#: code:addons/website_sale/static/src/js/product_list/product_list.js:0
+msgid "Total: %s"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_lamps_touch
+msgid "Touch Lamps"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_bins_toy
+msgid "Toy Bins"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_website_snippet_filter__product_cross_selling
@@ -4073,8 +4606,8 @@ msgid "USPS"
 msgstr "USPS"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid "USPS Shipping Methods"
+#: model:product.public.category,name:website_sale.public_category_drawers_underbed
+msgid "Under-bed Drawers"
 msgstr ""
 
 #. module: website_sale
@@ -4095,6 +4628,7 @@ msgid "Unpaid Orders"
 msgstr "Neplaćene porudžbine"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_product_view_form_normalized
 #: model_terms:ir.ui.view,arch_db:website_sale.products_item
 msgid "Unpublished"
 msgstr "Neobjavljeno"
@@ -4112,8 +4646,14 @@ msgstr ""
 "Koristi Google Places API da potvrdite adrese koje su vaši posetioci uneli"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.address
+#. odoo-python
+#: code:addons/website_sale/controllers/main.py:0
 msgid "VAT"
+msgstr "PIB"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
+msgid "Values set here are website-specific."
 msgstr ""
 
 #. module: website_sale
@@ -4124,7 +4664,7 @@ msgstr "Varijanta"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_product__variant_ribbon_id
 msgid "Variant Ribbon"
-msgstr ""
+msgstr "Traka varijante"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
@@ -4152,7 +4692,7 @@ msgstr "Vidi proizvod"
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/notification/add_to_cart_notification/add_to_cart_notification.xml:0
 msgid "View cart"
-msgstr ""
+msgstr "Vidi korpu"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.dynamic_filter_template_product_product_view_detail
@@ -4164,6 +4704,16 @@ msgstr "Pogledaj proizvod"
 #: code:addons/website_sale/static/src/xml/website_sale_image_viewer.xml:0
 msgid "Viewer"
 msgstr "Posmatrač"
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_boxes_vintage
+msgid "Vintage Boxes"
+msgstr ""
+
+#. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_multimedia_virtual_design
+msgid "Virtual Design Tools"
+msgstr ""
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_attribute__visibility
@@ -4184,7 +4734,7 @@ msgstr "Vidljivo na trenutno website-u"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_tag__visible_on_ecommerce
 msgid "Visible on eCommerce"
-msgstr ""
+msgstr "Vidljivo na eCommerce-u"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_website_track
@@ -4208,6 +4758,11 @@ msgid "Visitor Product Views History"
 msgstr "Istorija pregleda proizvoda posetilaca"
 
 #. module: website_sale
+#: model:product.public.category,name:website_sale.public_category_furnitures_wardrobes
+msgid "Wardrobes"
+msgstr ""
+
+#. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/website_sale_utils.js:0
 #: model:ir.model.fields,field_description:website_sale.field_sale_order__shop_warning
@@ -4223,6 +4778,11 @@ msgid "Warranty"
 msgstr "Garancija"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_preview_data
+msgid "Warranty (2 year)"
+msgstr ""
+
+#. module: website_sale
 #: model:product.template,description_sale:website_sale.product_product_1_product_template
 msgid ""
 "Warranty, issued to the purchaser of an article by its manufacturer, "
@@ -4236,7 +4796,6 @@ msgstr ""
 #: model:ir.model,name:website_sale.model_website
 #: model:ir.model.fields,field_description:website_sale.field_account_bank_statement_line__website_id
 #: model:ir.model.fields,field_description:website_sale.field_account_move__website_id
-#: model:ir.model.fields,field_description:website_sale.field_account_payment__website_id
 #: model:ir.model.fields,field_description:website_sale.field_delivery_carrier__website_id
 #: model:ir.model.fields,field_description:website_sale.field_product_pricelist__website_id
 #: model:ir.model.fields,field_description:website_sale.field_product_product__website_id
@@ -4247,19 +4806,23 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_sale.field_sale_report__website_id
 #: model:ir.model.fields,field_description:website_sale.field_website_sale_extra_field__website_id
 #: model_terms:ir.ui.view,arch_db:website_sale.sale_report_view_search_website
-#: model_terms:ir.ui.view,arch_db:website_sale.website_sale_pricelist_form_view
 msgid "Website"
 msgstr "Web stranica"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_product_view_form_normalized
+msgid "Website Category"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model,name:website_sale.model_website_menu
 msgid "Website Menu"
-msgstr ""
+msgstr "Website meni"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_template__website_message_ids
 msgid "Website Messages"
-msgstr ""
+msgstr "Website poruke"
 
 #. module: website_sale
 #: model:ir.model,name:website_sale.model_product_public_category
@@ -4304,7 +4867,7 @@ msgstr "Posetilac website-a"
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_template__website_message_ids
 msgid "Website communication history"
-msgstr ""
+msgstr "Website istorija komunikacije"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_product_public_category__website_meta_description
@@ -4333,9 +4896,8 @@ msgstr "Website opengraph slika"
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_account_bank_statement_line__website_id
 #: model:ir.model.fields,help:website_sale.field_account_move__website_id
-#: model:ir.model.fields,help:website_sale.field_account_payment__website_id
 msgid "Website through which this invoice was created for eCommerce orders."
-msgstr "Website preko kog je napravljena ova faktura  za eCommerce porudžbine."
+msgstr "Website preko kog je napravljena ova faktura za eCommerce porudžbine."
 
 #. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_sale_order__website_id
@@ -4354,9 +4916,14 @@ msgid "What should be done on \"Add to Cart\"?"
 msgstr "Šta treba da se uradi sa \"Dodaj u korpu\"?"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_share_buttons
+msgid "WhatsApp"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields,help:website_sale.field_product_tag__visible_on_ecommerce
 msgid "Whether the tag is displayed on the eCommerce."
-msgstr ""
+msgstr "Da li je oznaka prikazana ili nije na eCommerce-u."
 
 #. module: website_sale
 #. odoo-python
@@ -4365,26 +4932,30 @@ msgid "Whiteboard"
 msgstr "Bela tabla"
 
 #. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Wide (16/9)"
+msgstr ""
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
+msgid "Wider (21/9)"
+msgstr ""
+
+#. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_res_config_settings__module_website_sale_wishlist
 msgid "Wishlists"
 msgstr "Liste želja"
-
-#. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
-msgid ""
-"With the first mode you can set several prices in the product config form "
-"(from Sales tab). With the second one, you set prices and computation rules "
-"from Pricelists."
-msgstr ""
-"Sa prvim režimom možete da postavite nekoliko cena u obrascu za "
-"konfiguraciju proizvoda (na kartici Prodaja). Drugim postavite cene i "
-"pravila izračunavanja iz Cenovnika."
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/website_snippet_filter.py:0
 msgid "With three feet"
 msgstr "Sa tri noge"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_share_buttons
+msgid "X"
+msgstr ""
 
 #. module: website_sale
 #. odoo-javascript
@@ -4395,17 +4966,17 @@ msgstr "Da"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.address
 msgid ""
-"You are editing your <b>billing and delivery</b> addresses at the same time!"
-"<br/>\n"
-"                                            If you want to modify your "
-"delivery address, create a"
+"You are editing your <b>delivery and billing</b> addresses\n"
+"                                        at the same time!<br/>\n"
+"                                        If you want to modify your billing "
+"address, create a"
 msgstr ""
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/controllers/main.py:0
 msgid "You can't use a video as the product's main image."
-msgstr ""
+msgstr "Ne možete da koristite video kao glavnu sliku proizvoda."
 
 #. module: website_sale
 #: model_terms:ir.actions.act_window,help:website_sale.sale_report_action_carts
@@ -4438,23 +5009,26 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_sale.alternative_products
 msgid ""
 "Your Dynamic Snippet will be displayed here...\n"
-"                                This message is displayed because youy did "
+"                                This message is displayed because you did "
 "not provide both a filter and a template to use."
 msgstr ""
-"Vaš dinamički isečak će biti prikazan ovde...\n"
-"                                Ova poruka se prikazuje jer niste dali i "
-"filter i šablon koji će se koristiti."
 
 #. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/website_sale_form_editor.js:0
 msgid "Your Email"
-msgstr ""
+msgstr "Vaš email"
 
 #. module: website_sale
 #. odoo-javascript
 #: code:addons/website_sale/static/src/js/website_sale_form_editor.js:0
 msgid "Your Name"
+msgstr "Vaše ime i prezime"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.address
+#: model_terms:ir.ui.view,arch_db:website_sale.billing_address_row
+msgid "Your address"
 msgstr ""
 
 #. module: website_sale
@@ -4467,18 +5041,26 @@ msgstr "Vaša korpa je prazna!"
 #. odoo-python
 #: code:addons/website_sale/controllers/delivery.py:0
 msgid "Your cart is empty."
-msgstr ""
+msgstr "Vaša korpa je prazna."
 
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/sale_order.py:0
 msgid "Your cart is not ready to be paid, please verify previous steps."
 msgstr ""
+"Vaša korpa nije spremna za plaćanje, molimo vas da proverite prethodne "
+"korake."
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.payment_confirmation_status
 msgid "Your payment has been authorized."
 msgstr "Vaše plaćanje je autorizovano."
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "Your postal code"
+msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.cart
@@ -4493,7 +5075,7 @@ msgstr "Poštanski broj/PAK"
 #. module: website_sale
 #: model:ir.ui.menu,name:website_sale.menu_delivery_zip_prefix
 msgid "Zip Prefix"
-msgstr ""
+msgstr "Prefiks poštanskog broja"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
@@ -4503,7 +5085,7 @@ msgstr "bpost"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.res_config_settings_view_form
 msgid "bpost Shipping Methods"
-msgstr ""
+msgstr "bpost metode isporuke"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.s_dynamic_snippet_products_template_options
@@ -4521,6 +5103,7 @@ msgstr "eCommerce"
 #. module: website_sale
 #: model:ir.actions.act_window,name:website_sale.product_public_category_action
 #: model:ir.ui.menu,name:website_sale.menu_catalog_categories
+#: model_terms:ir.ui.view,arch_db:website_sale.snippet_options
 msgid "eCommerce Categories"
 msgstr "eCommerce kategorije"
 
@@ -4528,18 +5111,22 @@ msgstr "eCommerce kategorije"
 #: model:ir.model.fields,field_description:website_sale.field_product_product__description_ecommerce
 #: model:ir.model.fields,field_description:website_sale.field_product_template__description_ecommerce
 msgid "eCommerce Description"
+msgstr "eCommerce opis"
+
+#. module: website_sale
+#: model_terms:ir.ui.view,arch_db:website_sale.product_attribute_view_form
+msgid "eCommerce Filter"
 msgstr ""
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.attribute_tree_view
-#: model_terms:ir.ui.view,arch_db:website_sale.product_attribute_view_form
 msgid "eCommerce Filter Visibility"
 msgstr "eCommerce vidljivost filtera"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
 msgid "eCommerce Media"
-msgstr ""
+msgstr "eCommerce Media"
 
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_digest_digest__kpi_website_sale_total
@@ -4547,14 +5134,9 @@ msgid "eCommerce Sales"
 msgstr "eCommerce prodaja"
 
 #. module: website_sale
-#: model_terms:ir.ui.view,arch_db:website_sale.product_template_form_view
-msgid "eCommerce Shop"
-msgstr "eCommerce prodavnica"
-
-#. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.header_cart_link
 msgid "eCommerce cart"
-msgstr ""
+msgstr "eCommerce korpa"
 
 #. module: website_sale
 #: model:ir.actions.server,name:website_sale.ir_cron_send_availability_email_ir_actions_server
@@ -4588,7 +5170,7 @@ msgstr "nova adresa"
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.cart_lines
 msgid "remove"
-msgstr ""
+msgstr "ukloni"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.accept_terms_and_conditions
@@ -4599,6 +5181,350 @@ msgstr "uslovi ponude &amp; plaćanja"
 #: model_terms:ir.ui.view,arch_db:website_sale.confirmation
 msgid "to follow your order."
 msgstr "da pratite svoju porudžbinu."
+
+#. module: website_sale
+#. odoo-javascript
+#: code:addons/website_sale/static/src/xml/website_sale_reorder_modal.xml:0
+#: model_terms:ir.ui.view,arch_db:website_sale.cart_combo_item_line
+#: model_terms:ir.ui.view,arch_db:website_sale.checkout_layout
+msgid "x"
+msgstr ""
+
+#~ msgid "100 %"
+#~ msgstr "100 %"
+
+#~ msgid "50 %"
+#~ msgstr "50 %"
+
+#~ msgid "66 %"
+#~ msgstr "66 %"
+
+#~ msgid ""
+#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
+#~ "specific.\" groups=\"website.group_multi_website\"/>"
+#~ msgstr ""
+#~ "<span class=\"fa fa-lg fa-globe\" title=\"Vrednosti postavljene ovde su "
+#~ "specifične za website.\" groups=\"website.group_multi_website\"/>"
+
+#~ msgid "&amp;nbsp;(<i>Your delivery address will be requested later)</i>"
+#~ msgstr "&amp;nbsp;(<i>Vaša adresa za dostavu će biti tražena kasnije)</i>"
+
+#~ msgid ""
+#~ "<i class=\"fa fa-plus me-md-2\"/><span class=\"d-none d-md-inline\">Add "
+#~ "address</span>"
+#~ msgstr ""
+#~ "<i class=\"fa fa-plus me-md-2\"/><span class=\"d-none d-md-inline\">Dodaj "
+#~ "adresu</span>"
+
+#~ msgid "<i class=\"fa fa-shopping-cart add-optionnal-item\"/> Add to cart"
+#~ msgstr "<i class=\"fa fa-shopping-cart add-optionnal-item\"/> Dodaj u korpu"
+
+#~ msgid ""
+#~ "<small class=\"form-text text-muted\">Changing company name or VAT number "
+#~ "is not allowed once document(s) have been issued for your account. Please "
+#~ "contact us directly for this operation.</small>"
+#~ msgstr ""
+#~ "<small class=\"form-text text-muted\">Promena naziva kompanije ili PIB "
+#~ "broja nije dozvoljena kada se dokument(i) izdaju za vaš nalog. "
+#~ "Kontaktirajte nas direktno za ovu operaciju.</small>"
+
+#~ msgid ""
+#~ "<small class=\"mx-auto\"><b>Clear Filters</b></small>\n"
+#~ "                        <i class=\"oi oi-close\"/>"
+#~ msgstr ""
+#~ "<small class=\"mx-auto\"><b>Poništi filtere</b></small>\n"
+#~ "                        <i class=\"oi oi-close\"/>"
+
+#~ msgid "<span class=\"label\">Price</span>"
+#~ msgstr "<span class=\"label\">Cena</span>"
+
+#~ msgid "<span class=\"label\">Product</span>"
+#~ msgstr "<span class=\"label\">Proizvod</span>"
+
+#~ msgid ""
+#~ "<span class=\"oi oi-chevron-left fa-2x oe_unmovable\" role=\"img\" aria-"
+#~ "label=\"Previous\" title=\"Previous\"/>"
+#~ msgstr ""
+#~ "<span class=\"oi oi-chevron-left fa-2x oe_unmovable\" role=\"img\" aria-"
+#~ "label=\"Prethodno\" title=\"Prethodno\"/>"
+
+#~ msgid ""
+#~ "<span class=\"oi oi-chevron-right fa-2x oe_unmovable\" role=\"img\" aria-"
+#~ "label=\"Next\" title=\"Next\"/>"
+#~ msgstr ""
+#~ "<span class=\"oi oi-chevron-right fa-2x oe_unmovable\" role=\"img\" aria-"
+#~ "label=\"Sledeće\" title=\"Sledeće\"/>"
+
+#~ msgid ""
+#~ "<span>\n"
+#~ "                    <b name=\"o_pickup_location_name\"/>\n"
+#~ "                    <br/>\n"
+#~ "                    <i name=\"o_pickup_location_address\"/>\n"
+#~ "                </span>\n"
+#~ "                <span name=\"o_remove_pickup_location\" class=\"fa fa-"
+#~ "times ms-2\" title=\"Remove this location\" aria-label=\"Remove this "
+#~ "location\"/>"
+#~ msgstr ""
+#~ "<span>\n"
+#~ "                    <b name=\"o_pickup_location_name\"/>\n"
+#~ "                    <br/>\n"
+#~ "                    <i name=\"o_pickup_location_address\"/>\n"
+#~ "                </span>\n"
+#~ "                <span name=\"o_remove_pickup_location\" class=\"fa fa-"
+#~ "times ms-2\" title=\"Ukloni ovu lokaciju\" aria-label=\"Ukloni ovu "
+#~ "lokaciju\"/>"
+
+#~ msgid ""
+#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+#~ "style=\"padding: 0px; background-color: white; color: #454748; border-"
+#~ "collapse:separate;\">\n"
+#~ "<tbody>\n"
+#~ "    <!-- CONTENT -->\n"
+#~ "    <tr>\n"
+#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
+#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+#~ "width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+#~ "0px 0px 0px 0px; border-collapse:separate;\">\n"
+#~ "                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
+#~ "                    <h1 style=\"color:#A9A9A9;\">THERE'S SOMETHING IN "
+#~ "YOUR CART.</h1>\n"
+#~ "                    Would you like to complete your purchase?<br><br>\n"
+#~ "                    <t t-if=\"object.order_line\">\n"
+#~ "                        <t t-foreach=\"object.website_order_line\" t-"
+#~ "as=\"line\">\n"
+#~ "                            <hr>\n"
+#~ "                            <table width=\"100%\">\n"
+#~ "                                <tr>\n"
+#~ "                                    <td style=\"padding: 10px; "
+#~ "width:150px;\">\n"
+#~ "                                        <img t-attf-src=\"/web/image/"
+#~ "product.product/{{ line.product_id.id }}/image_128\" style=\"width: "
+#~ "100px; height: 100px; object-fit: contain;\" alt=\"Product image\">\n"
+#~ "                                    </td>\n"
+#~ "                                    <td>\n"
+#~ "                                        <strong t-"
+#~ "out=\"line.product_id.display_name or ''\">[FURN_7800] Desk Combination</"
+#~ "strong><br><t t-out=\"line.name or ''\">[FURN_7800] Desk Combination Desk "
+#~ "combination, black-brown: chair + desk + drawer.</t>\n"
+#~ "                                    </td>\n"
+#~ "                                    <td width=\"100px\" align=\"right\">\n"
+#~ "                                        <t t-"
+#~ "out=\"int(line.product_uom_qty) or ''\">10000</t> <t t-"
+#~ "out=\"line.product_uom.name or ''\">Units</t>\n"
+#~ "                                    </td>\n"
+#~ "                                </tr>\n"
+#~ "                            </table>\n"
+#~ "                        </t>\n"
+#~ "                        <hr>\n"
+#~ "                    </t>\n"
+#~ "                    <div style=\"text-align: center; padding: 16px 0px "
+#~ "16px 0px; font-size: 14px;\">\n"
+#~ "                        <a t-attf-href=\"{{ object.get_base_url() }}/shop/"
+#~ "cart?access_token={{ object.access_token }}\" target=\"_blank\" "
+#~ "style=\"background-color: #875A7B; padding: 8px 16px 8px 16px; text-"
+#~ "decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+#~ "                            Resume order\n"
+#~ "                        </a>\n"
+#~ "                    </div>\n"
+#~ "                    <t t-set=\"company\" t-value=\"object.company_id or "
+#~ "object.user_id.company_id or user.company_id\"></t>\n"
+#~ "                    <div style=\"text-align: center;\"><strong>Thank you "
+#~ "for shopping with <t t-out=\"company.name or ''\">My Company (San "
+#~ "Francisco)</t>!</strong></div>\n"
+#~ "                </td></tr>\n"
+#~ "            </table>\n"
+#~ "        </td>\n"
+#~ "    </tr>\n"
+#~ "</tbody>\n"
+#~ "</table>\n"
+#~ "            "
+#~ msgstr ""
+#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+#~ "style=\"padding: 0px; background-color: white; color: #454748; border-"
+#~ "collapse:separate;\">\n"
+#~ "<tbody>\n"
+#~ "    <!-- CONTENT -->\n"
+#~ "    <tr>\n"
+#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
+#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+#~ "width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+#~ "0px 0px 0px 0px; border-collapse:separate;\">\n"
+#~ "                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
+#~ "                    <h1 style=\"color:#A9A9A9;\">NEŠTO JE JOŠ UVEK U "
+#~ "VAŠOJ KORPI.</h1>\n"
+#~ "                    Da li želite da završite kupovinu?<br><br>\n"
+#~ "                    <t t-if=\"object.order_line\">\n"
+#~ "                        <t t-foreach=\"object.website_order_line\" t-"
+#~ "as=\"line\">\n"
+#~ "                            <hr>\n"
+#~ "                            <table width=\"100%\">\n"
+#~ "                                <tr>\n"
+#~ "                                    <td style=\"padding: 10px; "
+#~ "width:150px;\">\n"
+#~ "                                        <img t-attf-src=\"/web/image/"
+#~ "product.product/{{ line.product_id.id }}/image_128\" style=\"width: "
+#~ "100px; height: 100px; object-fit: contain;\" alt=\"Product image\">\n"
+#~ "                                    </td>\n"
+#~ "                                    <td>\n"
+#~ "                                        <strong t-"
+#~ "out=\"line.product_id.display_name or ''\">[FURN_7800] Desk Combination</"
+#~ "strong><br><t t-out=\"line.name or ''\">[FURN_7800] Desk Combination Desk "
+#~ "combination, black-brown: chair + desk + drawer.</t>\n"
+#~ "                                    </td>\n"
+#~ "                                    <td width=\"100px\" align=\"right\">\n"
+#~ "                                        <t t-"
+#~ "out=\"int(line.product_uom_qty) or ''\">10000</t> <t t-"
+#~ "out=\"line.product_uom.name or ''\">Units</t>\n"
+#~ "                                    </td>\n"
+#~ "                                </tr>\n"
+#~ "                            </table>\n"
+#~ "                        </t>\n"
+#~ "                        <hr>\n"
+#~ "                    </t>\n"
+#~ "                    <div style=\"text-align: center; padding: 16px 0px "
+#~ "16px 0px; font-size: 14px;\">\n"
+#~ "                        <a t-attf-href=\"{{ object.get_base_url() }}/shop/"
+#~ "cart?access_token={{ object.access_token }}\" target=\"_blank\" "
+#~ "style=\"background-color: #875A7B; padding: 8px 16px 8px 16px; text-"
+#~ "decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+#~ "                            Završi poručivanje\n"
+#~ "                        </a>\n"
+#~ "                    </div>\n"
+#~ "                    <t t-set=\"company\" t-value=\"object.company_id or "
+#~ "object.user_id.company_id or user.company_id\"></t>\n"
+#~ "                    <div style=\"text-align: center;\"><strong>Hvala što "
+#~ "kupujete od <t t-out=\"company.name or ''\">My Company (San Francisco)</"
+#~ "t>!</strong></div>\n"
+#~ "                </td></tr>\n"
+#~ "            </table>\n"
+#~ "        </td>\n"
+#~ "    </tr>\n"
+#~ "</tbody>\n"
+#~ "</table>\n"
+#~ "            "
+
+#~ msgid "A short description that will also appear on documents."
+#~ msgstr "Kratak opis koji će se takođe pojaviti na dokumentima."
+
+#~ msgid "Add a Media"
+#~ msgstr "Dodaj multimediju"
+
+#~ msgid "Add to cart"
+#~ msgstr "Dodaj u korpu"
+
+#~ msgid "Allow customers to pay in person at your stores"
+#~ msgstr "Dozvolite kupcima da plate lično u vašoj prodavnici"
+
+#~ msgid "Available Options:"
+#~ msgstr "Dostupne opcije:"
+
+#~ msgid "Compute shipping costs and ship with DHL"
+#~ msgstr "Izračunajte troškove transporta i dostave DHL-om"
+
+#~ msgid "Compute shipping costs and ship with FedEx"
+#~ msgstr "Izračunajte troškove transporta i dostave FedEx-om"
+
+#~ msgid "Compute shipping costs and ship with UPS"
+#~ msgstr "Izračunajte troškove transporta i dostave UPS-om"
+
+#~ msgid "Compute shipping costs and ship with USPS"
+#~ msgstr "Izračunajte troškove transporta i dostave USPS-om"
+
+#~ msgid "DHL Express Connector"
+#~ msgstr "DHL Express konektor"
+
+#~ msgid "DHL Shipping Methods"
+#~ msgstr "DHL metode isporuke"
+
+#~ msgid "Deliver to the same address"
+#~ msgstr "Dostava na istu adresu"
+
+#~ msgid "Delivery Point Address"
+#~ msgstr "Adresa mesta dostave"
+
+#~ msgid "Delivery will be updated after choosing a new delivery method"
+#~ msgstr "Dostava će biti ažurirana nakon izbora novog metoda za dostavu"
+
+#~ msgid "Drag building blocks here to customize the header for \""
+#~ msgstr "Prevucite blokove ovde da biste prilagodili zaglavlje za „"
+
+#~ msgid "Drag this website block and drop it in your page."
+#~ msgstr "Prevucite ovaj blok web stranice i spustite ga na svoju stranicu."
+
+#~ msgid "FedEx Shipping Methods"
+#~ msgstr "FedEx metode isporuke"
+
+#~ msgid "Let the customer enter a shipping address"
+#~ msgstr "Dozvolite kupcima da unesu adresu za dostavu"
+
+#~ msgid "Linked Order Line"
+#~ msgstr "Povezane linije porudžbine"
+
+#~ msgid "No pick-up point available for that shipping address"
+#~ msgstr "Nema dostupnog mesta za preuzimanje za tu adresu za dostavu"
+
+#~ msgid "On Site Payments & Picking"
+#~ msgstr "Plaćanje & preuzimanje na licu mesta"
+
+#~ msgid "Option for: %s"
+#~ msgstr "Opcija za: %s"
+
+#~ msgid "Option not available"
+#~ msgstr "Opcija nije dostupna"
+
+#~ msgid "Option: %s"
+#~ msgstr "Opcija: %s"
+
+#~ msgid "Options Linked"
+#~ msgstr "Povezane opcije"
+
+#~ msgid "Please select a pick-up point"
+#~ msgstr "Molimo vas da izaberete mesto preuzimanja"
+
+#~ msgid "Send a Cart Recovery Email"
+#~ msgstr "Pošalji Email za povratak korpe"
+
+#~ msgid "Shipping"
+#~ msgstr "Dostava"
+
+#~ msgid ""
+#~ "The amount will be displayed strikethroughed on the eCommerce product page"
+#~ msgstr ""
+#~ "Iznos će biti prikazan precrtan na stranici proizvoda za eCommerce-a"
+
+#~ msgid "USPS Shipping Methods"
+#~ msgstr "USPS metode isporuke"
+
+#~ msgid ""
+#~ "With the first mode you can set several prices in the product config form "
+#~ "(from Sales tab). With the second one, you set prices and computation "
+#~ "rules from Pricelists."
+#~ msgstr ""
+#~ "Sa prvim režimom možete da postavite nekoliko cena u obrascu za "
+#~ "konfiguraciju proizvoda (na kartici Prodaja). Drugim postavite cene i "
+#~ "pravila izračunavanja iz Cenovnika."
+
+#~ msgid ""
+#~ "You are editing your <b>billing and delivery</b> addresses at the same "
+#~ "time!<br/>\n"
+#~ "                                            If you want to modify your "
+#~ "delivery address, create a"
+#~ msgstr ""
+#~ "Uređujete adrese za <b>fakturisanje i dostavu</b> u isto vreme!<br/>\n"
+#~ "                                            Ako želite da izmenite vašu "
+#~ "adresu za dostavu, kreirajte"
+
+#~ msgid ""
+#~ "Your Dynamic Snippet will be displayed here...\n"
+#~ "                                This message is displayed because youy "
+#~ "did not provide both a filter and a template to use."
+#~ msgstr ""
+#~ "Vaš dinamički isečak će biti prikazan ovde...\n"
+#~ "                                Ova poruka se prikazuje jer niste dali i "
+#~ "filter i šablon koji će se koristiti."
+
+#~ msgid "eCommerce Shop"
+#~ msgstr "eCommerce prodavnica"
 
 #~ msgid "&amp; Shipping"
 #~ msgstr "&amp; Dostava"

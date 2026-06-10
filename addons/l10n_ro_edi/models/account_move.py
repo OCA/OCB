@@ -22,8 +22,8 @@ class AccountMove(models.Model):
                 - Validated: Sent & validated by the SPV
                 - Error: Sending error or validation error from the SPV""",
     )
-    l10n_ro_edi_attachment_id = fields.Many2one(comodel_name='ir.attachment')
-    l10n_ro_edi_index = fields.Char(string='E-Factura Index', readonly=True)
+    l10n_ro_edi_attachment_id = fields.Many2one(comodel_name='ir.attachment', copy=False)
+    l10n_ro_edi_index = fields.Char(string='E-Factura Index', readonly=True, copy=False)
 
     ################################################################################
     # Compute Methods
@@ -45,7 +45,7 @@ class AccountMove(models.Model):
         # EXTENDS 'account'
         super()._compute_show_reset_to_draft_button()
         for move in self:
-            if move.l10n_ro_edi_state in ('invoice_sent', 'invoice_validated'):
+            if move.move_type in ('out_invoice', 'out_refund') and move.l10n_ro_edi_state in ('invoice_sent', 'invoice_validated'):
                 move.show_reset_to_draft_button = False
 
     ################################################################################
@@ -57,8 +57,9 @@ class AccountMove(models.Model):
         self.ensure_one()
         res_model = res_model or self._name
         res_id = res_id or self.id
+        name = self.name or ""
         return {
-            'name': f"ciusro_signature_{self.name.replace('/', '_')}.xml",
+            'name': f"ciusro_signature_{name.replace('/', '_')}.xml",
             'res_model': res_model,
             'res_id': res_id,
             'raw': raw,
@@ -119,6 +120,7 @@ class AccountMove(models.Model):
         :param values: dictionary containing 'key_loading', 'key_signature', 'key_certificate', and 'attachment_raw'
         :return: ``l10n_ro_edi.document`` object """
         self.ensure_one()
+        self._l10n_ro_edi_get_sent_and_failed_documents().unlink()
         document = self.env['l10n_ro_edi.document'].sudo().create({
             'invoice_id': self.id,
             'state': 'invoice_validated',
@@ -139,6 +141,11 @@ class AccountMove(models.Model):
         """ Shorthand for getting all l10n_ro_edi.document in invoice_sending_failed state """
         self.ensure_one()
         return self.l10n_ro_edi_document_ids.filtered(lambda d: d.state == 'invoice_sending_failed')
+
+    def _l10n_ro_edi_get_sent_documents(self):
+        """ Shorthand for getting all l10n_ro_edi.document in invoice_sent state """
+        self.ensure_one()
+        return self.l10n_ro_edi_document_ids.filtered(lambda d: d.state == 'invoice_sent')
 
     def _l10n_ro_edi_get_sent_and_failed_documents(self):
         """ Shorthand for getting all l10n_ro_edi.document in ``invoice_sent`` and ``invoice_sending_failed`` state """
@@ -167,22 +174,22 @@ class AccountMove(models.Model):
 
          - Pre-check any errors from the invoice's pre_send check before sending
 
-            - if error -> delete all error documents, create a new error document
+            - if error -> create a new error document (previous documents are preserved for traceability)
             - else -> continue to the next step
 
          - Send to E-Factura, and based on the result:
 
-            - if error -> delete all error documents, create a new error document
-            - if success -> delete all error & sending documents, create a new sending document
+            - if error -> create a new error document (previous documents are preserved for traceability)
+            - if success -> delete any existing sent document, create a new sent document
 
         :param xml_data: string of the xml data to be sent
         """
         self.ensure_one()
         if errors := self._l10n_ro_edi_get_pre_send_errors(xml_data, True):
-            self._l10n_ro_edi_get_failed_documents().unlink()
             self._l10n_ro_edi_create_document_invoice_sending_failed({'error': '\n'.join(errors)})
             return
 
+        self.l10n_ro_edi_index = False
         self.env['res.company']._with_locked_records(self)
         result = self.env['l10n_ro_edi.document']\
                      .with_context(is_b2b=self.partner_id.commercial_partner_id.is_company)\
@@ -193,12 +200,11 @@ class AccountMove(models.Model):
         )
         result['attachment_raw'] = xml_data
         if 'error' in result:  # result == {'error': <str>, 'attachment_raw': <bytes>}
-            self._l10n_ro_edi_get_failed_documents().unlink()
             self._l10n_ro_edi_create_document_invoice_sending_failed(result)
             self.message_post(body=_("Error when trying to send the E-Factura to the SPV: %s",
                                      result['error']))
         else:  # result == {'key_loading': <str>, 'attachment_raw': <bytes>}; initial sending successful
-            self._l10n_ro_edi_get_sent_and_failed_documents().unlink()
+            self._l10n_ro_edi_get_sent_documents().unlink()
             self._l10n_ro_edi_create_document_invoice_sent(result)
             self.l10n_ro_edi_index = result['key_loading']
             self.message_post(body=_(
@@ -224,7 +230,7 @@ class AccountMove(models.Model):
 
         for invoice in invoices_to_fetch:
             if errors := invoice._l10n_ro_edi_get_pre_send_errors():
-                to_delete_documents |= invoice._l10n_ro_edi_get_failed_documents()
+                to_delete_documents |= invoice._l10n_ro_edi_get_sent_documents()
                 invoice._l10n_ro_edi_create_document_invoice_sending_failed({'error': '\n'.join(errors)})
                 continue
 
@@ -240,7 +246,7 @@ class AccountMove(models.Model):
             if result == {}:  # SPV is still processing the XML (no answer yet); do nothing
                 continue
             elif 'error' in result:  # Fetch error / SPV finished validating the XML and sends back a disapproval answer
-                to_delete_documents |= invoice._l10n_ro_edi_get_sent_and_failed_documents()
+                to_delete_documents |= invoice._l10n_ro_edi_get_sent_documents()
                 result['key_loading'] = invoice.l10n_ro_edi_index
                 result['attachment_raw'] = previous_raw
                 invoice._l10n_ro_edi_create_document_invoice_sending_failed(result)
@@ -254,7 +260,7 @@ class AccountMove(models.Model):
                     session=session,
                     status=result['state_status'],
                 )
-                to_delete_documents |= invoice._l10n_ro_edi_get_sent_and_failed_documents()
+                to_delete_documents |= invoice._l10n_ro_edi_get_sent_documents()
                 final_result['key_loading'] = invoice.l10n_ro_edi_index
                 if final_result.get('error'):
                     final_error_message = final_result['error'].replace('\t', '')

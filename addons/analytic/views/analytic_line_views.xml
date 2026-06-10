@@ -4,12 +4,17 @@
         <field name="name">account.analytic.line.list</field>
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
-            <list string="Analytic Items" multi_edit="1">
+            <list string="Analytic Items" multi_edit="1" js_class="analytic_list">
                 <field name="company_id" column_invisible="True"/>
                 <field name="product_uom_category_id" column_invisible="True"/>
                 <field name="date" optional="show"/>
                 <field name="name"/>
                 <field name="account_id"/>
+                <field name="analytic_distribution"
+                       widget="analytic_distribution"
+                       optional="hide"
+                       options="{'multi_edit': true}"
+                />
                 <field name="currency_id" column_invisible="True"/>
                 <field name="unit_amount" sum="Quantity" optional="hide"/>
                 <field name="product_uom_id" optional="hide"/>
@@ -38,7 +43,7 @@
     </record>
 
     <record model="ir.actions.act_window" id="account_analytic_line_action">
-        <field name="context">{'search_default_group_date': 1}</field>
+        <field name="context">{'search_default_group_date': 1, 'default_auto_account_id': active_id}</field>
         <field name="domain">[('auto_account_id','=', active_id)]</field>
         <field name="name">Gross Margin</field>
         <field name="res_model">account.analytic.line</field>
@@ -96,7 +101,7 @@
         <field name="name">account.analytic.line.graph</field>
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
-            <graph string="Analytic Items" sample="1">
+            <graph string="Analytic Items" sample="1" js_class="analytic_graph">
                 <field name="account_id"/>
                 <field name="unit_amount" type="measure" widget="float_time"/>
                 <field name="amount" type="measure"/>
@@ -108,7 +113,7 @@
         <field name="name">account.analytic.line.pivot</field>
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
-            <pivot string="Analytic Items" sample="1">
+            <pivot string="Analytic Items" sample="1" js_class="analytic_pivot">
                 <field name="account_id"/>
                 <field name="date" interval="month" type="col"/>
                 <field name="amount" type="measure"/>
@@ -120,7 +125,7 @@
         <field name="name">account.analytic.line.kanban</field>
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
-            <kanban class="o_kanban_mobile">
+            <kanban class="o_kanban_mobile" js_class="analytic_kanban">
                 <field name="account_id"/>
                 <field name="currency_id"/>
                 <templates>

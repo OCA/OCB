@@ -87,7 +87,7 @@ class LunchOrder(models.Model):
             if user_new_orders:
                 user_new_orders = user_new_orders.filtered(lambda lunch_order: lunch_order.date == order.date)
                 price = sum(order.price for order in user_new_orders)
-            wallet_amount = self.env['lunch.cashmove'].get_wallet_balance(order.user_id, False) - price
+            wallet_amount = self.env['lunch.cashmove'].get_wallet_balance(order.user_id) - price
             order.display_add_button = wallet_amount >= order.price
 
     @api.depends_context('show_reorder_button')
@@ -165,8 +165,9 @@ class LunchOrder(models.Model):
             lines = self._find_matching_lines({
                 **vals,
                 'toppings': self._extract_toppings(vals),
+                'state': 'new',
             })
-            if lines.filtered(lambda l: l.state == 'new'):
+            if lines:
                 # YTI FIXME This will update multiple lines in the case there are multiple
                 # matching lines which should not happen through the interface
                 lines.update_quantity(1)
@@ -182,7 +183,7 @@ class LunchOrder(models.Model):
 
         if merge_needed:
             lines_to_deactivate = self.env['lunch.order']
-            for line in self:
+            for line in self.filtered(lambda line: line.state not in ['sent', 'confirmed']):
                 # Only write on topping_ids_1 because they all share the same table
                 # and we don't want to remove all the records
                 # _extract_toppings will pop topping_ids_1, topping_ids_2 and topping_ids_3 from values
@@ -199,7 +200,7 @@ class LunchOrder(models.Model):
                     'toppings': toppings,
                     'lunch_location_id': values.get('lunch_location_id', default_location_id),
                     'state': values.get('state'),
-                })
+                }) - line
                 if matching_lines:
                     lines_to_deactivate |= line
                     matching_lines.update_quantity(line.quantity)

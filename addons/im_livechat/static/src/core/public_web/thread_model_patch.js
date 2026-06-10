@@ -52,7 +52,7 @@ patch(Thread.prototype, {
     },
 
     get displayName() {
-        if (this.channel_type !== "livechat" || !this.correspondent) {
+        if (this.channel_type !== "livechat" || !this.correspondent || this.custom_channel_name) {
             return super.displayName;
         }
         if (!this.correspondent.persona.is_public && this.correspondent.persona.country) {
@@ -69,6 +69,10 @@ patch(Thread.prototype, {
             return this.correspondent.persona.avatarUrl;
         }
         return super.avatarUrl;
+    },
+
+    get inChathubOnNewMessage() {
+        return this.channel_type === "livechat" || super.inChathubOnNewMessage;
     },
 
     /**

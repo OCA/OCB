@@ -588,11 +588,9 @@ class TestStockValuationAVCO(TestStockValuationCommon):
 
         move_out = self._make_out_move(self.product1, 3, create_picking=True)
 
-        self.assertIn('Rounding Adjustment: -0.01', move_out.stock_valuation_layer_ids.description)
-
         self.assertEqual(self.product1.value_svl, 0)
         self.assertEqual(self.product1.quantity_svl, 0)
-        self.assertEqual(self.product1.standard_price, 1.00)
+        self.assertAlmostEqual(self.product1.standard_price, 1.00333333)
 
     def test_rounding_slv_2(self):
         self._make_in_move(self.product1, 1, unit_cost=1.02)
@@ -603,17 +601,15 @@ class TestStockValuationAVCO(TestStockValuationCommon):
 
         move_out = self._make_out_move(self.product1, 3, create_picking=True)
 
-        self.assertIn('Rounding Adjustment: +0.01', move_out.stock_valuation_layer_ids.description)
-
         self.assertEqual(self.product1.value_svl, 0)
         self.assertEqual(self.product1.quantity_svl, 0)
-        self.assertEqual(self.product1.standard_price, 1.01)
+        self.assertAlmostEqual(self.product1.standard_price, 1.00666666)
 
     def test_rounding_svl_3(self):
         self._make_in_move(self.product1, 1000, unit_cost=0.17)
         self._make_in_move(self.product1, 800, unit_cost=0.23)
 
-        self.assertEqual(self.product1.standard_price, 0.20)
+        self.assertAlmostEqual(self.product1.standard_price, 0.19666666)
 
         self._make_out_move(self.product1, 1000, create_picking=True)
         self._make_out_move(self.product1, 800, create_picking=True)
@@ -628,7 +624,7 @@ class TestStockValuationAVCO(TestStockValuationCommon):
         self.product1.categ_id.property_cost_method = 'average'
         self._make_in_move(self.product1, 2, unit_cost=4.63)
         self._make_in_move(self.product1, 5, unit_cost=3.04)
-        self.assertEqual(self.product1.standard_price, 3.49)
+        self.assertAlmostEqual(self.product1.standard_price, 3.4942857)
 
         for _ in range(70):
             self._make_out_move(self.product1, 0.1)
@@ -640,17 +636,17 @@ class TestStockValuationAVCO(TestStockValuationCommon):
         self.product1.categ_id.property_cost_method = 'average'
         self._make_in_move(self.product1, 10, unit_cost=16.83)
         self._make_in_move(self.product1, 10, unit_cost=20)
-        self.assertEqual(self.product1.standard_price, 18.42)
+        self.assertEqual(self.product1.standard_price, 18.415)
 
         self._make_out_move(self.product1, 10)
         out_move = self._make_out_move(self.product1, 9)
-        self.assertEqual(out_move.stock_valuation_layer_ids[0].value, -165.73)
+        self.assertEqual(out_move.stock_valuation_layer_ids[0].value, -165.74)
 
-        self.assertEqual(self.product1.value_svl, 18.42)
+        self.assertEqual(self.product1.value_svl, 18.41)
         self.assertEqual(self.product1.quantity_svl, 1)
 
         self._make_out_move(self.product1, 1)
-        self.assertEqual(self.product1.value_svl, 0)
+        self.assertEqual(self.product1.value_svl, -0.01)
         self.assertEqual(self.product1.quantity_svl, 0)
 
     def test_return_delivery_2(self):
@@ -708,6 +704,165 @@ class TestStockValuationAVCO(TestStockValuationCommon):
             {'quantity': 3, 'value': 15},
             {'quantity': 10, 'value': 50},
         ])
+
+    def test_change_quantity_from_other_company(self):
+        """
+        checks that a move on company A from a user logged in company B creates a svl with correct values (the ones from company A)
+        """
+        # Give user access of company A + B, with default A
+        company_A = self.env.company
+        company_B = self.env['res.company'].create({
+            'name': 'Super Company',
+        })
+        self.env.user.write({'company_ids': [(6, 0, [company_A.id, company_B.id])], 'company_id': company_A.id})
+        warehouse_B = self.env.user.with_company(company_B)._get_default_warehouse_id()
+        if not warehouse_B:
+            warehouse_B = self.env['stock.warehouse'].sudo().create({'name': 'WH', 'code': 'WH-B', 'company_id': company_B.id})
+            self.assertEqual(self.env.user.with_company(company_B)._get_default_warehouse_id(), warehouse_B)
+        warehouse_A = self.env.user.with_company(company_A)._get_default_warehouse_id()
+        # set product1 property cost method also in comp B
+        self.product1.with_company(company_B).product_tmpl_id.categ_id.property_cost_method = 'average'
+        # make both in moves so that the product has a standard price of 100 in comp A and 10 in comp B
+        self.env.user.company_id = company_A
+        move_comp_A = self._make_in_move(self.product1, 1, unit_cost=100)
+        self.assertEqual(self.env['stock.valuation.layer'].search([('stock_move_id', '=', move_comp_A.id)]).value, 100)
+        self.env.user.company_id = company_B
+        move_comp_B = self._make_in_move(self.product1, 1, unit_cost=10, create_picking=True, loc_dest=warehouse_B.lot_stock_id, pick_type=warehouse_B.in_type_id)
+        self.assertEqual(self.env['stock.valuation.layer'].search([('stock_move_id', '=', move_comp_B.id)]).value, 10)
+        # make the cross move
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': warehouse_A.in_type_id.id,
+            'location_id': self.supplier_location.id,
+            'location_dest_id': warehouse_A.lot_stock_id.id,
+            'move_ids': [Command.create({
+                'name': 'moveC',
+                'product_id': self.product1.id,
+                'location_id': self.supplier_location.id,
+                'location_dest_id': warehouse_A.lot_stock_id.id,
+                'product_uom': self.uom_unit.id,
+                'product_uom_qty': 1,
+                'picking_type_id': warehouse_A.in_type_id.id,
+                'company_id': company_A.id,
+            })],
+        })
+        cross_move = picking.move_ids[0]
+        picking.action_confirm()
+        picking.action_assign()
+        cross_move.picked = True
+        picking._action_done()
+        self.assertEqual(self.env['stock.valuation.layer'].search([('stock_move_id', '=', cross_move.id)]).value, 100)
+
+    def test_consume_mixed_uom_categories(self):
+        """Consuming SVLs from products with different UoM categories must not
+        raise a singleton error on uom.category."""
+        uom_kg = self.env.ref('uom.product_uom_kgm')
+        uom_litre = self.env.ref('uom.product_uom_litre')
+        product_kg = self.env['product.product'].create({
+            'name': 'Product KG',
+            'is_storable': True,
+            'uom_id': uom_kg.id,
+            'uom_po_id': uom_kg.id,
+            'categ_id': self.env.ref('product.product_category_all').id,
+        })
+        product_litre = self.env['product.product'].create({
+            'name': 'Product Litre',
+            'is_storable': True,
+            'uom_id': uom_litre.id,
+            'uom_po_id': uom_litre.id,
+            'categ_id': self.env.ref('product.product_category_all').id,
+        })
+
+        picking_in_kg = self.env['stock.picking'].create({
+            'picking_type_id': self.picking_type_in.id,
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+        })
+        move_kg = self.env['stock.move'].create({
+            'name': 'in kg',
+            'product_id': product_kg.id,
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'product_uom': uom_kg.id,
+            'product_uom_qty': 10,
+            'price_unit': 5,
+            'picking_type_id': self.picking_type_in.id,
+            'picking_id': picking_in_kg.id,
+        })
+        move_kg._action_confirm()
+        move_kg._action_assign()
+        move_kg.picked = True
+        move_kg._action_done()
+
+        picking_in_litre = self.env['stock.picking'].create({
+            'picking_type_id': self.picking_type_in.id,
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+        })
+        move_litre = self.env['stock.move'].create({
+            'name': 'in litre',
+            'product_id': product_litre.id,
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'product_uom': uom_litre.id,
+            'product_uom_qty': 10,
+            'price_unit': 3,
+            'picking_type_id': self.picking_type_in.id,
+            'picking_id': picking_in_litre.id,
+        })
+        move_litre._action_confirm()
+        move_litre._action_assign()
+        move_litre.picked = True
+        move_litre._action_done()
+
+        # Deliver product_kg and return part of it so that the delivery move's
+        # returned_move_ids is non-empty. This is the code flow that triggers the singleton crash.
+        picking_out = self.env['stock.picking'].create({
+            'picking_type_id': self.picking_type_out.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+        })
+        out_kg = self.env['stock.move'].create({
+            'name': 'out kg',
+            'product_id': product_kg.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_uom': uom_kg.id,
+            'product_uom_qty': 2,
+            'picking_type_id': self.picking_type_out.id,
+            'picking_id': picking_out.id,
+        })
+        out_kg._action_confirm()
+        out_kg._action_assign()
+        out_kg.move_line_ids.quantity = 2
+        out_kg.picked = True
+        out_kg._action_done()
+
+        return_wizard = Form(self.env['stock.return.picking'].with_context(
+            active_ids=[picking_out.id],
+            active_id=picking_out.id,
+            active_model='stock.picking',
+        )).save()
+        return_wizard.product_return_moves.quantity = 1
+        return_action = return_wizard.action_create_returns()
+        return_pick = self.env['stock.picking'].browse(return_action['res_id'])
+        return_pick.move_ids.move_line_ids.quantity = 1
+        return_pick.move_ids.picked = True
+        return_pick._action_done()
+
+        # Use the delivery SVL (which has returned_move_ids) together with the
+        # litre receipt SVL to form a mixed-UoM-category candidate set.
+        svl_out_kg = out_kg.stock_valuation_layer_ids
+        svl_in_litre = move_litre.stock_valuation_layer_ids
+        mixed_svls = svl_out_kg | svl_in_litre
+        self.assertEqual(len(mixed_svls.mapped('uom_id.category_id')), 2)
+        self.assertTrue(svl_out_kg.stock_move_id.returned_move_ids)
+
+        # Must not raise ValueError: Expected singleton: uom.category(...)
+        qty_valued, _ = mixed_svls._consume_specific_qty(0, 10)
+        self.assertGreater(qty_valued, 0)
+
+        qty_valued, _ = mixed_svls._consume_all(0, 0, 10)
+        self.assertGreater(qty_valued, 0)
 
 
 class TestStockValuationFIFO(TestStockValuationCommon):
@@ -984,7 +1139,7 @@ class TestStockValuationChangeCostMethod(TestStockValuationCommon):
         move3 = self._make_out_move(self.product1, 1)
 
         self.product1.product_tmpl_id.categ_id.property_cost_method = 'standard'
-        self.assertEqual(self.product1.value_svl, 289.94)
+        self.assertEqual(self.product1.value_svl, 290)
         self.assertEqual(self.product1.quantity_svl, 19)
 
     def test_fifo_to_avco(self):
@@ -999,7 +1154,7 @@ class TestStockValuationChangeCostMethod(TestStockValuationCommon):
         move3 = self._make_out_move(self.product1, 1)
 
         self.product1.product_tmpl_id.categ_id.property_cost_method = 'average'
-        self.assertEqual(self.product1.value_svl, 289.94)
+        self.assertEqual(self.product1.value_svl, 290)
         self.assertEqual(self.product1.quantity_svl, 19)
 
     def test_avco_to_standard(self):

@@ -109,7 +109,10 @@ class RecurrenceRule(models.Model):
                     partner = attendee[1]
                 else:
                     continue
-                self.calendar_event_ids.write({'attendee_ids': [(0, 0, {'state': attendee[2].get('responseStatus'), 'partner_id': partner.id})]})
+                self.calendar_event_ids.write({
+                    'attendee_ids': [(0, 0, {'state': attendee[2].get('responseStatus'), 'partner_id': partner.id})],
+                    'need_sync': False,
+                })
                 if attendee[2].get('displayName') and not partner.name:
                     partner.name = attendee[2].get('displayName')
 
@@ -239,3 +242,9 @@ class RecurrenceRule(models.Model):
         if event:
             return event._get_event_user()
         return self.env.user
+
+    def _is_google_insertion_blocked(self, sender_user):
+        self.ensure_one()
+        has_base_event = self.base_event_id
+        has_different_owner = self.base_event_id.user_id and self.base_event_id.user_id != sender_user
+        return has_base_event and has_different_owner

@@ -1,24 +1,28 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* hr_attendance
-# 
+# * hr_attendance
+#
 # Translators:
-# Wil Odoo, 2025
 # Abe Manyo, 2025
-# 
+# Wil Odoo, 2025
+#
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
+# "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-19 20:36+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Abe Manyo, 2025\n"
-"Language-Team: Indonesian (https://app.transifex.com/odoo/teams/41243/id/)\n"
+"POT-Creation-Date: 2026-03-20 18:37+0000\n"
+"PO-Revision-Date: 2026-05-19 13:32+0000\n"
+"Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-18/"
+"hr_attendance/id/>\n"
+"Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: id\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: hr_attendance
 #. odoo-python
@@ -40,7 +44,9 @@ msgstr "'Dokumentasi'"
 
 #. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.view_hr_attendance_kanban
-msgid "<i class=\"fa fa-calendar me-1\" aria-label=\"Period\" role=\"img\" title=\"Period\"/>"
+msgid ""
+"<i class=\"fa fa-calendar me-1\" aria-label=\"Period\" role=\"img\" "
+"title=\"Period\"/>"
 msgstr ""
 "<i class=\"fa fa-calendar me-1\" aria-label=\"Period\" role=\"img\" "
 "title=\"Periode\"/>"
@@ -62,10 +68,12 @@ msgstr ""
 #. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_employees_view_kanban
 msgid ""
-"<span class=\"fa fa-circle text-warning me-1\" role=\"img\" aria-label=\"Not available\" title=\"Not available\">\n"
+"<span class=\"fa fa-circle text-warning me-1\" role=\"img\" aria-label=\"Not "
+"available\" title=\"Not available\">\n"
 "                                    </span>"
 msgstr ""
-"<span class=\"fa fa-circle text-warning me-1\" role=\"img\" aria-label=\"Not available\" title=\"Not available\">\n"
+"<span class=\"fa fa-circle text-warning me-1\" role=\"img\" aria-label=\"Not "
+"available\" title=\"Not available\">\n"
 "                                    </span>"
 
 #. module: hr_attendance
@@ -148,10 +156,12 @@ msgstr "Karyawan-Karyawan Aktif"
 #. module: hr_attendance
 #: model_terms:ir.actions.act_window,help:hr_attendance.hr_employee_attendance_action_kanban
 msgid ""
-"Add a few employees to be able to select an employee here and perform his check in / check out.\n"
+"Add a few employees to be able to select an employee here and perform his "
+"check in / check out.\n"
 "                To create employees go to the Employees menu."
 msgstr ""
-"Tambahkan beberapa karyawan agar dapat memilih karyawan di sini dan melakukan check in / check out.\n"
+"Tambahkan beberapa karyawan agar dapat memilih karyawan di sini dan "
+"melakukan check in / check out.\n"
 "                Untuk membuat karyawan pergi ke menu Karyawan."
 
 #. module: hr_attendance
@@ -253,6 +263,12 @@ msgstr "Jumlah Lampiran"
 #: model_terms:ir.ui.view,arch_db:hr_attendance.view_employee_tree_inherit_leave
 msgid "Attendance"
 msgstr "Absensi"
+
+#. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.js:0
+msgid "Attendance Error"
+msgstr "Error Absensi"
 
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_res_company__attendance_from_systray
@@ -370,10 +386,12 @@ msgstr "Secara Otomatis Disetujui"
 #: model_terms:ir.ui.view,arch_db:hr_attendance.res_config_settings_view_form
 msgid ""
 "Automatically Check-Out Employees based on their working schedule with an "
-"additional tolerance."
+"additional tolerance. Does not apply to employees with a flexible working "
+"schedule."
 msgstr ""
-"Secara Otomatis Check Out Karyawan berdasarkan jam kerja mereka dengan "
-"toleransi tambahan."
+"Secara Otomatis Check-Out Karyawan berdasarkan jadwal kerja mereka dengan "
+"tolerasni tambahan. Tidak berlaku untuk karyawan dengan jadwal kerja "
+"fleksibel."
 
 #. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_view_filter
@@ -459,8 +477,8 @@ msgid ""
 "Cannot create new attendance record for %(empl_name)s, the employee hasn't "
 "checked out since %(datetime)s"
 msgstr ""
-"Tidak dapat membuat data absensi baru untuk %(empl_name)s, karyawan tersebut"
-" belum absen keluar sejak  %(datetime)s"
+"Tidak dapat membuat data absensi baru untuk %(empl_name)s, karyawan tersebut "
+"belum absen keluar sejak  %(datetime)s"
 
 #. module: hr_attendance
 #. odoo-python
@@ -469,8 +487,8 @@ msgid ""
 "Cannot create new attendance record for %(empl_name)s, the employee was "
 "already checked in on %(datetime)s"
 msgstr ""
-"Tidak dapat membuat data absensi baru untuk %(empl_name)s, karyawan tersebut"
-" telah absen masuk pada %(datetime)s"
+"Tidak dapat membuat data absensi baru untuk %(empl_name)s, karyawan tersebut "
+"telah absen masuk pada %(datetime)s"
 
 #. module: hr_attendance
 #. odoo-python
@@ -618,6 +636,12 @@ msgid "Connect an RFID reader, and scan a token."
 msgstr "Hubungkan ke pembaca RFID, dan scan token."
 
 #. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.js:0
+msgid "Connection lost. Check in/out could not be recorded."
+msgstr "Koneksi terputus. Check in/out tidak dapat direkam."
+
+#. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__in_country_name
 msgid "Country"
 msgstr "Negara"
@@ -676,12 +700,8 @@ msgid "Define the way the user will be identified by the application."
 msgstr "Definisikan cara user akan diidentifikasi oleh aplikasi."
 
 #. module: hr_attendance
-#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_view_filter
-msgid "Departement"
-msgstr "Departeme"
-
-#. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__department_id
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_view_filter
 msgid "Department"
 msgstr "Departemen"
 
@@ -723,10 +743,11 @@ msgstr "Tampilkan Waktu"
 #. odoo-python
 #: code:addons/hr_attendance/models/hr_attendance.py:0
 msgid ""
-"Do not have access, user cannot edit the attendances that are not his own."
+"Do not have access, user cannot edit the attendances that are not their own "
+"or if they are not the attendance manager of the employee."
 msgstr ""
-"Tidak memiliki akses, user tidak dapat mengedit absensi yang bukan merupakan"
-" miliknya sendiri."
+"Tidak memiliki akses, user tidak dapat mengedit absensi yang bukan milik "
+"mereka sendiri atau bila mereka bukan manajer absensi dari karyawan."
 
 #. module: hr_attendance
 #: model:ir.model,name:hr_attendance.model_hr_employee
@@ -939,9 +960,11 @@ msgstr "Identifikasi secara Manual"
 #. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.res_config_settings_view_form
 msgid ""
-"If checked, days not covered by an attendance will be visible in the Report."
+"If checked, days not covered by an attendance will be visible in the Report. "
+"Does not apply to employees with a flexible working schedule."
 msgstr ""
-"Bila dicentang, hari-hari yang tidak dicakup absensi akan tampak di Laporan."
+"Bila dicentang, hari yang tidak dicakup oleh absensi akan muncul di Laporan. "
+"Tidak berlaku untuk karyawan dengan jadwal kerja fleksibel."
 
 #. module: hr_attendance
 #: model:ir.model.fields,help:hr_attendance.field_hr_attendance__message_needaction
@@ -969,6 +992,14 @@ msgstr "Mode Input (Keluar)"
 #: code:addons/hr_attendance/static/src/public_kiosk/public_kiosk_app.xml:0
 msgid "Install"
 msgstr "Pasang"
+
+#. module: hr_attendance
+#. odoo-python
+#: code:addons/hr_attendance/controllers/main.py:0
+msgid ""
+"Invalid domain, use 'name' and/or 'department_id' fields with '=' and/or "
+"'ilike' operators."
+msgstr ""
 
 #. module: hr_attendance
 #. odoo-javascript
@@ -1332,7 +1363,7 @@ msgstr "Token RFID dengan reader pada tablet"
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__rating_ids
 msgid "Ratings"
-msgstr "Rating-Rating"
+msgstr "Rating"
 
 #. module: hr_attendance
 #. odoo-javascript
@@ -1361,6 +1392,11 @@ msgstr "Ditolak"
 #: model:ir.ui.menu,name:hr_attendance.menu_hr_attendance_reporting
 msgid "Reporting"
 msgstr "Laporan"
+
+#. module: hr_attendance
+#: model:ir.model,name:hr_attendance.model_resource_calendar_leaves
+msgid "Resource Time Off Detail"
+msgstr "Detail Sumber Daya Cuti"
 
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__message_has_sms_error
@@ -1491,8 +1527,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_attendance/models/hr_attendance.py:0
 msgid ""
-"This attendance was automatically created to cover an unjustified absence on"
-" that day."
+"This attendance was automatically created to cover an unjustified absence on "
+"that day."
 msgstr ""
 "Absensi ini secara otomatis dibuat untuk memenuhi absensi yang tidak "
 "disetujui pada hari tersebut."
@@ -1712,3 +1748,12 @@ msgstr "atau"
 #: code:addons/hr_attendance/static/src/public_kiosk/public_kiosk_app.xml:0
 msgid "with optional PIN code"
 msgstr "dengan kode PIN opsional"
+
+#~ msgid ""
+#~ "Do not have access, user cannot edit the attendances that are not his own."
+#~ msgstr ""
+#~ "Tidak memiliki akses, user tidak dapat mengedit absensi yang bukan "
+#~ "merupakan miliknya sendiri."
+
+#~ msgid "Departement"
+#~ msgstr "Departeme"

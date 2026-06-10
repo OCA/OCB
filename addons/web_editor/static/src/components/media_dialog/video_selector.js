@@ -39,7 +39,7 @@ export class VideoSelector extends Component {
         errorMessages: Function,
         vimeoPreviewIds: {type: Array, optional: true},
         isForBgVideo: {type: Boolean, optional: true},
-        media: {type: Object, optional: true},
+        media: {validate: (n) => n.nodeType === Node.ELEMENT_NODE, optional: true},
         "*": true,
     };
     static defaultProps = {
@@ -54,14 +54,13 @@ export class VideoSelector extends Component {
             youtube: 'youtube',
             dailymotion: 'dailymotion',
             vimeo: 'vimeo',
-            youku: 'youku',
         };
 
         this.OPTIONS = {
             autoplay: {
                 label: _t("Autoplay"),
                 description: _t("Videos are muted when autoplay is enabled"),
-                platforms: [this.PLATFORMS.youtube, this.PLATFORMS.dailymotion, this.PLATFORMS.vimeo],
+                platforms: [this.PLATFORMS.youtube, this.PLATFORMS.vimeo],
                 urlParameter: 'autoplay=1',
             },
             loop: {
@@ -71,7 +70,7 @@ export class VideoSelector extends Component {
             },
             hide_controls: {
                 label: _t("Hide player controls"),
-                platforms: [this.PLATFORMS.youtube, this.PLATFORMS.dailymotion, this.PLATFORMS.vimeo],
+                platforms: [this.PLATFORMS.youtube, this.PLATFORMS.vimeo],
                 urlParameter: 'controls=0',
             },
             hide_fullscreen: {
@@ -79,16 +78,6 @@ export class VideoSelector extends Component {
                 platforms: [this.PLATFORMS.youtube],
                 urlParameter: 'fs=0',
                 isHidden: () => this.state.options.filter(option => option.id === 'hide_controls')[0].value,
-            },
-            hide_dm_logo: {
-                label: _t("Hide Dailymotion logo"),
-                platforms: [this.PLATFORMS.dailymotion],
-                urlParameter: 'ui-logo=0',
-            },
-            hide_dm_share: {
-                label: _t("Hide sharing button"),
-                platforms: [this.PLATFORMS.dailymotion],
-                urlParameter: 'sharing-enable=0',
             },
         };
 
@@ -107,12 +96,7 @@ export class VideoSelector extends Component {
                 const src = this.props.media.dataset.oeExpression || this.props.media.dataset.src || (this.props.media.tagName === 'IFRAME' && this.props.media.getAttribute('src')) || '';
                 if (src) {
                     this.state.urlInput = src;
-                    await this.updateVideo();
-
-                    this.state.options = this.state.options.map((option) => {
-                        const { urlParameter } = this.OPTIONS[option.id];
-                        return { ...option, value: src.indexOf(urlParameter) >= 0 };
-                    });
+                    await this.syncOptionsWithUrl();
                 }
             }
         });
@@ -121,7 +105,7 @@ export class VideoSelector extends Component {
 
         useAutofocus();
 
-        this.onChangeUrl = debounce((ev) => this.updateVideo(ev.target.value), 500);
+        this.onChangeUrl = debounce(async (ev) => await this.syncOptionsWithUrl(), 500);
     }
 
     get shownOptions() {
@@ -139,6 +123,7 @@ export class VideoSelector extends Component {
             return option;
         });
         await this.updateVideo();
+        this.state.urlInput = this.state.src;
     }
 
     async onClickSuggestion(src) {
@@ -253,12 +238,31 @@ export class VideoSelector extends Component {
      */
     async prepareVimeoPreviews() {
         return Promise.all(this.props.vimeoPreviewIds.map(async (videoId) => {
-            const { thumbnail_url: thumbnailSrc } = await this.http.get(`https://vimeo.com/api/oembed.json?url=http%3A//vimeo.com/${encodeURIComponent(videoId)}`);
-            this.state.vimeoPreviews.push({
-                id: videoId,
-                thumbnailSrc,
-                src: `https://player.vimeo.com/video/${encodeURIComponent(videoId)}`
-            });
+            try {
+                const { thumbnail_url: thumbnailSrc } = await this.http.get(`https://vimeo.com/api/oembed.json?url=http%3A//vimeo.com/${encodeURIComponent(videoId)}`);
+                this.state.vimeoPreviews.push({
+                    id: videoId,
+                    thumbnailSrc,
+                    src: `https://player.vimeo.com/video/${encodeURIComponent(videoId)}`
+                });
+            } catch (err) {
+                console.warn(`Could not get video #${videoId} from vimeo: ${err}`);
+            }
         }));
+    }
+
+    /**
+     * Utility method to make options and urlInput state consistent with state
+     * of component.
+     */
+    async syncOptionsWithUrl() {
+        await this.updateVideo();
+        this.state.options = this.state.options.map((option) => {
+            const { urlParameter } = this.OPTIONS[option.id];
+            return { ...option, value: this.state.urlInput.includes(urlParameter) };
+        });
+        // Ensure 'this.state.urlInput' and 'this.state.src' are consistent
+        // when the media dialog is closed without changing any options.
+        await this.updateVideo();
     }
 }

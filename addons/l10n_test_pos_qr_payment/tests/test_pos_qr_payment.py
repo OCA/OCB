@@ -21,7 +21,7 @@ class TestUiSEPA(TestPosQrCommon):
         cls.company_data['default_journal_bank'].write({'bank_account_id': cls.bank_account.id})
 
         # Setup QR Payment method for SEPA
-        qr_payment = cls.env['pos.payment.method'].create({
+        qr_payment = cls.env['pos.payment.method'].sudo().create({
             'name': 'QR Code',
             'journal_id': cls.company_data['default_journal_bank'].id,
             'payment_method_type': "qr_code",
@@ -38,8 +38,10 @@ class TestUiSEPA(TestPosQrCommon):
         """
 
         # Set non sepa bank account to make the test failed
+        self.bank_account.allow_out_payment = False
         self.bank_account.write({
             'acc_number': 'SA4420000001234567891234',
+            'allow_out_payment': True,
         })
         self.main_pos_config.with_user(self.pos_user).open_ui()
 
@@ -81,7 +83,7 @@ class TestUiCH(TestPosQrCommon):
         cls.company_data['default_journal_bank'].write({'bank_account_id': cls.bank_account.id})
 
         # Setup QR Payment method for Swiss QR
-        qr_payment = cls.env['pos.payment.method'].create({
+        qr_payment = cls.env['pos.payment.method'].sudo().create({
             'name': 'QR Code',
             'journal_id': cls.company_data['default_journal_bank'].id,
             'payment_method_type': "qr_code",
@@ -141,7 +143,7 @@ class TestUiHK(TestPosQrCommon):
         cls.company_data['default_journal_bank'].write({'bank_account_id': cls.bank_account.id})
 
         # Setup QR Payment method for EMV(FPS)
-        qr_payment = cls.env['pos.payment.method'].create({
+        qr_payment = cls.env['pos.payment.method'].sudo().create({
             'name': 'QR Code',
             'journal_id': cls.company_data['default_journal_bank'].id,
             'payment_method_type': "qr_code",
@@ -196,7 +198,7 @@ class TestUIBR(TestPosQrCommon):
         cls.company_data['default_journal_bank'].write({'bank_account_id': cls.bank_account.id})
 
         # Setup QR Payment method for PIX
-        qr_payment = cls.env['pos.payment.method'].create({
+        qr_payment = cls.env['pos.payment.method'].sudo().create({
             'name': 'QR Code',
             'journal_id': cls.company_data['default_journal_bank'].id,
             'payment_method_type': "qr_code",

@@ -155,9 +155,16 @@ class BaseCursor:
 
     def flush(self):
         """ Flush the current transaction, and run precommit hooks. """
-        if self.transaction is not None:
-            self.transaction.flush()
-        self.precommit.run()
+        # In case some pre-commit added another pre-commit or triggered changes
+        # in the ORM, we must flush and run it again.
+        for _ in range(10):  # limit number of iterations
+            if self.transaction is not None:
+                self.transaction.flush()
+            if not self.precommit:
+                break
+            self.precommit.run()
+        else:
+            _logger.warning("Too many iterations for flushing the cursor!")
 
     def clear(self):
         """ Clear the current transaction, and clear precommit hooks. """
@@ -298,6 +305,9 @@ class Cursor(BaseCursor):
 
         self.cache = {}
         self._now = None
+        if os.getenv('ODOO_FAKETIME_TEST_MODE') and self.dbname in tools.config['db_name'].split(','):
+            self.execute("SET search_path = public, pg_catalog;")
+            self.commit()  # ensure that the search_path remains after a rollback
 
     def __build_dict(self, row):
         return {d.name: row[i] for i, d in enumerate(self._obj.description)}
@@ -349,6 +359,13 @@ class Cursor(BaseCursor):
             raise ValueError("SQL query parameters should be a tuple, list or dict; got %r" % (params,))
 
         start = real_time()
+        update_query_endtime_functions = []
+        current_thread = threading.current_thread()
+        for hook in getattr(current_thread, 'query_hooks', ()):
+            func = hook(self, query, params, start, 10)
+            if func and callable(func):
+                update_query_endtime_functions.append(func)
+
         try:
             params = params or None
             res = self._obj.execute(query, params)
@@ -365,14 +382,13 @@ class Cursor(BaseCursor):
         self.sql_log_count += 1
         sql_counter += 1
 
-        current_thread = threading.current_thread()
         if hasattr(current_thread, 'query_count'):
             current_thread.query_count += 1
             current_thread.query_time += delay
 
         # optional hooks for performance and tracing analysis
-        for hook in getattr(current_thread, 'query_hooks', ()):
-            hook(self, query, params, start, delay)
+        for update_query_endtime_function in update_query_endtime_functions:
+            update_query_endtime_function(delay)
 
         # advanced stats
         if _logger.isEnabledFor(logging.DEBUG):
@@ -831,7 +847,7 @@ def connection_info_for(db_or_uri, readonly=False):
     for p in ('host', 'port', 'user', 'password', 'sslmode'):
         cfg = tools.config['db_' + p]
         if readonly:
-            cfg = tools.config.get('db_replica_' + p, cfg)
+            cfg = tools.config.get('db_replica_' + p) or cfg
         if cfg:
             connection_info[p] = cfg
 

@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* snailmail
-# 
+# * snailmail
+#
 # Translators:
 # emre oktem, 2024
 # Tiffany Chang, 2024
@@ -14,25 +14,27 @@
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2024
 # Halil, 2024
 # Murat Kaplan <muratk@projetgrup.com>, 2024
-# 
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 08:56+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Murat Kaplan <muratk@projetgrup.com>, 2024\n"
-"Language-Team: Turkish (https://app.transifex.com/odoo/teams/41243/tr/)\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
+"PO-Revision-Date: 2025-11-25 09:48+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-18/"
+"snailmail/tr/>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
 msgid "ATTACHMENT_ERROR"
-msgstr ""
+msgstr "EK HATASI"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_cover
@@ -53,6 +55,7 @@ msgstr "Adres"
 msgid ""
 "An error occurred when sending a letter with Snailmail on “%(record_name)s”"
 msgstr ""
+"Posta ile \"%(record_name)s\" adresinden mektup gönderirken bir hata oluştu"
 
 #. module: snailmail
 #. odoo-javascript
@@ -289,7 +292,7 @@ msgstr "Bilgi"
 #. odoo-python
 #: code:addons/snailmail/models/snailmail_letter.py:0
 msgid "Invalid recipient name."
-msgstr ""
+msgstr "Geçersiz alıcı adı."
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__write_uid
@@ -380,12 +383,15 @@ msgstr "Yazdırıp eklemek için seçmeli çıktı"
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_letter_format_error
 msgid ""
 "Our service cannot read your letter due to its format.<br/>\n"
-"                Please modify the format of the template or update your settings\n"
+"                Please modify the format of the template or update your "
+"settings\n"
 "                to automatically add a blank cover page to all letters."
 msgstr ""
 "Hizmetimiz formatı nedeniyle mektubunuzu okuyamıyor.<br/>\n"
-"                Lütfen şablonun biçimini değiştirin veya ayarlarınızı güncelleyin\n"
-"                tıklayarak tüm harflere otomatik olarak boş bir kapak sayfası ekleyin."
+"                Lütfen şablonun biçimini değiştirin veya ayarlarınızı "
+"güncelleyin\n"
+"                tıklayarak tüm harflere otomatik olarak boş bir kapak "
+"sayfası ekleyin."
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter_missing_required_fields__partner_id
@@ -438,6 +444,8 @@ msgstr "Şimdi Gönder"
 #: model:iap.service,description:snailmail.iap_service_snailmail
 msgid "Send your customer invoices and follow-up reports by post, worldwide."
 msgstr ""
+"Müşteri faturalarınızı ve takip raporlarınızı dünya çapında posta yoluyla "
+"gönderin."
 
 #. module: snailmail
 #. odoo-javascript
@@ -466,12 +474,12 @@ msgstr "Snailmail"
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
-msgstr ""
+msgstr "Posta Rengi"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
 msgid "Snailmail Cover Readonly"
-msgstr ""
+msgstr "Posta Kapağı Salt Okunur"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -482,7 +490,7 @@ msgstr "Snailmail Kredi Hatası"
 #. odoo-javascript
 #: code:addons/snailmail/static/src/messaging_menu/messaging_menu_patch.js:0
 msgid "Snailmail Failure: %(modelName)s"
-msgstr ""
+msgstr "Posta hatası: %(modelName)s"
 
 #. module: snailmail
 #. odoo-javascript
@@ -546,7 +554,7 @@ msgstr "Snailmail: işlem mektupları kuyruğu"
 #. module: snailmail
 #: model:iap.service,unit_name:snailmail.iap_service_snailmail
 msgid "Stamps"
-msgstr ""
+msgstr "Pullar"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__state_id
@@ -597,8 +605,8 @@ msgstr "Alıcının adresi tam değil"
 #. odoo-python
 #: code:addons/snailmail/models/snailmail_letter.py:0
 msgid ""
-"The attachment of the letter could not be sent. Please check its content and"
-" contact the support if the problem persists."
+"The attachment of the letter could not be sent. Please check its content and "
+"contact the support if the problem persists."
 msgstr ""
 "Mektubun eki gönderilemedi. Lütfen içeriğini kontrol edin ve sorun devam "
 "ederse destek ekibiyle iletişime geçin."
@@ -616,8 +624,7 @@ msgid ""
 "The country to which you want to send the letter is not supported by our "
 "service."
 msgstr ""
-"Mektubu göndermek istediğiniz ülke hizmetimiz tarafından "
-"desteklenmemektedir."
+"Mektubu göndermek istediğiniz ülke hizmetimiz tarafından desteklenmemektedir."
 
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_letter_missing_required_fields
@@ -631,6 +638,12 @@ msgstr ""
 #. module: snailmail
 #. odoo-python
 #: code:addons/snailmail/models/snailmail_letter.py:0
+msgid "The document to be sent exceeds the maximum allowed limit of 8 pages."
+msgstr ""
+
+#. module: snailmail
+#. odoo-python
+#: code:addons/snailmail/models/snailmail_letter.py:0
 msgid "The document was correctly sent by post.<br>The tracking id is %s"
 msgstr ""
 "Belge posta yoluyla doğru bir şekilde gönderildi.<br>İzleme kimliği: %s"
@@ -639,8 +652,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/snailmail/static/src/core_ui/snailmail_error.xml:0
 msgid ""
-"The letter could not be sent due to insufficient credits on your IAP "
-"account."
+"The letter could not be sent due to insufficient credits on your IAP account."
 msgstr "IAP hesabınızdaki yetersiz kredi nedeniyle mektup gönderilemedi."
 
 #. module: snailmail
@@ -678,20 +690,32 @@ msgid ""
 "'comment': generated by user input e.g. through discuss or composer\n"
 "'email_outgoing': generated by a mailing\n"
 "'notification': generated by system e.g. tracking messages\n"
-"'auto_comment': generated by automated notification mechanism e.g. acknowledgment\n"
+"'auto_comment': generated by automated notification mechanism e.g. "
+"acknowledgment\n"
 "'user_notification': generated for a specific recipient"
 msgstr ""
+"Mesaj üreteci sınıflandırmak için kullanılır\n"
+"'email': gelen bir e-posta tarafından üretilir, örn. posta geçidi\n"
+"'comment': kullanıcı girişiyle üretilir, örn. mesajlaşma veya yazıcı "
+"üzerinden\n"
+"'email_outgoing': bir toplu e-posta tarafından üretilir\n"
+"'notification': sistem tarafından üretilir, örn. izleme mesajları\n"
+"'auto_comment': otomatik bildirim mekanizması tarafından üretilir, örn. "
+"onaylama\n"
+"'user_notification': belirli bir alıcı için üretilir"
 
 #. module: snailmail
 #: model:ir.model.fields,help:snailmail.field_snailmail_letter__state
 msgid ""
 "When a letter is created, the status is 'Pending'.\n"
 "If the letter is correctly sent, the status goes in 'Sent',\n"
-"If not, it will got in state 'Error' and the error message will be displayed in the field 'Error Message'."
+"If not, it will got in state 'Error' and the error message will be displayed "
+"in the field 'Error Message'."
 msgstr ""
 "Bir mektup oluşturulduğunda, durum 'Beklemede' olur.\n"
 "Mektup doğru bir şekilde gönderilirse, durum 'Gönderildi' olarak geçer,\n"
-"Aksi takdirde, 'Hata' durumuna geçecek ve hata mesajı 'Hata Mesajı' alanında görüntülenecektir."
+"Aksi takdirde, 'Hata' durumuna geçecek ve hata mesajı 'Hata Mesajı' alanında "
+"görüntülenecektir."
 
 #. module: snailmail
 #. odoo-python

@@ -306,6 +306,8 @@ export const ICON_SELECTOR = iconTags
     })
     .join(", ");
 
+export const EDITABLE_MEDIA_CLASS = "o_editable_media";
+
 /**
  * Indicates if the given node is an icon element.
  *
@@ -489,9 +491,7 @@ export function isUnprotecting(node) {
 // This is a list of "paragraph-related elements", defined as elements that
 // behave like paragraphs. It is non-exhaustive and should not be used as a
 // standalone. @see isParagraphRelatedElement
-// TODO add: this list should contain PRE, but the spec currently is to
-// paste flow content inside the PRE, so it is removed temporarily.
-export const paragraphRelatedElements = ["P", "H1", "H2", "H3", "H4", "H5", "H6"];
+export const paragraphRelatedElements = ["P", "H1", "H2", "H3", "H4", "H5", "H6", "PRE"];
 
 /**
  * Return true if the given node allows "paragraph-related elements".
@@ -523,7 +523,7 @@ const allowedContent = {
     OL: listItem,
     UL: listItem,
     P: phrasingContent,
-    PRE: flowContent, // HTML spec: phrasing content
+    PRE: phrasingContent,
     TD: flowContent,
     TR: new Set(["TD"]),
 };
@@ -720,6 +720,11 @@ export function areSimilarElements(node, node2) {
     }
     const nodeStyle = getComputedStyle(node);
     const node2Style = getComputedStyle(node2);
+    if (node.matches("code.o_inline_code")) {
+        if (nodeStyle.padding === node2Style.padding && nodeStyle.margin === node2Style.margin) {
+            return true;
+        }
+    }
     return (
         !+nodeStyle.padding.replace(NOT_A_NUMBER, "") &&
         !+node2Style.padding.replace(NOT_A_NUMBER, "") &&
@@ -747,3 +752,83 @@ export function isContentEditableAncestor(node) {
     }
     return node.isContentEditable && node.matches("[contenteditable]");
 }
+
+/**
+ * Checks if all classes in node are present in node2 (subset check)
+ */
+function hasClassesSubset(node, node2) {
+    const getNodeClasses = (n) => (n || "").trim().split(/\s+/).filter(Boolean);
+    const [nodeClasses, node2Classes] = [node, node2].map(getNodeClasses);
+    return nodeClasses.every((cls) => node2Classes.includes(cls));
+}
+
+/**
+ * Checks if all styles in node are present in node2 (subset check)
+ */
+function hasStylesSubset(node, node2) {
+    const getNodeStyles = (n) =>
+        (n || "")
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean);
+    const [nodeStyles, node2Styles] = [node, node2].map(getNodeStyles);
+    return nodeStyles.every((style) => node2Styles.includes(style));
+}
+
+/**
+ * Checks if a node is redundant based on its closest element with same tag.
+ *
+ * A node is considered redundant if:
+ * - It is an Element node with a parent.
+ * - There is a closest element with the same tag name.
+ * - All of the node's attributes are present in that closest element:
+ *   - All classes exist in the closest element's class list (subset check).
+ *   - All inline styles are present in the closest element's style attribute (subset check).
+ *   - All other attributes must have identical values.
+ *
+ * @param {Node} node - The DOM node to evaluate.
+ * @returns {boolean} True if the node is redundant, false otherwise.
+ */
+export function isRedundantElement(node) {
+    // Check for valid element node and existence of a parent.
+    if (!node || node.nodeType !== Node.ELEMENT_NODE || !node.parentElement) {
+        return false;
+    }
+
+    // Find the closest element with the same tag name.
+    const closestEl = closestElement(node.parentElement, node.tagName);
+    if (!closestEl) {
+        return false;
+    }
+
+    // Check each attribute from node.
+    for (const { name: attrName, value: nodeAttrVal } of node.attributes) {
+        const closestElAttrVal = closestEl.getAttribute(attrName);
+
+        if (!closestElAttrVal) {
+            return false; // Attribute missing in closest element.
+        }
+
+        if (attrName === "class") {
+            // All classes on the node must exist in closest element.
+            if (!hasClassesSubset(nodeAttrVal, closestElAttrVal)) {
+                return false;
+            }
+        } else if (attrName === "style") {
+            // All inline styles on the node must exist in closest element.
+            if (!hasStylesSubset(nodeAttrVal, closestElAttrVal)) {
+                return false;
+            }
+        } else {
+            // For other attributes, values must match exactly.
+            if (nodeAttrVal !== closestElAttrVal) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+// Selector for QWeb-specific attributes
+export const PROTECTED_QWEB_SELECTOR = "[t-esc], [t-raw], [t-out], [t-field]";

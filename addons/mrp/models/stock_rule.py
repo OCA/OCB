@@ -37,7 +37,9 @@ class StockRule(models.Model):
         super(StockRule, remaining)._compute_picking_type_code_domain()
 
     def _should_auto_confirm_procurement_mo(self, p):
-        return (not p.orderpoint_id and p.move_raw_ids) or (p.move_dest_ids.procure_method != 'make_to_order' and not p.move_raw_ids and not p.workorder_ids)
+        if not p.move_raw_ids:
+            return (not p.workorder_ids and (p.orderpoint_id or p.move_dest_ids.procure_method == 'make_to_stock'))
+        return not p.orderpoint_id
 
     @api.model
     def _run_manufacture(self, procurements):
@@ -176,7 +178,7 @@ class StockRule(models.Model):
         }
         # Use the procurement group created in _run_pull mrp override
         # Preserve the origin from the original stock move, if available
-        if location_dest_id.warehouse_id.manufacture_steps == 'pbm_sam' and values.get('move_dest_ids') and values.get('group_id') and not values['move_dest_ids'][0].origin.startswith(values['group_id'].name):
+        if location_dest_id.warehouse_id.manufacture_steps == 'pbm_sam' and values.get('move_dest_ids') and values.get('group_id') and values['group_id'].name not in values['move_dest_ids'][0].origin:
             origin = values['move_dest_ids'][0].origin
             mo_values.update({
                 'name': values['group_id'].name,
@@ -205,6 +207,11 @@ class StockRule(models.Model):
             return delays, delay_description
         manufacture_rule.ensure_one()
         bom = values.get('bom') or self.env['mrp.bom']._bom_find(product, picking_type=manufacture_rule.picking_type_id, company_id=manufacture_rule.company_id.id)[product]
+        if not bom:
+            delays['total_delay'] += 365
+            delays['no_bom_found_delay'] += 365
+            if not bypass_delay_description:
+                delay_description.append((_('No BoM Found'), _('+ %s day(s)', 365)))
         manufacture_delay = bom.produce_delay
         delays['total_delay'] += manufacture_delay
         delays['manufacture_delay'] += manufacture_delay

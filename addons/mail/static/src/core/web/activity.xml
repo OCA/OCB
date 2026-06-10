@@ -5,7 +5,7 @@
     <div class="o-mail-Activity d-flex py-1 mb-2" t-on-click="onClick">
         <div class="o-mail-Activity-sidebar flex-shrink-0 position-relative">
             <a role="button" t-on-click="onClickAvatar">
-                <img class="w-100 h-100 rounded o_object_fit_cover" t-att-src="props.activity.persona.avatarUrl" />
+                <img class="o-mail-Activity-avatar o_avatar rounded" t-att-src="props.activity.persona.avatarUrl" />
             </a>
             <div
                 class="o-mail-Activity-iconContainer position-absolute top-100 start-100 translate-middle d-flex align-items-center justify-content-center mt-n1 ms-n1 rounded-circle w-50 h-50"
@@ -41,7 +41,7 @@
                     </tbody>
                 </table>
             </div>
-            <div t-if="props.activity.note" class="o-mail-Activity-note text-break" t-out="props.activity.note"/>
+            <div t-if="!props.activity.isNoteEmpty" class="o-mail-Activity-note text-break" t-out="props.activity.note"/>
             <div t-if="props.activity.mail_template_ids?.length > 0" class="o-mail-Activity-mailTemplates">
                 <ActivityMailTemplate activity="props.activity" onActivityChanged="props.onActivityChanged"/>
             </div>

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
+from odoo.exceptions import UserError
 
 
 class AccountMove(models.Model):
@@ -82,6 +83,23 @@ class AccountMove(models.Model):
     def _compute_tax_totals(self):
         return super(AccountMove, self.with_context(linked_to_pos=bool(self.sudo().pos_order_ids)))._compute_tax_totals()
 
+    def button_draft(self):
+        if self.sudo().pos_order_ids.filtered(lambda o: o.session_id.state != 'closed'):
+            self.env.user._bus_send("simple_notification", {
+                'type': 'warning',
+                'title': _("Warning: Invoice Reset Risk"),
+                'message': _("This invoice is linked to a POS Order, resetting it to draft prevents closing the session. You should rather refund the order or create a credit note."),
+                'sticky': True,
+            })
+        return super().button_draft()
+
+    def _recompute_cash_rounding_lines(self):
+        self.ensure_one()
+        if self.reversed_entry_id:
+            pos_orders = self.reversed_entry_id.sudo().pos_order_ids
+            if pos_orders and self.reversed_entry_id.sudo().line_ids.filtered(lambda l: l.display_type == 'rounding' and not l.balance):
+                return
+        super()._recompute_cash_rounding_lines()
 
 
 class AccountMoveLine(models.Model):

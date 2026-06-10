@@ -29,6 +29,21 @@ class StockPicking(models.Model):
     return_label_ids = fields.One2many('ir.attachment', compute='_compute_return_label')
     destination_country_code = fields.Char(related='partner_id.country_id.code', string="Destination Country")
 
+    def button_validate(self):
+        res = super().button_validate()
+        if res is not True:
+            return res
+        for picking in self:
+            # `_get_new_picking_values` is used to propagate the carrier before a picking is created (i.e. carrier is set on an SO).
+            # Whereas this case handles the propagation of carrier after the picking validation as the carrier maybe set
+            # at later stages as well, specifically at the picking level rather than on the Sales Order.
+            # This ensures the behavior is consistent across all scenarios (push + pull, all pull, and all push rules).
+            if picking.carrier_id:
+                picking._get_next_transfers().filtered(
+                    lambda p: not p.carrier_id and any(rule.propagate_carrier for rule in p.move_ids.rule_id)
+                ).write({'carrier_id': picking.carrier_id.id, 'carrier_tracking_ref': picking.carrier_tracking_ref})
+        return res
+
     @api.depends('carrier_id', 'carrier_tracking_ref')
     def _compute_carrier_tracking_url(self):
         for picking in self:
@@ -38,7 +53,7 @@ class StockPicking(models.Model):
     def _compute_return_picking(self):
         for picking in self:
             if picking.carrier_id and picking.carrier_id.can_generate_return:
-                picking.is_return_picking = any(m.origin_returned_move_id for m in picking.move_ids_without_package)
+                picking.is_return_picking = any(m.origin_returned_move_id and m.location_dest_usage == 'internal' for m in picking.move_ids_without_package)
             else:
                 picking.is_return_picking = False
 
@@ -106,7 +121,9 @@ class StockPicking(models.Model):
                 if len(move_line_ids.carrier_id) > 1 or any(not ml.carrier_id for ml in move_line_ids):
                     # avoid (duplicate) costs for products
                     raise UserError(_("You cannot pack products into the same package when they have different carriers (i.e. check that all of their transfers have a carrier assigned and are using the same carrier)."))
-                return self._set_delivery_package_type(batch_pack=len(move_line_ids.picking_id) > 1)
+                return self.with_context(
+                    default_move_line_ids=move_line_ids.ids
+                )._set_delivery_package_type(batch_pack=len(move_line_ids.picking_id) > 1)
         else:
             return res
 
@@ -209,7 +226,7 @@ class StockPicking(models.Model):
             if not delivery_lines:
                 delivery_lines = sale_order._create_delivery_line(self.carrier_id, self.carrier_price)
             vals = self._prepare_sale_delivery_line_vals()
-            delivery_lines[0].write(vals)
+            delivery_lines[0].with_context(allow_delivery_cost_update=True).write(vals)
 
     def open_website_url(self):
         self.ensure_one()

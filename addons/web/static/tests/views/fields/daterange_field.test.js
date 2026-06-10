@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { after, beforeEach, expect, test } from "@odoo/hoot";
 import {
     click,
     queryAll,
@@ -16,15 +16,17 @@ import {
     clickSave,
     contains,
     defineModels,
+    defineParams,
     fields,
     models,
     mountView,
     onRpc,
     pagerNext,
 } from "../../web_test_helpers";
+import { resetDateFieldWidths } from "@web/views/list/column_width_hook";
 
 function getPickerCell(expr) {
-    return queryAll(`.o_datetime_picker .o_date_item_cell:contains(/^${expr}$/)`);
+    return queryAll(`.o_datetime_picker .o_date_item_cell:text(${expr})`);
 }
 
 class Partner extends models.Model {
@@ -124,6 +126,31 @@ test("Datetime field - interaction with the datepicker", async () => {
     // Check date after save
     expect("input[data-field=datetime]").toHaveValue("02/08/2017 15:30:00");
     expect("input[data-field=datetime_end]").toHaveValue("02/09/2017 05:30:00");
+});
+
+test("Datetime field - interaction with the datepicker (same initial dates)", async () => {
+    Partner._records[0].datetime_end = "2017-02-08 15:00:00";
+
+    await mountView({
+        type: "form",
+        resModel: "partner",
+        resId: 1,
+        arch: `
+            <form>
+                <field name="datetime" widget="daterange" options="{'end_date_field': 'datetime_end'}"/>
+            </form>`,
+    });
+    expect("input[data-field=datetime]").toHaveValue("02/08/2017 15:30:00");
+    expect("input[data-field=datetime_end]").toHaveValue("02/08/2017 20:30:00");
+    await contains("input[data-field=datetime]").click();
+    expect(".o_date_item_cell.o_select_start").toHaveText("8");
+    expect(".o_date_item_cell.o_select_end").toHaveText("8");
+    expect("input[data-field=datetime]").toBeFocused();
+    await contains(getPickerCell("8").at(0)).click();
+    expect("input[data-field=datetime_end]").toBeFocused();
+    await contains(getPickerCell("10").at(0)).click();
+    expect("input[data-field=datetime]").toHaveValue("02/08/2017 15:30:00");
+    expect("input[data-field=datetime_end]").toHaveValue("02/10/2017 20:30:00");
 });
 
 test.tags("desktop");
@@ -862,6 +889,9 @@ test("list daterange with empty start date and end date", async () => {
 
 test("list daterange: column widths", async () => {
     await resize({ width: 800 });
+    document.body.style.fontFamily = "sans-serif";
+    resetDateFieldWidths();
+    after(resetDateFieldWidths);
 
     Partner._fields.char_field = fields.Char();
     Partner._fields.date_end = fields.Date();
@@ -881,11 +911,80 @@ test("list daterange: column widths", async () => {
 
     expect(".o_data_row").toHaveCount(1);
     const columnWidths = queryAllProperties(".o_list_table thead th", "offsetWidth");
-    expect(columnWidths).toEqual([40, 189, 304, 267]);
+    expect(columnWidths).toEqual([40, 187, 310, 263]);
+});
+
+test("list daterange: column widths (fancy format)", async () => {
+    await resize({ width: 800 });
+    document.body.style.fontFamily = "sans-serif";
+
+    defineParams({
+        lang_parameters: {
+            date_format: "%a, %d %B %Y",
+            time_format: "%H:%M:%S %p",
+        },
+    });
+    resetDateFieldWidths();
+    after(resetDateFieldWidths);
+
+    Partner._fields.char_field = fields.Char();
+    Partner._fields.date_end = fields.Date();
+    Partner._records[0].date_end = "2017-02-04";
+    Partner._records[0].datetime_end = "2017-02-09 17:00:00";
+
+    await mountView({
+        type: "list",
+        resModel: "partner",
+        arch: /* xml */ `
+            <list>
+                <field name="date" widget="daterange" options="{'end_date_field': 'date_end'}" />
+                <field name="datetime" widget="daterange" options="{'end_date_field': 'datetime_end'}" />
+                <field name="char_field" />
+            </list>`,
+    });
+
+    expect(".o_data_row").toHaveCount(1);
+    expect(queryAllTexts(".o_data_cell")).toEqual([
+        "Fri, 03 February 2017\nSat, 04 February 2017",
+        "Wed, 08 February 2017 15:30:00 PM\nThu, 09 February 2017 22:30:00 PM",
+        "",
+    ]);
+    const columnWidths = queryAllProperties(".o_list_table thead th", "offsetWidth");
+    expect(columnWidths).toEqual([40, 375, 549, 100]);
+});
+
+test("list daterange: column widths (show_time=false)", async () => {
+    await resize({ width: 800 });
+    document.body.style.fontFamily = "sans-serif";
+    resetDateFieldWidths();
+    after(resetDateFieldWidths);
+
+    Partner._fields.char_field = fields.Char();
+    Partner._fields.date_end = fields.Date();
+    Partner._records[0].date_end = "2017-02-04";
+    Partner._records[0].datetime_end = "2017-02-09 17:00:00";
+
+    await mountView({
+        type: "list",
+        resModel: "partner",
+        arch: /* xml */ `
+            <list>
+                <field name="datetime" widget="daterange" options="{'show_time': false, 'end_date_field': 'datetime_end'}" />
+                <field name="char_field" />
+            </list>`,
+    });
+
+    expect(".o_data_row").toHaveCount(1);
+    expect(queryAllTexts(".o_data_cell")).toEqual(["02/08/2017\n02/09/2017", ""]);
+    const columnWidths = queryAllProperties(".o_list_table thead th", "offsetWidth");
+    expect(columnWidths).toEqual([40, 187, 573]);
 });
 
 test("list daterange: column widths (no record)", async () => {
     await resize({ width: 800 });
+    document.body.style.fontFamily = "sans-serif";
+    resetDateFieldWidths();
+    after(resetDateFieldWidths);
 
     Partner._fields.char_field = fields.Char();
     Partner._fields.date_end = fields.Date();
@@ -904,7 +1003,7 @@ test("list daterange: column widths (no record)", async () => {
 
     expect(".o_data_row").toHaveCount(0);
     const columnWidths = queryAllProperties(".o_list_table thead th", "offsetWidth");
-    expect(columnWidths).toEqual([40, 189, 304, 267]);
+    expect(columnWidths).toEqual([40, 187, 310, 263]);
 });
 
 test("always range: related end date, both start date and end date empty", async () => {

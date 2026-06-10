@@ -14,7 +14,7 @@ class HrEmployee(models.Model):
     attendance_manager_id = fields.Many2one(
         'res.users', store=True, readonly=False,
         domain="[('share', '=', False), ('company_ids', 'in', company_id)]",
-        groups="hr_attendance.group_hr_attendance_manager",
+        groups="hr_attendance.group_hr_attendance_officer",
         help="The user set in Attendance will access the attendance of the employee through the dedicated app and will be able to edit them.")
     attendance_ids = fields.One2many(
         'hr.attendance', 'employee_id', groups="hr_attendance.group_hr_attendance_officer,hr.group_hr_user")
@@ -75,6 +75,15 @@ class HrEmployee(models.Model):
         old_officers.sudo()._clean_attendance_officers()
 
         return res
+
+    def action_archive(self):
+        super().action_archive()
+        self.env['hr.attendance'].sudo().search([
+            ('employee_id', 'in', self.ids),
+            ('check_out', '=', False),
+        ]).write({
+            'check_out': fields.Datetime.now(),
+        })
 
     @api.depends('overtime_ids.duration', 'attendance_ids', 'attendance_ids.overtime_status')
     def _compute_total_overtime(self):
@@ -147,9 +156,11 @@ class HrEmployee(models.Model):
 
     @api.depends('attendance_ids')
     def _compute_last_attendance_id(self):
+        current_datetime = fields.Datetime.now()
         for employee in self:
             employee.last_attendance_id = self.env['hr.attendance'].search([
                 ('employee_id', 'in', employee.ids),
+                ('check_in', '<=', current_datetime),
             ], order="check_in desc", limit=1)
 
     @api.depends('last_attendance_id.check_in', 'last_attendance_id.check_out', 'last_attendance_id')

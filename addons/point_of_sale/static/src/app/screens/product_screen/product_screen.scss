@@ -10,20 +10,12 @@
     }
 
     @include media-breakpoint-down(sm) {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fill, 1fr);
     }
 }
 
 .button-no-demo {
     color: #017e84 !important;
-}
-
-.text-wrap-categ {
-    box-sizing: border-box;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 
 .btn-switchpane, .pay-order-button {

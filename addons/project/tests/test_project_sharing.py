@@ -308,6 +308,16 @@ class TestProjectSharing(TestProjectSharingCommon):
                 task = form.save()
 
         Task = Task.with_user(self.user_portal)
+
+        # Allow to set as parent a task he has access to
+        task = Task.create({'name': 'foo', 'parent_id': self.task_portal.id})
+        self.assertEqual(task.parent_id, self.task_portal)
+        # Disallow to set as parent a task he doesn't have access to
+        with self.assertRaises(AccessError, msg="Should not accept the portal user to set a parent task he doesn't have access to."):
+            Task.create({'name': 'foo', 'parent_id': self.task_no_collabo.id})
+        with self.assertRaises(AccessError, msg="Should not accept the portal user to set a parent task he doesn't have access to."):
+            task = Task.with_context(default_parent_id=self.task_no_collabo.id).create({'name': 'foo'})
+
         # Create/Update a forbidden task through child_ids
         with self.assertRaisesRegex(AccessError, "You cannot write on the following fields"):
             Task.create({'name': 'foo', 'child_ids': [Command.create({'name': 'Foo', 'color': 1})]})
@@ -368,6 +378,8 @@ class TestProjectSharing(TestProjectSharingCommon):
             3.1) Try to change the project of the new task with this user.
             3.2) Create a sub-task
             3.3) Create a second sub-task
+            4.1) Restrict to edit with limited access and try to edit a task with and without following it
+            4.2) Restrict to read and check he can no longer edit the tasks, even if he is within the followers
         """
         # 1) Give the 'read' access mode to a portal user in a project and try to create task with this user.
         with self.assertRaises(AccessError, msg="Should not accept the portal user create a task in the project when he has not the edit access right."):
@@ -423,6 +435,13 @@ class TestProjectSharing(TestProjectSharingCommon):
                 subtask_form.name = 'Test Subtask'
         self.assertEqual(len(task.child_ids), 2, 'Check 2 subtasks has correctly been created by the user portal.')
 
+        # Allow to set as parent a task he has access to
+        task.write({'parent_id': self.task_portal.id})
+        self.assertEqual(task.parent_id, self.task_portal)
+        # Disallow to set as parent a task he doesn't have access to
+        with self.assertRaises(AccessError, msg="Should not accept the portal user to set a parent task he doesn't have access to."):
+            task.write({'parent_id': self.task_no_collabo.id})
+
         # Create/Update a forbidden task through child_ids
         with self.assertRaisesRegex(AccessError, "You cannot write on the following fields"):
             task.write({'child_ids': [Command.create({'name': 'Foo', 'color': 1})]})
@@ -458,6 +477,44 @@ class TestProjectSharing(TestProjectSharingCommon):
         task.write({'tag_ids': [Command.set([self.task_tag.id])]})
         self.assertEqual(task.tag_ids, self.task_tag)
 
+        # 4.1) Restrict the collaborator access to edit with limited access, restricting the collaborator to edit task
+        # on which he is in the followers only
+        self.env['project.share.wizard'].create({
+            'res_model': 'project.project',
+            'res_id': self.project_cows.id,
+            'collaborator_ids': [
+                Command.create({'partner_id': self.user_portal.partner_id.id, 'access_mode': 'edit_limited'}),
+            ],
+        })
+        self.assertTrue(self.project_cows.collaborator_ids.limited_access)
+
+        # Removing the collaborator from the followers prevents him to edit the task
+        task.sudo().message_partner_ids -= self.user_portal.partner_id
+        with self.assertRaises(AccessError):
+            task.write({'name': 'foo'})
+
+        # Adding the collaborator back to the followers grants him to edit the task
+        task.sudo().message_partner_ids += self.user_portal.partner_id
+        task.write({'name': 'foo'})
+
+        # 4.2) Restrict the access to read and check he can no longer edit the tasks, even if he is within the followers
+        self.env['project.share.wizard'].create({
+            'res_model': 'project.project',
+            'res_id': self.project_cows.id,
+            'collaborator_ids': [
+                Command.create({'partner_id': self.user_portal.partner_id.id, 'access_mode': 'read'}),
+                # Create a second collaborator with edit just so that the project sharing record rules
+                # do not get automatically disabled when removing the last remaining edit collaborator
+                Command.create({'partner_id': self.env['res.partner'].create({'name': 'Alain'}).id, 'access_mode': 'edit'}),
+            ],
+        })
+        # Sanity check: Assert the project sharing record rule is still active
+        self.assertTrue(self.env.ref('project.project_task_rule_portal_project_sharing').active)
+
+        # Assert the collaborator can no longer write on the task despite he is still in the followers of the task
+        self.assertIn(self.user_portal.partner_id, task.sudo().message_partner_ids)
+        with self.assertRaises(AccessError):
+            task.write({'name': 'foo'})
 
     def test_portal_user_cannot_see_all_assignees(self):
         """ Test when the portal sees a task he cannot see all the assignees.
@@ -619,3 +676,24 @@ class TestProjectSharing(TestProjectSharingCommon):
         self.assertEqual(partners - partner_d, task_with_parent_partner.message_partner_ids,
                          "The first, second, and the company partner should be set as new followers for the task 3 because the partner of this task is the parent of the other 2")
         self.assertFalse(task_without_partner.message_partner_ids, "Since this task has no partner, no follower should be added")
+
+    def test_project_manager_remains_follower_after_sharing(self):
+        """
+        Test that the project manager remains a follower when collaborators are added
+        """
+        project = self.env['project.project'].with_context({'mail_create_nolog': True}).create({
+            'name': 'project',
+            'privacy_visibility': 'followers',
+            'user_id': self.user_projectmanager.id,
+        })
+        self.assertIn(self.user_projectmanager.partner_id, project.message_partner_ids, "Project manager should be a follower of the project")
+        project_share_wizard = self.env['project.share.wizard'].create({
+            'res_model': 'project.project',
+            'res_id': project.id,
+            'collaborator_ids': [
+                Command.create({'partner_id': self.user_portal.partner_id.id, 'access_mode': 'read'}),
+            ],
+        })
+        project_share_wizard.action_send_mail()
+        self.assertIn(self.user_projectmanager.partner_id, project.message_partner_ids, "Project manager should still be a follower after sharing the project")
+        self.assertEqual(len(project.message_follower_ids), 2, "number of followers should be 2")

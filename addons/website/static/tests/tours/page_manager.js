@@ -93,12 +93,6 @@ const deleteSelectedPage = [
 ];
 const homePage = 'tr:contains("Home")';
 
-const refreshPage = [
-    {
-        trigger: "body",
-        run() {window.location.reload();},
-    },
-];
 const duplicateSinglePage = [
     {
         content: "Click on checkbox",
@@ -126,7 +120,10 @@ const duplicateSinglePage = [
         trigger: ".modal-footer button.btn-primary",
         run: "click",
     },
-    ...refreshPage,
+    {
+        content: "Wait for the Test Duplicate to appear",
+        trigger: "td:contains('/test-duplicate-1')",
+    },
 ];
 
 const duplicateMultiplePage = [
@@ -162,7 +159,6 @@ const duplicateMultiplePage = [
         trigger: ".modal-footer button.btn-primary",
         run: "click",
     },
-    ...refreshPage,
 ];
 
 registerWebsitePreviewTour('website_page_manager', {

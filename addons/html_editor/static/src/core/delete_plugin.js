@@ -4,12 +4,9 @@ import {
     isAllowedContent,
     isButton,
     isContentEditable,
-    isEditorTab,
     isEmpty,
     isInPre,
-    isMediaElement,
     isProtected,
-    isSelfClosingElement,
     isShrunkBlock,
     isTangible,
     isTextNode,
@@ -43,7 +40,7 @@ import {
 import { CTYPES } from "../utils/content_types";
 import { withSequence } from "@html_editor/utils/resource";
 import { compareListTypes } from "@html_editor/main/list/utils";
-import { hasTouch, isBrowserChrome } from "@web/core/browser/feature_detection";
+import { hasTouch, isBrowserChrome, isMacOS } from "@web/core/browser/feature_detection";
 
 /**
  * @typedef {Object} RangeLike
@@ -63,7 +60,7 @@ import { hasTouch, isBrowserChrome } from "@web/core/browser/feature_detection";
  */
 
 export class DeletePlugin extends Plugin {
-    static dependencies = ["baseContainer", "selection", "history", "input"];
+    static dependencies = ["baseContainer", "selection", "history", "input", "userCommand"];
     static id = "delete";
     static shared = ["deleteRange", "deleteSelection", "delete"];
     resources = {
@@ -110,6 +107,36 @@ export class DeletePlugin extends Plugin {
     setup() {
         this.findPreviousPosition = this.makeFindPositionFn("backward");
         this.findNextPosition = this.makeFindPositionFn("forward");
+        if (isMacOS()) {
+            // Bypass the hotkey service for Alt+Backspace and Cmd+Backspace
+            // on macOS which would otherwise conflict with other shortcuts.
+            this.addDomListener(this.editable, "keydown", (event) => {
+                const runCommand = (commandId) => {
+                    this.dependencies.userCommand.getCommand(commandId).run();
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                };
+                // Delete word backward: Option + Backspace
+                if (event.altKey && event.key === "Backspace") {
+                    return runCommand("deleteBackwardWord");
+                }
+
+                // Delete word forward: Option + Delete
+                if (event.altKey && event.key === "Delete") {
+                    return runCommand("deleteForwardWord");
+                }
+
+                // Delete line backward: Command + Backspace
+                if (event.metaKey && event.key === "Backspace") {
+                    return runCommand("deleteBackwardLine");
+                }
+
+                // Delete line forward: Command + Delete
+                if (event.metaKey && event.key === "Delete") {
+                    return runCommand("deleteForwardLine");
+                }
+            });
+        }
     }
 
     // --------------------------------------------------------------------------
@@ -127,6 +154,19 @@ export class DeletePlugin extends Plugin {
         selection = this.dependencies.selection.setSelection(selection);
 
         if (selection.isCollapsed) {
+            return;
+        }
+        // Delete only if the targeted nodes are all editable or if every
+        // non-editable node's editable ancestor is fully selected. We use the
+        // targeted nodes here to be sure to include a partial text node
+        // selection.
+        const selectedNodes = this.dependencies.selection.getTargetedNodes();
+        const canBeDeleted = (node) =>
+            this.dependencies.selection.isNodeEditable(node) ||
+            selectedNodes.includes(
+                closestElement(node, (node) => this.dependencies.selection.isNodeEditable(node))
+            );
+        if (selectedNodes.some((node) => !canBeDeleted(node))) {
             return;
         }
 
@@ -150,6 +190,9 @@ export class DeletePlugin extends Plugin {
      */
     delete(direction, granularity) {
         const selection = this.dependencies.selection.getEditableSelection();
+
+        this.dependencies.history.stageSelection();
+
         this.dispatchTo("before_delete_handlers");
 
         if (!selection.isCollapsed) {
@@ -228,6 +271,22 @@ export class DeletePlugin extends Plugin {
 
     getRangeForDelete(node, offset, direction, granularity) {
         let destContainer, destOffset;
+        if (granularity === "word") {
+            // In some browsers such as Firefox or Safari, if the cursor
+            // is at the start of a block (when direction is "backward") or
+            // at the end of a block (when direction is "forward"),
+            // Selection.modify("extend", direction, "word") ends up
+            // selecting the previous or next adjacent text node, respectively.
+            // To handle such cases, the granularity should be "character".
+            const blockEl = closestBlock(node);
+            if (
+                (direction === "backward" &&
+                    this.isCursorAtStartOfElement(blockEl, node, offset)) ||
+                (direction === "forward" && this.isCursorAtEndOfElement(blockEl, node, offset))
+            ) {
+                granularity = "character";
+            }
+        }
         switch (granularity) {
             case "character":
                 [destContainer, destOffset] = this.findAdjacentPosition(node, offset, direction);
@@ -600,7 +659,11 @@ export class DeletePlugin extends Plugin {
             // The joinable in this case is its sibling (previous for the start
             // side, next for the end side), but only if inline.
             const sibling = childNodes(commonAncestor)[side === "start" ? offset - 1 : offset];
-            if (sibling && !isBlock(sibling) && !(sibling.nodeType === Node.TEXT_NODE && !isVisibleTextNode(sibling))) {
+            if (
+                sibling &&
+                !isBlock(sibling) &&
+                !(sibling.nodeType === Node.TEXT_NODE && !isVisibleTextNode(sibling))
+            ) {
                 return { node: sibling, type: "inline" };
             }
             // No fragment to join.
@@ -887,21 +950,33 @@ export class DeletePlugin extends Plugin {
      * @returns {Range}
      */
     expandRangeToIncludeNonEditables(range) {
-        const { startContainer, endContainer, commonAncestorContainer: commonAncestor } = range;
+        const {
+            startContainer,
+            startOffset,
+            endContainer,
+            endOffset,
+            commonAncestorContainer: commonAncestor,
+        } = range;
         const isNonEditable = (node) => !isContentEditable(node);
-        const startUneditable = findFurthest(startContainer, commonAncestor, isNonEditable);
+        const startUneditable =
+            startOffset === 0 &&
+            !previousLeaf(startContainer, closestBlock(startContainer)) &&
+            findFurthest(startContainer, commonAncestor, isNonEditable);
         if (startUneditable) {
             // @todo @phoenix: Review this spec. I suggest this instead (no block merge after removing):
             // startContainer = startUneditable.parentElement;
             // startOffset = childNodeIndex(startUneditable);
-            const leaf = previousLeaf(startUneditable);
+            const leaf = previousLeaf(startUneditable, this.editable);
             if (leaf) {
                 range.setStart(leaf, nodeSize(leaf));
             } else {
                 range.setStart(commonAncestor, 0);
             }
         }
-        const endUneditable = findFurthest(endContainer, commonAncestor, isNonEditable);
+        const endUneditable =
+            endOffset === nodeSize(endContainer) &&
+            !nextLeaf(endContainer, closestBlock(endContainer)) &&
+            findFurthest(endContainer, commonAncestor, isNonEditable);
         if (endUneditable) {
             range.setEndAfter(endUneditable);
         }
@@ -1032,9 +1107,16 @@ export class DeletePlugin extends Plugin {
             // TODO ABD: add test
             return true;
         }
-        const isZwnbspLinkPad = (node) =>
-            isButton(node.previousSibling) || isButton(node.nextSibling);
-        if (isZwnbsp(textNode) && isZwnbspLinkPad(textNode)) {
+        // Return true for FEFFs to the right of a button, such that the user
+        // can backspace the cursor into the button without deleting its first
+        // character. Return true for FEFFs to the left of an *empty* button,
+        // such that the user can delete the empty button without deleting also
+        // the first visible character to its left.
+        const isEmptyButton = (node) => isButton(node) && /^\ufeff*$/.test(node.textContent);
+        if (
+            isZwnbsp(textNode) &&
+            (isButton(textNode.previousSibling) || isEmptyButton(textNode.nextSibling))
+        ) {
             return true;
         }
         // ZWS and ZWNBSP are invisible.
@@ -1084,9 +1166,10 @@ export class DeletePlugin extends Plugin {
         if (leaf.nodeName === "BR" && isFakeLineBreak(leaf)) {
             return true;
         }
-        // @todo: register these as resources by other plugins?
         if (
-            [isSelfClosingElement, isMediaElement, isEditorTab].some((predicate) => predicate(leaf))
+            this.getResource("functional_empty_node_predicates").some((predicate) =>
+                predicate(leaf)
+            )
         ) {
             return false;
         }

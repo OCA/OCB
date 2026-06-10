@@ -4,6 +4,7 @@
 import logging
 import pytz
 import textwrap
+import urllib.parse
 
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
@@ -741,6 +742,10 @@ class EventEvent(models.Model):
         description = html_to_inner_content(self.description)
         return textwrap.shorten(description, 1900)
 
+    def _get_external_description_url_encoded(self):
+        """Get a url-encoded version of the description for mail templates."""
+        return urllib.parse.quote_plus(self._get_external_description())
+
     def _get_ics_file(self):
         """ Returns iCalendar file for the event invitation.
             :returns a dict of .ics file content for each event
@@ -757,7 +762,11 @@ class EventEvent(models.Model):
             cal_event.add('dtstart').value = event.date_begin.astimezone(pytz.timezone(event.date_tz))
             cal_event.add('dtend').value = event.date_end.astimezone(pytz.timezone(event.date_tz))
             cal_event.add('summary').value = event.name
-            cal_event.add('description').value = event._get_external_description()
+            external_description = event._get_external_description()
+            cal_event.add('description').value = external_description
+            xalt = cal_event.add('X-ALT-DESC')
+            xalt.value = external_description
+            xalt.params['FMTTYPE'] = ['text/html']
             if event.address_id:
                 cal_event.add('location').value = event.address_inline
 

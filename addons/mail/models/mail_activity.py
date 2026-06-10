@@ -235,13 +235,9 @@ class MailActivity(models.Model):
 
         forbidden_ids = []
         for doc_model, docid_actids in model_docid_actids.items():
-            documents = self.env[doc_model].browse(docid_actids)
-            doc_operation = getattr(
-                documents, '_mail_post_access', 'read' if operation == 'read' else 'write'
-            )
-            if doc_result := documents._check_access(doc_operation):
-                for document in doc_result[0]:
-                    forbidden_ids.extend(docid_actids[document.id])
+            allowed = self.env['mail.message']._filter_records_for_message_operation(doc_model, docid_actids, operation)
+            for document_id in [doc_id for doc_id in docid_actids if doc_id not in allowed.ids]:
+                forbidden_ids.extend(docid_actids[document_id])
 
         if forbidden_ids:
             forbidden = self.browse(forbidden_ids)
@@ -292,49 +288,67 @@ class MailActivity(models.Model):
 
         # subscribe (batch by model and user to speedup)
         for model, activity_data in activities._classify_by_model().items():
-            per_user = dict()
+            per_user = defaultdict(set)
             for activity in activity_data['activities'].filtered(lambda act: act.user_id):
-                if activity.user_id not in per_user:
-                    per_user[activity.user_id] = [activity.res_id]
-                else:
-                    per_user[activity.user_id].append(activity.res_id)
+                per_user[activity.user_id].add(activity.res_id)
             for user, res_ids in per_user.items():
                 pids = user.partner_id.ids if user.partner_id in readable_user_partners else user.sudo().partner_id.ids
                 self.env[model].browse(res_ids).message_subscribe(partner_ids=pids)
 
         # send notifications about activity creation
-        todo_activities = activities.filtered(lambda act: act.date_deadline <= fields.Date.today())
+        todo_activities = activities.filtered(lambda act: act.active and act.date_deadline <= fields.Date.today())
         if todo_activities:
-            activity.user_id._bus_send("mail.activity/updated", {"activity_created": True})
+            for user, user_activities in todo_activities.grouped('user_id').items():
+                user._bus_send("mail.activity/updated", {"activity_created": True, "count_diff": len(user_activities)})
         return activities
 
     def write(self, values):
-        if values.get('user_id'):
-            user_changes = self.filtered(lambda activity: activity.user_id.id != values.get('user_id'))
-            pre_responsibles = user_changes.user_id
-        res = super(MailActivity, self).write(values)
+        today = fields.Date.today()
 
+        def get_user_todo_activity_count(activities):
+            return {
+                user: len(user_activities.filtered(lambda a: a.active and a.date_deadline <= today))
+                for user, user_activities in activities.grouped('user_id').items()
+            }
+
+        original_user_todo_activity_count = None
+        if 'date_deadline' in values or 'active' in values or 'user_id' in values:
+            original_user_todo_activity_count = get_user_todo_activity_count(self)
+
+        new_user_activities = self.env['mail.activity']
         if values.get('user_id'):
+            new_user_activities = self.filtered(lambda activity: activity.user_id.id != values.get('user_id'))
+
+        res = super().write(values)
+
+        # notify new responsibles
+        if 'user_id' in values:
             if values['user_id'] != self.env.uid:
                 if not self.env.context.get('mail_activity_quick_update', False):
-                    user_changes.action_notify()
-            for activity in user_changes:
-                self.env[activity.res_model].browse(activity.res_id).message_subscribe(partner_ids=[activity.user_id.partner_id.id])
+                    new_user_activities.action_notify()
+            new_user = self.env['res.users'].browse(values['user_id'])
+            for res_model, model_activities in new_user_activities.grouped('res_model').items():
+                res_ids = list(set(model_activities.mapped('res_id')))
+                self.env[res_model].browse(res_ids).message_subscribe(partner_ids=new_user.partner_id.ids)
 
-            # send bus notifications
-            todo_activities = user_changes.filtered(lambda act: act.date_deadline <= fields.Date.today())
-            if todo_activities:
-                todo_activities.user_id._bus_send(
-                    "mail.activity/updated", {"activity_created": True}
-                )
-                pre_responsibles._bus_send("mail.activity/updated", {"activity_deleted": True})
+        # update activity counter
+        if original_user_todo_activity_count is not None:
+            new_user_todo_activity_count = get_user_todo_activity_count(self)
+            for user in new_user_todo_activity_count.keys() | original_user_todo_activity_count.keys():
+                count_diff = new_user_todo_activity_count.get(user, 0) - original_user_todo_activity_count.get(user, 0)
+                if count_diff > 0:
+                    user._bus_send("mail.activity/updated", {"activity_created": True, "count_diff": count_diff})
+                elif count_diff < 0:
+                    user._bus_send("mail.activity/updated", {"activity_deleted": True, "count_diff": count_diff})
+
         return res
 
     def unlink(self):
-        todo_activities = self.filtered(lambda act: act.date_deadline <= fields.Date.today())
+        todo_activities = self.filtered(lambda act: act.active and act.date_deadline <= fields.Date.today())
         if todo_activities:
-            todo_activities.user_id._bus_send("mail.activity/updated", {"activity_deleted": True})
-        return super(MailActivity, self).unlink()
+            for user, user_activities in todo_activities.grouped('user_id').items():
+                user._bus_send("mail.activity/updated", {"activity_deleted": True, "count_diff": -len(user_activities)})
+        return super().unlink()
 
     @api.model
     def _search(self, domain, offset=0, limit=None, order=None):
@@ -365,11 +379,10 @@ class MailActivity(models.Model):
 
         allowed_ids = defaultdict(set)
         for res_model, res_ids in model_ids.items():
-            records = self.env[res_model].browse(res_ids)
-            # fall back on related document access right checks. Use the same as defined for mail.thread
-            # if available; otherwise fall back on read
-            operation = getattr(records, '_mail_post_access', 'read')
-            allowed_ids[res_model] = set(records._filtered_access(operation)._ids)
+            allowed = self.env['mail.message']._filter_records_for_message_operation(
+                res_model, res_ids, 'read',
+            )
+            allowed_ids[res_model] = set(allowed._ids)
 
         activities = self.browse(
             id_
@@ -391,7 +404,16 @@ class MailActivity(models.Model):
     def action_notify(self):
         if not self:
             return
+
+        classified = self._classify_by_model()
+        for model, activity_data in classified.items():
+            records_sudo = self.env[model].sudo().browse(activity_data['record_ids'])
+            activity_data['record_ids'] = records_sudo.exists().ids  # in case record was cascade-deleted in DB, skipping unlink override
+
         for activity in self:
+            if activity.res_id not in classified[activity.res_model]['record_ids']:
+                continue
+
             if activity.user_id.lang:
                 # Send the notification in the assigned user's language
                 activity = activity.with_context(lang=activity.user_id.lang)
@@ -513,6 +535,7 @@ class MailActivity(models.Model):
             # Allow user without access to the record to "mark as done" activities assigned to them. At the end of the
             # method, the activity is unlinked or archived which ensure the user has enough right on the activities.
             records_sudo = self.env[model].sudo().browse(activity_data['record_ids'])
+            existing = records_sudo.exists()  # in case record was cascade-deleted in DB, skipping unlink override
             for record_sudo, activity in zip(records_sudo, activity_data['activities']):
                 # extract value to generate next activities
                 if activity.chaining_type == 'trigger':
@@ -520,18 +543,22 @@ class MailActivity(models.Model):
                     next_activities_values.append(vals)
 
                 # post message on activity, before deleting it
-                activity_message = record_sudo.message_post_with_source(
-                    'mail.message_activity_done',
-                    attachment_ids=attachment_ids,
-                    author_id=self.env.user.partner_id.id,
-                    render_values={
-                        'activity': activity,
-                        'feedback': feedback,
-                        'display_assignee': activity.user_id != self.env.user
-                    },
-                    mail_activity_type_id=activity.activity_type_id.id,
-                    subtype_xmlid='mail.mt_activities',
-                )
+                if record_sudo in existing:
+                    activity_message = record_sudo.message_post_with_source(
+                        'mail.message_activity_done',
+                        attachment_ids=attachment_ids,
+                        author_id=self.env.user.partner_id.id,
+                        render_values={
+                            'activity': activity,
+                            'feedback': feedback,
+                            'display_assignee': activity.user_id != self.env.user
+                        },
+                        mail_activity_type_id=activity.activity_type_id.id,
+                        subtype_xmlid='mail.mt_activities',
+                    )
+                else:
+                    activity_message = self.env['mail.message']
+
                 if activity.activity_type_id.keep_done:
                     attachment_ids = (attachment_ids or []) + activity_attachments.get(activity.id, [])
                     if attachment_ids:
@@ -540,7 +567,7 @@ class MailActivity(models.Model):
                 # Moving the attachments in the message
                 # TODO: Fix void res_id on attachment when you create an activity with an image
                 # directly, see route /web_editor/attachment/add
-                if activity_attachments[activity.id]:
+                if activity_attachments[activity.id] and activity_message:
                     message_attachments = self.env['ir.attachment'].browse(activity_attachments[activity.id])
                     if message_attachments:
                         message_attachments.write({
@@ -548,6 +575,9 @@ class MailActivity(models.Model):
                             'res_model': activity_message._name,
                         })
                         activity_message.attachment_ids = message_attachments
+                # removing attachments linked to activity if record is missing
+                elif activity_attachments[activity.id]:
+                    self.env['ir.attachment'].browse(activity_attachments[activity.id]).unlink()
                 messages += activity_message
 
         next_activities = self.env['mail.activity']
@@ -566,8 +596,18 @@ class MailActivity(models.Model):
 
     @api.readonly
     def action_open_document(self):
-        """ Opens the related record based on the model and ID """
+        """ Opens the related record based on the model and ID, or activity if user has no
+         access to the related record."""
         self.ensure_one()
+        if not self.env[self.res_model].browse(self.res_id).has_access('read'):
+            return {
+                'res_id': self.id,
+                'res_model': 'mail.activity',
+                'target': 'current',
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'views': [(self.env.ref('mail.mail_activity_view_form_without_record_access').id, 'form')],
+            }
         return {
             'res_id': self.res_id,
             'res_model': self.res_model,

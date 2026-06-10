@@ -72,16 +72,18 @@ class MicrosoftSync(models.AbstractModel):
         result = super().write(vals)
 
         if self.env.user._get_microsoft_sync_status() != "sync_paused":
+            timeout = self._get_microsoft_graph_timeout()
+
             for record in self:
                 if record.need_sync_m and record.microsoft_id:
                     if not vals.get('active', True):
                         # We need to delete the event. Cancel is not sufficient. Errors may occur.
-                        record._microsoft_delete(record._get_organizer(), record.microsoft_id, timeout=3)
+                        record._microsoft_delete(record._get_organizer(), record.microsoft_id, timeout=timeout)
                     elif fields_to_sync:
                         values = record._microsoft_values(fields_to_sync)
                         if not values:
                             continue
-                        record._microsoft_patch(record._get_organizer(), record.microsoft_id, values, timeout=3)
+                        record._microsoft_patch(record._get_organizer(), record.microsoft_id, values, timeout=timeout)
 
         return result
 
@@ -93,9 +95,11 @@ class MicrosoftSync(models.AbstractModel):
         records = super().create(vals_list)
 
         if self.env.user._get_microsoft_sync_status() != "sync_paused":
+            timeout = self._get_microsoft_graph_timeout()
+
             for record in records:
                 if record.need_sync_m and record.active:
-                    record._microsoft_insert(record._microsoft_values(self._get_microsoft_synced_fields()), timeout=3)
+                    record._microsoft_insert(record._microsoft_values(self._get_microsoft_synced_fields()), timeout=timeout)
         return records
 
     @api.model
@@ -140,9 +144,7 @@ class MicrosoftSync(models.AbstractModel):
         for record in new_records:
             values = record._microsoft_values(self._get_microsoft_synced_fields())
             sender_user = record._get_event_user_m()
-            # Prevent current user to synchronize new events of non-synchronized users, otherwise the event
-            # ownership will be lost in Outlook and it will block the future event sync for the original owner.
-            if record.user_id and record.user_id != self.env.user and sender_user == self.env.user:
+            if record._is_microsoft_insertion_blocked(sender_user):
                 continue
             if isinstance(values, dict):
                 record._microsoft_insert(values)
@@ -455,6 +457,18 @@ class MicrosoftSync(models.AbstractModel):
         """
         raise NotImplementedError()
 
+    @api.model
+    def _get_microsoft_graph_timeout(self):
+        """Return Microsoft Graph request timeout (seconds).
+
+        Keep current behavior by default (5s), but allow admins to increase it
+        through a system parameter.
+        """
+        timeout = self.env['ir.config_parameter'].sudo().get_param('microsoft_calendar.graph_timeout')
+        if not timeout or not timeout.isdigit():
+            return 5
+        return max(1, int(timeout))
+
     def _microsoft_values(self, fields_to_sync):
         """
         Implements this method to return a dict with values formatted
@@ -521,3 +535,13 @@ class MicrosoftSync(models.AbstractModel):
         """
         self.ensure_one()
         return True
+
+    def _is_microsoft_insertion_blocked(self, sender_user):
+        """
+        Returns True if the record insertion to Microsoft should be blocked.
+        This is a necessary step for ensuring data match between Odoo and Microsoft,
+        as it prevents attendees to synchronize new records on behalf of the owners,
+        otherwise the event ownership would be lost in Outlook and it would block the
+        future record synchronization for the original owner.
+        """
+        raise NotImplementedError()

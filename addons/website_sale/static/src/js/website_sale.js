@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { redirect } from '@web/core/utils/urls';
 import publicWidget from "@web/legacy/js/public/public_widget";
 import VariantMixin from "@website_sale/js/sale_variant_mixin";
 import wSaleUtils from "@website_sale/js/website_sale_utils";
@@ -230,7 +231,7 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, cartHandlerM
             if (!data.cart_quantity) {
                 // Ensures last cart removal is recorded
                 browser.sessionStorage.setItem('website_sale_cart_quantity', 0);
-                return window.location = '/shop/cart';
+                return redirect('/shop/cart');
             }
             $input.val(data.quantity);
             $('.js_quantity[data-line-id='+line_id+']').val(data.quantity).text(data.quantity);
@@ -575,7 +576,7 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, cartHandlerM
                 oldurl += '&noFuzzy=true';
             }
             var search = $this.find('input.search-query');
-            window.location = oldurl + '&' + search.attr('name') + '=' + encodeURIComponent(search.val());
+            redirect(oldurl + '&' + search.attr('name') + '=' + encodeURIComponent(search.val()));
         }
     },
     /**
@@ -853,6 +854,9 @@ publicWidget.registry.websiteSaleProductPageReviews = publicWidget.Widget.extend
         await this._super(...arguments);
         this._updateChatterComposerPosition();
         extraMenuUpdateCallbacks.push(this._updateChatterComposerPosition.bind(this));
+        const reviewsContent = this.el.querySelector("#o_product_page_reviews_content");
+        const reviewsTitle = this.el.querySelector(".o_product_page_reviews_title");
+        reviewsTitle.classList.toggle("collapsed", !reviewsContent.classList.contains("show"));
     },
     /**
      * @override

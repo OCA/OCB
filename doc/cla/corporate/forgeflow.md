@@ -23,3 +23,7 @@ Joan Sisquella joan.sisquella@forgeflow.com https://github.com/JoanSForgeFlow
 Guillem Casassas guillem.casassas@forgeflow.com https://github.com/GuillemCForgeFlow
 Arnau Cruz arnau.cruz@forgeflow.com https://github.com/ArnauCForgeFlow
 Ricard Calvo ricard.calvo@forgeflow.com https://github.com/RicardCForgeFlow
+Marina Alapont marina.alapont@forgeflow.com https://github.com/MarinaAForgeFlow
+Thiago Mulero thiago.mulero@forgeflow.com https://github.com/ThiagoMForgeFlow
+Laura Cazorla laura.cazorla@forgeflow.com https://github.com/LauraCForgeFlow
+Alex Paris alex.paris@forgeflow.com https://github.com/AlexPForgeFlow

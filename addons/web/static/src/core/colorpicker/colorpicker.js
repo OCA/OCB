@@ -3,12 +3,15 @@ import {
     convertHslToRgb,
     convertRgbaToCSSColor,
     convertRgbToHsl,
+    normalizeCSSColor,
 } from "@web/core/utils/colors";
 import { uniqueId } from "@web/core/utils/functions";
 import { clamp } from "@web/core/utils/numbers";
 import { debounce, useThrottleForAnimation } from "@web/core/utils/timing";
 
 import { Component, onMounted, onWillUpdateProps, useExternalListener, useRef } from "@odoo/owl";
+
+const DEFAULT_COLOR = "#FF0000";
 
 export class Colorpicker extends Component {
     static template = "web.Colorpicker";
@@ -24,7 +27,7 @@ export class Colorpicker extends Component {
     };
     static defaultProps = {
         document: window.document,
-        defaultColor: "#FF0000",
+        defaultColor: DEFAULT_COLOR,
         noTransparency: false,
         stopClickPropagation: false,
         onColorSelect: () => {},
@@ -79,7 +82,8 @@ export class Colorpicker extends Component {
             const defaultCssColor = this.props.selectedColor
                 ? this.props.selectedColor
                 : this.props.defaultColor;
-            const rgba = convertCSSColorToRgba(defaultCssColor);
+            const rgba =
+                convertCSSColorToRgba(defaultCssColor) || convertCSSColorToRgba(DEFAULT_COLOR);
             if (rgba) {
                 this._updateRgba(rgba.red, rgba.green, rgba.blue, rgba.opacity);
             }
@@ -91,7 +95,9 @@ export class Colorpicker extends Component {
             const newSelectedColor = newProps.selectedColor
                 ? newProps.selectedColor
                 : newProps.defaultColor;
-            this.setSelectedColor(newSelectedColor);
+            if (normalizeCSSColor(newSelectedColor) !== this.colorComponents.cssColor) {
+                this.setSelectedColor(newSelectedColor);
+            }
         });
     }
 

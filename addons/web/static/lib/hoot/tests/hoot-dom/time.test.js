@@ -1,12 +1,22 @@
 /** @odoo-module */
 
-import { describe, expect, test } from "@odoo/hoot";
-import { animationFrame, delay, microTick, waitUntil } from "@odoo/hoot-dom";
-import { Deferred, advanceTime, runAllTimers, tick } from "@odoo/hoot-mock";
+import {
+    Deferred,
+    advanceTime,
+    animationFrame,
+    describe,
+    expect,
+    microTick,
+    runAllTimers,
+    test,
+    tick,
+    waitUntil,
+} from "@odoo/hoot";
 import { parseUrl } from "../local_helpers";
 
 // timeout of 1 second to ensure all timeouts are actually mocked
-describe.timeout(1_000)(parseUrl(import.meta.url), () => {
+describe.timeout(1_000);
+describe(parseUrl(import.meta.url), () => {
     test("advanceTime", async () => {
         expect.assertions(8);
 
@@ -100,18 +110,7 @@ describe.timeout(1_000)(parseUrl(import.meta.url), () => {
     });
 
     test("waitUntil: rejects", async () => {
-        const promise = waitUntil(() => false, { timeout: 1 }).catch(() => expect.step("rejected"));
-
-        expect.verifySteps([]);
-        expect(promise).toBeInstanceOf(Promise);
-
-        await delay(1);
-
-        expect.verifySteps([]);
-
-        await animationFrame();
-
-        expect.verifySteps(["rejected"]);
+        await expect(waitUntil(() => false, { timeout: 0 })).rejects.toThrow();
     });
 
     test("waitUntil: lazy", async () => {

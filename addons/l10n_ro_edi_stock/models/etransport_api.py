@@ -1,3 +1,4 @@
+from json import JSONDecodeError
 import requests
 import re
 
@@ -62,12 +63,14 @@ class ETransportAPI:
                 return {'error': response.json()['message']}
             case 403:
                 return {'error': _("Access token is forbidden.")}
+            case 401:
+                return {'error': _("Access token is unauthorized.")}
             case 204:
                 return {'error': _("You reached the limit of requests. Please try again later.")}
 
         try:
             response_data = response.json()
-        except requests.exceptions.JSONDecodeError as e:
+        except JSONDecodeError as e:
             return {'error': str(e)}
 
         if response_data['ExecutionStatus'] == 1:

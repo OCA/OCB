@@ -354,8 +354,6 @@ class Company(models.Model):
             and self.filtered(lambda company: not company.country_id)
             or self.browse()
         )
-        if not invalidation_fields.isdisjoint(values):
-            self.env.registry.clear_cache()
 
         if not asset_invalidation_fields.isdisjoint(values):
             # this is used in the content of an asset (see asset_styles_company_report)
@@ -372,6 +370,10 @@ class Company(models.Model):
 
         res = super(Company, self).write(values)
 
+        # Must be done after call to super
+        if not invalidation_fields.isdisjoint(values):
+            self.env.registry.clear_cache()
+
         # Archiving a company should also archive all of its branches
         if values.get('active') is False:
             self.child_ids.active = False
@@ -383,8 +385,12 @@ class Company(models.Model):
                     ('id', 'child_of', company.id),
                     ('id', '!=', company.id),
                 ])
-                for fname in sorted(changed):
-                    branches[fname] = company[fname]
+
+                changed_vals = {
+                    fname: self._fields[fname].convert_to_write(company[fname], branches)
+                    for fname in sorted(changed)
+                }
+                branches.write(changed_vals)
 
         if companies_needs_l10n:
             companies_needs_l10n.install_l10n_modules()
@@ -476,3 +482,23 @@ class Company(models.Model):
             },
             'views': [[False, 'list'], [False, 'kanban'], [False, 'form']],
         }
+
+    def _get_public_user(self):
+        self.ensure_one()
+        # We need sudo to be able to see public users from others companies too
+        public_users = self.env.ref('base.group_public').sudo().with_context(active_test=False).users
+        public_users_for_company = public_users.filtered(lambda user: user.company_id == self)
+
+        if public_users_for_company:
+            return public_users_for_company[0]
+        else:
+            return self.env.ref('base.public_user').sudo().copy({
+                'name': 'Public user for %s' % self.name,
+                'login': 'public-user@company-%s.com' % self.id,
+                'company_id': self.id,
+                'company_ids': [(6, 0, [self.id])],
+            })
+
+    @ormcache()
+    def _get_company_partner_ids(self):
+        return tuple(self.env['res.company'].sudo().with_context(active_test=False).search([]).partner_id.ids)

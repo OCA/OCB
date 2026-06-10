@@ -2,7 +2,7 @@
 
 from psycopg2 import IntegrityError
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command
 from odoo.tests import tagged, TransactionCase, Form
 from odoo.tools import mute_logger
@@ -25,6 +25,16 @@ class TestLoyalty(TransactionCase):
             'name': "Test Product",
             'type': 'consu',
             'list_price': 20.0,
+        })
+
+    def create_program_with_code(self, code):
+        return self.env['loyalty.program'].create({
+            'name': "Discount delivery",
+            'program_type': 'promo_code',
+            'rule_ids': [Command.create({
+                'code': code,
+                'minimum_amount': 0,
+            })],
         })
 
     def test_loyalty_program_default_values(self):
@@ -171,6 +181,15 @@ class TestLoyalty(TransactionCase):
         after_archived_reward_ids = self.program.reward_ids
         self.assertEqual(before_archived_reward_ids, after_archived_reward_ids)
 
+    def test_prevent_archive_pricelist_linked_to_program(self):
+        self.program.pricelist_ids = demo_pricelist = self.env['product.pricelist'].create({
+            'name': "Demo"
+        })
+        with self.assertRaises(UserError):
+            demo_pricelist.action_archive()
+        self.program.action_archive()
+        demo_pricelist.action_archive()
+
     def test_prevent_archiving_product_linked_to_active_loyalty_reward(self):
         self.program.program_type = 'promotion'
         self.program.flush_recordset()
@@ -301,3 +320,25 @@ class TestLoyalty(TransactionCase):
             "Free Product - [Test Product, Test Product 2]",
             "Reward description for reward with tag should be 'Free Product - [Test Product, Test Product 2]'"
         )
+
+    def test_prevent_unarchive_when_conflicting_active_program_exists(self):
+        """Unarchiving a program should fail if another active program already has the same rule
+           code."""
+        program = self.create_program_with_code("FREE")
+        program.action_archive()
+        # create another active program with the same rule code
+        self.create_program_with_code("FREE")
+        # attempt to unarchive the first program
+        with self.assertRaises(ValidationError):
+            program.action_unarchive()
+
+    def test_prevent_unarchive_when_batch_contains_duplicate_codes(self):
+        """Unarchiving multiple programs at once should fail if they share the same rule code."""
+        program1 = self.create_program_with_code("FREE")
+        program1.action_archive()
+        # create another program with the same rule code and archive it
+        program2 = self.create_program_with_code("FREE")
+        program2.action_archive()
+        # attempt to unarchive both programs together
+        with self.assertRaises(ValidationError):
+            (program1 + program2).action_unarchive()

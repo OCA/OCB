@@ -118,8 +118,8 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
         amls = self.env['account.move.line'].search([('id', 'not in', all_amls_ids)])
         all_amls_ids += amls.ids
         self.assertRecordValues(amls, [
-            {'account_id': stock_valu_acc_id,   'product_id': self.product_a.id,    'debit': 0.0,   'credit': 110.0},
-            {'account_id': stock_in_acc_id,     'product_id': self.product_a.id,    'debit': 110.0, 'credit': 0.0},
+            {'account_id': stock_out_acc_id,      'product_id': self.product_a.id,    'debit': 0.0,   'credit': 110.0},
+            {'account_id': stock_valu_acc_id,     'product_id': self.product_a.id,    'debit': 110.0, 'credit': 0.0},
         ])
 
         # return to stock location
@@ -182,14 +182,12 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
         purchase_order.button_confirm()
         dropship_transfer = purchase_order.picking_ids[0]
         dropship_transfer.move_ids[0].quantity = 50
-        res = dropship_transfer.button_validate()
-        wizard = Form(self.env[res['res_model']].with_context(res['context'])).save()
-        wizard.process()
+        dropship_transfer.with_context(cancel_backorder=False)._action_done()
         account_move_1 = sale_order._create_invoices()
         account_move_1.action_post()
         dropship_backorder = dropship_transfer.backorder_ids[0]
         dropship_backorder.move_ids[0].quantity = 50
-        dropship_backorder.button_validate()
+        dropship_backorder._action_done()
         account_move_2 = sale_order._create_invoices()
         account_move_2.action_post()
 
@@ -223,6 +221,7 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
             'property_account_expense_id': self.copy_account(self.company_data['default_account_expense']).id,
             'taxes_id': [Command.set((self.tax_sale_a + self.tax_sale_b).ids)],
             'supplier_taxes_id': [Command.set((self.tax_purchase_a + self.tax_purchase_b).ids)],
+            'is_storable': True
         })
         kit_bom = self.env['mrp.bom'].create({
             'product_tmpl_id': kit_final_prod.product_tmpl_id.id,
@@ -230,13 +229,19 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
             'product_qty': 1.0,
             'type': 'phantom',
         })
-        kit_bom.bom_line_ids = [(0, 0, {
-            'product_id': self.product_b.id,
-            'product_qty': 4,
-        }), (0, 0, {
-            'product_id': product_c.id,
-            'product_qty': 2,
-        })]
+        # bom line of product_c is expressed in unit to check the uom conversion (24 unit should give the same result as 2 dozens)
+        kit_bom.bom_line_ids = [
+            Command.create({
+                'product_id': self.product_b.id,
+                'product_qty': 4,
+
+            }),
+            Command.create({
+                'product_id': product_c.id,
+                'product_qty': 24,
+                'product_uom_id': self.env.ref('uom.product_uom_unit').id
+            })
+        ]
 
         self.env['product.supplierinfo'].create({
             'product_id': self.product_b.id,
@@ -248,7 +253,7 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
             'partner_id': self.partner_a.id,
             'price': 100,
         })
-
+        self.product_b.standard_price = 10
         (kit_final_prod + self.product_b).categ_id.write({
             'property_cost_method': 'fifo',
             'property_valuation': 'real_time',
@@ -256,7 +261,7 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
 
         sale_order = self.env['sale.order'].create({
             'partner_id': self.partner_b.id,
-            'order_line': [(0, 0, {
+            'order_line': [Command.create({
                 'price_unit': 900,
                 'product_id': kit_final_prod.id,
                 'route_id': self.dropship_route.id,
@@ -267,7 +272,6 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
         purchase_order = sale_order._get_purchase_orders()[0]
         purchase_order.button_confirm()
         dropship_transfer = purchase_order.picking_ids[0]
-        dropship_transfer.move_ids[0].quantity = 2.0
         dropship_transfer.button_validate()
 
         account_move = sale_order._create_invoices()

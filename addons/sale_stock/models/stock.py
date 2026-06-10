@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 
-from odoo import api, fields, models, _
+from odoo import api, Command, fields, models
 from odoo.tools.sql import column_exists, create_column
 
 
@@ -22,6 +22,12 @@ class StockMove(models.Model):
         distinct_fields.append('sale_line_id')
         return distinct_fields
 
+    def _prepare_procurement_values(self):
+        res = super()._prepare_procurement_values()
+        if self.sale_line_id.analytic_distribution:
+            res['analytic_distribution'] = self.sale_line_id.analytic_distribution
+        return res
+
     def _get_related_invoices(self):
         """ Overridden from stock_account to return the customer invoices
         related to this stock move.
@@ -34,7 +40,7 @@ class StockMove(models.Model):
 
     def _get_source_document(self):
         res = super()._get_source_document()
-        return self.sudo().sale_line_id.order_id or res
+        return self.sale_line_id.order_id or res
 
     def _get_sale_order_lines(self):
         """ Return all possible sale order lines for one stock move. """
@@ -56,12 +62,20 @@ class StockMove(models.Model):
     def _get_all_related_sm(self, product):
         return super()._get_all_related_sm(product) | self.filtered(lambda m: m.sale_line_id.product_id == product)
 
+    def write(self, vals):
+        res = super().write(vals)
+        if 'product_id' in vals:
+            for move in self:
+                if move.sale_line_id and move.product_id != move.sale_line_id.product_id:
+                    move.sale_line_id = False
+        return res
+
 
 class StockMoveLine(models.Model):
     _inherit = "stock.move.line"
 
     def _should_show_lot_in_invoice(self):
-        return 'customer' in {self.location_id.usage, self.location_dest_id.usage}
+        return 'customer' in {self.location_id.usage, self.location_dest_id.usage} or self.env.ref('stock.stock_location_inter_company') in (self.location_id, self.location_dest_id)
 
 
 class ProcurementGroup(models.Model):
@@ -92,16 +106,13 @@ class StockPicking(models.Model):
     def _set_sale_id(self):
         if self.group_id:
             self.group_id.sale_id = self.sale_id
-        else:
-            if self.sale_id:
-                vals = {
-                    'sale_id': self.sale_id.id,
-                    'name': self.sale_id.name,
-                }
-            else:
-                vals = {}
-
+        elif self.sale_id:
+            vals = {
+                'sale_id': self.sale_id.id,
+                'name': self.sale_id.name,
+            }
             pg = self.env['procurement.group'].create(vals)
+            self.move_ids.group_id = pg
             self.group_id = pg
 
     def _auto_init(self):
@@ -135,22 +146,27 @@ class StockPicking(models.Model):
 
             so_line_vals = {
                 'move_ids': [(4, move.id, 0)],
-                'name': product.display_name,
+                'name': product.with_context(lang=sale_order.partner_id.lang).get_product_multiline_description_sale(),
                 'order_id': sale_order.id,
                 'product_id': product.id,
                 'product_uom_qty': 0,
                 'qty_delivered': quantity,
                 'product_uom': move.product_uom.id,
             }
+            so_line = sale_order.order_line.filtered(lambda sol: sol.product_id == product)
             if product.invoice_policy == 'delivery':
                 # Check if there is already a SO line for this product to get
                 # back its unit price (in case it was manually updated).
-                so_line = sale_order.order_line.filtered(lambda sol: sol.product_id == product)
                 if so_line:
                     so_line_vals['price_unit'] = so_line[0].price_unit
             elif product.invoice_policy == 'order':
                 # No unit price if the product is invoiced on the ordered qty.
                 so_line_vals['price_unit'] = 0
+            # New lines should be added at the bottom of the SO (higher sequence number)
+            if not so_line:
+                so_line_vals['sequence'] = (
+                    max(sale_order.order_line.mapped('sequence'), default=0) + len(sale_order_lines_vals) + 1
+                )
             sale_order_lines_vals.append(so_line_vals)
 
         if sale_order_lines_vals:
@@ -208,14 +224,21 @@ class StockLot(models.Model):
 
     @api.depends('name')
     def _compute_sale_order_ids(self):
-        sale_orders = defaultdict(lambda: self.env['sale.order'])
-        for move_line in self.env['stock.move.line'].search([('lot_id', 'in', self.ids), ('state', '=', 'done')]):
-            move = move_line.move_id
-            if move.picking_id.location_dest_id.usage in ('customer', 'transit') and move.sale_line_id.order_id:
-                sale_orders[move_line.lot_id.id] |= move.sale_line_id.order_id
+        sale_orders = defaultdict(set)
+        move_lines = self.env['stock.move.line'].search([
+            ('lot_id', 'in', self.ids),
+            ('state', '=', 'done'),
+            ('move_id.sale_line_id.order_id', '!=', False),
+            ('move_id.picking_id.location_dest_id.usage', 'in', ('customer', 'transit')),
+        ])
+        for ml in move_lines:
+            so = ml.move_id.sale_line_id.order_id
+            if so.with_user(self.env.user).has_access('read'):
+                sale_orders[ml.lot_id.id].add(so.id)
         for lot in self:
-            lot.sale_order_ids = sale_orders[lot.id]
-            lot.sale_order_count = len(lot.sale_order_ids)
+            so_ids = sale_orders.get(lot.id, set())
+            lot.sale_order_ids = [Command.set(list(so_ids))]
+            lot.sale_order_count = len(so_ids)
 
     def action_view_so(self):
         self.ensure_one()

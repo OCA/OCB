@@ -14,7 +14,6 @@ import { renderToElement } from "@web/core/utils/render";
 
 import {
     Component,
-    markup,
     onMounted,
     onPatched,
     onWillDestroy,
@@ -38,7 +37,6 @@ import { setElementContent } from "@web/core/utils/html";
 import { url } from "@web/core/utils/urls";
 import { messageActionsRegistry, useMessageActions } from "./message_actions";
 import { cookie } from "@web/core/browser/cookie";
-import { rpc } from "@web/core/network/rpc";
 import { escape } from "@web/core/utils/strings";
 import { MessageActionMenuMobile } from "./message_action_menu_mobile";
 import { discussComponentRegistry } from "./discuss_component_registry";
@@ -109,7 +107,6 @@ export class Message extends Component {
             isClicked: false,
             expandOptions: false,
             emailHeaderOpen: false,
-            showTranslation: false,
             actionMenuMobileOpen: false,
         });
         /** @type {ShadowRoot} */
@@ -176,7 +173,7 @@ export class Message extends Component {
                     const bodyEl = document.createElement("span");
                     setElementContent(
                         bodyEl,
-                        this.state.showTranslation
+                        this.message.showTranslation
                             ? this.message.translationValue
                             : this.props.messageSearch?.highlight(this.message.body) ??
                                   this.message.body
@@ -189,7 +186,7 @@ export class Message extends Component {
                 }
             },
             () => [
-                this.state.showTranslation,
+                this.message.showTranslation,
                 this.message.translationValue,
                 this.props.messageSearch?.searchTerm,
                 this.message.body,
@@ -235,7 +232,7 @@ export class Message extends Component {
         if (this.message.author) {
             return this.message.author.name;
         }
-        return this.message.email_from;
+        return this.message.email_from || _t("Unnamed");
     }
 
     get authorAvatarUrl() {
@@ -492,17 +489,11 @@ export class Message extends Component {
     }
 
     async onClickToggleTranslation() {
-        const message = toRaw(this.message);
-        if (!message.translationValue) {
-            const { error, lang_name, body } = await rpc("/mail/message/translate", {
-                message_id: message.id,
-            });
-            message.translationValue = body && markup(body);
-            message.translationSource = lang_name;
-            message.translationErrors = error;
-        }
-        this.state.showTranslation =
-            !this.state.showTranslation && Boolean(message.translationValue);
+        toRaw(this.props.message).onClickToggleTranslation();
+    }
+
+    get shouldHideFromMessageListOnDelete() {
+        return false;
     }
 }
 

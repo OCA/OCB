@@ -1,31 +1,29 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* pos_restaurant
-# 
+# * pos_restaurant
+#
 # Translators:
 # Braulio D. López Vázquez <bdl@odoo.com>, 2024
 # Wil Odoo, 2024
 # Larissa Manderfeld, 2025
-# 
+# "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025.
+# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 13:39+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Larissa Manderfeld, 2025\n"
-"Language-Team: Spanish (https://app.transifex.com/odoo/teams/41243/es/)\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-05-09 09:07+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-18/"
+"pos_restaurant/es/>\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: es\n"
-"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
-
-#. module: pos_restaurant
-#. odoo-javascript
-#: code:addons/pos_restaurant/static/src/overrides/components/receipt_screen/order_receipt/order_receipt.xml:0
-msgid ", Guests:"
-msgstr ", clientes:"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
+"0) ? 1 : 2);\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -45,8 +43,8 @@ msgid ""
 "200G Irish Black Angus beef, 9-month matured cheddar cheese, shredded "
 "iceberg lettuce, caramelised onions, crushed tomatoes and Chef’s sauce."
 msgstr ""
-"200 gramos de carne de ternera irlandesa Black Angus, queso cheddar madurado"
-" durante 9 meses, lechuga iceberg rallada, cebollas caramelizadas, tomates "
+"200 gramos de carne de ternera irlandesa Black Angus, queso cheddar madurado "
+"durante 9 meses, lechuga iceberg rallada, cebollas caramelizadas, tomates "
 "triturados y salsa casera."
 
 #. module: pos_restaurant
@@ -56,8 +54,8 @@ msgid ""
 "iceberg salad, red onions, grilled bacon, tomato sauce, pickles, barbecue "
 "sauce"
 msgstr ""
-"200 gramos de carne de ternera irlandesa Black Angus, cebollas caramelizadas"
-" con pimentón, lechuga iceberg, cebolla roja, panceta, salsa de tomate, "
+"200 gramos de carne de ternera irlandesa Black Angus, cebollas caramelizadas "
+"con pimentón, lechuga iceberg, cebolla roja, panceta, salsa de tomate, "
 "pepinillos y salsa BBQ."
 
 #. module: pos_restaurant
@@ -73,10 +71,12 @@ msgstr "<strong>Punto de venta:</strong>"
 #. module: pos_restaurant
 #: model_terms:ir.actions.act_window,help:pos_restaurant.action_restaurant_floor_form
 msgid ""
-"A restaurant floor represents the place where customers are served, this is where you can\n"
+"A restaurant floor represents the place where customers are served, this is "
+"where you can\n"
 "                define and position the tables."
 msgstr ""
-"El piso de un restaurante representa el lugar donde se da servicio a los clientes. Ahí es donde\n"
+"El piso de un restaurante representa el lugar donde se da servicio a los "
+"clientes. Ahí es donde\n"
 "puede indicar cómo están organizadas las mesas."
 
 #. module: pos_restaurant
@@ -152,7 +152,7 @@ msgstr ""
 #. module: pos_restaurant
 #: model_terms:ir.ui.view,arch_db:pos_restaurant.res_config_settings_view_form
 msgid "Allow Bill Splitting"
-msgstr "Permitir división de facturas"
+msgstr "Permitir dividir la cuenta"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_pos_config__takeaway
@@ -248,7 +248,7 @@ msgstr "Impresión de facturas"
 #: code:addons/pos_restaurant/static/src/app/split_bill_screen/split_bill_screen.xml:0
 #: model:ir.model.fields,field_description:pos_restaurant.field_pos_config__iface_splitbill
 msgid "Bill Splitting"
-msgstr "División de facturas"
+msgstr "Dividir la cuenta"
 
 #. module: pos_restaurant
 #: model:product.attribute.value,name:pos_restaurant.product_attribute_value_black_olives
@@ -390,13 +390,13 @@ msgstr "Diseñe pisos y asigne pedidos a las mesas"
 #. odoo-javascript
 #: code:addons/pos_restaurant/static/src/overrides/models/pos_store.js:0
 msgid "Dine in"
-msgstr "Comer allí"
+msgstr "Comer en el local"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_restaurant_floor__display_name
 #: model:ir.model.fields,field_description:pos_restaurant.field_restaurant_table__display_name
 msgid "Display Name"
-msgstr "Nombre mostrado"
+msgstr "Nombre para mostrar"
 
 #. module: pos_restaurant
 #: model:pos.category,name:pos_restaurant.drinks
@@ -429,7 +429,7 @@ msgstr "Editar plano"
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_pos_config__iface_splitbill
 msgid "Enables Bill Splitting in the Point of Sale."
-msgstr "Permite la división de la factura en el punto de venta."
+msgstr "Permite dividir la cuenta en el punto de venta."
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -507,13 +507,13 @@ msgstr "¿Nombre del piso?"
 #. odoo-javascript
 #: code:addons/pos_restaurant/static/src/overrides/components/navbar/navbar.xml:0
 msgid "Floor Plan"
-msgstr "Diseño del piso"
+msgstr "Plano de sala"
 
 #. module: pos_restaurant
 #: model:ir.actions.act_window,name:pos_restaurant.action_restaurant_floor_form
 #: model:ir.ui.menu,name:pos_restaurant.menu_restaurant_floor_all
 msgid "Floor Plans"
-msgstr "Diseño del piso"
+msgstr "Plano de sala"
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -607,8 +607,8 @@ msgstr "Té helado"
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_restaurant_table__active
 msgid ""
-"If false, the table is deactivated and will not be available in the point of"
-" sale"
+"If false, the table is deactivated and will not be available in the point of "
+"sale"
 msgstr ""
 "Si es False, la mesa es desactivada y no va a estar disponible en el punto "
 "de venta"
@@ -767,8 +767,7 @@ msgstr "Reserva en línea del restaurante"
 #: code:addons/pos_restaurant/static/src/app/floor_screen/floor_screen.js:0
 msgid "Only web-compatible Image formats such as .png or .jpeg are supported."
 msgstr ""
-"Solo se admiten formatos de imagen compatibles con la web, como .png o "
-".jpeg."
+"Solo se admiten formatos de imagen compatibles con la web, como .png o .jpeg."
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -1157,12 +1156,23 @@ msgstr "Cambiar a para llevar"
 #. odoo-javascript
 #: code:addons/pos_restaurant/static/src/app/floor_screen/floor_screen.xml:0
 #: code:addons/pos_restaurant/static/src/overrides/components/navbar/navbar.xml:0
-#: code:addons/pos_restaurant/static/src/overrides/components/receipt_screen/order_receipt/order_receipt.xml:0
 #: code:addons/pos_restaurant/static/src/overrides/components/ticket_screen/ticket_screen.js:0
 #: code:addons/pos_restaurant/static/src/overrides/components/ticket_screen/ticket_screen.xml:0
 #: model:ir.model.fields,field_description:pos_restaurant.field_pos_order__table_id
 msgid "Table"
 msgstr "Mesa"
+
+#. module: pos_restaurant
+#. odoo-javascript
+#: code:addons/pos_restaurant/static/src/overrides/components/receipt_header_patch.js:0
+msgid "Table %(number)s"
+msgstr "Mesa %(number)s"
+
+#. module: pos_restaurant
+#. odoo-javascript
+#: code:addons/pos_restaurant/static/src/overrides/components/receipt_header_patch.js:0
+msgid "Table %(number)s, Guests: %(count)s"
+msgstr "Mesa %(number)s, Comensales: %(count)s"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,field_description:pos_restaurant.field_pos_config__module_pos_restaurant_appointment
@@ -1254,8 +1264,7 @@ msgstr "La mesa donde se sirvió este pedido"
 
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_restaurant_table__color
-msgid ""
-"The table's color, expressed as a valid 'background' CSS property value"
+msgid "The table's color, expressed as a valid 'background' CSS property value"
 msgstr ""
 "El color de la mesa, expresado como un valor de 'fondo' con propiedad CSS "
 "válido"
@@ -1268,8 +1277,8 @@ msgstr "Altura de la mesa en pixeles"
 #. module: pos_restaurant
 #: model:ir.model.fields,help:pos_restaurant.field_restaurant_table__position_h
 msgid ""
-"The table's horizontal position from the left side to the table's center, in"
-" pixels"
+"The table's horizontal position from the left side to the table's center, in "
+"pixels"
 msgstr ""
 "La posición horizontal de la mesa desde el lado izquierdo del centro de la "
 "mesa, en pixeles"
@@ -1291,8 +1300,8 @@ msgstr "El ancho de la mesa en pixeles"
 #: model:ir.model.fields,help:pos_restaurant.field_pos_config__takeaway_fp_id
 #: model:ir.model.fields,help:pos_restaurant.field_res_config_settings__pos_takeaway_fp_id
 msgid ""
-"This is useful for restaurants with onsite and take-away services that imply"
-" specific tax rates."
+"This is useful for restaurants with onsite and take-away services that imply "
+"specific tax rates."
 msgstr ""
 "Esto es útil para los restaurantes que cuentan con servicio para llevar y "
 "para consumir allí, y que suponen tipos impositivos específicos."
@@ -1335,8 +1344,7 @@ msgstr "Dar propina"
 #: model:product.template,description_sale:pos_restaurant.pos_food_margherita_product_template
 msgid "Tomato sauce, Agerola mozzarella \"fior di latte\", fresh basil"
 msgstr ""
-"Salsa de tomate, queso mozzarella agerola \"Fior di Latte\" y albahaca "
-"fresca"
+"Salsa de tomate, queso mozzarella agerola \"Fior di Latte\" y albahaca fresca"
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -1428,8 +1436,8 @@ msgstr "No puede eliminar un piso que todavía tiene pedidos en borradores."
 msgid ""
 "You cannot delete a table when orders are still in draft for this table."
 msgstr ""
-"No puede eliminar esta mesa cuando todavía hay pedidos en borrador para esta"
-" mesa."
+"No puede eliminar esta mesa cuando todavía hay pedidos en borrador para esta "
+"mesa."
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -1445,8 +1453,8 @@ msgid ""
 "You cannot remove a floor that is used in a PoS session, close the "
 "session(s) first: \n"
 msgstr ""
-"No puede eliminar un piso que se se está usando en una sesión de TPV, cierre"
-" primero la(s) sesión(es):\n"
+"No puede eliminar un piso que se se está usando en una sesión de TPV, cierre "
+"primero la(s) sesión(es):\n"
 
 #. module: pos_restaurant
 #. odoo-python
@@ -1457,18 +1465,6 @@ msgid ""
 msgstr ""
 "No se puede eliminar una mesa que se está usando en una sesión de TPV. "
 "Cierre la/s sesión/es primero."
-
-#. module: pos_restaurant
-#. odoo-javascript
-#: code:addons/pos_restaurant/static/src/app/tip_receipt/tip_receipt.xml:0
-msgid "________________________"
-msgstr "________________________"
-
-#. module: pos_restaurant
-#. odoo-javascript
-#: code:addons/pos_restaurant/static/src/app/tip_receipt/tip_receipt.xml:0
-msgid "______________________________________________"
-msgstr "______________________________________________"
 
 #. module: pos_restaurant
 #. odoo-javascript
@@ -1487,3 +1483,9 @@ msgstr "artículos"
 #: code:addons/pos_restaurant/static/src/overrides/components/order_widget/order_widget.js:0
 msgid "or book the table for later"
 msgstr "o reservar una mesa para más tarde"
+
+#~ msgid "________________________"
+#~ msgstr "________________________"
+
+#~ msgid "______________________________________________"
+#~ msgstr "______________________________________________"

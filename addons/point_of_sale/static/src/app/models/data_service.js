@@ -3,7 +3,7 @@ import { createRelatedModels } from "@point_of_sale/app/models/related_models";
 import { registry } from "@web/core/registry";
 import { Mutex } from "@web/core/utils/concurrency";
 import { markRaw } from "@odoo/owl";
-import { batched } from "@web/core/utils/timing";
+import { debounce } from "@web/core/utils/timing";
 import IndexedDB from "./utils/indexed_db";
 import { DataServiceOptions } from "./data_service_options";
 import { getOnNotified, uuidv4 } from "@point_of_sale/utils";
@@ -16,16 +16,17 @@ const INDEXED_DB_VERSION = 1;
 
 export class PosData extends Reactive {
     static modelToLoad = []; // When empty all models are loaded
-    static serviceDependencies = ["orm", "bus_service"];
+    static serviceDependencies = ["orm", "bus_service", "dialog"];
 
     constructor() {
         super();
         this.ready = this.setup(...arguments).then(() => this);
     }
 
-    async setup(env, { orm, bus_service }) {
+    async setup(env, { orm, bus_service, dialog }) {
         this.orm = orm;
         this.bus = bus_service;
+        this.dialog = dialog;
         this.relations = [];
         this.custom = {};
         this.syncInProgress = false;
@@ -45,12 +46,11 @@ export class PosData extends Reactive {
         this.initIndexedDB();
         await this.initData();
 
-        effect(
-            batched((records) => {
-                this.syncDataWithIndexedDB(records);
-            }),
-            [this.records]
-        );
+        this._debouncedSync = debounce((records) => {
+            this.syncDataWithIndexedDB(records);
+        }, 200);
+
+        effect(this._debouncedSync, [this.records]);
 
         browser.addEventListener("online", () => {
             if (this.network.offline) {
@@ -108,7 +108,7 @@ export class PosData extends Reactive {
             data.key,
             name,
         ]);
-        this.indexedDB = new IndexedDB(this.databaseName, INDEXED_DB_VERSION, models);
+        this.indexedDB = new IndexedDB(this.databaseName, INDEXED_DB_VERSION, models, this.dialog);
     }
 
     deleteDataIndexedDB(model, uuid) {
@@ -116,25 +116,6 @@ export class PosData extends Reactive {
     }
 
     syncDataWithIndexedDB(records) {
-        // Will separate records to remove from indexedDB and records to add
-        const dataSorter = (records, isFinalized, key) =>
-            records.reduce(
-                (acc, record) => {
-                    const finalizedState = isFinalized(record);
-
-                    if (finalizedState === undefined || finalizedState === true) {
-                        if (record[key]) {
-                            acc.remove.push(record[key]);
-                        }
-                    } else {
-                        acc.put.push(dataFormatter(record));
-                    }
-
-                    return acc;
-                },
-                { put: [], remove: [] }
-            );
-
         // This methods will add uiState to the serialized object
         const dataFormatter = (record) => {
             const serializedData = record.serialize();
@@ -142,18 +123,42 @@ export class PosData extends Reactive {
             return { ...serializedData, JSONuiState: JSON.stringify(uiState), id: record.id };
         };
 
-        const dataToDelete = {};
+        const dataToKeep = {};
+        let orderlinesToKeep = [];
 
-        for (const [model, params] of Object.entries(this.opts.databaseTable)) {
-            const modelRecords = Array.from(records[model].values());
+        const tableEntries = Object.entries(this.opts.databaseTable);
 
-            if (!modelRecords.length) {
-                continue;
+        // Pass 1: Process models that HAVE a condition
+        for (const [model, params] of tableEntries) {
+            if (!params.getRecordsBasedOnLines) {
+                const modelRecords = Array.from(records[model]?.values() || []);
+                const recordsToPut = modelRecords.filter((record) => !params.condition(record));
+
+                if (model === "pos.order.line") {
+                    orderlinesToKeep = recordsToPut;
+                }
+
+                if (recordsToPut.length) {
+                    this.indexedDB.create(model, recordsToPut.map(dataFormatter));
+                    dataToKeep[model] = recordsToPut.map((r) => r[params.key]);
+                }
             }
+        }
 
-            const data = dataSorter(modelRecords, params.condition, params.key);
-            this.indexedDB.create(model, data.put);
-            dataToDelete[model] = data.remove;
+        // Pass 2: Process models that depend on orderlines
+        for (const [model, params] of tableEntries) {
+            if (params.getRecordsBasedOnLines) {
+                const recordsToPut = params.getRecordsBasedOnLines(orderlinesToKeep);
+
+                if (recordsToPut?.length) {
+                    const uniqueRecords = [
+                        ...new Map(recordsToPut.map((r) => [r[params.key], r])).values(),
+                    ];
+
+                    this.indexedDB.create(model, uniqueRecords.map(dataFormatter));
+                    dataToKeep[model] = uniqueRecords.map((r) => r[params.key]);
+                }
+            }
         }
 
         this.indexedDB.readAll(Object.keys(this.opts.databaseTable)).then((data) => {
@@ -163,15 +168,14 @@ export class PosData extends Reactive {
 
             for (const [model, records] of Object.entries(data)) {
                 const key = this.opts.databaseTable[model].key;
-                let keysToDelete = [];
+                const keysToDelete = [];
 
-                if (dataToDelete[model]) {
-                    const keysInIndexedDB = new Set(records.map((record) => record[key]));
-                    keysToDelete = dataToDelete[model].filter((key) => keysInIndexedDB.has(key));
-                }
                 for (const record of records) {
                     const localRecord = this.models[model].get(record.id);
                     if (!localRecord) {
+                        keysToDelete.push(record[key]);
+                    }
+                    if (!dataToKeep[model] || !dataToKeep[model].includes(record[key])) {
                         keysToDelete.push(record[key]);
                     }
                 }
@@ -284,13 +288,19 @@ export class PosData extends Reactive {
 
         const order = data["pos.order"] || [];
         const orderlines = data["pos.order.line"] || [];
+        const payments = data["pos.payment"] || [];
 
         delete data["pos.order"];
         delete data["pos.order.line"];
+        delete data["pos.payment"];
 
         this.models.loadData(data, this.modelToLoad);
-        this.models.loadData({ "pos.order": order, "pos.order.line": orderlines });
         const dbData = await this.loadIndexedDBData();
+        this.models.loadData({
+            "pos.order": order,
+            "pos.order.line": orderlines,
+            "pos.payment": payments,
+        });
         this.loadedIndexedDBProducts = dbData ? dbData["product.product"] : [];
         this.sanitizeData();
         this.network.loading = false;
@@ -352,15 +362,31 @@ export class PosData extends Reactive {
                     break;
                 case "read":
                     queue = false;
+                    if (!options) {
+                        options = { context: {} };
+                    }
+                    if (!options.context) {
+                        options.context = {};
+                    }
+                    options.context.display_default_code ??= false;
                     result = await this.orm.read(model, ids, fields, {
                         ...options,
+                        context: { ...options.context },
                         load: false,
                     });
                     break;
                 case "search_read":
                     queue = false;
+                    if (!options) {
+                        options = { context: {} };
+                    }
+                    if (!options.context) {
+                        options.context = {};
+                    }
+                    options.context.display_default_code ??= false;
                     result = await this.orm.searchRead(model, args, fields, {
                         ...options,
+                        context: { ...options.context },
                         load: false,
                     });
             }
@@ -528,6 +554,7 @@ export class PosData extends Reactive {
 
             const data = await this.orm.read(model, Array.from(ids), this.fields[model], {
                 load: false,
+                context: { display_default_code: false },
             });
             newRecordMap[model] = data;
         }
@@ -624,9 +651,12 @@ export class PosData extends Reactive {
 
     async callRelated(model, method, args = [], kwargs = {}, queue = true) {
         const data = await this.execute({ type: "call", model, method, args, kwargs, queue });
-        this.deviceSync.dispatch(data);
-        const results = this.models.loadData(data, [], true);
-        return results;
+        if (data) {
+            this.deviceSync?.dispatch && this.deviceSync.dispatch(data);
+            const results = this.models.loadData(data, [], true);
+            return results;
+        }
+        return false;
     }
 
     async create(model, values, queue = true) {

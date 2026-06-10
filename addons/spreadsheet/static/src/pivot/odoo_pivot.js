@@ -9,7 +9,8 @@ import { LOADING_ERROR } from "@spreadsheet/data_sources/data_source";
 import { omit } from "@web/core/utils/objects";
 import { OdooPivotLoader } from "./odoo_pivot_loader";
 
-const { pivotRegistry, supportedPivotPositionalFormulaRegistry } = registries;
+const { pivotRegistry, supportedPivotPositionalFormulaRegistry, pivotNormalizationValueRegistry } =
+    registries;
 const { pivotTimeAdapter, toString, areDomainArgsFieldsValid, toNormalizedPivotValue, deepEquals } =
     helpers;
 
@@ -151,6 +152,7 @@ export class OdooPivot {
 
     async loadMetadata() {
         this._fields = await this.loader.getFields(this.coreDefinition.model);
+        await this._loadPropertiesDefinitions();
     }
 
     async getModelLabel() {
@@ -455,6 +457,42 @@ export class OdooPivot {
         return this.loader.assertIsValid({ throwOnError });
     }
 
+    /**
+     * @private
+     */
+    async _loadPropertiesDefinitions() {
+        // properties are fake fields with the shape "<property_field>.<uuid>"
+        const orm = this.odooDataProvider.orm;
+        const properties = this.coreDefinition.rows
+            .concat(this.coreDefinition.columns)
+            .filter((dimension) => dimension.fieldName.includes("."));
+        await Promise.all(
+            properties.map((dimension) =>
+                orm
+                    .call(this.coreDefinition.model, "get_property_definition", [
+                        dimension.fieldName,
+                    ])
+                    .then((propertyDefinition) => {
+                        this._fields[dimension.fieldName] = {
+                            ...propertyDefinition,
+                            name: dimension.fieldName,
+                        };
+                    })
+            )
+        );
+    }
+
+    get source() {
+        const data = this.definition;
+        return {
+            resModel: data.model,
+            type: "pivot",
+            fields: data.measures.map((m) => m.fieldName),
+            groupby: [...data.columns, ...data.rows].map((dim) => dim.nameWithGranularity),
+            domain: this.getDomainWithGlobalFilters(),
+        };
+    }
+
     //--------------------------------------------------------------------------
     // Global filters
     //--------------------------------------------------------------------------
@@ -594,7 +632,7 @@ pivotRegistry.add("ODOO", {
         ((MEASURES_TYPES.includes(field.type) && field.aggregator) || field.type === "many2one") &&
         field.name !== "id" &&
         field.store,
-    isGroupable: (field) => field.groupable,
+    isGroupable: (field) => field.groupable && pivotNormalizationValueRegistry.contains(field.type),
 });
 
 supportedPivotPositionalFormulaRegistry.add("ODOO", true);

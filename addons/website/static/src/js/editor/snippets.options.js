@@ -1418,6 +1418,32 @@ options.registry.ReplaceMedia.include({
 });
 
 options.registry.ImageTools.include({
+    /**
+     * Compute and set default shape colors for images that have a data-shape
+     * but are missing data-shape-colors (e.g. s_cta_mockups, s_closer_look).
+     *
+     * @override
+     */
+    async _applyOptions() {
+        const img = await this._super(...arguments);
+        // TODO remove in master: kept for stable.
+        if (!img) {
+            return img;
+        }
+        const { shape: shapePath, shapeColors } = img.dataset;
+        if (shapePath && (!shapeColors || shapeColors === ";;;;")) {
+            const shapeName = shapePath.split("/")[2];
+            const shape = this.shapeCache[shapeName];
+            if (shape) {
+                const palette = Object.values(weUtils.DEFAULT_PALETTE);
+                const defaultColors = palette.map((color) =>
+                    shape.includes(color) ? color : null
+                );
+                img.dataset.shapeColors = defaultColors.join(";");
+            }
+        }
+        return img;
+    },
     async _computeWidgetVisibility(widgetName, params) {
         if (params.optionsPossibleValues.selectStyle
                 && params.cssProperty === 'width'
@@ -2454,6 +2480,12 @@ options.registry.Parallax = options.Class.extend({
                 this.parallaxEl = document.createElement('span');
                 this.parallaxEl.classList.add('s_parallax_bg');
                 this.$target.prepend(this.parallaxEl);
+                // Remove the repeat class and background-size from the original
+                // target to prevent gradient repetition in multi-background
+                // setup (image + gradient).
+                const targetEl = this.$target[0];
+                targetEl.style.removeProperty("background-size");
+                targetEl.classList.remove("o_bg_img_opt_repeat");
             }
         } else {
             if (this.parallaxEl) {
@@ -4252,6 +4284,18 @@ options.registry.MegaMenuLayout = options.registry.SelectTemplate.extend({
             .classList.value.split(' ').filter(cl => cl.startsWith('s_mega_menu'))[0];
         return `website.${templateDefiningClass}`;
     },
+    /**
+     * @override
+     */
+    async _computeWidgetVisibility(widgetName, params) {
+        if (params.optionsPossibleValues.selectClass?.includes("o_mega_menu_container_size")) {
+            const headerTemplate = weUtils.getCSSVariableValue("header-template");
+            if (["hamburger", "sidebar"].includes(headerTemplate.slice(1, -1))) {
+                return false;
+            }
+        }
+        return this._super(...arguments);
+    },
 });
 
 /**
@@ -4502,7 +4546,7 @@ options.registry.Button = options.Class.extend({
                 } else if (siblingButtonEl.classList.contains("btn-lg")) {
                     this.$target[0].classList.add("btn-lg");
                 }
-            } else {
+            } else if (!siblingButtonEl) {
                 // To align with the editor's behavior, we need to enclose the
                 // button in a <p> tag if it's not dropped within a <p> tag. We only
                 // put the dropped button in a <p> if it's not next to another

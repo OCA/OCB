@@ -9,6 +9,7 @@ import {
     Component,
     onMounted,
 } from "@odoo/owl";
+import { cookie } from "@web/core/browser/cookie";
 import { localization } from "@web/core/l10n/localization";
 
 export class RenameCustomSnippetDialog extends Component {
@@ -65,8 +66,9 @@ export class AddSnippetDialog extends Component {
 
         onMounted(async () => {
             const isFirefox = isBrowserFirefox();
-            if (isFirefox) {
-                // Make sure empty preview iframe is loaded.
+            if (isFirefox && !(this.iframeDocument.readyState === "complete")) {
+                // Make sure empty preview iframe is loaded. This was necessary
+                // in Firefox < 148 as it created and parsed a new document.
                 // This event is never triggered on Chrome.
                 await new Promise(resolve => {
                     this.iframeDocument.body.onload = resolve;
@@ -74,6 +76,7 @@ export class AddSnippetDialog extends Component {
             }
             this.iframeDocument.documentElement.classList.add("o_add_snippets_preview");
             this.iframeDocument.body.style.setProperty("direction", localization.direction);
+            this.insertColorScheme();
             await this.insertStyle().then(() => {
                 this.iframeRef.el.classList.add("show");
             });
@@ -90,7 +93,7 @@ export class AddSnippetDialog extends Component {
     }
 
     get iframeDocument() {
-        return this.iframeRef.el.contentDocument;
+        return this.iframeRef.el?.contentDocument;
     }
     /**
      * Gets snippet groups.
@@ -218,6 +221,9 @@ export class AddSnippetDialog extends Component {
                     originalSnippet = [...this.props.snippets.values()].filter(snip =>
                         !snip.isCustom && snip.name === snippet.name
                     )[0];
+                    if (!originalSnippet) {
+                        return;
+                    }
                     if (originalSnippet.baseBody.querySelector(".s_dialog_preview")
                         || originalSnippet.imagePreview
                         // Specific case for "s_countdown" because it's hybrid (also
@@ -337,6 +343,9 @@ export class AddSnippetDialog extends Component {
             const leftColElements = [];
             const rightColElements = [];
             for (const itemEl of itemEls) {
+                if (!itemEl) {
+                    continue;
+                }
                 const size = itemEl.getBoundingClientRect().height;
                 if (leftColSize <= rightColSize) {
                     leftColElements.push(itemEl);
@@ -391,6 +400,21 @@ export class AddSnippetDialog extends Component {
             this.iframeDocument.body.style.setProperty("--body-bg", mainBgColor);
         }
         await Promise.all(linkPromises);
+    }
+
+    /**
+     * Retrieves the color-scheme cookie and injects it into the iframe's
+     * <head> and add a custom class. This is necessary to allow the dark mode
+     * to be handled correctly across browsers.
+     */
+    insertColorScheme() {
+        const colorScheme = cookie.get("color_scheme") || "light";
+        const metaElement = document.createElement("meta");
+        const iframeDocument = this.iframeRef.el.contentDocument;
+        metaElement.setAttribute("name", "color-scheme");
+        metaElement.content = colorScheme;
+        iframeDocument.head.appendChild(metaElement);
+        iframeDocument.body.parentElement.classList.add("o_add_snippets_preview--" + colorScheme);
     }
 
     _onSnippetPreviewClick(ev) {

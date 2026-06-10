@@ -201,7 +201,7 @@ class MrpBom(models.Model):
             if sum(bom.byproduct_ids.mapped('cost_share')) > 100:
                 raise ValidationError(_("The total cost share for a BoM's by-products cannot exceed 100."))
 
-    @api.onchange('bom_line_ids', 'product_qty')
+    @api.onchange('bom_line_ids', 'product_qty', 'product_id', 'product_tmpl_id')
     def onchange_bom_structure(self):
         if self.type == 'phantom' and self._origin and self.env['stock.move'].search_count([('bom_line_id', 'in', self._origin.bom_line_ids.ids)], limit=1):
             return {
@@ -286,6 +286,9 @@ class MrpBom(models.Model):
                 for bom_line in new_bom.bom_line_ids:
                     if bom_line.operation_id:
                         bom_line.operation_id = operations_mapping[bom_line.operation_id]
+                for byproduct in new_bom.byproduct_ids:
+                    if byproduct.operation_id:
+                        byproduct.operation_id = operations_mapping[byproduct.operation_id]
                 for operation in old_bom.operation_ids:
                     if operation.blocked_by_operation_ids:
                         copied_operation = operations_mapping[operation]
@@ -377,13 +380,16 @@ class MrpBom(models.Model):
             return bom_by_product
 
         boms = self.search(domain, order='sequence, product_id, id')
-
-        products_ids = set(products.ids)
+        bom_by_product_tmpl = defaultdict(lambda: self.env['mrp.bom'])
         for bom in boms:
-            products_implies = bom.product_id or bom.product_tmpl_id.product_variant_ids
-            for product in products_implies:
-                if product.id in products_ids and product not in bom_by_product:
-                    bom_by_product[product] = bom
+            if bom.product_id and (bom.product_id.product_tmpl_id not in bom_by_product_tmpl) and (bom.product_id not in bom_by_product):
+                bom_by_product[bom.product_id] = bom
+            elif not bom.product_id and bom.product_tmpl_id not in bom_by_product_tmpl:
+                bom_by_product_tmpl[bom.product_tmpl_id] = bom
+
+        for product in products:
+            if product.product_tmpl_id in bom_by_product_tmpl and product not in bom_by_product:
+                bom_by_product[product] = bom_by_product_tmpl[product.product_tmpl_id]
 
         return bom_by_product
 
@@ -393,6 +399,7 @@ class MrpBom(models.Model):
             Quantity describes the number of times you need the BoM: so the quantity divided by the number created by the BoM
             and converted into its UoM
         """
+        self = self.with_context(bom_cost_share_cache=self.env.context.get('bom_cost_share_cache') or {})  # noqa: PLW0642
         product_ids = set()
         product_boms = {}
         def update_product_boms():
@@ -403,7 +410,7 @@ class MrpBom(models.Model):
             for product in products:
                 product_boms.setdefault(product, self.env['mrp.bom'])
 
-        boms_done = [(self, {'qty': quantity, 'product': product, 'original_qty': quantity, 'parent_line': False})]
+        boms_done = [(self, self.env['mrp.bom.line']._prepare_bom_done_values(quantity, product, quantity, []))]
         lines_done = []
 
         bom_lines = []
@@ -426,20 +433,27 @@ class MrpBom(models.Model):
                 product_ids.clear()
             bom = product_boms.get(current_line.product_id)
             if bom:
-                converted_line_quantity = current_line.product_uom_id._compute_quantity(line_quantity / bom.product_qty, bom.product_uom_id)
-                bom_lines += [(line, current_line.product_id, converted_line_quantity, current_line) for line in bom.bom_line_ids]
+                converted_line_quantity = current_line.product_uom_id._compute_quantity(
+                    line_quantity / bom.product_qty, bom.product_uom_id, round=False
+                )
+                bom_lines = [(line, current_line.product_id, converted_line_quantity, current_line) for line in bom.bom_line_ids] + bom_lines
                 for bom_line in bom.bom_line_ids:
                     if bom_line.product_id not in product_boms:
                         product_ids.add(bom_line.product_id.id)
-                boms_done.append((bom, {'qty': converted_line_quantity, 'product': current_product, 'original_qty': quantity, 'parent_line': current_line}))
+                boms_done.append((bom, current_line._prepare_bom_done_values(converted_line_quantity, current_product, quantity, boms_done)))
             else:
                 # We round up here because the user expects that if he has to consume a little more, the whole UOM unit
                 # should be consumed.
                 rounding = current_line.product_uom_id.rounding
                 line_quantity = float_round(line_quantity, precision_rounding=rounding, rounding_method='UP')
-                lines_done.append((current_line, {'qty': line_quantity, 'product': current_product, 'original_qty': quantity, 'parent_line': parent_line}))
+                lines_done.append((current_line, current_line._prepare_line_done_values(line_quantity, current_product, quantity, parent_line, boms_done)))
 
+        lines_done = self._round_last_line_done(lines_done)
         return boms_done, lines_done
+
+    @api.model
+    def _round_last_line_done(self, lines_done):
+        return lines_done
 
     @api.model
     def get_import_templates(self):
@@ -451,6 +465,7 @@ class MrpBom(models.Model):
     def _set_outdated_bom_in_productions(self):
         # Searches for MOs using these BoMs to notify them that their BoM has been updated.
         list_of_domain_by_bom = []
+        list_of_domain_by_bom_to_unmark = []
         for bom in self:
             domain_by_products = [('product_id', 'in', bom.product_tmpl_id.product_variant_ids.ids)]
             if bom.product_id:
@@ -464,6 +479,18 @@ class MrpBom(models.Model):
             productions = self.env['mrp.production'].search(domain)
             if productions:
                 productions.is_outdated_bom = True
+        # Manually sets the MO's bom to not outdated if product or its variant is changed.
+        if not self.env.context.get('skip_bom_outdated_unmark'):
+            for bom in self:
+                template_domain = [('state', '=', 'confirmed'), ('is_outdated_bom', '=', True), ('bom_id', '=', bom.id)]
+                if bom.product_id:
+                    template_domain.append(('product_id', '!=', bom.product_id.id))
+                else:
+                    template_domain.append(('product_tmpl_id', '!=', bom.product_tmpl_id.id))
+                list_of_domain_by_bom_to_unmark.append(template_domain)
+            if list_of_domain_by_bom_to_unmark:
+                unmark_domain = OR(list_of_domain_by_bom_to_unmark)
+                self.env['mrp.production'].search(unmark_domain).write({'is_outdated_bom': False})
 
     # -------------------------------------------------------------------------
     # CATALOG
@@ -760,6 +787,12 @@ class MrpBomLine(models.Model):
         return {
             'quantity': 0,
         }
+
+    def _prepare_bom_done_values(self, quantity, product, original_quantity, boms_done):
+        return {'qty': quantity, 'product': product, 'original_qty': original_quantity, 'parent_line': self}
+
+    def _prepare_line_done_values(self, quantity, product, original_quantity, parent_line, boms_done):
+        return {'qty': quantity, 'product': product, 'original_qty': original_quantity, 'parent_line': parent_line}
 
 
 class MrpByProduct(models.Model):

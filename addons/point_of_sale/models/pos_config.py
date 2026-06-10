@@ -19,6 +19,16 @@ class PosConfig(models.Model):
     _description = 'Point of Sale Configuration'
     _check_company_auto = True
 
+    @api.model
+    def _get_dynamic_models(self):
+        return [
+            'pos.order',
+            'pos.order.line',
+            'pos.payment',
+            'pos.pack.operation.lot',
+            'product.attribute.custom.value',
+        ]
+
     def _default_warehouse_id(self):
         warehouse = self.env['stock.warehouse'].search(self.env['stock.warehouse']._check_company_domain(self.env.company), limit=1).id
         if not warehouse:
@@ -178,7 +188,7 @@ class PosConfig(models.Model):
     has_active_session = fields.Boolean(compute='_compute_current_session')
     manual_discount = fields.Boolean(string="Line Discounts", default=True)
     ship_later = fields.Boolean(string="Ship Later")
-    warehouse_id = fields.Many2one('stock.warehouse', default=_default_warehouse_id, ondelete='restrict')
+    warehouse_id = fields.Many2one('stock.warehouse', compute='_compute_warehouse_id', store=True, readonly=False, precompute=True, ondelete='restrict')
     route_id = fields.Many2one('stock.route', string="Spefic route for products delivered later.")
     picking_policy = fields.Selection([
         ('direct', 'As soon as possible'),
@@ -228,10 +238,15 @@ class PosConfig(models.Model):
         delete_record_ids = {}
         dynamic_records = {}
 
-        for model, domain in domain.items():
-            ids = record_ids[model]
-            delete_record_ids[model] = [id for id in ids if not self.env[model].browse(id).exists()]
-            dynamic_records[model] = self.env[model].search(domain)
+        for model, dom in domain.items():
+            ids = record_ids.get(model, [])
+            browsed = self.env[model].browse(ids)
+
+            dynamic_records[model] = self.env[model].search(dom)
+            delete_record_ids[model] = browsed.filtered(lambda r: not r.exists()).ids
+            # Cancelled orders must be forced deleted from the user interface.
+            if model == "pos.order":
+                delete_record_ids[model] += browsed.exists().filtered(lambda r: r.state == "cancel").ids
 
         pos_order_data = dynamic_records.get('pos.order') or self.env['pos.order']
         data = pos_order_data.read_pos_data([], self.id)
@@ -272,6 +287,14 @@ class PosConfig(models.Model):
             'data': data,
             'fields': fields,
         }
+
+    @api.depends('picking_type_id')
+    def _compute_warehouse_id(self):
+        for config in self:
+            if config.picking_type_id.warehouse_id:
+                config.warehouse_id = config.picking_type_id.warehouse_id
+            else:
+                config.warehouse_id = config._default_warehouse_id()
 
     @api.depends('payment_method_ids')
     def _compute_cash_control(self):
@@ -418,12 +441,13 @@ class PosConfig(models.Model):
 
     @api.constrains('payment_method_ids')
     def _check_payment_method_ids_journal(self):
-        for cash_method in self.payment_method_ids.filtered(lambda m: m.journal_id.type == 'cash'):
-            if self.env['pos.config'].search_count([('id', '!=', self.id), ('payment_method_ids', 'in', cash_method.ids)], limit=1):
-                raise ValidationError(_("This cash payment method is already used in another Point of Sale.\n"
-                                        "A new cash payment method should be created for this Point of Sale."))
-            if len(cash_method.journal_id.pos_payment_method_ids) > 1:
-                raise ValidationError(_("You cannot use the same journal on multiples cash payment methods."))
+        for config in self:
+            for cash_method in config.payment_method_ids.filtered(lambda m: m.journal_id.type == 'cash'):
+                if self.env['pos.config'].search_count([('id', '!=', config.id), ('payment_method_ids', 'in', cash_method.ids)], limit=1):
+                    raise ValidationError(_("This cash payment method is already used in another Point of Sale.\n"
+                                            "A new cash payment method should be created for this Point of Sale."))
+                if len(cash_method.journal_id.pos_payment_method_ids) > 1:
+                    raise ValidationError(_("You cannot use the same journal on multiples cash payment methods."))
 
     @api.constrains('trusted_config_ids')
     def _check_trusted_config_ids_currency(self):
@@ -835,7 +859,7 @@ class PosConfig(models.Model):
         id_to_index = {pid: index for index, pid in enumerate(product_ids)}
         products = products.sorted(key=lambda p: id_to_index[p.id])
         product_combo = products.filtered(lambda p: p['type'] == 'combo')
-        product_in_combo = product_combo.combo_ids.combo_item_ids.product_id
+        product_in_combo = product_combo.combo_ids.combo_item_ids.product_id.filtered(lambda p: p.active)
         products_available = products | product_in_combo
         return products_available.read(fields, load=False)
 
@@ -932,7 +956,7 @@ class PosConfig(models.Model):
             **cash_journal_vals,
         }
 
-        default_cash_account = self.env['account.account'].search([
+        default_cash_account = self.env['account.account'].with_context(lang='en_US').search([
             ('account_type', '=', 'asset_cash'),
             ('name', '=', 'Cash'),
             ('company_ids', 'in', self.env.company.root_id.id)

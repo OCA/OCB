@@ -1,34 +1,41 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* pos_loyalty
-# 
+# * pos_loyalty
+#
 # Translators:
-# Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2024
+# Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2024, 2026.
 # Wil Odoo, 2025
-# 
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 20:36+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Wil Odoo, 2025\n"
-"Language-Team: Ukrainian (https://app.transifex.com/odoo/teams/41243/uk/)\n"
+"POT-Creation-Date: 2026-03-20 18:37+0000\n"
+"PO-Revision-Date: 2026-05-20 16:26+0000\n"
+"Last-Translator: Alina Lisnenko <alina.lisnenko@erp.co.ua>\n"
+"Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-18/"
+"pos_loyalty/uk/>\n"
+"Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: uk\n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
+"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
+"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
+"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_loyalty
 #: model:ir.model.fields,help:pos_loyalty.field_pos_order_line__reward_identifier_code
 msgid ""
 "\n"
-"        Technical field used to link multiple reward lines from the same reward together.\n"
+"        Technical field used to link multiple reward lines from the same "
+"reward together.\n"
 "    "
 msgstr ""
 "\n"
-"        Технічне поле, яке використовується для об’єднання кількох рядків винагороди з однієї винагороди.\n"
+"        Технічне поле, яке використовується для об’єднання кількох рядків "
+"винагороди з однієї винагороди.\n"
 "    "
 
 #. module: pos_loyalty
@@ -84,7 +91,7 @@ msgstr "Активні картки лояльності"
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/utils/manage_giftcard_popup/manage_giftcard_popup.xml:0
 msgid "Add Balance"
-msgstr ""
+msgstr "Додати баланс"
 
 #. module: pos_loyalty
 #: model_terms:ir.ui.view,arch_db:pos_loyalty.loyalty_program_view_form_inherit_pos_loyalty
@@ -116,7 +123,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/overrides/components/control_buttons/control_buttons.js:0
 msgid "Available rewards"
-msgstr ""
+msgstr "Доступні нагороди"
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -199,13 +206,13 @@ msgstr "Введіть код"
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/overrides/components/product_screen/order_summary/order_summary.js:0
 msgid "Enter Gift Card Number"
-msgstr ""
+msgstr "Введіть номер подарункової карти"
 
 #. module: pos_loyalty
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/utils/manage_giftcard_popup/manage_giftcard_popup.xml:0
 msgid "Enter amount"
-msgstr ""
+msgstr "Введіть суму"
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -262,16 +269,16 @@ msgstr "Скільки балів коштує ця винагорода на к
 #: code:addons/pos_loyalty/models/pos_config.py:0
 msgid "Invalid gift card program reward. Use 1 currency per point discount."
 msgstr ""
-"Недійсна винагорода програми подарункової картки. Використовуйте 1 валюту за"
-" бал знижки."
+"Недійсна винагорода програми подарункової картки. Використовуйте 1 валюту за "
+"бал знижки."
 
 #. module: pos_loyalty
 #. odoo-python
 #: code:addons/pos_loyalty/models/pos_config.py:0
 msgid "Invalid gift card program rule. Use 1 point per currency spent."
 msgstr ""
-"Недійсне правило програми подарункової картки. Використовуйте 1 бал за кожну"
-" витрачену валюту."
+"Недійсне правило програми подарункової картки. Використовуйте 1 бал за кожну "
+"витрачену валюту."
 
 #. module: pos_loyalty
 #. odoo-python
@@ -289,6 +296,11 @@ msgstr "Недійсна програма подарункових карток.
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_order_line__is_reward_line
 msgid "Is Reward Line"
 msgstr "Рядок винагороди"
+
+#. module: pos_loyalty
+#: model:ir.model,name:pos_loyalty.model_account_move_line
+msgid "Journal Item"
+msgstr "Запис у журналі"
 
 #. module: pos_loyalty
 #: model:ir.model,name:pos_loyalty.model_loyalty_mail
@@ -343,7 +355,7 @@ msgstr "Не знайдено дійсного Електронного гама
 #. odoo-python
 #: code:addons/pos_loyalty/models/pos_order.py:0
 msgid "Onsite %s"
-msgstr ""
+msgstr "В наявності %s"
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -444,8 +456,8 @@ msgid ""
 "Refunding a top up or reward product for an eWallet or gift card program is "
 "not allowed."
 msgstr ""
-"Заборонено повернення, поповнення, винагорода через електронний гаманець або"
-" подарункова картка."
+"Заборонено повернення, поповнення, винагорода через електронний гаманець або "
+"подарункова картка."
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -480,13 +492,13 @@ msgstr "Оберіть програму"
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/overrides/components/product_screen/order_summary/order_summary.xml:0
 msgid "Sell physical gift card?"
-msgstr ""
+msgstr "Продати фізичну подарункову карту?"
 
 #. module: pos_loyalty
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/overrides/components/product_screen/order_summary/order_summary.js:0
 msgid "Sell/Manage physical gift card"
-msgstr ""
+msgstr "Продаж/керування фізичною подарунковою карткою"
 
 #. module: pos_loyalty
 #: model:product.template,name:pos_loyalty.simple_pen_product_template
@@ -553,7 +565,8 @@ msgstr "Купон, використаний для отримання цієї 
 #. odoo-python
 #: code:addons/pos_loyalty/models/pos_order.py:0
 msgid ""
-"The following codes already exist in the database, perhaps they were already sold?\n"
+"The following codes already exist in the database, perhaps they were already "
+"sold?\n"
 "%s"
 msgstr ""
 "Наступні коди вже є в базі, можливо, вони вже продані?\n"
@@ -565,8 +578,8 @@ msgid ""
 "The report action to be executed when creating a coupon/gift card/loyalty "
 "card in the PoS."
 msgstr ""
-"Дія звіту, яка буде виконана під час створення купона/подарункової "
-"картки/картки лояльності в PoS."
+"Дія звіту, яка буде виконана під час створення купона/подарункової картки/"
+"картки лояльності в PoS."
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -614,8 +627,8 @@ msgid ""
 "There is no email template on the gift card program and your pos is set to "
 "print them."
 msgstr ""
-"У програмі подарункових карток немає шаблону електронної пошти, і ваша точка"
-" продажу налаштована на їх друк."
+"У програмі подарункових карток немає шаблону електронної пошти, і ваша точка "
+"продажу налаштована на їх друк."
 
 #. module: pos_loyalty
 #. odoo-python
@@ -636,7 +649,7 @@ msgstr "Це товари, на які поширюється це правил�
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/overrides/components/product_screen/order_summary/order_summary.js:0
 msgid "This Gift card has already been sold."
-msgstr ""
+msgstr "Цю подарункову карту вже продано."
 
 #. module: pos_loyalty
 #. odoo-python
@@ -681,7 +694,7 @@ msgstr "Це використовується для друку згенеров
 #. odoo-python
 #: code:addons/pos_loyalty/models/pos_config.py:0
 msgid "This programs requires a code to be applied."
-msgstr ""
+msgstr "Для цієї програми потрібно застосувати код."
 
 #. module: pos_loyalty
 #. odoo-python

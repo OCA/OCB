@@ -12,7 +12,6 @@ from odoo import api, fields, models, _
 from odoo.osv import expression
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import email_normalize
-from odoo.osv import expression
 
 ATTENDEE_CONVERTER_O2M = {
     'needsAction': 'notresponded',
@@ -53,11 +52,6 @@ class Meeting(models.Model):
     @api.model
     def _restart_microsoft_sync(self):
         domain = self._get_microsoft_sync_domain()
-
-        # Sync only events created/updated after last sync date (with 5 min of time acceptance).
-        if self.env.user.microsoft_last_sync_date:
-            time_offset = timedelta(minutes=5)
-            domain = expression.AND([domain, [('write_date', '>=', self.env.user.microsoft_last_sync_date - time_offset)]])
 
         self.env['calendar.event'].with_context(dont_notify=True).search(domain).write({
             'need_sync_m': True,
@@ -175,11 +169,18 @@ class Meeting(models.Model):
         notify_context = self.env.context.get('dont_notify', False)
 
         # Forbid recurrence updates through Odoo and suggest user to update it in Outlook.
-        if self._check_microsoft_sync_status():
+        if not notify_context:
             recurrency_in_batch = self.filtered(lambda ev: ev.recurrency)
             recurrence_update_attempt = recurrence_update_setting or 'recurrency' in values or recurrency_in_batch and len(recurrency_in_batch) > 0
-            if not notify_context and recurrence_update_attempt and not 'active' in values:
-                self._forbid_recurrence_update()
+            # Check if this is an Outlook recurring event with active sync
+            if recurrence_update_attempt and 'active' not in values:
+                recurring_events = self.filtered('microsoft_recurrence_master_id')
+                if recurring_events and any(
+                    event.with_user(organizer)._check_microsoft_sync_status()
+                    for event in recurring_events
+                    if (organizer := event._get_organizer())
+                ):
+                    self._forbid_recurrence_update()
 
         # When changing the organizer, check its sync status and verify if the user is listed as attendee.
         # Updates from Microsoft must skip this check since changing the organizer on their side is not possible.
@@ -190,8 +191,9 @@ class Meeting(models.Model):
                 sender_user, partner_ids = event._get_organizer_user_change_info(values)
                 partner_included = sender_user.partner_id in event.attendee_ids.partner_id or sender_user.partner_id.id in partner_ids
                 event._check_organizer_validation(sender_user, partner_included)
-                event._recreate_event_different_organizer(values, sender_user)
-                deactivated_events_ids.append(event.id)
+                if event.microsoft_id:
+                    event._recreate_event_different_organizer(values, sender_user)
+                    deactivated_events_ids.append(event.id)
 
         # check a Outlook limitation in overlapping the actual recurrence
         if recurrence_update_setting == 'self_only' and 'start' in values:
@@ -694,3 +696,8 @@ class Meeting(models.Model):
             if user_id and self.with_user(user_id).sudo()._check_microsoft_sync_status():
                 return user_id
         return self.env.user
+
+    def _is_microsoft_insertion_blocked(self, sender_user):
+        self.ensure_one()
+        has_different_owner = self.user_id and self.user_id != sender_user
+        return has_different_owner

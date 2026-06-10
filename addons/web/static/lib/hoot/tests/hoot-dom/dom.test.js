@@ -1,10 +1,13 @@
 /** @odoo-module */
 
-import { describe, expect, getFixture, test } from "@odoo/hoot";
 import {
+    animationFrame,
     click,
+    describe,
+    expect,
     formatXml,
     getActiveElement,
+    getFixture,
     getFocusableElements,
     getNextFocusableElement,
     getPreviousFocusableElement,
@@ -13,17 +16,23 @@ import {
     isFocusable,
     isInDOM,
     isVisible,
+    mockTouch,
     queryAll,
     queryAllRects,
     queryAllTexts,
+    queryFirst,
     queryOne,
     queryRect,
+    test,
     waitFor,
     waitForNone,
-} from "@odoo/hoot-dom";
-import { animationFrame, mockTouch } from "@odoo/hoot-mock";
+} from "@odoo/hoot";
 import { getParentFrame } from "@web/../lib/hoot-dom/helpers/dom";
-import { mountForTest, parseUrl, waitForIframes } from "../local_helpers";
+import { mountForTest, parseUrl } from "../local_helpers";
+
+const $ = queryFirst;
+const $1 = queryOne;
+const $$ = queryAll;
 
 /**
  * @param {...string} queryAllSelectors
@@ -49,15 +58,12 @@ const expectSelector = (...queryAllSelectors) => {
         }
 
         const selector = queryAllSelectors.join(", ");
-        const fnNodes = queryAll(selector);
-        expect(fnNodes).toEqual(queryAll`${selector}`, {
-            message: (pass, r) => [
-                queryAll,
-                r`should return the same result from a tagged template literal`,
-            ],
+        const fnNodes = $$(selector);
+        expect(fnNodes).toEqual($$`${selector}`, {
+            message: `should return the same result from a tagged template literal`,
         });
         expect(fnNodes).toEqual(nodes, {
-            message: (pass, r) => [selector, r`should match`, nodes.length, r`nodes`],
+            message: `should match ${nodes.length} nodes`,
         });
     };
 
@@ -173,11 +179,9 @@ describe(parseUrl(import.meta.url), () => {
     test("getActiveElement", async () => {
         await mountForTest(/* xml */ `<iframe srcdoc="&lt;input &gt;"></iframe>`);
 
-        await waitForIframes();
-
         expect(":iframe input").not.toBeFocused();
 
-        const input = queryOne(":iframe input");
+        const input = $1(":iframe input");
         await click(input);
 
         expect(":iframe input").toBeFocused();
@@ -189,7 +193,7 @@ describe(parseUrl(import.meta.url), () => {
 
         expect("hoot-test-shadow-root:shadow input").not.toBeFocused();
 
-        const input = queryOne("hoot-test-shadow-root:shadow input");
+        const input = $1("hoot-test-shadow-root:shadow input");
         await click(input);
 
         expect("hoot-test-shadow-root:shadow input").toBeFocused();
@@ -237,7 +241,7 @@ describe(parseUrl(import.meta.url), () => {
             <div class="root"></div>
         `);
 
-        const parent = await makeIframe(document, queryOne(".root"));
+        const parent = await makeIframe(document, $1(".root"));
         const child = await makeIframe(parent.contentDocument);
 
         const content = child.contentDocument.createElement("div");
@@ -281,21 +285,20 @@ describe(parseUrl(import.meta.url), () => {
 
     test("isInDom", async () => {
         await mountForTest(FULL_HTML_TEMPLATE);
-        await waitForIframes();
 
         expect(isInDOM(document)).toBe(true);
         expect(isInDOM(document.body)).toBe(true);
         expect(isInDOM(document.head)).toBe(true);
         expect(isInDOM(document.documentElement)).toBe(true);
 
-        const form = queryOne`form`;
+        const form = $1`form`;
         expect(isInDOM(form)).toBe(true);
 
         form.remove();
 
         expect(isInDOM(form)).toBe(false);
 
-        const paragraph = queryOne`:iframe p`;
+        const paragraph = $1`:iframe p`;
         expect(isInDOM(paragraph)).toBe(true);
 
         paragraph.remove();
@@ -376,7 +379,7 @@ describe(parseUrl(import.meta.url), () => {
 
     test("waitFor: rejects", async () => {
         await expect(waitFor("never", { timeout: 1 })).rejects.toThrow(
-            `Could not find elements matching "never" within 1 milliseconds`
+            `expected at least 1 element after 1ms and found 0 elements: 0 matching "never"`
         );
     });
 
@@ -424,7 +427,7 @@ describe(parseUrl(import.meta.url), () => {
         waitForNone(".title").then(() => expect.step("none"));
         expect(".title").toHaveCount(3);
 
-        for (const title of queryAll(".title")) {
+        for (const title of $$(".title")) {
             expect.verifySteps([]);
 
             title.remove();
@@ -439,7 +442,7 @@ describe(parseUrl(import.meta.url), () => {
         test("native selectors", async () => {
             await mountForTest(FULL_HTML_TEMPLATE);
 
-            expect(queryAll()).toEqual([]);
+            expect($$()).toEqual([]);
             for (const selector of [
                 "main",
                 `.${"title"}`,
@@ -456,8 +459,6 @@ describe(parseUrl(import.meta.url), () => {
         test("custom pseudo-classes", async () => {
             await mountForTest(FULL_HTML_TEMPLATE);
 
-            await waitForIframes();
-
             // :first, :last, :only & :eq
             expectSelector(".title:first").toEqualNodes(".title", { index: 0 });
             expectSelector(".title:last").toEqualNodes(".title", { index: -1 });
@@ -468,12 +469,16 @@ describe(parseUrl(import.meta.url), () => {
             expectSelector(".title:eq('1')").toEqualNodes(".title", { index: 1 });
             expectSelector('.title:eq("1")').toEqualNodes(".title", { index: 1 });
 
-            // :contains (text)
+            // :contains
             expectSelector("main > .text:contains(ipsum)").toEqualNodes("p");
             expectSelector(".text:contains(/\\bL\\w+\\b\\sipsum/)").toEqualNodes("p");
             expectSelector(".text:contains(item)").toEqualNodes("li");
 
-            // :contains (value)
+            // :text
+            expectSelector(".text:text(item)").toEqualNodes("");
+            expectSelector(".text:text(first item)").toEqualNodes("li:first-of-type");
+
+            // :value
             expectSelector("input:value(john)").toEqualNodes("[name=name],[name=email]");
             expectSelector("input:value(john doe)").toEqualNodes("[name=name]");
             expectSelector("input:value('John Doe (JOD)')").toEqualNodes("[name=name]");
@@ -493,6 +498,17 @@ describe(parseUrl(import.meta.url), () => {
             expectSelector(":iframe p:contains(iframe text content)").toEqualNodes("p", {
                 root: "iframe",
             });
+        });
+
+        test("query options", async () => {
+            await mountForTest(FULL_HTML_TEMPLATE);
+
+            expect($$("input", { count: 2 })).toHaveLength(2);
+            expect(() => $$("input", { count: 1 })).toThrow();
+
+            expect($$("option", { count: 6 })).toHaveLength(6);
+            expect($$("option", { count: 3, root: "[name=title]" })).toHaveLength(3);
+            expect(() => $$("option", { count: 6, root: "[name=title]" })).toThrow();
         });
 
         test("advanced use cases", async () => {
@@ -598,9 +614,9 @@ describe(parseUrl(import.meta.url), () => {
                     <div>PA4: PAV41</div>
                 </span>
             `);
-            expectSelector(
-                `span:contains("Matrix (PAV11, PAV22, PAV31)\nPA4: PAV41")`
-            ).toEqualNodes("span");
+            expectSelector(`span:contains("Matrix (PAV11, PAV22, PAV31) PA4: PAV41")`).toEqualNodes(
+                "span"
+            );
         });
 
         test(":has(...):first", async () => {
@@ -704,8 +720,6 @@ describe(parseUrl(import.meta.url), () => {
                 <iframe srcdoc="&lt;p&gt;Iframe text content&lt;/p&gt;"></iframe>
             `);
 
-            await waitForIframes();
-
             expectSelector(`:iframe html`).toEqualNodes("html", { root: "iframe" });
             expectSelector(`:iframe body`).toEqualNodes("body", { root: "iframe" });
             expectSelector(`:iframe head`).toEqualNodes("head", { root: "iframe" });
@@ -734,7 +748,7 @@ describe(parseUrl(import.meta.url), () => {
             `);
 
             expectSelector(
-                `.o_content:has(.o_field_widget[name=messages]):has(td:contains(/^bbb$/)):has(td:contains(/^\\[test_trigger\\] Mitchell Admin$/))`
+                `.o_content:has(.o_field_widget[name=messages]):has(td:text(bbb)):has(td:contains(/^\\[test_trigger\\] Mitchell Admin/))`
             ).toEqualNodes(".o_content");
         });
 
@@ -833,11 +847,11 @@ describe(parseUrl(import.meta.url), () => {
         test("invalid selectors", async () => {
             await mountForTest(FULL_HTML_TEMPLATE);
 
-            expect(() => queryAll`[colspan=1]`).toThrow(); // missing quotes
-            expect(() => queryAll`[href=/]`).toThrow(); // missing quotes
+            expect(() => $$`[colspan=1]`).toThrow(); // missing quotes
+            expect(() => $$`[href=/]`).toThrow(); // missing quotes
             expect(
                 () =>
-                    queryAll`_o_wblog_posts_loop:has(span:has(i.fa-calendar-o):has(a[href="/blog?search=a"])):has(span:has(i.fa-search):has(a[href^="/blog?date_begin"]))`
+                    $$`_o_wblog_posts_loop:has(span:has(i.fa-calendar-o):has(a[href="/blog?search=a"])):has(span:has(i.fa-search):has(a[href^="/blog?date_begin"]))`
             ).toThrow(); // nested :has statements
         });
 
@@ -847,9 +861,7 @@ describe(parseUrl(import.meta.url), () => {
                 <div style="width: 20px; height: 10px;" />
             `);
 
-            expect(queryAllRects("div")).toEqual(
-                queryAll("div").map((el) => el.getBoundingClientRect())
-            );
+            expect(queryAllRects("div")).toEqual($$("div").map((el) => el.getBoundingClientRect()));
             expect(queryAllRects("div:first")).toEqual([new DOMRect({ width: 40, height: 60 })]);
             expect(queryAllRects("div:last")).toEqual([new DOMRect({ width: 20, height: 10 })]);
         });
@@ -864,10 +876,10 @@ describe(parseUrl(import.meta.url), () => {
         test("queryOne", async () => {
             await mountForTest(FULL_HTML_TEMPLATE);
 
-            expect(queryOne(".title:first")).toBe(getFixture().querySelector("header .title"));
+            expect($1(".title:first")).toBe(getFixture().querySelector("header .title"));
 
-            expect(() => queryOne(".title")).toThrow();
-            expect(() => queryOne(".title", { exact: 2 })).toThrow();
+            expect(() => $1(".title")).toThrow();
+            expect(() => $1(".title", { count: 2 })).toThrow();
         });
 
         test("queryRect", async () => {
@@ -879,7 +891,7 @@ describe(parseUrl(import.meta.url), () => {
 
             expect(".rect").toHaveRect(".container"); // same rect as parent
             expect(".rect").toHaveRect({ width: 40, height: 60 });
-            expect(queryRect(".rect")).toEqual(queryOne(".rect").getBoundingClientRect());
+            expect(queryRect(".rect")).toEqual($1(".rect").getBoundingClientRect());
             expect(queryRect(".rect")).toEqual(new DOMRect({ width: 40, height: 60 }));
         });
 
@@ -890,6 +902,39 @@ describe(parseUrl(import.meta.url), () => {
 
             expect("div").toHaveRect({ width: 50, height: 70 }); // with padding
             expect("div").toHaveRect({ width: 40, height: 60 }, { trimPadding: true });
+        });
+
+        test("not found messages", async () => {
+            await mountForTest(/* xml */ `
+                <div class="tralalero">
+                    Tralala
+                </div>
+            `);
+
+            expect(() => $("invalid:pseudo-selector")).toThrow();
+            // Perform in-between valid query with custom pseudo selectors
+            expect($`.modal:visible:contains('Tung Tung Tung Sahur')`).toBe(null);
+
+            // queryOne error messages
+            expect(() => $1()).toThrow(`found 0 elements instead of 1`);
+            expect(() => $$([], { count: 18 })).toThrow(`found 0 elements instead of 18`);
+            expect(() => $1("")).toThrow(`found 0 elements instead of 1: 0 matching ""`);
+            expect(() => $$(".tralalero", { count: -20 })).toThrow(
+                `invalid 'count' option: should be a positive integer`
+            );
+            expect(() => $1`.tralalero:contains(Tralala):visible:scrollable:first`).toThrow(
+                `found 0 elements instead of 1: 0 matching ".tralalero:contains(Tralala):visible:scrollable:first" (1 element with text "Tralala" > 1 visible element > 0 scrollable elements)`
+            );
+            expect(() =>
+                $1(".tralalero", {
+                    contains: "Tralala",
+                    visible: true,
+                    scrollable: true,
+                    first: true,
+                })
+            ).toThrow(
+                `found 0 elements instead of 1: 1 matching ".tralalero", including 1 element with text "Tralala", including 1 visible element, including 0 scrollable elements`
+            );
         });
     });
 });

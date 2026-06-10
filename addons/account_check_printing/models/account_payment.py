@@ -121,6 +121,10 @@ class AccountPayment(models.Model):
             field_desc['readonly'] = True
         return result
 
+    @api.model
+    def _get_trigger_fields_to_synchronize(self):
+        return super()._get_trigger_fields_to_synchronize() + ('check_number',)
+
     def _get_aml_default_display_name_list(self):
         # Extends 'account'
         self.ensure_one()
@@ -223,6 +227,7 @@ class AccountPayment(models.Model):
             'date': format_date(self.env, self.date),
             'partner_id': self.partner_id,
             'partner_name': self.partner_id.name,
+            'company': self.company_id.name,
             'currency': self.currency_id,
             'state': self.state,
             'amount': formatLang(self.env, self.amount, currency_obj=self.currency_id) if i == 0 else 'VOID',

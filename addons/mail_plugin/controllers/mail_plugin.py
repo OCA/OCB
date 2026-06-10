@@ -50,7 +50,7 @@ class MailPluginController(http.Controller):
         company, enrichment_info = self._create_company_from_iap(normalized_email)
 
         if company:
-            partner.write({'parent_id': company})
+            partner.write({'parent_id': company.id})
 
         return {
             'enrichment_info': enrichment_info,
@@ -356,7 +356,7 @@ class MailPluginController(http.Controller):
                 if response.ok:
                     new_company_info['image_1920'] = base64.b64encode(response.content)
             except Exception as e:
-                _logger.warning('Download of image for new company %s failed, error %s', new_company_info.name, e)
+                _logger.warning('Download of image for new company %s failed, error %s', new_company_info['name'], e)
 
         if iap_data.get('country_code'):
             country = request.env['res.country'].search([('code', '=', iap_data['country_code'].upper())])

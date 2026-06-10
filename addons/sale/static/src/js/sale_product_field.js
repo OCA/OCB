@@ -126,7 +126,7 @@ export class SaleOrderLineProductField extends ProductLabelSectionAndNoteField {
         return this.props.record.data.is_configurable_product;
     }
     get isCombo() {
-        return this.props.record.data.product_type === 'combo';
+        return this.props.record.data.product_template_id && this.props.record.data.product_type === 'combo';
     }
     get isDownpayment() {
         return this.props.record.data.is_downpayment;
@@ -145,6 +145,33 @@ export class SaleOrderLineProductField extends ProductLabelSectionAndNoteField {
             return "text-warning";
         }
         return className;
+    }
+
+    get label() {
+        let label = this.props.record.data.name;
+        if (this.translatedProductName && label.startsWith(this.translatedProductName)) {
+            // Remove the translated name as it is already shown to the salesman on the SOL.
+            label = label.slice(this.translatedProductName.length + 1);  // + "\n"
+        } else {
+            label = super.label;
+        }
+        return label;
+    }
+
+    get translatedProductName() {
+        return this.props.record.data.translated_product_name;
+    }
+
+    updateLabel(value) {
+        if (!this.translatedProductName) {
+            return super.updateLabel(value);
+        }
+        this.props.record.update({
+            name: (
+                value && this.translatedProductName.concat("\n", value)
+                || this.translatedProductName
+            ),
+        });
     }
 
     onClick(ev) {

@@ -28,6 +28,8 @@ import {
     isUnprotecting,
     listElementSelector,
     paragraphRelatedElementsSelector,
+    isEditorTab,
+    isPhrasingContent,
 } from "../utils/dom_info";
 import {
     childNodes,
@@ -93,6 +95,7 @@ export class DomPlugin extends Plugin {
             }
         },
         normalize_handlers: this.normalize.bind(this),
+        functional_empty_node_predicates: [isSelfClosingElement, isEditorTab],
     };
     contentEditableToRemove = new Set();
 
@@ -118,7 +121,7 @@ export class DomPlugin extends Plugin {
             startNode = selection.startContainer;
         }
 
-        const container = this.document.createElement("fake-element");
+        let container = this.document.createElement("fake-element");
         const containerFirstChild = this.document.createElement("fake-element-fc");
         const containerLastChild = this.document.createElement("fake-element-lc");
 
@@ -134,6 +137,12 @@ export class DomPlugin extends Plugin {
             }
             container.replaceChildren(content);
         }
+
+        const block = closestBlock(selection.anchorNode);
+        for (const cb of this.getResource("before_insert_processors")) {
+            container = cb(container, block);
+        }
+
         const allInsertedNodes = [];
 
         // In case the html inserted starts with a list and will be inserted within
@@ -155,13 +164,9 @@ export class DomPlugin extends Plugin {
         }
 
         startNode = startNode || this.dependencies.selection.getEditableSelection().anchorNode;
-        const block = closestBlock(selection.anchorNode);
 
         const shouldUnwrap = (node) =>
-            (isParagraphRelatedElement(node) ||
-                isListItemElement(node) ||
-                // TODO remove: PRE should be a paragraphRelatedElement
-                node.nodeName === "PRE") &&
+            (isParagraphRelatedElement(node) || isListItemElement(node)) &&
             !isEmptyBlock(block) &&
             !isEmptyBlock(node) &&
             (isContentEditable(node) ||
@@ -170,22 +175,26 @@ export class DomPlugin extends Plugin {
             (node.nodeName === block.nodeName ||
                 (this.dependencies.baseContainer.isCandidateForBaseContainer(node) &&
                     this.dependencies.baseContainer.isCandidateForBaseContainer(block)) ||
-                // TODO add: when PRE is considered as a paragraphRelatedElement
-                // again, consider unwrapping in PRE by re-enabling the
-                // following condition:
-                // block.nodeName === "PRE" ||
+                block.nodeName === "PRE" ||
                 (block.nodeName === "DIV" && this.dependencies.split.isUnsplittable(block))) &&
             // If the selection anchorNode is the editable itself, the content
             // should not be unwrapped.
             !this.isEditionBoundary(selection.anchorNode);
 
         // Empty block must contain a br element to allow cursor placement.
+        const firstLeafNode = firstLeaf(container);
         if (
-            container.lastElementChild &&
-            isBlock(container.lastElementChild) &&
-            !container.lastElementChild.hasChildNodes()
+            isBlock(firstLeafNode) &&
+            !(closestElement(firstLeafNode, "[contenteditable]")?.contentEditable === "false")
         ) {
-            fillEmpty(container.lastElementChild);
+            fillEmpty(firstLeafNode);
+        }
+        const lastLeafNode = lastLeaf(container);
+        if (
+            isBlock(lastLeafNode) &&
+            !(closestElement(lastLeafNode, "[contenteditable]")?.contentEditable === "false")
+        ) {
+            fillEmpty(lastLeafNode);
         }
 
         // In case the html inserted is all contained in a single root <p> or <li>
@@ -397,15 +406,19 @@ export class DomPlugin extends Plugin {
                     (node) => {
                         // Don't remove the last BR in cases where the
                         // previous sibling is an unsplittable block
-                        // (i.e. a table, a non-editable div, ...)
-                        // to allow placing the cursor after that unsplittable
-                        // element. This can be removed when the cursor
-                        // is properly handled around these elements.
+                        // (i.e. a non-editable div, ...) to allow placing the
+                        // cursor after that unsplittable element.
+                        // Tables are exception because the cursor can be
+                        // places directly at the edge of the table, so the
+                        // trailing BR is not needed.
+                        // This can be removed when the cursor is properly
+                        // handled around these elements.
                         const previousSibling = node.previousSibling;
                         return (
                             previousSibling &&
                             isBlock(previousSibling) &&
-                            this.dependencies.split.isUnsplittable(previousSibling)
+                            this.dependencies.split.isUnsplittable(previousSibling) &&
+                            previousSibling.nodeName !== "TABLE"
                         );
                     },
                 ]);
@@ -432,18 +445,16 @@ export class DomPlugin extends Plugin {
                 candidateForRemoval.remove();
             }
         }
-        for (const insertedNode of allInsertedNodes.reverse()) {
-            if (insertedNode.isConnected) {
-                currentNode = insertedNode;
-                break;
-            }
+        const lastInsertedNode = allInsertedNodes.findLast((node) => node.isConnected);
+        if (!lastInsertedNode) {
+            return;
         }
         let lastPosition =
-            isParagraphRelatedElement(currentNode) ||
-            isListItemElement(currentNode) ||
-            isListElement(currentNode)
-                ? rightPos(lastLeaf(currentNode))
-                : rightPos(currentNode);
+            isParagraphRelatedElement(lastInsertedNode) ||
+            isListItemElement(lastInsertedNode) ||
+            isListElement(lastInsertedNode)
+                ? rightPos(lastLeaf(lastInsertedNode))
+                : rightPos(lastInsertedNode);
         lastPosition = normalizeCursorPosition(lastPosition[0], lastPosition[1], "right");
 
         if (!this.config.allowInlineAtRoot && this.isEditionBoundary(lastPosition[0])) {
@@ -556,16 +567,22 @@ export class DomPlugin extends Plugin {
             this.copyAttributes(newCandidate, baseContainer);
             newCandidate = baseContainer;
         }
+        const { commonAncestorContainer } = this.dependencies.selection.getEditableSelection();
+        // Clean before preserving cursors otherwise the saved cursors might
+        // reference a node that will be removed when setTagName eventually
+        // calls clean of its own.
+        this.dispatchTo("clean_handlers", closestElement(commonAncestorContainer));
         const cursors = this.dependencies.selection.preserveSelection();
-        const selectedBlocks = [...this.dependencies.selection.getTraversedBlocks()];
-        const deepestSelectedBlocks = selectedBlocks.filter(
+        const targetedBlocks = [...this.dependencies.selection.getTargetedBlocks()];
+        const deepestTargetedBlocks = targetedBlocks.filter(
             (block) =>
-                !descendants(block).some((descendant) => selectedBlocks.includes(descendant)) &&
+                !descendants(block).some((descendant) => targetedBlocks.includes(descendant)) &&
                 block.isContentEditable
         );
-        for (const block of deepestSelectedBlocks) {
+        for (const block of deepestTargetedBlocks) {
             if (
                 isParagraphRelatedElement(block) ||
+                isPhrasingContent(block) ||
                 block.nodeName === "PRE" || // TODO remove: PRE should be a paragraphRelatedElement
                 isListItemElement(block)
             ) {
@@ -606,7 +623,15 @@ export class DomPlugin extends Plugin {
             (block && !isListItemElement(block) ? block : null);
 
         if (element && element !== this.editable) {
-            element.before(sep);
+            if (isEmptyBlock(element)) {
+                element.before(sep);
+            } else {
+                element.after(sep);
+                const baseContainer = this.dependencies.baseContainer.createBaseContainer();
+                fillEmpty(baseContainer);
+                sep.after(baseContainer);
+                this.dependencies.selection.setCursorStart(baseContainer);
+            }
         }
         this.dependencies.history.addStep();
     }

@@ -141,9 +141,9 @@ class Employee(models.Model):
         for contract in contracts:
             contracts_by_employee[contract.employee_id] += contract
         for employee in self:
-            employee_contracts = contracts_by_employee[employee.id]
+            employee_contracts = contracts_by_employee[employee]
             if employee_contracts:
-                res[employee.id] = contracts[0].resource_calendar_id.sudo(False)
+                res[employee.id] = employee_contracts[0].resource_calendar_id.sudo(False)
         return res
 
     def _get_calendar_periods(self, start, stop):
@@ -203,10 +203,16 @@ class Employee(models.Model):
         ])
         if not employee_contracts:
             return super()._get_unusual_days(date_from, date_to)
+
+        selected_contracts = employee_contracts.filtered(lambda c: c.state in ('open', 'close'))
+
+        if not selected_contracts:
+            selected_contracts = max(employee_contracts, key=lambda c: (c.create_date, c.id))
+
         unusual_days = {}
         date_from_date = datetime.strptime(date_from, '%Y-%m-%d %H:%M:%S').date()
         date_to_date = datetime.strptime(date_to, '%Y-%m-%d %H:%M:%S').date() if date_to else None
-        for contract in employee_contracts:
+        for contract in selected_contracts:
             tmp_date_from = max(date_from_date, contract.date_start)
             tmp_date_to = min(date_to_date, contract.date_end) if contract.date_end else date_to_date
             unusual_days.update(contract.resource_calendar_id.sudo(False)._get_unusual_days(
@@ -279,6 +285,10 @@ class Employee(models.Model):
             duration_data['hours'] += contract_duration_data['hours']
         return duration_data
 
+    def filter_valid(self, checked_date):
+        valid_contracts = self._get_contracts(checked_date, checked_date, states=['open', 'close'])
+        return valid_contracts.mapped('employee_id')
+
     def write(self, vals):
         res = super().write(vals)
         if vals.get('contract_id'):
@@ -307,13 +317,15 @@ class Employee(models.Model):
             return action
 
         target_contract = self.contract_id
-        if target_contract:
+        if target_contract.state == 'open' or \
+            (target_contract.state == 'draft' and target_contract.kanban_state == 'done'):
             action['res_id'] = target_contract.id
             return action
 
         target_contract = self.contract_ids.filtered(lambda c: c.state == 'draft')
-        if target_contract:
-            action['res_id'] = target_contract[0].id
+        latest_contract = max(target_contract, key=lambda c: (c.create_date, c.id), default=False)
+        if latest_contract:
+            action['res_id'] = latest_contract.id
             return action
 
         action['res_id'] = self.contract_ids[0].id

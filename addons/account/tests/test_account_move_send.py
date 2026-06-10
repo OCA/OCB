@@ -162,7 +162,7 @@ class TestAccountComposerPerformance(AccountTestInvoicingCommon, MailCommon):
         with self.mock_mail_gateway(mail_unlink_sent=False):
             self.env['account.move.send']._generate_and_send_invoices(
                 test_moves,
-                sending_methods=['email'],
+                sending_methods={'email'},
                 mail_template=move_template,
             )
 
@@ -452,6 +452,48 @@ class TestAccountComposerPerformance(AccountTestInvoicingCommon, MailCommon):
             },
         )
 
+    def test_move_composer_with_dynamic_report_print_report_name(self):
+        """
+        Additional dynamic report with custom print_report_name,
+        uses its own filename instead of reusing the invoice PDF filename.
+        """
+        test_move = self.test_account_moves[0].with_env(self.env)
+        test_customer = self.test_customers[0].with_env(self.env)
+        move_template = self.move_template.with_env(self.env)
+
+        extra_dynamic_report = self.env.ref('account.action_account_original_vendor_bill').copy({
+            'name': 'Invoice PDF 2',
+            'print_report_name': "'CUSTOM_%s' % object.name",
+        })
+        move_template.report_template_ids += extra_dynamic_report
+
+        composer = self.env['account.move.send.wizard']\
+            .with_context(active_model='account.move', active_ids=test_move.ids)\
+            .create({
+                'sending_methods': ['email'],
+                'mail_template_id': move_template.id,
+            })
+
+        with self.mock_mail_gateway(mail_unlink_sent=False), \
+                self.mock_mail_app():
+            composer.action_send_and_print()
+            self.env.cr.flush()
+
+        self.assertMailMail(
+            test_customer,
+            'sent',
+            author=self.user_account_other.partner_id,
+            content=f'TemplateBody for {test_move.name}',
+            email_values={
+                'attachments_info': [
+                    {'name': 'AttFileName_00.txt', 'raw': b'AttContent_00', 'type': 'text/plain'},
+                    {'name': 'AttFileName_01.txt', 'raw': b'AttContent_01', 'type': 'text/plain'},
+                    {'name': f'{test_move.name}.pdf'},
+                    {'name': 'CUSTOM_INVOICE_00.pdf'},
+                ],
+            },
+        )
+
     def test_invoice_sent_to_additional_partner(self):
         """
         Make sure that when an invoice is sent to a partner who is not
@@ -488,6 +530,15 @@ class TestAccountComposerPerformance(AccountTestInvoicingCommon, MailCommon):
             content='access_token=',
         )
 
+    def test_invoice_email_subtitle_from_sale_order(self):
+        """ Test email notification subtitle for Invoice created from Sale Order. """
+        self.product_a.taxes_id = False
+        sale_order = self._create_sale_order_one_line(product_id=self.product_a.id, partner_id=self.partner_a.id)
+        invoice = sale_order._create_invoices()
+        context = invoice._notify_by_email_prepare_rendering_context(message=self.env['mail.message'])
+        self.assertEqual(context.get('subtitles')[0], f"{invoice.display_name} - {self.partner_a.name}")
+        self.assertIn('1,000', context.get('subtitles')[1])
+
 
 class TestAccountMoveSendCommon(AccountTestInvoicingCommon):
 
@@ -512,10 +563,10 @@ class TestAccountMoveSendCommon(AccountTestInvoicingCommon):
             )
 
     def create_send_and_print(self, invoices, **kwargs):
-        wizard_model = 'account.move.send.wizard' if len(invoices) == 1 else 'account.move.send.batch.wizard'
-        return self.env[wizard_model]\
-            .with_context(active_model='account.move', active_ids=invoices.ids)\
-            .create(kwargs)
+        if len(invoices) == 1:
+            return self._create_account_move_send_wizard_single(invoices, **kwargs)
+        else:
+            return self._create_account_move_send_wizard_multi(invoices, **kwargs)
 
     def _get_mail_message(self, move):
         return self.env['mail.message'].search([('model', '=', move._name), ('res_id', '=', move.id)], limit=1)
@@ -693,6 +744,14 @@ class TestAccountMoveSend(TestAccountMoveSendCommon):
         self.assertTrue(invoice2.invoice_pdf_report_id)
         self.assertTrue(self._get_mail_message(invoice2))
 
+    def test_invoice_multi_cron_disabled_alert(self):
+        invoice1 = self.init_invoice("out_invoice", partner=self.partner_a, amounts=[1000], post=True)
+        invoice2 = self.init_invoice("out_invoice", partner=self.partner_b, amounts=[1000], post=True)
+        self.env.ref('account.ir_cron_account_move_send').active = False
+        wizard = self.create_send_and_print(invoice1 + invoice2)
+        self.assertTrue('account_send_cron_archived' in wizard.alerts)
+        self.assertEqual(wizard.alerts['account_send_cron_archived']['level'], 'warning')
+
     def test_invoice_multi_with_edi(self):
         invoice1 = self.init_invoice("out_invoice", partner=self.partner_a, amounts=[1000], post=True)
         invoice2 = self.init_invoice("out_invoice", partner=self.partner_b, amounts=[1000], post=True)
@@ -722,6 +781,21 @@ class TestAccountMoveSend(TestAccountMoveSendCommon):
                 'manual': {'count': 1, 'label': 'Manually'},
                 'email': {'count': 1, 'label': 'by Email'},
             })
+
+    def test_invoice_multi_child_contact(self):
+        """ Test bulk invoice sending will retrieve info from the main partner. """
+        self.partner_a.write({'invoice_sending_method': 'manual'})
+        partner = self.env['res.partner'].create({
+            'type': 'invoice',
+            'email': 'child@example.com',
+            'parent_id': self.partner_a.id
+        })
+        invoice1 = self.init_invoice("out_invoice", amounts=[1000], partner=partner, post=True)
+        invoice2 = self.init_invoice("out_invoice", amounts=[1000], partner=partner, post=True)
+        wizard = self.create_send_and_print(invoice1 + invoice2)
+        self.assertEqual(wizard.summary_data, {
+            'manual': {'count': 2, 'label': 'Manually'}
+        })
 
     def test_invoice_mail_attachments_widget(self):
         invoice = self.init_invoice("out_invoice", amounts=[1000], post=True)
@@ -1090,11 +1164,11 @@ class TestAccountMoveSend(TestAccountMoveSendCommon):
     def test_get_sending_settings(self):
         invoice = self.init_invoice("out_invoice", amounts=[1000], post=True)
         wizard = self.create_send_and_print(invoice)
-        
+
         expected_results = {
-            'sending_methods': ['email'],
+            'sending_methods': {'email'},
             'invoice_edi_format': False,
-            'extra_edis': [],
+            'extra_edis': set(),
             'pdf_report': self.env.ref('account.account_invoices'),
             'author_user_id': self.env.user.id,
             'author_partner_id': self.env.user.partner_id.id,
@@ -1107,3 +1181,33 @@ class TestAccountMoveSend(TestAccountMoveSendCommon):
         }
         results = wizard._get_sending_settings()
         self.assertDictEqual(results, expected_results)
+
+    def test_invoice_email_subtitle(self):
+        """ Test email notification subtitle for Invoice with and without partner name. """
+        partner = self.env['res.partner'].create({'type': 'invoice', 'parent_id': self.partner_a.id})
+        invoice = self.init_invoice("out_invoice", amounts=[1000], partner=partner, post=True)
+        context = invoice._notify_by_email_prepare_rendering_context(message=self.env['mail.message'])
+        self.assertEqual(context.get('subtitles')[0], invoice.name)
+
+        invoice.partner_id.name = "Test Partner"
+        context = invoice._notify_by_email_prepare_rendering_context(message=self.env['mail.message'])
+        self.assertEqual(context.get('subtitles')[0], f"{invoice.name} - Test Partner")
+
+    def test_get_invoice_report_filename(self):
+        mock_template = self.env.ref('account.account_invoices_without_payment')
+        mock_template.write({
+            'is_invoice_report': True,
+            'print_report_name': "('CustomName_%s' % (object._get_report_base_filename()))",
+        })
+        # Test: filename when no template is set.
+        move = self.init_invoice("out_invoice", amounts=[1000], partner=self.partner_a, post=True)
+        wizard_1 = self.create_send_and_print(move)
+        wizard_1.action_send_and_print()
+        self.assertEqual(move.message_main_attachment_id.name, f"{move._get_report_base_filename().replace('/', '_')}.pdf")
+
+        # Test: filename when template is set.
+        self.partner_a.invoice_template_pdf_report_id = mock_template.id
+        move2 = self.init_invoice("out_invoice", amounts=[1000], partner=self.partner_a, post=True)
+        wizard_2 = self.create_send_and_print(move2)
+        wizard_2.action_send_and_print()
+        self.assertEqual(move2.message_main_attachment_id.name, f"CustomName_{move2._get_report_base_filename().replace('/', '_')}.pdf")

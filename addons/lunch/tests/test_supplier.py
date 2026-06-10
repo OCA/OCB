@@ -244,3 +244,35 @@ env['lunch.supplier'].browse([{self.supplier_kothai.id}])._send_auto_email()""")
             'topping_ids_3': [(2, supplier.topping_ids_3.id)],
         })
         self.assertFalse(supplier.topping_ids_3)
+
+    def test_lunch_order_with_minimum_threshold(self):
+        """ Test that lunch order is allowed within the overdraft threshold. """
+
+        self.env.company.lunch_minimum_threshold = 200.0
+        order = self.env['lunch.order'].create({
+            'product_id': self.product_pizza.id,
+            'date': self.monday_1pm.date(),
+            'supplier_id': self.supplier_pizza_inn.id,
+            'quantity': 11,
+        })
+        self.assertTrue(order.display_add_button)
+
+        order.action_order()
+        self.assertEqual(order.state, "ordered")
+
+    def test_order_with_vendor_recurrency_end_date(self):
+        """ Test lunch order when vendor have recurrency_end_date field set """
+        self.supplier_pizza_inn.recurrency_end_date = self.monday_1pm.date() + timedelta(days=7)
+
+        # Test _compute_available_today flow (datetime.datetime object)
+        with patch.object(fields.Datetime, 'now', return_value=self.monday_1pm):
+            self.supplier_pizza_inn.invalidate_recordset(['available_today'])
+            self.assertTrue(self.supplier_pizza_inn.available_today)
+
+        # Test _compute_available_on_date flow (datetime.date object)
+        order = self.env['lunch.order'].create({
+            'product_id': self.product_pizza.id,
+            'date': self.monday_1pm.date(),
+            'supplier_id': self.supplier_pizza_inn.id,
+        })
+        self.assertTrue(order.available_on_date)

@@ -27,7 +27,7 @@ export class SaleOrderLineListRenderer extends ProductLabelSectionAndNoteListRen
         if (column.name === 'product_id' || column.name === 'product_template_id') {
             return;
         }
-        super.getCellTitle(column, record);
+        return super.getCellTitle(column, record);
     }
 
     getActiveColumns(list) {
@@ -71,7 +71,7 @@ export class SaleOrderLineListRenderer extends ProductLabelSectionAndNoteListRen
     isCellReadonly(column, record) {
         return super.isCellReadonly(column, record) || (
             this.isComboItem(record)
-                && ![this.titleField, 'tax_id', 'qty_delivered'].includes(column.name)
+                && !['name', 'tax_id', 'qty_delivered'].includes(column.name)
         );
     }
 

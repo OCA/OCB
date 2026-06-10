@@ -155,7 +155,8 @@ class TestPartnerAssign(TransactionCase):
             pass
 
 
-class TestPartnerLeadPortal(TestCrmCommon):
+@tagged('lead_portal')
+class TestPartnerLeadPortal(TestCrmCommon, HttpCase):
 
     def setUp(self):
         super(TestPartnerLeadPortal, self).setUp()
@@ -224,10 +225,82 @@ class TestPartnerLeadPortal(TestCrmCommon):
         self.assertEqual(opportunity.team_id, salesmanteam, 'The created opportunity should have the same team as the salesman default team of the opportunity creator.')
         self.assertEqual(opportunity.partner_assigned_id, self.user_portal.partner_id, 'Assigned Partner of created opportunity is the (portal) creator.')
 
+    def test_lead_update(self):
+        data = self.env['crm.lead'].with_user(self.user_portal).create_opp_portal({
+            'title': 'Test lead',
+            'description': 'A lead',
+            'contact_name': 'Test contact',
+        })
+        opportunity = self.env['crm.lead'].browse(data['id'])
+
+        email_1 = 'test_partner@test.com'
+        test_user = self.env['res.users'].create({
+            'name': 'test user',
+            'login': 'user',
+            'email': email_1,
+        })
+        test_partner = test_user.partner_id
+        test_partner.user_id = test_user
+
+        with self.assertRaises(AccessError):
+            opportunity.with_user(self.user_portal).write({
+                'partner_id': test_partner.id,
+            })
+        opportunity.write({
+            'partner_id': test_partner.id,
+        })
+
+        update_values = {
+            'expected_revenue': 9999.0,
+            'probability': 50.0,
+            'priority': '2',
+            'date_deadline': False,
+            'activity_date_deadline': False,
+            'activity_type_id': False,
+            'activity_summary': False,
+        }
+        opportunity.with_user(self.user_portal).update_lead_portal(update_values)
+        self.assertEqual(opportunity.expected_revenue, 9999.0, "Portal user should be able to update revenue or other details via portal method")
+
+        email_2 = 'test_partner_updated@test.com'
+        opportunity.with_user(self.user_portal).update_contact_details_from_portal({
+            'email_from': email_2,
+        })
+        self.assertEqual(opportunity.email_from, email_2, 'Address email on the opportunity must be updated')
+        self.assertEqual(test_partner.email, email_1, 'Adress email on the partner should not be updated')
+
+        test_user.unlink()
+        opportunity.with_user(self.user_portal).update_contact_details_from_portal({
+            'email_from': email_2,
+        })
+        self.assertEqual(test_partner.email, email_2, 'Adress email on the partner must be updated')
+
     def test_portal_mixin_url(self):
         record_action = self.lead_portal._get_access_action(access_uid=self.user_portal.id)
         self.assertEqual(record_action['url'], '/my/opportunity/%s' % self.lead_portal.id)
         self.assertEqual(record_action['type'], 'ir.actions.act_url')
+
+    def test_portal_post(self):
+        self.authenticate(self.user_portal.login, self.user_portal.login)
+        self.make_jsonrpc_request(
+            route="/mail/message/post",
+            params={
+                'thread_model': self.lead_portal._name,
+                'thread_id': self.lead_portal.id,
+                'pid': self.user_portal.partner_id.id,
+                'post_data': {
+                    'body': "Test",
+                },
+            },
+        )
+        message = self.lead_portal.message_ids[0]
+        self.assertMessageFields(
+            message, {
+                'author_id': self.user_portal.partner_id,
+                'body': '<p>Test</p>',
+                'message_type': 'comment',
+            }
+        )
 
     def test_route_portal_my_opportunities_as_portal(self):
         """Test that the portal user can access its own opportunities even if

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.addons.survey.tests import common
 from odoo.tests.common import HttpCase
 
@@ -79,9 +79,17 @@ class TestSurveyController(common.TestSurveyCommon, HttpCase):
                 if layout == 'page_per_section':
                     page0, _ = self.env['survey.question'].create(pages)
 
+                cookie_key = f'survey_{survey.access_token}'
+                # clear the cookie to start a new survey
+                self.opener.cookies.pop(cookie_key, None)
+
                 response = self._access_start(survey)
-                user_input = self.env['survey.user_input'].search([('access_token', '=', response.url.split('/')[-1])])
+                self.assertTrue(response.history, "Survey start should redirect")
+                cookie_token = response.history[0].cookies.get(cookie_key)
+                user_input = self.env['survey.user_input'].search([('access_token', '=', cookie_token)])
                 answer_token = user_input.access_token
+                self.assertTrue(cookie_token)
+                self.assertTrue(user_input)
 
                 r = self._access_page(survey, answer_token)
                 self.assertResponse(r, 200)
@@ -103,3 +111,19 @@ class TestSurveyController(common.TestSurveyCommon, HttpCase):
                 self.assertEqual(response.json()['result'][0], expected_correct_answers)
 
                 user_input.invalidate_recordset() # TDE note: necessary as lots of sudo in controllers messing with cache
+
+    def test_live_session_without_question(self):
+        """Test that the live session ('Thank You' page) does not crash when no question is present."""
+        survey = self.env['survey.survey'].with_user(self.survey_manager).create({
+            'title': 'Live Session Survey',
+            'access_mode': 'token',
+            'users_login_required': False,
+            'session_question_start_time': fields.datetime(2023, 7, 7, 12, 0, 0),
+        })
+
+        self.authenticate(self.survey_manager.login, self.survey_manager.login)
+
+        # Call the url without any question
+        session_manage_url = f'/survey/session/manage/{survey.access_token}'
+        response = self.url_open(session_manage_url)
+        self.assertEqual(response.status_code, 200, "Should be able to open live session manage page")

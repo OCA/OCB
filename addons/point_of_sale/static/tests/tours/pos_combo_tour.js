@@ -1,3 +1,5 @@
+/* global posmodel */
+
 import * as ProductScreen from "@point_of_sale/../tests/tours/utils/product_screen_util";
 import * as PaymentScreen from "@point_of_sale/../tests/tours/utils/payment_screen_util";
 import * as ReceiptScreen from "@point_of_sale/../tests/tours/utils/receipt_screen_util";
@@ -15,23 +17,16 @@ registry.category("web_tour.tours").add("ProductComboPriceTaxIncludedTour", {
             Chrome.startPoS(),
             Dialog.confirm("Open Register"),
             scan_barcode("SuperCombo"),
+            combo.isNotPresent("Combo Product 1 (archived)"),
             combo.select("Combo Product 3"),
             combo.isConfirmationButtonDisabled(),
             combo.select("Combo Product 9"),
             // Check Product Configurator is open
             Dialog.is("Attribute selection"),
             Dialog.discard(),
-            {
-                content: "Check that Combo Product 10 (White) archived variant is disabled",
-                trigger: `.ptav-not-available article.product .product-content .product-name:contains("Combo Product 10 (White)")`,
-            },
-            combo.isConfirmationButtonDisabled(),
             combo.select("Combo Product 5"),
             combo.select("Combo Product 7"),
             combo.isSelected("Combo Product 7"),
-            // Check archived variant Selection
-            combo.select("Combo Product 10 (White)"),
-            combo.isConfirmationButtonDisabled(),
             combo.select("Combo Product 8"),
             combo.isSelected("Combo Product 8"),
             combo.isNotSelected("Combo Product 7"),
@@ -171,5 +166,132 @@ registry.category("web_tour.tours").add("ProductComboChangePricelist", {
             ]),
             ProductScreen.totalAmountIs("42.60"),
             ProductScreen.isShown(),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_combo_disallowLineQuantityChange", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            {
+                content: "replace disallowLineQuantityChange to be true",
+                trigger: "body",
+                run: () => {
+                    posmodel.disallowLineQuantityChange = () => true;
+                },
+            },
+            ProductScreen.clickDisplayedProduct("Office Combo"),
+            combo.select("Combo Product 2"),
+            combo.select("Combo Product 4"),
+            combo.select("Combo Product 6"),
+            Dialog.confirm(),
+            inLeftSide(
+                [
+                    Numpad.click("⌫"),
+                    {
+                        content: "Click 0",
+                        trigger:
+                            ".modal-content div.numpad button:not(:contains('+')):contains('0')",
+                        run: "click",
+                    },
+                    Chrome.confirmPopup(),
+                    Order.doesNotHaveLine(),
+                ].flat()
+            ),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_combo_disallowLineQuantityChange_2", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            {
+                content: "replace disallowLineQuantityChange to be true",
+                trigger: "body",
+                run: () => {
+                    posmodel.disallowLineQuantityChange = () => true;
+                },
+            },
+            ProductScreen.clickDisplayedProduct("Office Combo"),
+            combo.select("Combo Product 2"),
+            combo.select("Combo Product 4"),
+            combo.select("Combo Product 6"),
+            Dialog.confirm(),
+            inLeftSide(
+                [
+                    Numpad.click("2"),
+                    {
+                        content: "Click 2",
+                        trigger:
+                            ".modal-content div.numpad button:not(:contains('+')):contains('2')",
+                        run: "click",
+                    },
+                    Chrome.confirmPopup(),
+                    Order.hasLine({ productName: "Combo Product 2", quantity: "2" }),
+                    Order.hasLine({ productName: "Combo Product 4", quantity: "2" }),
+                    Order.hasLine({ productName: "Combo Product 6", quantity: "2" }),
+                    Numpad.click("1"),
+                    {
+                        content: "Click 1",
+                        trigger:
+                            ".modal-content div.numpad button:not(:contains('+')):contains('1')",
+                        run: "click",
+                    },
+                    Chrome.confirmPopup(),
+                    Order.hasLine({ productName: "Combo Product 2", quantity: "1" }),
+                    Order.hasLine({ productName: "Combo Product 4", quantity: "1" }),
+                    Order.hasLine({ productName: "Combo Product 6", quantity: "1" }),
+                ].flat()
+            ),
+            Order.hasTotal("47.33"),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_combo_item_image_display", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.clickDisplayedProduct("Office Combo"),
+            combo.checkImgAndSelect("Combo Product 2", true),
+            combo.checkImgAndSelect("Combo Product 4", true),
+            combo.checkImgAndSelect("Combo Product 6", true),
+            Dialog.confirm(),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_combo_item_image_not_display", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            ProductScreen.clickDisplayedProduct("Office Combo"),
+            combo.checkImgAndSelect("Combo Product 2", false),
+            combo.checkImgAndSelect("Combo Product 4", false),
+            combo.checkImgAndSelect("Combo Product 6", false),
+            Dialog.confirm(),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_combo_price_unchanged_with_lot_tracked_product", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.clickDisplayedProduct("Test Combo"),
+            inLeftSide([
+                ...ProductScreen.selectedOrderlineHasDirect("Test Combo"),
+                ...ProductScreen.orderLineHas("Product A", "1.0", "8.05"),
+            ]),
+            ProductScreen.totalAmountIs("8.05"),
+            inLeftSide([
+                ...ProductScreen.clickLotIcon(),
+                ...ProductScreen.enterLotNumber("1"),
+                ...ProductScreen.orderLineHas("Product A", "1.0", "8.05"),
+                {
+                    trigger: ".info-list:contains('Lot Number 1')",
+                },
+            ]),
+            ProductScreen.totalAmountIs("8.05"),
         ].flat(),
 });

@@ -9,6 +9,7 @@ import * as Chrome from "@point_of_sale/../tests/tours/utils/chrome_util";
 import * as Dialog from "@point_of_sale/../tests/tours/utils/dialog_util";
 import { inLeftSide } from "@point_of_sale/../tests/tours/utils/common";
 import { registry } from "@web/core/registry";
+import * as Utils from "@point_of_sale/../tests/tours/utils/common";
 
 registry.category("web_tour.tours").add("TicketScreenTour", {
     steps: () =>
@@ -179,6 +180,10 @@ registry.category("web_tour.tours").add("FiscalPositionNoTaxRefund", {
             ProductScreen.isShown(),
             { ...ProductScreen.back(), isActive: ["mobile"] },
             ProductScreen.totalAmountIs("100.00"),
+            ProductScreen.clickPayButton(),
+            PaymentScreen.clickPaymentMethod("Bank"),
+            PaymentScreen.clickValidate(),
+            ReceiptScreen.isShown(),
         ].flat(),
 });
 
@@ -234,6 +239,53 @@ registry.category("web_tour.tours").add("RefundFewQuantities", {
         ].flat(),
 });
 
+registry.category("web_tour.tours").add("test_order_refund_flow", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.addOrderline("Desk Pad", "2", "3"),
+            ProductScreen.addOrderline("Letter Tray", "3", "2"),
+            ProductScreen.clickPayButton(),
+            PaymentScreen.clickPaymentMethod("Bank"),
+            PaymentScreen.clickValidate(),
+            ReceiptScreen.isShown(),
+            ReceiptScreen.clickNextOrder(),
+            // First refund order
+            ProductScreen.clickRefund(),
+            TicketScreen.selectOrder("-0001"),
+            ProductScreen.clickNumpad("1"),
+            TicketScreen.toRefundTextContains("To Refund: 1.00"),
+            TicketScreen.confirmRefund(),
+            { ...ProductScreen.back(), isActive: ["mobile"] },
+            ProductScreen.isShown(),
+            inLeftSide([...Order.hasLine("Desk Pad", "-1")]),
+            // Second refund order
+            Chrome.createFloatingOrder(),
+            ProductScreen.clickRefund(),
+            TicketScreen.selectOrder("-0001"),
+            TicketScreen.toRefundTextContains("Refunding"),
+            inLeftSide([...ProductScreen.clickLine("Letter Tray", "3.0")]),
+            ProductScreen.clickNumpad("1"),
+            TicketScreen.toRefundTextContains("To Refund: 1.00"),
+            TicketScreen.confirmRefund(),
+            { ...ProductScreen.back(), isActive: ["mobile"] },
+            ProductScreen.isShown(),
+            // Verify refund order has only one line
+            inLeftSide([...Order.hasLine("Letter Tray", "-1")]),
+            ProductScreen.totalAmountIs("-2.20"),
+            // Delete both refunding orders
+            Chrome.clickMenuOption("Orders"),
+            TicketScreen.deleteOrder("-0002"),
+            Dialog.confirm(),
+            TicketScreen.deleteOrder("-0003"),
+            Dialog.confirm(),
+            TicketScreen.selectFilter("Paid"),
+            TicketScreen.selectOrder("-0001"),
+            TicketScreen.noLinesToRefund(),
+        ].flat(),
+});
+
 registry.category("web_tour.tours").add("LotTour", {
     steps: () =>
         [
@@ -277,5 +329,68 @@ registry.category("web_tour.tours").add("LotTour", {
             inLeftSide({
                 trigger: ".info-list:contains('Lot Number 1001')",
             }),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_order_with_existing_serial", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.clickDisplayedProduct("Serial Product"),
+            ProductScreen.enterLotNumber("SN1"),
+            ProductScreen.selectedOrderlineHas("Serial Product", "1.00"),
+            inLeftSide({
+                trigger: ".info-list:contains('SN SN1')",
+            }),
+            ProductScreen.clickDisplayedProduct("Serial Product"),
+            ProductScreen.enterLastLotNumber("SN2"),
+            ProductScreen.selectedOrderlineHas("Serial Product", "2.00"),
+            inLeftSide({
+                trigger: ".info-list:contains('SN SN2')",
+            }),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_serial_number_do_not_duplicate_after_refresh", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.clickDisplayedProduct("Product A"),
+            ProductScreen.enterLotNumber("1"),
+            ProductScreen.selectedOrderlineHas("Product A", "1.00"),
+            Utils.refresh(),
+            inLeftSide({
+                content: `check serial number`,
+                trigger: `.info-list`,
+                run: () => {
+                    const serialNumberCount = document.querySelectorAll(
+                        "ul.info-list li:not(:first-child)"
+                    ).length;
+                    if (serialNumberCount !== 1) {
+                        throw new Error(`Expected 1 serial number, got ${serialNumberCount}`);
+                    }
+                },
+            }),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_not_available_pricelist_not_set_on_order", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            Chrome.clickMenuOption("Orders"),
+            TicketScreen.selectFilter("Paid"),
+            TicketScreen.clickDiscard(),
+            ProductScreen.isShown(),
+            ProductScreen.addOrderline("Desk Pad", "2", "3"),
+            ProductScreen.clickPartnerButton(),
+            ProductScreen.clickCustomer("AA Customer"),
+            ProductScreen.clickPayButton(),
+            PaymentScreen.clickPaymentMethod("Bank"),
+            PaymentScreen.clickValidate(),
+            ReceiptScreen.isShown(),
         ].flat(),
 });

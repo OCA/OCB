@@ -57,7 +57,8 @@ class AccountMove(models.Model):
         res = super(AccountMove, self).button_draft()
 
         # Unlink the COGS lines generated during the 'post' method.
-        self.mapped('line_ids').filtered(lambda line: line.display_type == 'cogs').unlink()
+        with self.env.protecting(self.env['account.move']._get_protected_vals({}, self)):
+            self.mapped('line_ids').filtered(lambda line: line.display_type == 'cogs').unlink()
         return res
 
     def button_cancel(self):
@@ -136,7 +137,7 @@ class AccountMove(models.Model):
 
                 # Add interim account line.
                 lines_vals_list.append({
-                    'name': line.name[:64],
+                    'name': line.name[:64] if line.name else '',
                     'move_id': move.id,
                     'partner_id': move.commercial_partner_id.id,
                     'product_id': line.product_id.id,
@@ -145,6 +146,7 @@ class AccountMove(models.Model):
                     'price_unit': price_unit,
                     'amount_currency': -amount_currency,
                     'account_id': debit_interim_account.id,
+                    'analytic_distribution': line.analytic_distribution,
                     'display_type': 'cogs',
                     'tax_ids': [],
                     'cogs_origin_id': line.id,
@@ -152,7 +154,7 @@ class AccountMove(models.Model):
 
                 # Add expense account line.
                 lines_vals_list.append({
-                    'name': line.name[:64],
+                    'name': line.name[:64] if line.name else '',
                     'move_id': move.id,
                     'partner_id': move.commercial_partner_id.id,
                     'product_id': line.product_id.id,
@@ -192,6 +194,7 @@ class AccountMove(models.Model):
             if not move.company_id.anglo_saxon_accounting:
                 continue
 
+            move = move.with_company(move.company_id)
             stock_moves = move._stock_account_get_last_step_stock_moves()
             # In case we return a return, we have to provide the related AMLs so all can be reconciled
             stock_moves |= stock_moves.origin_returned_move_id
@@ -287,7 +290,7 @@ class AccountMoveLine(models.Model):
             else:
                 price_unit = self.price_subtotal / self.quantity
         else:
-            price_unit = self.price_unit
+            price_unit = 0
 
         return -price_unit if self.move_id.move_type == 'in_refund' else price_unit
 
@@ -320,6 +323,7 @@ class AccountMoveLine(models.Model):
     def _get_exchange_journal(self, company):
         if (
             self and self.move_id.sudo().stock_valuation_layer_ids and
+            self.product_id.categ_id.property_cost_method != 'standard' and
             self.product_id.categ_id.property_valuation == 'real_time'
         ):
             return self.product_id.categ_id.property_stock_journal
@@ -328,6 +332,7 @@ class AccountMoveLine(models.Model):
     def _get_exchange_account(self, company, amount):
         if (
             self and self.move_id.sudo().stock_valuation_layer_ids and
+            self.product_id.categ_id.property_cost_method != 'standard' and
             self.product_id.categ_id.property_valuation == 'real_time'
         ):
             return self.product_id.categ_id.property_stock_valuation_account_id

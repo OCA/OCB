@@ -1,23 +1,23 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* hr_timesheet
-# 
+#
 # Translators:
 # Wil Odoo, 2025
 # Thi Huong Nguyen, 2025
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 13:39+0000\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
 "PO-Revision-Date: 2024-09-25 09:41+0000\n"
 "Last-Translator: Thi Huong Nguyen, 2025\n"
 "Language-Team: Vietnamese (https://app.transifex.com/odoo/teams/41243/vi/)\n"
+"Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. module: hr_timesheet
@@ -71,11 +71,11 @@ msgstr "Bảng chấm công của %(name)s"
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 msgid ""
-"'%(missing_plan_names)s' analytic plan(s) required on the project "
-"'%(project_name)s' linked to the timesheet."
+"'%(missing_plan_names)s' analytic plan(s) required on the project '%"
+"(project_name)s' linked to the timesheet."
 msgstr ""
-"Yêu cầu có (các) kế hoạch phân tích '%(missing_plan_names)s' trên dự án "
-"'%(project_name)s' được liên kết với bảng chấm công."
+"Yêu cầu có (các) kế hoạch phân tích '%(missing_plan_names)s' trên dự án '%"
+"(project_name)s' được liên kết với bảng chấm công."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -106,19 +106,18 @@ msgid "2 hours"
 msgstr "2 giờ"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.timesheet_table
-msgid "2021-09-01"
-msgstr "2021-09-01"
-
-#. module: hr_timesheet
 #: model_terms:digest.tip,tip_description:hr_timesheet.digest_tip_hr_timesheet_0
 msgid "<b class=\"tip_title\">Tip: Record your Timesheets faster</b>"
 msgstr "<b class=\"tip_title\">Mẹo: Nhập bảng chấm công nhanh hơn</b>"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.view_kanban_account_analytic_line
-msgid "<i class=\"fa fa-calendar me-1\" role=\"img\" aria-label=\"Date\" title=\"Date\"/>"
-msgstr "<i class=\"fa fa-calendar me-1\" role=\"img\" aria-label=\"Ngày\" title=\"Ngày\"/>"
+msgid ""
+"<i class=\"fa fa-calendar me-1\" role=\"img\" aria-label=\"Date\" "
+"title=\"Date\"/>"
+msgstr ""
+"<i class=\"fa fa-calendar me-1\" role=\"img\" aria-label=\"Ngày\" "
+"title=\"Ngày\"/>"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_task
@@ -139,31 +138,10 @@ msgstr "<span class=\"text-nowrap\">Thời gian đã dùng cho nhiệm vụ ph�
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
 msgid ""
-"<span invisible=\"not has_timesheet\">\n"
-"                        You cannot delete employees who have timesheets.\n"
-"                        <span invisible=\"not has_active_employee\">\n"
-"                            You can either archive these employees or first delete all of their timesheets.\n"
-"                        </span>\n"
-"                        <span invisible=\"has_active_employee\" groups=\"hr_timesheet.group_hr_timesheet_approver\">\n"
-"                            Please first delete all of their timesheets.\n"
-"                        </span>\n"
-"                    </span>\n"
-"                    <span invisible=\"has_timesheet\">\n"
+"<span invisible=\"has_timesheet\">\n"
 "                        Are you sure you want to delete these employees?\n"
 "                    </span>"
 msgstr ""
-"<span invisible=\"not has_timesheet\">\n"
-"                        Bạn không thể xóa nhân viên có bảng chấm công.\n"
-"                        <span invisible=\"not has_active_employee\">\n"
-"                            Bạn có thể lưu trữ những nhân viên này hoặc phải xóa tất cả bảng chấm công của họ trước.\n"
-"                        </span>\n"
-"                        <span invisible=\"has_active_employee\" groups=\"hr_timesheet.group_hr_timesheet_approver\">\n"
-"                            Đầu tiên, hãy xóa tất cả các bảng chấm công của họ.\n"
-"                        </span>\n"
-"                    </span>\n"
-"                    <span invisible=\"has_timesheet\">\n"
-"                        Bạn có chắc chắn muốn xóa những nhân viên này không?\n"
-"                    </span>"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.timesheet_table
@@ -280,11 +258,13 @@ msgstr "Khả năng áp dụng của kế hoạch phân tích"
 #: model_terms:ir.actions.act_window,help:hr_timesheet.timesheet_action_report_by_project
 #: model_terms:ir.actions.act_window,help:hr_timesheet.timesheet_action_report_by_task
 msgid ""
-"Analyze the projects and tasks on which your employees spend their time.<br>\n"
+"Analyze the projects and tasks on which your employees spend their time."
+"<br>\n"
 "                Evaluate which part is billable and what costs it represents."
 msgstr ""
 "Phân tích các dự án và nhiệm vụ mà nhân viên của bạn làm.<br>\n"
-"                Đánh giá xem phần nào có thể tính phí và chi phí tương ứng là gì."
+"                Đánh giá xem phần nào có thể tính phí và chi phí tương ứng "
+"là gì."
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_res_config_settings__reminder_allow
@@ -522,8 +502,7 @@ msgstr "Làm thêm"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.res_config_settings_view_form
-msgid ""
-"Generate timesheets for validated time off requests and public holidays"
+msgid "Generate timesheets for validated time off requests and public holidays"
 msgstr "Tạo bảng chấm công cho các ngày nghỉ lễ và đơn nghỉ phép đã xác thực"
 
 #. module: hr_timesheet
@@ -732,6 +711,11 @@ msgid "Partner"
 msgstr "Đối tác"
 
 #. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
+msgid "Please first delete all of their timesheets."
+msgstr ""
+
+#. module: hr_timesheet
 #: model:ir.model,name:hr_timesheet.model_uom_uom
 msgid "Product Unit of Measure"
 msgstr "Đơn vị tính sản phẩm"
@@ -922,11 +906,11 @@ msgstr "Dự án nội bộ của một công ty phải nằm trong công ty đ�
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 msgid ""
-"The project, the task and the analytic accounts of the timesheet must belong"
-" to the same company."
+"The project, the task and the analytic accounts of the timesheet must belong "
+"to the same company."
 msgstr ""
-"Dự án, nhiệm vụ và tài khoản phân tích của bảng chấm công phải thuộc về cùng"
-" một công ty."
+"Dự án, nhiệm vụ và tài khoản phân tích của bảng chấm công phải thuộc về cùng "
+"một công ty."
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_timesheets
@@ -937,8 +921,8 @@ msgstr "Hiện không có thời gian biểu."
 #. odoo-python
 #: code:addons/hr_timesheet/models/project_project.py:0
 msgid ""
-"These projects have some timesheet entries referencing them. Before removing"
-" these projects, you have to remove these timesheet entries."
+"These projects have some timesheet entries referencing them. Before removing "
+"these projects, you have to remove these timesheet entries."
 msgstr ""
 "Những dự án này có mục nhập bảng chấm công liên quan. Trước khi xóa bỏ dự "
 "án, bạn phải xóa các mục nhập bảng chấm công này."
@@ -988,8 +972,8 @@ msgstr "Toán tử %s này không được hỗ trợ trong phương pháp tìm 
 #. odoo-python
 #: code:addons/hr_timesheet/models/project_project.py:0
 msgid ""
-"This project has some timesheet entries referencing it. Before removing this"
-" project, you have to remove these timesheet entries."
+"This project has some timesheet entries referencing it. Before removing this "
+"project, you have to remove these timesheet entries."
 msgstr ""
 "Dự án này có mục nhập bảng chấm công liên quan. Trước khi xóa bỏ dự án, bạn "
 "phải xóa các mục nhập bảng chấm công này."
@@ -1000,8 +984,8 @@ msgstr ""
 msgid ""
 "This task cannot be private because there are some timesheets linked to it."
 msgstr ""
-"Không thể đặt nhiệm vụ này là riêng tư vì có một số bảng chấm công được liên"
-" kết với nó."
+"Không thể đặt nhiệm vụ này là riêng tư vì có một số bảng chấm công được liên "
+"kết với nó."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1018,10 +1002,12 @@ msgstr ""
 #: model:ir.model.fields,help:hr_timesheet.field_res_config_settings__project_time_mode_id
 msgid ""
 "This will set the unit of measure used in projects and tasks.\n"
-"If you use the timesheet linked to projects, don't forget to setup the right unit of measure in your employees."
+"If you use the timesheet linked to projects, don't forget to setup the right "
+"unit of measure in your employees."
 msgstr ""
 "Đơn vị này dùng đo thời gian cho dự án và các công việc.\n"
-"Nếu bạn dùng thời gian biểu kết hợp với dự án, đừng quên thiết lập đúng đơn vị đo cho nhân viên của bạn."
+"Nếu bạn dùng thời gian biểu kết hợp với dự án, đừng quên thiết lập đúng đơn "
+"vị đo cho nhân viên của bạn."
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.res_config_settings_view_form
@@ -1090,8 +1076,7 @@ msgstr "Thời gian đã dùng cho nhiệm vụ phụ"
 #: model:ir.model.fields,help:hr_timesheet.field_report_project_task_user__subtask_effective_hours
 msgid "Time spent on the sub-tasks (and their own sub-tasks) of this task."
 msgstr ""
-"Thời gian dùng cho nhiệm vụ phụ (và nhiệm vụ phụ của chúng) của nhiệm vụ "
-"này."
+"Thời gian dùng cho nhiệm vụ phụ (và nhiệm vụ phụ của chúng) của nhiệm vụ này."
 
 #. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_project_task__total_hours_spent
@@ -1254,11 +1239,10 @@ msgstr "Không thể tạo bảng chấm công cho một nhiệm vụ riêng tư
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 msgid ""
-"Timesheets must be created with an active employee in the selected "
-"companies."
+"Timesheets must be created with an active employee in the selected companies."
 msgstr ""
-"Bảng chấm công phải được tạo cho một nhân viên đang hoạt động trong các công"
-" ty đã chọn."
+"Bảng chấm công phải được tạo cho một nhân viên đang hoạt động trong các công "
+"ty đã chọn."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1290,8 +1274,8 @@ msgid ""
 "timesheets feature."
 msgstr ""
 "Để sử dụng tính năng bảng chấm công, bạn cần có một tài khoản phân tích cho "
-"dự án của mình. Vui lòng thiết lập một tài khoản trong kế hoạch "
-"'%(plan_name)s' hoặc tắt tính năng bảng chấm công."
+"dự án của mình. Vui lòng thiết lập một tài khoản trong kế hoạch '%"
+"(plan_name)s' hoặc tắt tính năng bảng chấm công."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1336,11 +1320,11 @@ msgstr "Tổng:"
 #: model_terms:ir.actions.act_window,help:hr_timesheet.act_hr_timesheet_line_by_project
 #: model_terms:ir.actions.act_window,help:hr_timesheet.timesheet_action_all
 msgid ""
-"Track your working hours by projects every day and invoice this time to your"
-" customers."
+"Track your working hours by projects every day and invoice this time to your "
+"customers."
 msgstr ""
-"Theo dõi giờ làm việc của bạn theo dự án mỗi ngày và lập hóa đơn lần này cho"
-" khách hàng."
+"Theo dõi giờ làm việc của bạn theo dự án mỗi ngày và lập hóa đơn lần này cho "
+"khách hàng."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1358,7 +1342,8 @@ msgid ""
 "        @user Assign the task to a user\n"
 "        ! Set the task a high priority\n"
 "\n"
-"        Make sure to use the right format and order e.g. Improve the configuration screen 5h #feature #v16 @Mitchell !"
+"        Make sure to use the right format and order e.g. Improve the "
+"configuration screen 5h #feature #v16 @Mitchell !"
 msgstr ""
 "Sử dụng các từ khóa này trong tiêu đề để thiết lập nhiệm vụ mới:\n"
 "\n"
@@ -1367,7 +1352,8 @@ msgstr ""
 "         @người_dùng Gán nhiệm vụ cho một người dùng\n"
 "         ! Đặt nhiệm vụ ở mức độ ưu tiên cao\n"
 "\n"
-"Hãy đảm bảo sử dụng đúng định dạng và thứ tự. VD: Cải thiện màn hình cấu hình 5h #tính_năng #v16 @Mitchell !"
+"Hãy đảm bảo sử dụng đúng định dạng và thứ tự. VD: Cải thiện màn hình cấu "
+"hình 5h #tính_năng #v16 @Mitchell !"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line__user_id
@@ -1394,12 +1380,15 @@ msgstr "Xem chi tiết"
 #: model_terms:ir.actions.act_window,help:hr_timesheet.timesheet_action_from_employee
 msgid ""
 "You can register and track your workings hours by project every\n"
-"                    day. Every time spent on a project will become a cost and can be re-invoiced to\n"
+"                    day. Every time spent on a project will become a cost "
+"and can be re-invoiced to\n"
 "                    customers if required."
 msgstr ""
 "Bạn có thể ghi nhận và theo dõi số giờ làm việc của mình theo dự án mỗi\n"
-"                   ngày. Mỗi khoảng thời gian dành cho một dự án sẽ trở thành một khoản chi phí\n"
-"                   và có thể được lập hóa đơn lại cho khách hàng nếu được yêu cầu."
+"                   ngày. Mỗi khoảng thời gian dành cho một dự án sẽ trở "
+"thành một khoản chi phí\n"
+"                   và có thể được lập hóa đơn lại cho khách hàng nếu được "
+"yêu cầu."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1414,20 +1403,34 @@ msgid "You cannot delete employees who have timesheets."
 msgstr "Bạn không thể xóa nhân viên có bảng chấm công."
 
 #. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
+msgid ""
+"You cannot delete employees who have timesheets.\n"
+"                        <span invisible=\"not has_active_employee\">\n"
+"                            You can either archive these employees or first "
+"delete all of their timesheets.\n"
+"                        </span>"
+msgstr ""
+
+#. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
 msgid ""
-"You cannot log timesheets on this project since it is linked to an inactive analytic account.<br/>\n"
-"                            Please switch to another account, or reactivate the current one to timesheet on the project."
+"You cannot log timesheets on this project since it is linked to an inactive "
+"analytic account.<br/>\n"
+"                            Please switch to another account, or reactivate "
+"the current one to timesheet on the project."
 msgstr ""
-"Bạn không thể ghi nhận bảng chấm công cho dự án này vì nó được liên kết với tài khoản phân tích không hoạt động.<br/>\n"
-"                           Hãy đổi sang tài khoản khác, hoặc kích hoạt lại tài khoản hiện tại liên kết với bảng chấm công của dự án."
+"Bạn không thể ghi nhận bảng chấm công cho dự án này vì nó được liên kết với "
+"tài khoản phân tích không hoạt động.<br/>\n"
+"                           Hãy đổi sang tài khoản khác, hoặc kích hoạt lại "
+"tài khoản hiện tại liên kết với bảng chấm công của dự án."
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
 msgid ""
 "You cannot log timesheets on this project since it is linked to an inactive "
-"analytic account.<br/> Please change this account, or reactivate the current"
-" one to timesheet on the project."
+"analytic account.<br/> Please change this account, or reactivate the current "
+"one to timesheet on the project."
 msgstr ""
 "Bạn không thể ghi nhận bảng chấm công cho dự án này vì nó được liên kết với "
 "tài khoản phân tích không hoạt động.<br/>Hãy thay đổi tài khoản này, hoặc "
@@ -1453,10 +1456,12 @@ msgstr "cho"
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
 msgid ""
 "on\n"
-"                            <span class=\"fw-bold text-dark\"> Sub-tasks</span>)"
+"                            <span class=\"fw-bold text-dark\"> Sub-tasks</"
+"span>)"
 msgstr ""
 "trên\n"
-"                            <span class=\"fw-bold text-dark\"> nhiệm vụ phụ</span>)"
+"                            <span class=\"fw-bold text-dark\"> nhiệm vụ phụ</"
+"span>)"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
@@ -1465,4 +1470,41 @@ msgid ""
 "                        <span class=\"fw-bold text-dark\"> Sub-tasks</span>)"
 msgstr ""
 "trên\n"
-"                        <span class=\"fw-bold text-dark\"> nhiệm vụ phụ</span>)"
+"                        <span class=\"fw-bold text-dark\"> nhiệm vụ phụ</"
+"span>)"
+
+#~ msgid "2021-09-01"
+#~ msgstr "2021-09-01"
+
+#~ msgid ""
+#~ "<span invisible=\"not has_timesheet\">\n"
+#~ "                        You cannot delete employees who have timesheets.\n"
+#~ "                        <span invisible=\"not has_active_employee\">\n"
+#~ "                            You can either archive these employees or "
+#~ "first delete all of their timesheets.\n"
+#~ "                        </span>\n"
+#~ "                        <span invisible=\"has_active_employee\" "
+#~ "groups=\"hr_timesheet.group_hr_timesheet_approver\">\n"
+#~ "                            Please first delete all of their timesheets.\n"
+#~ "                        </span>\n"
+#~ "                    </span>\n"
+#~ "                    <span invisible=\"has_timesheet\">\n"
+#~ "                        Are you sure you want to delete these employees?\n"
+#~ "                    </span>"
+#~ msgstr ""
+#~ "<span invisible=\"not has_timesheet\">\n"
+#~ "                        Bạn không thể xóa nhân viên có bảng chấm công.\n"
+#~ "                        <span invisible=\"not has_active_employee\">\n"
+#~ "                            Bạn có thể lưu trữ những nhân viên này hoặc "
+#~ "phải xóa tất cả bảng chấm công của họ trước.\n"
+#~ "                        </span>\n"
+#~ "                        <span invisible=\"has_active_employee\" "
+#~ "groups=\"hr_timesheet.group_hr_timesheet_approver\">\n"
+#~ "                            Đầu tiên, hãy xóa tất cả các bảng chấm công "
+#~ "của họ.\n"
+#~ "                        </span>\n"
+#~ "                    </span>\n"
+#~ "                    <span invisible=\"has_timesheet\">\n"
+#~ "                        Bạn có chắc chắn muốn xóa những nhân viên này "
+#~ "không?\n"
+#~ "                    </span>"

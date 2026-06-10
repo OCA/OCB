@@ -38,11 +38,21 @@ class PosOrder(models.Model):
             else:
                 addr = self.partner_id.address_get(['delivery'])
                 invoice_vals['partner_shipping_id'] = addr['delivery']
-            if sale_orders[0].payment_term_id:
+            if sale_orders[0].payment_term_id and not sale_orders[0].payment_term_id.early_discount:
+                invoice_vals['invoice_payment_term_id'] = sale_orders[0].payment_term_id.id
+            else:
                 invoice_vals['invoice_payment_term_id'] = False
             if sale_orders[0].partner_invoice_id != sale_orders[0].partner_id:
                 invoice_vals['partner_id'] = sale_orders[0].partner_invoice_id.id
         return invoice_vals
+
+    def action_pos_order_paid(self):
+        res = super().action_pos_order_paid()
+        if any(p.payment_method_id._is_online_payment() for p in self.payment_ids):
+            sale_orders = self.lines.mapped('sale_order_origin_id')
+            for so in sale_orders.filtered(lambda s: s.state in ('draft', 'sent')):
+                so.action_confirm()
+        return res
 
     @api.model
     def sync_from_ui(self, orders):
@@ -55,28 +65,29 @@ class PosOrder(models.Model):
             for line in order.lines.filtered(lambda l: l.product_id == order.config_id.down_payment_product_id and l.qty != 0 and (l.sale_order_origin_id or l.refunded_orderline_id.sale_order_origin_id)):
                 sale_lines = line.sale_order_origin_id.order_line or line.refunded_orderline_id.sale_order_origin_id.order_line
                 sale_order_origin = line.sale_order_origin_id or line.refunded_orderline_id.sale_order_origin_id
-                if not any(line.display_type and line.is_downpayment for line in sale_lines):
-                    self.env['sale.order.line'].create(
-                        self.env['sale.advance.payment.inv']._prepare_down_payment_section_values(sale_order_origin)
-                    )
-                order_reference = line.name
+                if not line.sale_order_line_id:
+                    if not any(line.display_type and line.is_downpayment for line in sale_lines):
+                        self.env['sale.order.line'].create(
+                            self.env['sale.advance.payment.inv']._prepare_down_payment_section_values(sale_order_origin)
+                        )
+                    order_reference = line.name
 
-                if order.partner_id.lang and order.partner_id.lang != line.env.lang:
-                    line = line.with_context(lang=order.partner_id.lang)
+                    if order.partner_id.lang and order.partner_id.lang != line.env.lang:
+                        line = line.with_context(lang=order.partner_id.lang)
 
-                sale_order_line_description = _("Down payment (ref: %(order_reference)s on \n %(date)s)", order_reference=order_reference, date=format_date(line.env, line.order_id.date_order))
-                sale_line = self.env['sale.order.line'].create({
-                    'order_id': sale_order_origin.id,
-                    'product_id': line.product_id.id,
-                    'price_unit': line.price_unit,
-                    'product_uom_qty': 0,
-                    'tax_id': [(6, 0, line.tax_ids.ids)],
-                    'is_downpayment': True,
-                    'discount': line.discount,
-                    'sequence': sale_lines and sale_lines[-1].sequence + 2 or 10,
-                    'name': sale_order_line_description
-                })
-                line.sale_order_line_id = sale_line
+                    sale_order_line_description = _("Down payment (ref: %(order_reference)s on \n %(date)s)", order_reference=order_reference, date=format_date(line.env, line.order_id.date_order))
+                    sale_line = self.env['sale.order.line'].create({
+                        'order_id': sale_order_origin.id,
+                        'product_id': line.product_id.id,
+                        'price_unit': line.price_unit,
+                        'product_uom_qty': 0,
+                        'tax_id': [(6, 0, line.tax_ids.ids)],
+                        'is_downpayment': True,
+                        'discount': line.discount,
+                        'sequence': sale_lines and sale_lines[-1].sequence + 2 or 10,
+                        'name': sale_order_line_description
+                    })
+                    line.sale_order_line_id = sale_line
 
             so_lines = order.lines.mapped('sale_order_line_id')
 
@@ -98,7 +109,16 @@ class PosOrder(models.Model):
                     picking = stock_move.picking_id
                     if not picking.state in ['waiting', 'confirmed', 'assigned']:
                         continue
-                    new_qty = so_line.product_uom_qty - so_line.qty_delivered
+
+                    def get_expected_qty_to_ship_later():
+                        pos_pickings = so_line.pos_order_line_ids.order_id.picking_ids
+                        if pos_pickings and all(pos_picking.state in ['confirmed', 'assigned'] for pos_picking in pos_pickings):
+                            return sum((so_line._convert_qty(so_line, pos_line.qty, 'p2s') for pos_line in
+                                        so_line.pos_order_line_ids if so_line.product_id.type != 'service'), 0)
+                        return 0
+
+                    qty_delivered = max(so_line.qty_delivered, get_expected_qty_to_ship_later())
+                    new_qty = so_line.product_uom_qty - qty_delivered
                     if float_compare(new_qty, 0, precision_rounding=stock_move.product_uom.rounding) <= 0:
                         new_qty = 0
                     stock_move.product_uom_qty = so_line.compute_uom_qty(new_qty, stock_move, False)
@@ -154,6 +174,10 @@ class PosOrder(models.Model):
             }
         return order_line
 
+    def _get_stock_moves(self):
+        res = super()._get_stock_moves()
+        return res | self.lines.sale_order_line_id.move_ids
+
     def _get_invoice_lines_values(self, line_values, pos_line):
         inv_line_vals = super()._get_invoice_lines_values(line_values, pos_line)
 
@@ -169,6 +193,10 @@ class PosOrder(models.Model):
             vals['crm_team_id'] = vals['crm_team_id'] if vals.get('crm_team_id') else self.session_id.crm_team_id.id
         return super().write(vals)
 
+    def _force_create_picking_real_time(self):
+        result = super()._force_create_picking_real_time()
+        return result or any(self.lines.mapped('sale_order_origin_id'))
+
 
 class PosOrderLine(models.Model):
     _inherit = 'pos.order.line'
@@ -183,17 +211,28 @@ class PosOrderLine(models.Model):
 
     @api.depends('order_id.state', 'order_id.picking_ids', 'order_id.picking_ids.state', 'order_id.picking_ids.move_ids.quantity')
     def _compute_qty_delivered(self):
+        product_qty_left_to_assign = {}
         for order_line in self:
             if order_line.order_id.state in ['paid', 'done', 'invoiced']:
                 outgoing_pickings = order_line.order_id.picking_ids.filtered(
                     lambda pick: pick.state == 'done' and pick.picking_type_code == 'outgoing'
                 )
 
-                if outgoing_pickings:
+                if outgoing_pickings and order_line.order_id.shipping_date:
                     moves = outgoing_pickings.move_ids.filtered(
                         lambda m: m.state == 'done' and m.product_id == order_line.product_id
                     )
-                    order_line.qty_delivered = sum(moves.mapped('quantity'))
+                    qty_left = product_qty_left_to_assign.get(order_line.product_id.id, False)
+                    if (qty_left):
+                        order_line.qty_delivered = min(order_line.qty, qty_left)
+                        product_qty_left_to_assign[order_line.product_id.id] -= order_line.qty_delivered
+                    else:
+                        order_line.qty_delivered = min(order_line.qty, sum(moves.mapped('quantity')))
+                        product_qty_left_to_assign[order_line.product_id.id] = sum(moves.mapped('quantity')) - order_line.qty_delivered
+
+                elif outgoing_pickings:
+                    # If the order is not delivered later, and in a "paid", "done" or "invoiced" state, it fully delivered
+                    order_line.qty_delivered = order_line.qty
                 else:
                     order_line.qty_delivered = 0
 

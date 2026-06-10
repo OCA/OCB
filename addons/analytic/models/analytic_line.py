@@ -63,9 +63,12 @@ class AnalyticPlanFields(models.AbstractModel):
             if self[fname]
         ])
 
+    def _get_distribution_key(self):
+        return ",".join(str(account_id) for account_id in self._get_analytic_accounts().ids)
+
     def _get_analytic_distribution(self):
-        account_ids = self._get_analytic_accounts().ids
-        return {} if not account_ids else {",".join(str(account_id) for account_id in account_ids): 100}
+        accounts = self._get_distribution_key()
+        return {} if not accounts else {accounts: 100}
 
     def _get_mandatory_plans(self, company, business_domain):
         return [
@@ -91,6 +94,15 @@ class AnalyticPlanFields(models.AbstractModel):
         for line in self:
             if not any(line[fname] for fname in fnames):
                 raise ValidationError(_("At least one analytic account must be set"))
+
+    @api.model
+    def default_get(self, fields_list):
+        defaults = super().default_get(fields_list)
+        account_id = self.env.context.get('default_auto_account_id')
+        account = self.env['account.analytic.account'].browse(account_id).exists()
+        if account:
+            defaults[account.plan_id._column_name()] = account.id
+        return defaults
 
     @api.model
     def fields_get(self, allfields=None, attributes=None):
@@ -121,7 +133,7 @@ class AnalyticPlanFields(models.AbstractModel):
                 account_node.set('domain', repr(self._get_plan_domain(project_plan)))
 
             # If there is a main node, append the ones for other plans
-            if account_node is not None or account_filter_node is not None:
+            if account_node is not None:
                 account_node.set('context', repr(self._get_account_node_context(project_plan)))
                 for plan in other_plans[::-1]:
                     fname = plan._column_name()
@@ -133,8 +145,16 @@ class AnalyticPlanFields(models.AbstractModel):
                             'domain': repr(self._get_plan_domain(plan)),
                             'context': repr(self._get_account_node_context(plan)),
                         }))
-                    if account_filter_node is not None:
+            if account_filter_node is not None:
+                for plan in other_plans[::-1] + project_plan:
+                    fname = plan._column_name()
+                    if plan != project_plan:
                         account_filter_node.addnext(E.filter(name=fname, context=f"{{'group_by': '{fname}'}}"))
+                    current = plan
+                    while current := current.children_ids:
+                        _depth, subfname = current[0]._hierarchy_name()
+                        if subfname in self._fields:
+                            account_filter_node.addnext(E.filter(name=subfname, context=f"{{'group_by': '{subfname}'}}"))
         return arch, view
 
 
@@ -203,6 +223,50 @@ class AccountAnalyticLine(models.Model):
         [('other', 'Other')],
         default='other',
     )
+    analytic_distribution = fields.Json(
+        'Analytic Distribution',
+        compute="_compute_analytic_distribution",
+        inverse='_inverse_analytic_distribution',
+    )
+    analytic_precision = fields.Integer(
+        store=False,
+        default=lambda self: self.env['decimal.precision'].precision_get("Percentage Analytic"),
+    )
+
+    def _compute_analytic_distribution(self):
+        for line in self:
+            line.analytic_distribution = {line._get_distribution_key(): 100}
+
+    def _inverse_analytic_distribution(self):
+        empty_account = dict.fromkeys(self._get_plan_fnames(), False)
+        to_create_vals = []
+        for line in self:
+            final_distribution = self.env['analytic.mixin']._merge_distribution(
+                {line._get_distribution_key(): 100},
+                line.analytic_distribution or {},
+            )
+            if not final_distribution:
+                continue
+            amount_fname = line._split_amount_fname()
+            vals_list = [
+                {amount_fname: line[amount_fname] * percent / 100} | empty_account | {
+                    account.plan_id._column_name(): account.id
+                    for account in self.env['account.analytic.account'].browse(int(aid) for aid in account_ids.split(','))
+                }
+                for account_ids, percent in final_distribution.items()
+            ]
+
+            line.write(vals_list[0])
+            to_create_vals += [line.copy_data(vals)[0] for vals in vals_list[1:]]
+        if to_create_vals:
+            self.create(to_create_vals)
+            self.env.user._bus_send('simple_notification', {
+                'type': 'success',
+                'message': self.env._("%s analytic lines created", len(to_create_vals)),
+            })
+
+    def _split_amount_fname(self):
+        return 'amount'
 
     def _condition_to_sql(self, alias: str, fname: str, operator: str, value, query: Query) -> SQL:
         if fname == 'date' and value == 'fiscal_start_year':

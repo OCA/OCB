@@ -318,8 +318,13 @@ class Import(models.TransientModel):
             definition_record_field = field['definition_record_field']
 
             target_model = Model.env[Model._fields[definition_record].comodel_name]
-            if not target_model.has_access('read'):  # ignore if you cannot read target_model at all
+
+            # ignore if you cannot access to the target model or the field definition
+            if not target_model.has_access('read'):
                 continue
+            if not target_model._fields[definition_record_field].is_accessible(target_model.env):
+                continue
+
             # Do not take into account the definition of archived parents,
             # we do not import archived records most of the time.
             definition_records = target_model.search_fetch(
@@ -567,7 +572,9 @@ class Import(models.TransientModel):
             return ()
 
         encoding = options.get('encoding')
+        encoding_guessed = False
         if not encoding:
+            encoding_guessed = True
             encoding = options['encoding'] = chardet.detect(csv_data)['encoding'].lower()
             # some versions of chardet (e.g. 2.3.0 but not 3.x) will return
             # utf-(16|32)(le|be), which for python means "ignore / don't strip
@@ -577,7 +584,14 @@ class Import(models.TransientModel):
             if bom and csv_data.startswith(bom):
                 encoding = options['encoding'] = encoding[:-2]
 
-        csv_text = csv_data.decode(encoding)
+        try:
+            csv_text = csv_data.decode(encoding)
+        except UnicodeDecodeError as exc:
+            if encoding_guessed:
+                msg = _("There was an issue decoding the file using encoding “%s”.\nThis encoding was automatically detected.", encoding)
+            else:
+                msg = _("There was an issue decoding the file using encoding “%s”.\nThis encoding was manually selected.", encoding)
+            raise ImportValidationError(msg) from exc
 
         separator = options.get('separator')
         if not separator:
@@ -1450,7 +1464,7 @@ class Import(models.TransientModel):
             import_skip_records=options.get('import_skip_records', []),
             _import_limit=import_limit)
         import_result = model.load(import_fields, merged_data)
-        _logger.info('done')
+        _logger.info('done importing data into model: %s', model._name)
 
         # If transaction aborted, RELEASE SAVEPOINT is going to raise
         # an InternalError (ROLLBACK should work, maybe). Ignore that.
@@ -1462,6 +1476,7 @@ class Import(models.TransientModel):
             self.pool.clear_all_caches()
             # don't propagate to other workers since it was rollbacked
             self.pool.reset_changes()
+            _logger.info('Previous import was a dry/test run, changes were reset')
 
         # Insert/Update mapping columns when import complete successfully
         if import_result['ids'] and options.get('has_headers'):
@@ -1509,7 +1524,7 @@ class Import(models.TransientModel):
             if any(name + '/' in import_field and name == import_field.split('/')[prefix.count('/')] for import_field in import_fields):
                 # Recursive call with the relational as new model and add the field name to the prefix
                 binary_filenames = self._extract_binary_filenames(import_fields, data, field.comodel_name, name + '/', binary_filenames)
-            elif field.type == 'binary' and field.attachment and any(f in name for f in IMAGE_FIELDS) and name in import_fields:
+            elif field.type == 'binary' and field.attachment and name in import_fields:
                 index = import_fields.index(name)
                 for line in data:
                     filename = None
@@ -1714,6 +1729,7 @@ def check_patterns(patterns, values):
 def to_re(pattern):
     """ cut down version of TimeRE converting strptime patterns to regex
     """
+    pattern = re.sub(r"([\\.^$*+?\(\){}\[\]|])", r"\\\1", pattern)
     pattern = re.sub(r'\s+', r'\\s+', pattern)
     pattern = re.sub('%([a-z])', _replacer, pattern, flags=re.IGNORECASE)
     pattern = '^' + pattern + '$'

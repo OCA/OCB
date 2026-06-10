@@ -1,5 +1,5 @@
 import json
-from odoo.tests.common import RecordCapturer, HttpCase
+from odoo.tests.common import RecordCapturer, HttpCase, new_test_user
 
 
 class TestPropertiesExportImport(HttpCase):
@@ -288,6 +288,12 @@ class TestPropertiesExportImport(HttpCase):
                 'One Text', 'selection_3', self.partners[1].display_name,
                 '', '', '',
             ],
+            # Record with NULL selection value
+            [
+                str(def_record_1.id),
+                'One Text', '', self.partners[1].display_name,
+                '', '', '',
+            ],
 
             # Record attached to the second definition record
             [
@@ -338,6 +344,7 @@ class TestPropertiesExportImport(HttpCase):
         self.assertEqual(records_created.mapped('properties'), [
             {'char_prop': 'One Text', 'selection_prop': 'selection_2', 'm2o_prop': self.partners[0].id},
             {'char_prop': 'One Text', 'selection_prop': 'selection_3', 'm2o_prop': self.partners[1].id},
+            {'char_prop': 'One Text', 'selection_prop': False, 'm2o_prop': self.partners[1].id},
             {'bool_prop': True, 'tags_prop': ['aa'], 'm2m_prop': self.partners[:2].ids},
             {'bool_prop': False, 'tags_prop': ['bb'], 'm2m_prop': False},
         ])
@@ -350,31 +357,36 @@ class TestPropertiesExportImport(HttpCase):
             [
                 "Id", "Record Definition Id",
                 # Field of the first definition
-                f"TextType ({def_record_1.display_name})", f"many2one ({def_record_1.display_name})",
+                f"TextType ({def_record_1.display_name})", f"many2one ({def_record_1.display_name})", f"One Selection ({def_record_1.display_name})",
                 # Field of the second definition
                 f"CheckBox ({def_record_2.display_name})", "properties.tags_prop", f"M2M ({def_record_2.display_name})",
             ],
             # Record attached to the first definition record
             [
                 external_ids[0], str(def_record_1.id),
-                'SSBIYXRlIHRoaXMgZmVhdHVyZQ==', str(self.partners[2].id),
+                'SSBIYXRlIHRoaXMgZmVhdHVyZQ==', str(self.partners[2].id), 'selection_2',
                 '', '', '',
             ],
-
+            # Record with NULL selection value
+            [
+                external_ids[2], str(def_record_1.id),
+                'One Text', str(self.partners[1].id), 'selection_1',
+                '', '', '',
+            ],
             # Record attached to the second definition record
             [
                 external_ids[1], str(def_record_2.id),  # record that changed its parent
-                '', '',
+                '', '', '',
                 'FaLse', 'AA', f'{self.partners[1].id}',
             ],
             [
-                external_ids[2], str(def_record_2.id),
-                '', '',
+                external_ids[4], str(def_record_2.id),
+                '', '', '',
                 'false', 'bb,CC', '',
             ],
             [
                 external_ids[3], str(def_record_2.id),
-                '', '',
+                '', '', '',
                 '1', 'BB', f'{self.partners[1].id},{self.partners[2].id}',
             ],
         ]
@@ -394,9 +406,10 @@ class TestPropertiesExportImport(HttpCase):
                 1: ['record_definition_id'],
                 2: ['properties.char_prop'],
                 3: ['properties.m2o_prop'],
-                4: ['properties.bool_prop'],
-                5: ['properties.tags_prop'],
-                6: ['properties.m2m_prop'],
+                4: ['properties.selection_prop'],
+                5: ['properties.bool_prop'],
+                6: ['properties.tags_prop'],
+                7: ['properties.m2m_prop'],
             },
         )
 
@@ -406,6 +419,7 @@ class TestPropertiesExportImport(HttpCase):
                 'record_definition_id',
                 'properties.char_prop',
                 'properties.m2o_prop/.id',
+                'properties.selection_prop',
                 'properties.bool_prop',
                 'properties.tags_prop',
                 'properties.m2m_prop/.id',
@@ -418,6 +432,76 @@ class TestPropertiesExportImport(HttpCase):
         self.assertEqual(records_created.mapped('properties'), [
             {'char_prop': 'SSBIYXRlIHRoaXMgZmVhdHVyZQ==', 'selection_prop': 'selection_2', 'm2o_prop': self.partners[2].id},
             {'bool_prop': False, 'tags_prop': ['aa'], 'm2m_prop': self.partners[1].ids},
-            {'bool_prop': False, 'tags_prop': ['bb', 'cc'], 'm2m_prop': False},
+            {'char_prop': 'One Text', 'selection_prop': 'selection_1', 'm2o_prop': self.partners[1].id},
             {'bool_prop': True, 'tags_prop': ['bb'], 'm2m_prop': self.partners[1:].ids},
+            {'bool_prop': False, 'tags_prop': ['bb', 'cc'], 'm2m_prop': False},
         ])
+
+    def test_import_properties_no_acces_acl(self):
+        model_id = self.env['ir.model']._get_id(self.ModelDefinition._name)
+
+        user = new_test_user(self.env, login='AAA', groups='base.group_system')
+        self.env['ir.model.access'].search([('model_id', '=', model_id)]).unlink()
+        self.env['ir.model.access'].create({
+            'name': "don't care",
+            'model_id': model_id,
+            'group_id': self.env.ref('base.group_system').id,
+            'perm_read': False,
+        })
+
+        values_list = [
+            [
+                "Record Definition Id", f"TextType ({self.definition_records[0].display_name})",
+            ],
+            [
+                str(self.definition_records[0].id), 'One Text',
+            ],
+        ]
+        Import = self.env['base_import.import'].with_user(user)
+
+        import_wizard = Import.create({
+            'res_model': self.ModelProperty._name,
+            'file': '\n'.join([';'.join(values) for values in values_list]),
+            'file_type': 'text/csv',
+        })
+        opts = {'quoting': '"', 'separator': ';', 'has_headers': True}
+        preview = import_wizard.parse_preview(opts)
+
+        # Don't find the properties field since the user doesn't have accept to the definition model
+        self.assertEqual(
+            preview['matches'],
+            {
+                0: ['record_definition_id'],
+            },
+        )
+
+    def test_import_properties_no_acces_groups(self):
+        user = new_test_user(self.env, login='AAA', groups='base.group_system')
+        values_list = [
+            [
+                "Record Definition Id", f"TextType ({self.definition_records[0].display_name})",
+            ],
+            [
+                str(self.definition_records[0].id), 'One Text',
+            ],
+        ]
+        Import = self.env['base_import.import'].with_user(user)
+
+        # Patch groups of properties_definition
+        self.patch(self.ModelDefinition._fields['properties_definition'], "groups", "base.NO_ACCESS")
+
+        import_wizard = Import.create({
+            'res_model': self.ModelProperty._name,
+            'file': '\n'.join([';'.join(values) for values in values_list]),
+            'file_type': 'text/csv',
+        })
+        opts = {'quoting': '"', 'separator': ';', 'has_headers': True}
+        preview = import_wizard.parse_preview(opts)
+
+        # Don't find the properties field since the user doesn't have access to the field definition
+        self.assertEqual(
+            preview['matches'],
+            {
+                0: ['record_definition_id'],
+            },
+        )

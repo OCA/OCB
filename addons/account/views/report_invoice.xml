@@ -10,7 +10,7 @@
                         <div class="col-6">
                             <t t-set="information_block">
                                 <div groups="account.group_delivery_invoice_address" name="shipping_address_block">
-                                    <strong>Shipping Address</strong>
+                                    <strong class="d-block mt-3">Shipping Address</strong>
                                     <div t-field="o.partner_shipping_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
                                 </div>
                             </t>
@@ -21,6 +21,9 @@
                                 <div t-if="o.partner_id.vat" id="partner_vat_address_not_same_as_shipping">
                                     <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-out="o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>
                                     <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/>
+                                </div>
+                                <div t-if="o.partner_id.country_code == 'MA' and o.partner_id.company_registry">
+                                    ICE: <a t-field="o.partner_id.company_registry"/>
                                 </div>
                             </t>
                         </div>
@@ -33,6 +36,9 @@
                                     <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-out="o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>
                                     <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/>
                                 </div>
+                                <div t-if="o.partner_id.country_code == 'MA' and o.partner_id.company_registry">
+                                    ICE: <a t-field="o.partner_id.company_registry"/>
+                                </div>
                             </t>
                         </div>
                     </t>
@@ -43,6 +49,9 @@
                                 <div t-if="o.partner_id.vat" id="partner_vat_no_shipping">
                                     <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-out="o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>
                                     <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/>
+                                </div>
+                                <div t-if="o.partner_id.country_code == 'MA' and o.partner_id.company_registry">
+                                    ICE: <a t-field="o.partner_id.company_registry"/>
                                 </div>
                             </t>
                         </div>
@@ -64,7 +73,9 @@
                             <span t-if="o.name and o.name != '/'" t-field="o.name">INV/2023/0001</span>
                         </t>
                         <div class="oe_structure"></div>
-                        <div id="informations" class="row mb-4">
+                        <div
+                            id="informations" class="row mb-4"
+                            t-if="o.invoice_date or (o.invoice_date_due and o.move_type == 'out_invoice' and o.state == 'posted') or o.delivery_date or o.invoice_origin or o.partner_id.ref or o.ref or o.invoice_incoterm_id">
                             <div class="col" t-if="o.invoice_date" name="invoice_date">
                                 <t t-if="o.move_type == 'out_invoice'"><strong>Invoice Date</strong></t>
                                 <t t-elif="o.move_type == 'out_refund'"><strong>Credit Note Date</strong></t>
@@ -104,8 +115,9 @@
 
                         <t t-set="display_discount" t-value="any(l.discount for l in o.invoice_line_ids)"/>
                         <div class="oe_structure"></div>
-                        <table class="o_has_total_table table o_main_table table-borderless" name="invoice_line_table">
-                            <thead>
+                        <t t-set="has_long_desc" t-value="any(line.name and line.name.count('\n') > 30 for line in o.invoice_line_ids if line.name)"/>
+                        <table class="o_has_total_table table o_main_table table-borderless mb-0" name="invoice_line_table">
+                            <thead t-attf-style="#{has_long_desc and 'display: table-row-group;' or ''}">
                                 <tr>
                                     <th name="th_description" class="text-start"><span>Description</span></th>
                                     <th name="th_quantity" class="text-end"><span>Quantity</span></th>
@@ -131,10 +143,10 @@
                                     <tr t-att-class="'fw-bold o_line_section' if line.display_type == 'line_section' else 'fst-italic o_line_note' if line.display_type == 'line_note' else ''">
                                         <t t-if="line.display_type == 'product'" name="account_invoice_line_accountable">
                                             <td name="account_invoice_line_name">
-                                                <span t-if="line.name" t-field="line.name" t-options="{'widget': 'text'}">Bacon Burger</span>
+                                                <span t-if="line.name" t-field="line.name" t-options="{'widget': 'text'}" dir="auto">Bacon Burger</span>
                                             </td>
-                                            <td name="td_quantity" class="text-end text-nowrap">
-                                                <span t-field="line.quantity">3.00</span>
+                                            <td name="td_quantity" class="o_td_quantity text-end">
+                                                <span t-field="line.quantity" class="text-nowrap">3.00</span>
                                                 <span t-field="line.product_uom_id"  groups="uom.group_uom">units</span>
                                             </td>
                                             <td name="td_price_unit" t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
@@ -153,14 +165,14 @@
                                         </t>
                                         <t t-elif="line.display_type == 'line_section'">
                                             <td colspan="99">
-                                                <span t-if="line.name" t-field="line.name" t-options="{'widget': 'text'}">A section title</span>
+                                                <span t-if="line.name" t-field="line.name" t-options="{'widget': 'text'}" dir="auto">A section title</span>
                                             </td>
                                             <t t-set="current_section" t-value="line"/>
                                             <t t-set="current_subtotal" t-value="0"/>
                                         </t>
                                         <t t-elif="line.display_type == 'line_note'">
                                             <td colspan="99">
-                                                <span t-if="line.name" t-field="line.name" t-options="{'widget': 'text'}">A note, whose content usually applies to the section or product above.</span>
+                                                <span t-if="line.name" t-field="line.name" t-options="{'widget': 'text'}" dir="auto">A note, whose content usually applies to the section or product above.</span>
                                             </td>
                                         </t>
                                     </tr>
@@ -179,9 +191,9 @@
                                 </t>
                             </tbody>
                         </table>
-                        <div>
-                            <div id="right-elements" t-attf-class="#{'col-5' if report_type != 'html' else 'col-12 col-md-5'} ms-5 d-inline-block float-end">
-                                <div id="total" class="clearfix row mt-n3">
+                        <div class="overflow-hidden">
+                            <div id="right-elements" t-attf-class="#{'col-5 mt-5' if report_type == 'pdf' else 'col-12 col-md-5'} ms-5 d-inline-block float-end">
+                                <div id="total" class="clearfix row">
                                     <div class="ms-auto">
                                         <table class="o_total_table table table-borderless avoid-page-break-inside">
 
@@ -198,7 +210,11 @@
                                                     <t t-foreach="payments_vals" t-as="payment_vals">
                                                         <tr t-if="payment_vals['is_exchange'] == 0">
                                                             <td>
-                                                                <i class="oe_form_field text-end oe_payment_label">Paid on <t t-out="payment_vals['date']" t-options='{"widget": "date"}'>2021-09-19</t></i>
+                                                                <i class="oe_form_field text-end oe_payment_label">
+                                                                    <t t-if="payment_vals['is_refund']">Reversed on </t>
+                                                                    <t t-else="">Paid on </t>
+                                                                    <t t-out="payment_vals['date']" t-options='{"widget": "date"}'>2021-09-19</t>
+                                                                </i>
                                                             </td>
                                                             <td class="text-end">
                                                                 <span t-out="payment_vals['amount']" t-options='{"widget": "monetary", "display_currency": o.currency_id}'>20.00</span>
@@ -234,7 +250,7 @@
                                     <div class="oe_structure"/>
                                 </t>
                             </div>
-                            <div id="payment_term" class="clearfix overflow-auto">
+                            <div id="payment_term" class="clearfix mt-3">
                                 <div class="justify-text">
                                     <p t-if="not is_html_empty(o.fiscal_position_id.note)" name="note" class="mb-2">
                                         <span t-field="o.fiscal_position_id.note"/>
@@ -334,9 +350,9 @@
 
                 <t t-foreach="subtotal['tax_groups']" t-as="tax_group">
                     <tr class="o_taxes">
-                        <t t-if="same_tax_base or tax_group['display_base_amount_currency'] is None">
-                            <td>
-                                <span class="text-nowrap" t-out="tax_group['group_name']">Tax 15%</span>
+                        <t t-if="same_tax_base or tax_group['display_base_amount_currency'] is False">
+                            <td style="max-width: 200px;">
+                                <span t-out="tax_group['group_name']">Tax 15%</span>
                             </td>
                             <td class="text-end o_price_total">
                                 <span class="text-nowrap"

@@ -9,7 +9,7 @@ class MembershipInvoice(models.TransientModel):
     _description = "Membership Invoice"
 
     product_id = fields.Many2one('product.product', string='Membership', required=True)
-    member_price = fields.Float(string='Member Price', digits='Product Price', required=True)
+    member_price = fields.Float(string='Member Price', min_display_digits='Product Price', required=True)
 
     @api.onchange('product_id')
     def onchange_product(self):
@@ -32,4 +32,5 @@ class MembershipInvoice(models.TransientModel):
             'type': 'ir.actions.act_window',
             'views': [(list_view_ref.id, 'list'), (form_view_ref.id, 'form')],
             'search_view_id': search_view_ref and [search_view_ref.id],
+            'context': {'default_move_type': 'out_invoice'},
         }

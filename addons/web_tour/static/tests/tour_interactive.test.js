@@ -1,7 +1,17 @@
 /** @odoo-module **/
 
 import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import { click, hover, leave, queryFirst, waitFor, press, Deferred, edit } from "@odoo/hoot-dom";
+import {
+    click,
+    hover,
+    leave,
+    queryFirst,
+    waitFor,
+    press,
+    Deferred,
+    edit,
+    waitForNone,
+} from "@odoo/hoot-dom";
 import { advanceTime, animationFrame, disableAnimations, runAllTimers } from "@odoo/hoot-mock";
 import { Component, useState, xml } from "@odoo/owl";
 import {
@@ -28,7 +38,6 @@ class Partner extends models.Model {
     m2o = fields.Many2one({ relation: "product" });
 
     _views = {
-        search: `<search/>`,
         form: `<form>
             <field name="m2o"/>
         </form>`,
@@ -76,17 +85,16 @@ beforeEach(() => {
         log: () => {},
         dir: () => {},
     });
-    onRpc("/web/dataset/call_kw/web_tour.tour/consume", async (request) => {
-        const { params } = await request.json();
-        tourConsumed.push(params.args[0]);
+    onRpc("web_tour.tour", "consume", ({ args }) => {
+        tourConsumed.push(args[0]);
         const nextTour = tourRegistry
             .getEntries()
             .filter(([tourName]) => !tourConsumed.includes(tourName))
             .at(0);
         return (nextTour && { name: nextTour.at(0) }) || false;
     });
-    onRpc("/web/dataset/call_kw/res.users/switch_tour_enabled", async () => true);
-    onRpc("/web/dataset/call_kw/web_tour.tour/get_tour_json_by_name", async () => ({
+    onRpc("res.users", "switch_tour_enabled", () => true);
+    onRpc("web_tour.tour", "get_tour_json_by_name", () => ({
         name: "tour1",
         steps: [
             { trigger: "button.foo", run: "click" },
@@ -712,7 +720,7 @@ test("Tour backward when the pointed element disappear and ignore warn step", as
     registry.category("web_tour.tours").add("tour1", {
         steps: () => [
             { trigger: "button.foo", run: "click" },
-            { trigger: "button.bar" },
+            { trigger: "button.foo" },
             { trigger: "button.bar", run: "click" },
         ],
     });
@@ -749,7 +757,7 @@ test("Tour backward when the pointed element disappear and ignore warn step", as
     await contains("button.bar").click();
     await animationFrame();
     expect(".o_tour_pointer").toHaveCount(0);
-    expect.verifySteps(["Step 'button.bar' ignored.", "Step 'button.bar' ignored."]);
+    expect.verifySteps(["Step 'button.foo' ignored.", "Step 'button.foo' ignored."]);
 });
 
 test("Tour started by the URL", async () => {
@@ -1138,4 +1146,95 @@ test("Tour don't backward when dropdown loading", async () => {
     expect(".o_tour_pointer").toHaveCount(1);
     await contains(".o_form_button_save").click();
     expect(".o_tour_pointer").toHaveCount(0);
+});
+
+test("Don't backward when action manager is busy", async () => {
+    registry.category("web_tour.tours").add("tour1", {
+        steps: () => [
+            { trigger: "button.foo", run: "click" },
+            { trigger: "button.bar", run: "click" },
+        ],
+    });
+
+    class Dummy extends Component {
+        static props = ["*"];
+        state = useState({ bool: true });
+        static components = {};
+        static template = xml`
+            <button class="fool w-100" t-on-click="() => { state.bool = true; }">You fool</button>
+            <button class="foo w-100" t-if="state.bool" t-on-click="() => { state.bool = false; }">Foo</button>
+            <button class="bar w-100" t-if="!state.bool">Bar</button>
+        `;
+    }
+
+    const comp = await mountWithCleanup(Dummy);
+
+    await getService("tour_service").startTour("tour1", { mode: "manual" });
+    await animationFrame();
+    expect(".o_tour_pointer").toHaveCount(1);
+
+    await contains("button.foo").click();
+    await animationFrame();
+    expect(".o_tour_pointer").toHaveCount(1);
+
+    comp.env.bus.trigger("ACTION_MANAGER:UPDATE");
+    await animationFrame();
+
+    await contains("button.fool").click();
+    await animationFrame();
+    expect(".o_tour_pointer").toHaveCount(0);
+
+    await contains("button.foo").click();
+    await animationFrame();
+    expect(".o_tour_pointer").toHaveCount(1);
+
+    comp.env.bus.trigger("ACTION_MANAGER:UI-UPDATED");
+
+    await contains("button.fool").click();
+    await animationFrame();
+    expect(".o_tour_pointer").toHaveCount(1);
+
+    await contains("button.foo").click();
+    await animationFrame();
+    expect(".o_tour_pointer").toHaveCount(1);
+
+    await contains("button.bar").click();
+    await animationFrame();
+    expect(".o_tour_pointer").toHaveCount(0);
+});
+
+test("pointer hidden when trigger is behind overlay", async () => {
+    registry.category("web_tour.tours").add("tour1", {
+        steps: () => [{ trigger: "button.foo", run: "click" }],
+    });
+
+    class DummyDialog extends Component {
+        static props = ["*"];
+        static components = { Dialog };
+        static template = xml`
+            <Dialog>
+                <button class="a">A</button>
+            </Dialog>
+        `;
+    }
+
+    class Dummy extends Component {
+        static props = ["*"];
+        static components = {};
+        static template = xml`
+            <button class="foo w-100">Foo</button>
+        `;
+    }
+
+    await mountWithCleanup(Dummy);
+
+    await getService("tour_service").startTour("tour1", { mode: "manual" });
+    await waitFor(".o_tour_pointer");
+    getService("dialog").add(DummyDialog, {});
+    await waitFor(".modal");
+    await waitForNone(".o_tour_pointer");
+    await contains(".modal .btn-close").click();
+    await waitFor(".o_tour_pointer");
+    // Finalize the dummy tour to avoid leaving in a dirty state
+    await contains("button.foo").click();
 });

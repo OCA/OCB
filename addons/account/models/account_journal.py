@@ -325,7 +325,7 @@ class AccountJournal(models.Model):
         method_information_mapping = results['method_information_mapping']
         providers_per_code = results['providers_per_code']
 
-        journal_bank_cash = self.filtered(lambda j: j.type in ('bank', 'cash'))
+        journal_bank_cash = self.filtered(lambda j: j.type in ('bank', 'cash', 'credit'))
         journal_other = self - journal_bank_cash
         journal_other.available_payment_method_ids = False
 
@@ -387,11 +387,21 @@ class AccountJournal(models.Model):
         for journal in self:
             pay_method_line_ids_commands = [Command.clear()]
             if journal.type in ('bank', 'cash', 'credit'):
+                existing_method_lines = journal.inbound_payment_method_line_ids
                 default_methods = journal._default_inbound_payment_methods()
-                pay_method_line_ids_commands += [Command.create({
-                    'name': pay_method.name,
-                    'payment_method_id': pay_method.id,
-                }) for pay_method in default_methods]
+                for pay_method in default_methods:
+                    payment_account = existing_method_lines.filtered(lambda m: m.payment_method_id == pay_method)[:1].payment_account_id
+                    pay_method_line_ids_commands += [
+                        Command.create({
+                            'name': pay_method.name,
+                            'payment_method_id': pay_method.id,
+                            'payment_account_id': (
+                                payment_account.id
+                                if not payment_account.currency_id or payment_account.currency_id == journal.currency_id
+                                else False
+                            ),
+                        })
+                    ]
             journal.inbound_payment_method_line_ids = pay_method_line_ids_commands
 
     @api.depends('type', 'currency_id')
@@ -399,11 +409,21 @@ class AccountJournal(models.Model):
         for journal in self:
             pay_method_line_ids_commands = [Command.clear()]
             if journal.type in ('bank', 'cash', 'credit'):
+                existing_method_lines = journal.outbound_payment_method_line_ids
                 default_methods = journal._default_outbound_payment_methods()
-                pay_method_line_ids_commands += [Command.create({
-                    'name': pay_method.name,
-                    'payment_method_id': pay_method.id,
-                }) for pay_method in default_methods]
+                for pay_method in default_methods:
+                    payment_account = existing_method_lines.filtered(lambda m: m.payment_method_id == pay_method)[:1].payment_account_id
+                    pay_method_line_ids_commands += [
+                        Command.create({
+                            'name': pay_method.name,
+                            'payment_method_id': pay_method.id,
+                            'payment_account_id': (
+                                payment_account.id
+                                if not payment_account.currency_id or payment_account.currency_id == journal.currency_id
+                                else False
+                            ),
+                        })
+                    ]
             journal.outbound_payment_method_line_ids = pay_method_line_ids_commands
 
     @api.depends('outbound_payment_method_line_ids', 'inbound_payment_method_line_ids')
@@ -677,7 +697,10 @@ class AccountJournal(models.Model):
         if 'bank_acc_number' in vals:
             for journal in self.filtered(lambda r: r.type == 'bank' and not r.bank_account_id):
                 journal.set_bank_account(vals.get('bank_acc_number'), vals.get('bank_id'))
-
+        if 'bank_acc_number' in vals or 'bank_account_id' in vals:
+            for bank in self.filtered(lambda r: r.type == 'bank').bank_account_id:
+                if bank._user_can_trust():
+                    bank.allow_out_payment = True
         return result
 
     def _alias_get_creation_values(self):
@@ -725,7 +748,7 @@ class AccountJournal(models.Model):
 
         domain = [('alias_name', '=', alias_name)]
         if alias_domain_name:
-            domain.append(('alias_domain', '=', alias_domain_name))
+            domain.extend(['|', ('alias_domain', '=', alias_domain_name), ('alias_domain_id', '=', False)])
 
         existing_alias = self.env['mail.alias'].search_count(domain, limit=1)
 
@@ -821,6 +844,7 @@ class AccountJournal(models.Model):
         company = self.env['res.company'].browse(vals['company_id']) if vals.get('company_id') else self.env.company
         vals['company_id'] = company.id
 
+        ProductCategory = self.env['product.category'].with_company(company)
         if journal_type in ('bank', 'cash'):
             has_liquidity_accounts = vals.get('default_account_id')
             has_profit_account = vals.get('profit_account_id')
@@ -836,6 +860,12 @@ class AccountJournal(models.Model):
                 vals['profit_account_id'] = company.default_cash_difference_income_account_id.id
             if journal_type in ('cash', 'bank') and not has_loss_account:
                 vals['loss_account_id'] = company.default_cash_difference_expense_account_id.id
+        elif journal_type == 'purchase':
+            if account := ProductCategory._fields['property_account_expense_categ_id'].get_company_dependent_fallback(ProductCategory):
+                vals.setdefault('default_account_id', account.id)
+        elif journal_type == 'sale':
+            if account := ProductCategory._fields['property_account_income_categ_id'].get_company_dependent_fallback(ProductCategory):
+                vals.setdefault('default_account_id', account.id)
 
         if journal_type == 'credit':
             if not vals.get('default_account_id'):
@@ -874,34 +904,33 @@ class AccountJournal(models.Model):
 
         for journal, vals in zip(journals, vals_list):
             # Create the bank_account_id if necessary
-            if journal.type == 'bank' and not journal.bank_account_id and vals.get('bank_acc_number'):
-                journal.set_bank_account(vals.get('bank_acc_number'), vals.get('bank_id'))
+            if journal.type == 'bank':
+                if not journal.bank_account_id and vals.get('bank_acc_number'):
+                    journal.set_bank_account(vals.get('bank_acc_number'), vals.get('bank_id'))
+                if journal.bank_account_id and journal.bank_account_id._user_can_trust():
+                    journal.bank_account_id.allow_out_payment = True
 
         return journals
 
     def set_bank_account(self, acc_number, bank_id=None):
         """ Create a res.partner.bank (if not exists) and set it as value of the field bank_account_id """
         self.ensure_one()
-        res_partner_bank = self.env['res.partner.bank'].search([
-            ('sanitized_acc_number', '=', sanitize_account_number(acc_number)),
-            ('partner_id', '=', self.company_id.partner_id.id),
-        ], limit=1)
-        if res_partner_bank:
-            self.bank_account_id = res_partner_bank.id
-        else:
-            self.bank_account_id = self.env['res.partner.bank'].create({
-                'acc_number': acc_number,
+        self.bank_account_id = self.env['res.partner.bank']._find_or_create_bank_account(
+            account_number=acc_number,
+            partner=self.company_id.partner_id, allow_company_account_creation=True,
+            company=self.company_id,
+            extra_create_vals={
                 'bank_id': bank_id,
                 'currency_id': self.currency_id.id,
-                'partner_id': self.company_id.partner_id.id,
                 'journal_id': self,
-            }).id
+            }
+        )
 
     @api.depends('currency_id')
     def _compute_display_name(self):
         for journal in self:
             name = journal.name
-            if journal.currency_id and journal.currency_id != journal.company_id.currency_id:
+            if journal.currency_id and journal.currency_id != journal.company_id.sudo().currency_id:
                 name = f"{name} ({journal.currency_id.name})"
             journal.display_name = name
 

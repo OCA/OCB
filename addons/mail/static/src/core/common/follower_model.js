@@ -20,10 +20,16 @@ export class Follower extends Record {
     is_active;
     partner = Record.one("Persona");
 
+    get displayName() {
+        return this.partner.name || this.display_name;
+    }
+
     /** @returns {boolean} */
     get isEditable() {
         const hasWriteAccess = this.thread ? this.thread.hasWriteAccess : false;
-        return this.partner.eq(this.store.self) ? this.thread.hasReadAccess : hasWriteAccess;
+        return this.partner.eq(this.thread?.effectiveSelf)
+            ? this.thread.hasReadAccess
+            : hasWriteAccess;
     }
 
     async remove() {

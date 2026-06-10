@@ -91,6 +91,22 @@ class TestIntervals(TransactionCase):
             [(0, 5), (12, 13), (20, 22), (23, 24)],
         )
 
+    def test_intervals_normalization(self):
+        """
+        Test the merge operation between normalized Intervals
+        and unnormalized Intervals. It must return normalized
+        intervals.
+        """
+        # Simulating unnormalized Intervals. E.g: WorkIntervals
+        class Intervals2(Intervals):
+            def __init__(self, intervals=()):
+                self._items = intervals
+
+        A = Intervals(self.ints([(0, 10)]))
+        B = Intervals2(self.ints([(-5, 5), (5, 15)]))
+        C = A & B
+        self.assertEqual(len(C), 1)
+        self.assertEqual(list(C), self.ints([(0, 10)]))
 
 class TestErrors(TestResourceCommon):
     def setUp(self):
@@ -1332,6 +1348,8 @@ class TestTimezones(TestResourceCommon):
             'name': 'Flex Calendar',
             'tz': 'UTC',
             'flexible_hours': True,
+            'full_time_required_hours': 40,
+            'hours_per_day': 8
         })
         flex_resource = self.env['resource.resource'].create({
             'name': 'Test FlexResource',
@@ -1345,15 +1363,15 @@ class TestTimezones(TestResourceCommon):
             'date_to': '2025-03-07 17:00:00',
         })
 
-        start_dt = datetime(2025, 3, 7, 0, 0, 0, tzinfo=utc)
-        end_dt = datetime(2025, 3, 7, 23, 59, 59, 999999, tzinfo=utc)
+        start_dt = datetime(2025, 3, 7, 8, 0, 0, tzinfo=utc)
+        end_dt = datetime(2025, 3, 7, 16, 00, 00, 00, tzinfo=utc)
 
         intervals = flexible_calendar._leave_intervals_batch(start_dt, end_dt, [flex_resource])
         intervals_list = list(intervals[flex_resource.id])
         self.assertEqual(len(intervals_list), 1, "There should be one leave interval")
         interval = intervals_list[0]
-        self.assertEqual(interval[0], start_dt, "The start of the interval should be 00:00:00")
-        self.assertEqual(interval[1], end_dt, "The end of the interval should be 23:59:59.999999")
+        self.assertEqual(interval[0], start_dt, "The start of the interval should be 08:00:00")
+        self.assertEqual(interval[1], end_dt, "The end of the interval should be 16:00:00")
 
 class TestResource(TestResourceCommon):
 

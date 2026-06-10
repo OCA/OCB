@@ -1,5 +1,13 @@
 import { addBusMessageHandler, busModels } from "@bus/../tests/bus_test_helpers";
-import { after, before, expect, getFixture, registerDebugInfo } from "@odoo/hoot";
+import {
+    after,
+    before,
+    expect,
+    getFixture,
+    mockPermission,
+    registerDebugInfo,
+    test,
+} from "@odoo/hoot";
 import { hover as hootHover, queryFirst, resize } from "@odoo/hoot-dom";
 import { Deferred } from "@odoo/hoot-mock";
 import {
@@ -36,7 +44,6 @@ import {
     mailDataHelpers,
 } from "./mock_server/mail_mock_server";
 import { Base } from "./mock_server/mock_models/base";
-import { DEFAULT_MAIL_VIEW_ID } from "./mock_server/mock_models/constants";
 import { DiscussChannel } from "./mock_server/mock_models/discuss_channel";
 import { DiscussChannelMember } from "./mock_server/mock_models/discuss_channel_member";
 import { DiscussChannelRtcSession } from "./mock_server/mock_models/discuss_channel_rtc_session";
@@ -142,7 +149,7 @@ export const mailModels = {
  */
 export function onRpcBefore(route, callback) {
     if (typeof route === "string") {
-        const handler = registry.category("mock_rpc").get(route);
+        const handler = registry.category("mail.mock_rpc").get(route);
         patchWithCleanup(handler, { before: callback });
     } else {
         const onRpcBeforeGlobal = registry.category("mail.on_rpc_before_global").get(true);
@@ -158,14 +165,31 @@ export function onRpcBefore(route, callback) {
  * @param {Function} callback - The function to execute just before the end of RPC call.
  */
 export function onRpcAfter(route, callback) {
-    const handler = registry.category("mock_rpc").get(route);
+    const handler = registry.category("mail.mock_rpc").get(route);
     patchWithCleanup(handler, { after: callback });
 }
+/** @type {Map<string, string>} */
+const globalArchs = new Map();
 
-let archs = {};
+/**
+ * @param {Record<string, string>} newArchs
+ */
 export function registerArchs(newArchs) {
-    archs = newArchs;
-    after(() => (archs = {}));
+    if (!globalArchs.size) {
+        after(() => globalArchs.clear());
+    }
+    globalArchs.clear();
+    for (const [key, value] of Object.entries(newArchs)) {
+        globalArchs.set(key, value);
+    }
+}
+
+export function onlineTest(...args) {
+    if (navigator.onLine) {
+        return test(...args);
+    } else {
+        return test.skip(...args);
+    }
 }
 
 export async function openDiscuss(activeId, { target } = {}) {
@@ -182,7 +206,7 @@ export async function openFormView(resModel, resId, params) {
     return openView({
         res_model: resModel,
         res_id: resId,
-        views: [[getMailViewId(resModel, "form") || false, "form"]],
+        views: [[false, "form"]],
         ...params,
     });
 }
@@ -190,7 +214,7 @@ export async function openFormView(resModel, resId, params) {
 export async function openKanbanView(resModel, params) {
     return openView({
         res_model: resModel,
-        views: [[getMailViewId(resModel, "kanban"), "kanban"]],
+        views: [[false, "kanban"]],
         ...params,
     });
 }
@@ -198,7 +222,7 @@ export async function openKanbanView(resModel, params) {
 export async function openListView(resModel, params) {
     return openView({
         res_model: resModel,
-        views: [[getMailViewId(resModel, "list"), "list"]],
+        views: [[false, "list"]],
         ...params,
     });
 }
@@ -217,26 +241,16 @@ export async function openView({ context, res_model, res_id, views, domain, ...p
         type,
         resModel: res_model,
         resId: res_id,
-        arch:
-            params?.arch ||
-            archs[viewId || res_model + `,${getMailViewId(res_model, type) || false},` + type] ||
-            undefined,
+        arch: params?.arch || globalArchs.get(viewId || res_model + `,false,` + type) || undefined,
         viewId: params?.arch || viewId,
         ...params,
     });
     await getService("action").doAction(action, { props: options });
 }
-/** @type {import("@web/../tests/_framework/mock_server/mock_server").MockServerEnvironment} */
-let pyEnv;
-function getMailViewId(res_model, type) {
-    const prefix = `${type},${DEFAULT_MAIL_VIEW_ID}`;
-    if (pyEnv[res_model]._views[prefix]) {
-        return DEFAULT_MAIL_VIEW_ID;
-    }
-}
 
-let tabs = [];
-after(() => (tabs = []));
+/** @type {Set<HTMLElement>} */
+const globalTabs = new Set();
+
 /**
  * Add an item to the "Switch Tab" dropdown. If it doesn't exist, create the
  * dropdown and add the item afterwards.
@@ -246,13 +260,16 @@ after(() => (tabs = []));
  * item.
  */
 async function addSwitchTabDropdownItem(rootTarget, tabTarget) {
-    tabs.push(tabTarget);
+    if (!globalTabs.size) {
+        after(() => globalTabs.clear());
+    }
+    globalTabs.add(tabTarget);
     const zIndexMainTab = 100000;
     let dropdownDiv = rootTarget.querySelector(".o-mail-multi-tab-dropdown");
     const onClickDropdownItem = (e) => {
         const dropdownToggle = dropdownDiv.querySelector(".dropdown-toggle");
         dropdownToggle.innerText = `Switch Tab (${e.target.innerText})`;
-        tabs.forEach((tab) => (tab.style.zIndex = -zIndexMainTab));
+        globalTabs.forEach((tab) => (tab.style.zIndex = -zIndexMainTab));
         if (e.target.innerText !== "Hoot") {
             tabTarget.style.zIndex = zIndexMainTab;
         }
@@ -268,7 +285,7 @@ async function addSwitchTabDropdownItem(rootTarget, tabTarget) {
         dropdownDiv.classList.add("o-mail-multi-tab-dropdown");
         dropdownDiv.innerHTML = `
             <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Switch Tab (${tabs.length})
+                Switch Tab (${globalTabs.size})
             </button>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item">Hoot</a></li>
@@ -277,7 +294,7 @@ async function addSwitchTabDropdownItem(rootTarget, tabTarget) {
         dropdownDiv.querySelector("a").onclick = onClickDropdownItem;
         rootTarget.appendChild(dropdownDiv);
     }
-    const tabIndex = tabs.length;
+    const tabIndex = globalTabs.size;
     const li = document.createElement("li");
     const a = document.createElement("a");
     li.appendChild(a);
@@ -286,6 +303,8 @@ async function addSwitchTabDropdownItem(rootTarget, tabTarget) {
     a.onclick = onClickDropdownItem;
     dropdownDiv.querySelector(".dropdown-menu").appendChild(li);
 }
+
+let discussAsTabId = 0;
 
 /**
  * @param {{
@@ -330,13 +349,16 @@ export async function start(options) {
     }
     let env;
     if (options?.asTab) {
+        discussAsTabId++;
         restoreRegistry(registry);
         const rootTarget = target;
         target = document.createElement("div");
         target.classList.add("o-mail-Discuss-asTabContainer");
+        target.dataset.asTabId = discussAsTabId;
         rootTarget.appendChild(target);
         addSwitchTabDropdownItem(rootTarget, target);
-        env = await makeMockEnv({}, { makeNew: true });
+        const selector = `.o-mail-Discuss-asTabContainer[data-as-tab-id="${target.dataset.asTabId}"]`;
+        env = await makeMockEnv({ discussAsTabId, selector }, { makeNew: true });
     } else {
         env = getMockEnv() || (await makeMockEnv({}));
     }
@@ -346,14 +368,13 @@ export async function start(options) {
 }
 
 export async function startServer() {
-    const { env } = await makeMockServer();
-    pyEnv = env;
+    const { env: pyEnv } = await makeMockServer();
     pyEnv["res.users"].write([serverState.userId], {
         groups_id: pyEnv["res.groups"]
             .search_read([["id", "=", serverState.groupId]])
             .map(({ id }) => id),
     });
-    return env;
+    return pyEnv;
 }
 
 /**
@@ -491,39 +512,15 @@ export function mockGetMedia() {
  * based on the given value. Note that when `requestPermissionResult` is passed,
  * the `change` event of the `Permissions` API will also be triggered.
  *
- * @param {"default" | "denied" | "granted"} permission
- * @param {"default" | "denied" | "granted"} requestPermissionResult
+ * @param {PermissionName} requestPermissionResult
  */
-export function patchBrowserNotification(permission = "default", requestPermissionResult) {
-    if (!browser.Notification || !browser.navigator.permissions) {
-        return;
-    }
-    const notificationQueries = [];
-    patchWithCleanup(browser.navigator.permissions, {
-        async query({ name }) {
-            const result = await super.query(...arguments);
-            if (name === "notifications") {
-                Object.defineProperty(result, "state", {
-                    get: () => (permission === "default" ? "prompt" : permission),
-                });
-                notificationQueries.push(result);
-            }
-            return result;
-        },
-    });
-    patchWithCleanup(browser.Notification, {
-        permission,
-        isPatched: true,
+export function patchBrowserNotification(requestPermissionResult) {
+    mockPermission("notifications", "prompt");
+
+    patchWithCleanup(Notification, {
         requestPermission() {
-            if (!requestPermissionResult) {
-                return super.requestPermission(...arguments);
-            }
-            this.permission = requestPermissionResult;
-            for (const query of notificationQueries) {
-                query.permission = requestPermissionResult;
-                query.dispatchEvent(new Event("change"));
-            }
-            return requestPermissionResult;
+            mockPermission("notifications", requestPermissionResult);
+            return super.requestPermission();
         },
     });
 }

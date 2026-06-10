@@ -237,6 +237,14 @@ describe('Format', () => {
                 contentAfter: `<p>${strong('[a')}</p><p contenteditable="false">b</p><p>${strong('c]')}</p>`,
             });
         });
+        it("should remove bold format when having newline character nodes in selection", async () => {
+            await testEditor(BasicEditor, {
+                contentBefore:
+                    "<p><strong>[abc</strong></p>\n<p><strong>def</strong></p>\n<p><strong>ghi]</strong></p>",
+                stepFunction: bold,
+                contentAfter: "<p>[abc</p>\n<p>def</p>\n<p>ghi]</p>",
+            });
+        });
 
         describe('inside container or inline with class already bold', () => {
             it('should force the font-weight to normal with an inline with class', async () => {
@@ -1108,6 +1116,18 @@ describe('Format', () => {
                 contentAfter: `<p>a<span style="font-size: 18px;"><s><u>[b]</u></s></span>c</p>`,
             });
         });
+        it("should apply font size on top of `font` tag", async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: `<p><font class="text-gradient" style="background-image: linear-gradient(135deg, rgb(214, 255, 127) 0%, rgb(0, 179, 204) 100%);">[abcdefg]</font></p>`,
+                stepFunction: setFontSize("80px"),
+                contentAfter: `<p><span style="font-size: 80px;"><font class="text-gradient" style="background-image: linear-gradient(135deg, rgb(214, 255, 127) 0%, rgb(0, 179, 204) 100%);">[abcdefg]</font></span></p>`,
+            });
+            await testEditor(BasicEditor, {
+                contentBefore: `<p><font class="bg-o-color-1 text-black">[abcdefg]</font></p>`,
+                stepFunction: setFontSize("72px"),
+                contentAfter: `<p><span style="font-size: 72px;"><font class="bg-o-color-1 text-black">[abcdefg]</font></span></p>`,
+            });
+        });
     });
 
     describe('setFontSizeClassName', () => {
@@ -1221,6 +1241,18 @@ describe('Format', () => {
 
             });
         });
+        it("should remove font size classes and gradient color styles", async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: `<p><span class="display-1-fs"><font class="text-gradient" style="background-image: linear-gradient(135deg, rgb(214, 255, 127) 0%, rgb(0, 179, 204) 100%);">[abcdefg]</font></span></p>`,
+                stepFunction: (editor) => editor.execCommand("removeFormat"),
+                contentAfter: `<p>[abcdefg]</p>`,
+            });
+            await testEditor(BasicEditor, {
+                contentBefore: `<p><span class="display-2-fs"><font style="background-image: linear-gradient(135deg, rgb(214, 255, 127) 0%, rgb(0, 179, 204) 100%);">[abcdefg]</font></span></p>`,
+                stepFunction: (editor) => editor.execCommand("removeFormat"),
+                contentAfter: `<p>[abcdefg]</p>`,
+            });
+        });
         it('should remove font-size classes when clearing the format' , async () => {
             await testEditor(BasicEditor, {
                 contentBefore: `<p>123<span class="h1-fs">[abc]</span>456</p>`,
@@ -1251,6 +1283,57 @@ describe('Format', () => {
                 // the P could have the "/" hint but that behavior might be
                 // complex with the current implementation.
                 contentAfterEdit: `<p>${span(`[]\u200B`, 'first')}</p>`,
+            });
+        });
+    });
+
+    describe("formatting normalization", () => {
+        it("should unwrap nested identical bold tags", async () => {
+            await repeatWithBoldTags(async (tag) => {
+                await testEditor(BasicEditor, {
+                    contentBefore: `<p>a${tag(`b${tag(`c${tag(`d`)}`)}e`)}f</p>`,
+                    contentAfter: `<p>a${tag("bcde")}f</p>`,
+                });
+            });
+        });
+
+        it("should merge nested strong inside formatting tags", async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: unformat(`
+                    <p>
+                        <strong>
+                            <em>
+                                <u>
+                                    <s>
+                                        text1
+                                        <strong>text2</strong>
+                                        text3
+                                    </s>
+                                </u>
+                            </em>
+                        </strong>
+                    </p>
+                `),
+                contentAfter: unformat(`
+                    <p>
+                        <strong>
+                            <em>
+                                <u>
+                                    <s>
+                                        text1text2text3
+                                    </s>
+                                </u>
+                            </em>
+                        </strong>
+                    </p>
+                `),
+            });
+        });
+
+        it("should merge nested small inside formatting tags", async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: `<p><small><small>text</small></small></p>`,
+                contentAfter: `<p><small>text</small></p>`,
             });
         });
     });

@@ -6,23 +6,6 @@ from odoo.exceptions import ValidationError
 @tagged('post_install', '-at_install')
 class TestTaxesComputation(TestTaxCommon):
 
-    def python_tax(self, formula, **kwargs):
-        self.number += 1
-        vals = {
-            **kwargs,
-            'name': f"code_({self.number})",
-            'amount_type': 'code',
-            'amount': 0.0,
-            'formula': formula,
-        }
-        if 'price_include' in vals:
-            price_include = vals.pop('price_include')
-            if self.env.company.account_price_include != price_include:
-                vals['price_include_override'] = price_include
-            else:
-                vals['price_include_override'] = False
-        return self.env['account.tax'].create(vals)
-
     def _jsonify_tax(self, tax):
         values = super()._jsonify_tax(tax)
         values['formula_decoded_info'] = tax.formula_decoded_info
@@ -34,9 +17,10 @@ class TestTaxesComputation(TestTaxCommon):
         price_unit,
         expected_values,
         product_values=None,
-        price_include='tax_excluded',
+        product_uom_values=None,
+        price_include_override='tax_excluded',
     ):
-        tax = self.python_tax(formula, price_include=price_include)
+        tax = self.python_tax(formula, price_include_override=price_include_override)
         if product_values:
             product = self.env['product.product'].create({
                 'name': "assert_python_taxes_computation",
@@ -44,7 +28,16 @@ class TestTaxesComputation(TestTaxCommon):
             })
         else:
             product = None
-        return self.assert_taxes_computation(tax, price_unit, expected_values, product=product)
+        if product_uom_values:
+            uom = self.env['uom.uom'].create({
+                'name': "assert_python_taxes_computation",
+                'category_id': self.env.ref('uom.product_uom_categ_unit').id,
+                'uom_type': 'bigger',
+                **product_uom_values,
+            })
+        else:
+            uom = None
+        return self.assert_taxes_computation(tax, price_unit, expected_values, product=product, product_uom=uom)
 
     def test_formula(self):
         self.assert_python_taxes_computation(
@@ -68,7 +61,7 @@ class TestTaxesComputation(TestTaxCommon):
                     (102.7, 27.3),
                 ),
             },
-            price_include='tax_included',
+            price_include_override='tax_included',
         )
         self.assert_python_taxes_computation(
             "product.volume * quantity * 0.35",
@@ -127,6 +120,18 @@ class TestTaxesComputation(TestTaxCommon):
                 ),
             },
             product_values={'volume': 0.0},
+        )
+        self.assert_python_taxes_computation(
+            "uom.factor",
+            100.0,
+            {
+                'total_included': 142.0,
+                'total_excluded': 100.0,
+                'taxes_data': (
+                    (100.0, 42.0),
+                ),
+            },
+            product_uom_values={'factor': 42.0},
         )
         self._run_js_tests()
 

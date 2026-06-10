@@ -114,6 +114,7 @@ class configmanager(object):
         group.add_option("--without-demo", dest="without_demo",
                           help="disable loading demo data for modules to be installed (comma-separated, use \"all\" for all modules). Requires -d and -i. Default is %default",
                           my_default=False)
+        group.add_option("--skip-auto-install", dest="skip_auto_install", action="store_true", my_default=False, help="skip the automatic installation of modules marked as auto_install")
         group.add_option("-P", "--import-partial", dest="import_partial", my_default='',
                         help="Use this for big data importation, if it crashes you will be able to continue at the current state. Provide a filename to store intermediate importation states.")
         group.add_option("--pidfile", dest="pidfile", help="file where the server pid will be stored")
@@ -172,7 +173,7 @@ class configmanager(object):
         group.add_option("--test-enable", action="callback", callback=self._test_enable_callback,
                          dest='test_enable',
                          help="Enable unit tests.")
-        group.add_option("--test-tags", dest="test_tags",
+        group.add_option("-t", "--test-tags", dest="test_tags",
                          help="Comma-separated list of specs to filter which tests to execute. Enable unit tests if set. "
                          "A filter spec has the format: [-][tag][/module][:class][.method][[params]] "
                          "The '-' specifies if we want to include or exclude tests matching this spec. "
@@ -482,7 +483,7 @@ class configmanager(object):
                 'email_from', 'smtp_server', 'smtp_user', 'smtp_password', 'from_filter',
                 'smtp_ssl_certificate_filename', 'smtp_ssl_private_key_filename',
                 'db_maxconn', 'db_maxconn_gevent', 'import_partial', 'addons_path', 'upgrade_path', 'pre_upgrade_scripts',
-                'syslog', 'without_demo', 'screencasts', 'screenshots',
+                'syslog', 'without_demo', 'skip_auto_install', 'screencasts', 'screenshots',
                 'dbfilter', 'log_level', 'log_db',
                 'log_db_level', 'geoip_city_db', 'geoip_country_db', 'dev_mode',
                 'shell_interface', 'limit_time_worker_cron',
@@ -505,7 +506,7 @@ class configmanager(object):
         keys = [
             'language', 'translate_out', 'translate_in', 'overwrite_existing_translations',
             'dev_mode', 'shell_interface', 'smtp_ssl', 'load_language',
-            'stop_after_init', 'without_demo', 'http_enable', 'syslog',
+            'stop_after_init', 'without_demo', 'skip_auto_install', 'http_enable', 'syslog',
             'list_db', 'proxy_mode',
             'test_file', 'test_tags',
             'osv_memory_count_limit', 'transient_age_limit', 'max_cron_threads', 'unaccent',
@@ -547,17 +548,20 @@ class configmanager(object):
         else:
             self.options['addons_path'] = ",".join(
                 self._normalize(x)
-                for x in self.options['addons_path'].split(','))
+                for x in self.options['addons_path'].split(',')
+                if x.strip())
 
         self.options["upgrade_path"] = (
             ",".join(self._normalize(x)
-                for x in self.options['upgrade_path'].split(','))
+                for x in self.options['upgrade_path'].split(',')
+                if x.strip())
             if self.options['upgrade_path']
             else ""
         )
         self.options["pre_upgrade_scripts"] = (
             ",".join(self._normalize(x)
-                for x in self.options['pre_upgrade_scripts'].split(','))
+                for x in self.options['pre_upgrade_scripts'].split(',')
+                if x.strip())
             if self.options['pre_upgrade_scripts']
             else ""
         )
@@ -645,8 +649,6 @@ class configmanager(object):
             res = os.path.abspath(os.path.expanduser(path))
             if not os.path.isdir(res):
                 raise optparse.OptionValueError("option %s: no such directory: %r" % (opt, res))
-            if not self._is_addons_path(res):
-                raise optparse.OptionValueError("option %s: the path %r is not a valid addons directory" % (opt, path))
             ad_paths.append(res)
 
         setattr(parser.values, option.dest, ",".join(ad_paths))

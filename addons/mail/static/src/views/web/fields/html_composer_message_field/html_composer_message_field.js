@@ -5,6 +5,7 @@ import { useBus } from "@web/core/utils/hooks";
 import { HtmlMailField, htmlMailField } from "../html_mail_field/html_mail_field";
 import { MentionPlugin } from "./mention_plugin";
 import { SIGNATURE_CLASS } from "@html_editor/main/signature_plugin";
+import { fillEmpty } from "@html_editor/utils/dom";
 
 export class HtmlComposerMessageField extends HtmlMailField {
     setup() {
@@ -26,6 +27,17 @@ export class HtmlComposerMessageField extends HtmlMailField {
                 const textValue = elContent.innerText.replace(/(\t|\n)+/g, "\n");
                 elContent.remove();
                 ev.detail.onSaveContent(textValue, emailAddSignature);
+            });
+            useBus(this.env.fullComposerBus, "ATTACHMENT_REMOVED", (ev) => {
+                const attachmentElements = this.editor.editable.querySelectorAll(
+                    `[data-attachment-id="${ev.detail.id}"]`
+                );
+                attachmentElements.forEach((element) => {
+                    const parent = element.parentElement;
+                    element.remove();
+                    fillEmpty(parent);
+                });
+                this.editor.shared.history.addStep();
             });
         }
     }
@@ -50,6 +62,10 @@ export class HtmlComposerMessageField extends HtmlMailField {
             }
             this.props.record.data.attachment_ids.linkTo(attachment.id, attachment);
         };
+        config.thread = this.env.services["mail.store"]?.Thread.get({
+            model: this.props.record.data.model,
+            id: JSON.parse(this.props.record.data.res_ids || "[]")[0],
+        });
         return config;
     }
 

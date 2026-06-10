@@ -10,6 +10,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.http import _request_stack
 from odoo.tests import Form, TransactionCase, new_test_user, tagged, HttpCase, users
 from odoo.tools import mute_logger
+from odoo import Command
 
 
 class TestUsers(TransactionCase):
@@ -193,6 +194,19 @@ class TestUsers(TransactionCase):
         self.assertTrue(portal_partner_2.exists(), 'Should have kept the partner')
         self.assertEqual(asked_deletion_2.state, 'fail', 'Should have marked the deletion as failed')
 
+    def test_delete_public_user(self):
+        """Test that the public user cannot be deleted."""
+        public_user = self.env.ref('base.public_user')
+        public_partner = public_user.partner_id
+
+        # Attempt to delete the public user
+        with self.assertRaises(UserError, msg="Public user should not be deletable"):
+            public_user.unlink()
+
+        # Ensure the public user still exists and is inactive
+        self.assertTrue(public_user.exists() and not public_user.active, "Public user should still exist and be inactive")
+        self.assertTrue(public_partner.exists() and not public_partner.active, "Public partner should still exist and be inactive")
+
     def test_user_home_action_restriction(self):
         test_user = new_test_user(self.env, 'hello world')
 
@@ -241,6 +255,15 @@ class TestUsers(TransactionCase):
 
 @tagged('post_install', '-at_install')
 class TestUsers2(TransactionCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user_employee = cls.env['res.users'].create({
+            'name': 'employee',
+            'login': 'employee',
+            'groups_id': cls.env.ref('base.group_user'),
+            'tz': 'UTC',
+        })
 
     def test_change_user_login(self):
         """ Check that partner email is updated when changing user's login """
@@ -376,6 +399,29 @@ class TestUsers2(TransactionCase):
         user_form[group_field_name] = group_public.id
         self.assertTrue(user_form.share, 'The groups_id onchange should have been triggered')
 
+    def test_update_user_groups_view(self):
+        """Test that the user groups view can still be built if all user type groups are share"""
+        self.env['res.groups'].search([
+            ("category_id", "=", self.env.ref("base.module_category_user_type").id)
+        ]).write({'share': True})
+
+        self.env['res.groups']._update_user_groups_view()
+
+    @users('employee')
+    def test_self_readable_writeable_fields_preferences_form(self):
+        """Test that a field protected by a `groups='...'` with a group the user doesn't belong to
+        but part of the `SELF_WRITEABLE_FIELDS` is shown in the user profile preferences form and is editable"""
+        my_user = self.env['res.users'].browse(self.env.user.id)
+        self.assertIn(
+            'email',
+            my_user.SELF_WRITEABLE_FIELDS,
+            "This test doesn't make sense if not tested on a field part of the SELF_WRITEABLE_FIELDS"
+        )
+        self.patch(self.env.registry['res.users']._fields['email'], 'groups', 'base.group_system')
+        with Form(my_user, view='base.view_users_form_simple_modif') as UserForm:
+            UserForm.email = "foo@bar.com"
+        self.assertEqual(my_user.email, "foo@bar.com")
+
 
 @tagged('post_install', '-at_install', 'res_groups')
 class TestUsersGroupWarning(TransactionCase):
@@ -478,6 +524,54 @@ class TestUsersGroupWarning(TransactionCase):
                 cls.group_field_service_administrator).ids,
         })
 
+    def test_prevent_inherited_views_in_group_assignment(self):
+        """ Groups can only be assigned non-inherited (primary) views.
+
+        Inherited views (mode='extension') must not be linked to groups directly.
+        They inherit access from their parent view. Attempting to assign an
+        inherited view to a group should raise a ValidationError. """
+
+        View = self.env['ir.ui.view']
+        group = self.group_sales_user
+        normal_view = View.create({
+            'name': 'Test Base View',
+            'type': 'form',
+            'model': 'res.partner',
+            'arch': '<form><field name="name"/></form>',
+        })
+        inherited_view = View.create({
+            'name': 'Inherited View',
+            'type': 'form',
+            'model': 'res.partner',
+            'inherit_id': normal_view.id,
+            'mode': 'extension',
+            'arch': '''
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="email"/>
+                </xpath>
+            ''',
+        })
+
+        # Case 1: inherited view should fail
+        with self.assertRaises(ValidationError):
+            group.write({
+                'view_access': [Command.link(inherited_view.id)],
+            })
+
+        # Case 2: normal view should pass
+        group.write({
+            'view_access': [Command.link(normal_view.id)],
+        })
+        self.assertIn(normal_view, group.view_access)
+
+        # Case 3: both views should fail
+        with self.assertRaises(ValidationError):
+            group.write({
+                'view_access': [
+                    Command.link(normal_view.id),
+                    Command.link(inherited_view.id)
+                ],
+            })
 
     def test_user_group_empty_group_warning(self):
         """ User changes Empty Sales access from 'Sales: Administrator'. The
@@ -576,10 +670,10 @@ class TestUsersIdentitycheck(HttpCase):
         self.env.user.password = "admin@odoo"
 
         # Create a first session that will be used to revoke other sessions
-        session = self.authenticate('admin', 'admin@odoo')
+        session = self.authenticate('admin', 'admin@odoo', session_extra={'_trace_disable': False})
 
         # Create a second session that will be used to check it has been revoked
-        self.authenticate('admin', 'admin@odoo')
+        self.authenticate('admin', 'admin@odoo', session_extra={'_trace_disable': False})
         # Test the session is valid
         # Valid session -> not redirected from /web to /web/login
         self.assertTrue(self.url_open('/web').url.endswith('/web'))

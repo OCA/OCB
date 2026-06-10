@@ -278,6 +278,8 @@ class StockPicking(models.Model):
             domain = expression.AND([domain, [('picking_ids.location_id', '=', self.location_id.id)]])
         if self.picking_type_id.batch_group_by_dest_loc:
             domain = expression.AND([domain, [('picking_ids.location_dest_id', '=', self.location_dest_id.id)]])
+        if self.env.context.get('batches_to_validate'):
+            domain = expression.AND([domain, [('id', 'not in', self.env.context.get('batches_to_validate'))]])
 
         return domain
 
@@ -299,6 +301,10 @@ class StockPicking(models.Model):
         if batch_pack:
             return super(StockPicking, self.batch_id.picking_ids if self.batch_id else self)._package_move_lines(batch_pack, move_lines_to_pack)
         return super()._package_move_lines(batch_pack, move_lines_to_pack)
+
+    def _add_to_wave_post_picking_split_hook(self):
+        # Hook meant to be overriden
+        pass
 
     def assign_batch_user(self, user_id):
         pickings = self.filtered(lambda p: p.user_id.id != user_id)

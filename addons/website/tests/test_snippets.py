@@ -139,3 +139,24 @@ class TestSnippets(HttpCase):
 
     def test_custom_popup_snippet(self):
         self.start_tour(self.env["website"].get_client_action_url("/"), "custom_popup_snippet", login="admin")
+
+    def test_tabs_snippet(self):
+        self.start_tour(self.env["website"].get_client_action_url("/"), "snippet_tabs", login="admin")
+
+    def test_snippet_popup_open_on_top(self):
+        self.start_tour(self.env['website'].get_client_action_url('/'), 'snippet_popup_open_on_top', login='admin')
+
+    def test_snippet_popup_esc(self):
+        self.start_tour(self.env['website'].get_client_action_url('/'), 'snippet_popup_esc', login='admin')
+
+    def test_footer_slideout_and_animation(self):
+        self.start_tour(self.env['website'].get_client_action_url('/'), 'footer_slideout_and_animation', login='admin')
+
+    def test_snippet_faq_horizontal(self):
+        self.start_tour(self.env['website'].get_client_action_url('/'), 'snippet_faq_horizontal', login='admin')
+
+    def test_cookies_consent(self):
+        website = self.env.ref('website.default_website')
+        website.google_analytics_key = 'G-XXXXXXXXXXX'
+        website.cookies_bar = True
+        self.start_tour(website.get_client_action_url('/'), 'cookies_consent')

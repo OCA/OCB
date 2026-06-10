@@ -56,7 +56,7 @@
                                     <div class="row">
                                         <div class="col-lg-3">
                                             <label string="Prices" for="account_price_include" class="o_light_label"/>
-                                            <div class="fa fa-question-circle" title="This setting cannot be changed after an invoice is created."/>
+                                            <div class="fa fa-question-circle" title="This setting locks once a journal entry is created."/>
                                         </div>
                                         <field name="account_price_include" readonly="has_accounting_entries"/>
                                     </div>
@@ -394,6 +394,18 @@
             <field name="view_mode">form</field>
             <field name="target">inline</field>
             <field name="context">{'module' : 'account', 'bin_size': False}</field>
+        </record>
+
+        <record id="res_config_settings_view_form_base_setup" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.base_setup</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='%(web.action_base_document_layout_configurator)d']" position="attributes">
+                    <attribute name="name">%(account.action_base_document_layout_configurator)d</attribute>
+                    <attribute name="context">{'default_from_invoice': True}</attribute>
+                </xpath>
+            </field>
         </record>
 
     </data>

@@ -3,13 +3,15 @@ import {
     bootstrapToTable,
     cardToTable,
     classToStyle,
+    createMso,
     formatTables,
     getCSSRules,
     listGroupToTable,
     normalizeColors,
     normalizeRem,
+    splitSelectors,
 } from "@mail/views/web/fields/html_mail_field/convert_inline";
-import { afterEach, beforeEach, describe, expect, getFixture, test } from "@odoo/hoot";
+import { beforeEach, describe, expect, getFixture, test } from "@odoo/hoot";
 import { enableTransitions } from "@odoo/hoot-mock";
 import {
     getGridHtml,
@@ -459,8 +461,8 @@ describe("Convert Bootstrap grids to tables", () => {
                     /<td[^>]*>\(0, 0\)<\/td>/,
                     `<td>` +
                         `<table cellspacing="0" cellpadding="0" border="0" width="100%" align="center" ` +
-                        `role="presentation" style="width: 100% !important; border-collapse: collapse; text-align: inherit; ` +
-                        `font-size: unset; line-height: inherit;"><tr>` +
+                        `role="presentation" style="width: 100% !important; border-collapse: separate; border-spacing: 0px; text-align: inherit; ` +
+                        `font-size: unset; line-height: inherit; height: 100%;"><tr>` +
                         `<td class="card-header"><span>HEADER</span></td>` +
                         `</tr></table></td>`
                 )
@@ -468,8 +470,8 @@ describe("Convert Bootstrap grids to tables", () => {
                     /<td[^>]*>\(1, 0\)<\/td>/,
                     `<td>` +
                         `<table cellspacing="0" cellpadding="0" border="0" width="100%" align="center" ` +
-                        `role="presentation" style="width: 100% !important; border-collapse: collapse; text-align: inherit; ` +
-                        `font-size: unset; line-height: inherit;"><tr>` +
+                        `role="presentation" style="width: 100% !important; border-collapse: separate; border-spacing: 0px; text-align: inherit; ` +
+                        `font-size: unset; line-height: inherit; height: 100%;"><tr>` +
                         `<td class="card-body"><h2 class="card-title">TITLE</h2><small>BODY <img></small></td>` +
                         `</tr></table></td>`
                 )
@@ -477,8 +479,8 @@ describe("Convert Bootstrap grids to tables", () => {
                     /<td[^>]*>\(2, 0\)<\/td>/,
                     `<td>` +
                         `<table cellspacing="0" cellpadding="0" border="0" width="100%" align="center" ` +
-                        `role="presentation" style="width: 100% !important; border-collapse: collapse; text-align: inherit; ` +
-                        `font-size: unset; line-height: inherit;"><tr>` +
+                        `role="presentation" style="width: 100% !important; border-collapse: separate; border-spacing: 0px; text-align: inherit; ` +
+                        `font-size: unset; line-height: inherit; height: 100%;"><tr>` +
                         `<td class="card-footer"><a href="#" class="btn">FOOTER</a></td>` +
                         `</tr></table></td>`
                 ),
@@ -849,14 +851,9 @@ describe("Convert classes to inline styles", () => {
         editable = document.createElement("div");
 
         styleEl = document.createElement("style");
-        styleEl.type = "text/css";
         styleEl.title = "test-stylesheet";
         document.head.appendChild(styleEl);
         styleSheet = [...document.styleSheets].find((sheet) => sheet.title === "test-stylesheet");
-    });
-    afterEach(() => {
-        // @todo to adapt when hoot has a better way to remove it
-        document.head.removeChild(styleEl);
     });
 
     test("convert Bootstrap classes to inline styles", async () => {
@@ -865,13 +862,21 @@ describe("Convert classes to inline styles", () => {
             <div class="container"><div class="row"><div class="col">Hello</div></div></div>`;
         getFixture().append(editable); // editable needs to be in the DOM to compute its dynamic styles.
 
+        const borderColor = `rgb(255, 0, 0)`;
+        styleSheet.insertRule(
+            `div {
+                border-color: ${borderColor} !important;
+            }`,
+            0
+        );
+
         classToStyle(editable, getCSSRules(editable.ownerDocument));
         // Some positional properties (eg., padding-right, margin-left) are not
         // concatenated (eg., as padding, margin) because they were defined with
         // variables (var) or calculated (calc).
-        const containerStyle = `border-radius: 0px; border-style: none; margin: 0px auto; box-sizing: border-box; border-width: 0px; max-width: 1320px; padding-left: 16px; padding-right: 16px; width: 100%;`;
-        const rowStyle = `border-radius: 0px; border-style: none; padding: 0px; box-sizing: border-box; border-width: 0px; margin-left: -16px; margin-right: -16px; margin-top: 0px;`;
-        const colStyle = `border-radius: 0px; border-style: none; box-sizing: border-box; border-width: 0px; margin-top: 0px; padding-left: 16px; padding-right: 16px; max-width: 100%; width: 100%;`;
+        const containerStyle = `border-radius: 0px; border-style: none; margin: 0px auto; box-sizing: border-box; border-width: 0px; max-width: 1320px; padding-left: 16px; padding-right: 16px; width: 100%; border-color: ${borderColor};`;
+        const rowStyle = `border-radius: 0px; border-style: none; padding: 0px; box-sizing: border-box; border-width: 0px; margin-left: -16px; margin-right: -16px; margin-top: 0px; border-color: ${borderColor};`;
+        const colStyle = `border-radius: 0px; border-style: none; box-sizing: border-box; border-width: 0px; margin-top: 0px; padding-left: 16px; padding-right: 16px; max-width: 100%; width: 100%; border-color: ${borderColor};`;
         expect(editable).toHaveInnerHTML(
             `<div class="container" style="${containerStyle}" width="100%">` +
                 `<div class="row" style="${rowStyle}">` +
@@ -881,6 +886,24 @@ describe("Convert classes to inline styles", () => {
                     "should have converted the classes of a simple Bootstrap grid to inline styles",
             }
         );
+        styleSheet.deleteRule(0);
+    });
+
+    test("strip theme color classes after inlining their styles", async () => {
+        const bgColor = "rgb(17, 24, 39)";
+        const style = document.createElement("style");
+        style.textContent = `.bg-o-color-5 { background-color: ${bgColor} !important; }`;
+        const fixture = getFixture();
+        fixture.append(style);
+
+        editable.innerHTML = `<div class="bg-o-color-5 keep-me">Hello</div>`;
+        fixture.append(editable);
+
+        classToStyle(editable, getCSSRules(editable.ownerDocument));
+
+        const block = editable.querySelector(".keep-me");
+        expect(block).toHaveStyle({ backgroundColor: bgColor });
+        expect(block).not.toHaveClass("bg-o-color-5");
     });
 
     test("simplify border/margin/padding styles", async () => {
@@ -1337,13 +1360,16 @@ describe("Convert classes to inline styles", () => {
         const styleSheet = [...iframe.contentDocument.styleSheets].find(
             (sheet) => sheet.title === "test-stylesheet"
         );
-
+        const borderColor = `rgb(255, 0, 0)`;
         styleSheet.insertRule(
             `
             body {
                 background-color: red;
                 color: white;
                 font-size: 50px;
+                div {
+                    border-color: ${borderColor} !important;
+                }
             }
         `,
             0
@@ -1351,9 +1377,10 @@ describe("Convert classes to inline styles", () => {
         iframeEditable.innerHTML = `<div class="o_layout" style="padding: 50px;"></div>`;
         classToStyle(iframeEditable, getCSSRules(iframeEditable.ownerDocument));
         expect(iframeEditable).toHaveInnerHTML(
-            `<div class="o_layout" style="border-radius:0px;border-style:none;margin:0px;box-sizing:border-box;border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;font-size:50px;color:white;background-color:red;padding: 50px;"></div>`,
+            `<div class="o_layout" style="border-radius:0px;border-style:none;margin:0px;box-sizing:border-box;border-left-color:${borderColor};border-bottom-color:${borderColor};border-right-color:${borderColor};border-top-color:${borderColor};border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;font-size:50px;color:white;background-color:red;padding: 50px;"></div>`,
             { message: "should have given all styles of body to .o_layout" }
         );
+        styleSheet.deleteRule(0);
     });
 
     test("convert classes to styles, preserving specificity", async () => {
@@ -1419,5 +1446,84 @@ describe("Convert classes to inline styles", () => {
         );
 
         // @todo to adapt when hoot has a better way to remove it
+    });
+
+    test("Correct border attributes for outlook", async () => {
+        styleSheet.insertRule(
+            `
+            .test-border-zero {
+                border-bottom-width: 0px;
+                border-left-width: 0px;
+                border-right-width: 0px;
+                border-top-width: 0px;
+                border-style: solid;
+            }
+        `,
+            0
+        );
+
+        styleSheet.insertRule(
+            `
+            .test-border-one {
+                border-bottom-width: 1px;
+                border-left-width: 1px;
+                border-right-width: 1px;
+                border-top-width: 1px;
+                border-style: solid;
+            }
+        `,
+            1
+        );
+
+        editable.innerHTML = `<div><div class="test-border-zero"></div></div>`;
+        classToStyle(editable, getCSSRules(editable.ownerDocument));
+        expect(editable).toHaveInnerHTML(
+            `<div><div class="test-border-zero" style="border-style:none;box-sizing:border-box;border-top-width:0px;border-right-width:0px;border-left-width:0px;border-bottom-width:0px;"></div></div>`,
+            { message: "Should change border-style to none" }
+        );
+
+        editable.innerHTML = `<div><div class="test-border-one"></div></div>`;
+        classToStyle(editable, getCSSRules(editable.ownerDocument));
+        expect(editable).toHaveInnerHTML(
+            `<div><div class="test-border-one" style="border-style:solid;box-sizing:border-box;border-top-width:1px;border-right-width:1px;border-left-width:1px;border-bottom-width:1px;"></div></div>`,
+            { message: "Should keep border style solid" }
+        );
+    });
+});
+
+describe("Properly add MSO conditions", () => {
+    test("Create mso properly", async () => {
+        expect(createMso("<div>abcde</div>").nodeValue).toEqual(
+            `[if mso]><div>abcde</div><![endif]`,
+            { message: "Should wrap the content in mso condition" }
+        );
+
+        expect(
+            createMso("<div>ef<!--[if mso]><div>abcd</div><![endif]-->gh</div>").nodeValue
+        ).toEqual(`[if mso]><div>ef<div>abcd</div>gh</div><![endif]`, {
+            message: "Should wrap the content inside one mso condition",
+        });
+
+        expect(
+            createMso("<div>ef<!--[if !mso]><div>abcd</div><![endif]-->gh</div>").nodeValue
+        ).toEqual(`[if mso]><div>efgh</div><![endif]`, {
+            message: "Should remove nested mso hide condition",
+        });
+    });
+});
+
+describe("splitSelectors method", () => {
+    test("no parentheses", async () => {
+        expect(splitSelectors("abc, def, ghi")).toEqual(["abc", "def", "ghi"]);
+    });
+    test("one depth parentheses", async () => {
+        expect(splitSelectors("abc:has(xyz), def, ghi")).toEqual(["abc:has(xyz)", "def", "ghi"]);
+    });
+    test("two depth parentheses", async () => {
+        expect(splitSelectors("abc:has(xyz:not(.ooo)), def, ghi")).toEqual([
+            "abc:has(xyz:not(.ooo))",
+            "def",
+            "ghi",
+        ]);
     });
 });

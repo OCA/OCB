@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* payment
-# 
+# * payment
+#
 # Translators:
 # Martin Trigaux, 2024
 # Tiffany Chang, 2024
@@ -9,22 +9,24 @@
 # qilong zhong <zhongqilong001@gmail.com>, 2024
 # Wil Odoo, 2024
 # Emily Jia <eji@odoo.com>, 2024
-# Chloe Wang, 2025
 # 何彬 <vnsoft.he@gmail.com>, 2025
-# 
+# Chloe Wang, 2025
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-07 20:37+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: 何彬 <vnsoft.he@gmail.com>, 2025\n"
-"Language-Team: Chinese (China) (https://app.transifex.com/odoo/teams/41243/zh_CN/)\n"
+"POT-Creation-Date: 2026-04-03 18:40+0000\n"
+"PO-Revision-Date: 2026-04-24 07:52+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
+"projects/odoo-18/payment/zh_Hans/>\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_provider_onboarding_wizard___data_fetched
@@ -46,41 +48,48 @@ msgstr "7-Eleven 便利店"
 #: code:addons/payment/wizards/payment_onboarding_wizard.py:0
 msgid ""
 "<h3>Please make a payment to: </h3><ul><li>Bank: %(bank)s</li><li>Account "
-"Number: %(account_number)s</li><li>Account Holder: "
-"%(account_holder)s</li></ul>"
+"Number: %(account_number)s</li><li>Account Holder: %(account_holder)s</li></"
+"ul>"
 msgstr ""
-"<h3>请使用以下资料付款：</h3><ul><li>银行：%(bank)s</li><li>账户号码：%(account_number)s</li><li>账户持有人：%(account_holder)s</li></ul>"
+"<h3>请使用以下资料付款：</h3><ul><li>银行：%(bank)s</li><li>账户号码：%"
+"(account_number)s</li><li>账户持有人：%(account_holder)s</li></ul>"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_method_form
 msgid ""
 "<i class=\"fa fa-exclamation-triangle\"/> These properties are set to\n"
-"                                match the behavior of providers and that of their integration with\n"
-"                                Odoo regarding this payment method. Any change may result in errors\n"
-"                                and should be tested on a test database first."
+"                                match the behavior of providers and that of "
+"their integration with\n"
+"                                Odoo regarding this payment method. Any "
+"change may result in errors\n"
+"                                and should be tested on a test database "
+"first."
 msgstr ""
 "<i class=\"fa fa-exclamation-triangle\"/> 这些属性是为\n"
 "                                供应商及其与\n"
-"                                Odoo 就付款方式进行整合而设置。任何更改都可能导致错误\n"
+"                                Odoo 就付款方式进行整合而设置。任何更改都可能"
+"导致错误\n"
 "                                并应首先在测试数据库中进行测试。"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.portal_breadcrumb
-msgid "<i class=\"fa fa-home\" role=\"img\" title=\"Home\" aria-label=\"Home\"/>"
-msgstr "<i class=\"fa fa-home\" role=\"img\" title=\"Home\" aria-label=\"Home\"/>"
+msgid ""
+"<i class=\"fa fa-home\" role=\"img\" title=\"Home\" aria-label=\"Home\"/>"
+msgstr ""
+"<i class=\"fa fa-home\" role=\"img\" title=\"Home\" aria-label=\"Home\"/>"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_capture_wizard_view_form
 msgid ""
-"<i class=\"fa fa-info-circle oe_inline\" invisible=\"support_partial_capture"
-" != 'full_only'\" title=\"Some of the transactions you intend to capture can"
-" only be captured in full. Handle the transactions individually to capture a"
-" partial amount.\"/>"
+"<i class=\"fa fa-info-circle oe_inline\" "
+"invisible=\"support_partial_capture != 'full_only'\" title=\"Some of the "
+"transactions you intend to capture can only be captured in full. Handle the "
+"transactions individually to capture a partial amount.\"/>"
 msgstr ""
-"<i class=\"fa fa-info-circle oe_inline\" invisible=\"support_partial_capture"
-" != 'full_only'\" title=\"Some of the transactions you intend to capture can"
-" only be captured in full. Handle the transactions individually to capture a"
-" partial amount.\"/>"
+"<i class=\"fa fa-info-circle oe_inline\" "
+"invisible=\"support_partial_capture != 'full_only'\" title=\"Some of the "
+"transactions you intend to capture can only be captured in full. Handle the "
+"transactions individually to capture a partial amount.\"/>"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.token_form
@@ -155,7 +164,8 @@ msgstr "<span><i class=\"fa fa-lock\"/> 担保人</span>"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
-msgid "<strong><i class=\"fa fa-file-text\"/> Show availability report</strong>"
+msgid ""
+"<strong><i class=\"fa fa-file-text\"/> Show availability report</strong>"
 msgstr "<strong><i class=\"fa fa-file-text\"/> 显示可用性报告</strong>"
 
 #. module: payment
@@ -177,7 +187,8 @@ msgstr "<strong>无可用付款方式</strong>"
 #: model_terms:ir.ui.view,arch_db:payment.payment_capture_wizard_view_form
 msgid ""
 "<strong>Warning!</strong> There is a partial capture pending. Please wait a\n"
-"                    moment for it to be processed. Check your payment provider configuration if\n"
+"                    moment for it to be processed. Check your payment "
+"provider configuration if\n"
 "                    the capture is still pending after a few minutes."
 msgstr ""
 "<strong>警告！</strong> 正在处理一项部分收款。请稍等，\n"
@@ -194,7 +205,8 @@ msgstr "<strong>警告！</strong>不能捕获负数，也不能捕获超过"
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid ""
-"<strong>Warning</strong> Creating a payment provider from the <em>CREATE</em> button is not supported.\n"
+"<strong>Warning</strong> Creating a payment provider from the <em>CREATE</"
+"em> button is not supported.\n"
 "                        Please use the <em>Duplicate</em> action instead."
 msgstr ""
 "<strong>警告</strong>不支持从<em>创建</em>按钮创建支付服务商。\n"
@@ -204,7 +216,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.pay
 msgid ""
 "<strong>Warning</strong> Make sure you are logged in as the\n"
-"                                    correct partner before making this payment."
+"                                    correct partner before making this "
+"payment."
 msgstr ""
 "<strong>警告</strong>在付款前，请确保您已登录为\n"
 "                                    合作伙伴身份登录。"
@@ -225,7 +238,9 @@ msgstr "<strong>警告</strong>您必须登录后才能支付。"
 msgid ""
 "A refund request of %(amount)s has been sent. The payment will be created "
 "soon. Refund transaction reference: %(ref)s (%(provider_name)s)."
-msgstr "已发送%(amount)s的退款申请。支付将很快创建。退款交易参考：%(ref)s (%(provider_name)s)。"
+msgstr ""
+"已发送%(amount)s的退款申请。支付将很快创建。退款交易参考：%(ref)s (%"
+"(provider_name)s)。"
 
 #. module: payment
 #. odoo-python
@@ -240,7 +255,8 @@ msgstr "参考号码%(ref)s的交易已经被启动 (%(provider_name)s)。"
 msgid ""
 "A transaction with reference %(ref)s has been initiated to save a new "
 "payment method (%(provider_name)s)"
-msgstr "参考号码%(ref)s的交易已经被启动来保存一个新的支付方式 (%(provider_name)s)。"
+msgstr ""
+"参考号码%(ref)s的交易已经被启动来保存一个新的支付方式 (%(provider_name)s)。"
 
 #. module: payment
 #. odoo-python
@@ -248,7 +264,9 @@ msgstr "参考号码%(ref)s的交易已经被启动来保存一个新的支付�
 msgid ""
 "A transaction with reference %(ref)s has been initiated using the payment "
 "method %(token)s (%(provider_name)s)."
-msgstr "使用支付方式%(token)s (%(provider_name)s)的带参考号码%(ref)s的交易已经被启动。"
+msgstr ""
+"使用支付方式%(token)s (%(provider_name)s)的带参考号码%(ref)s的交易已经被启"
+"动。"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_ach_direct_debit
@@ -411,6 +429,11 @@ msgstr "保存您的付款方式时出错。"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_onboarding_wizard_form
 msgid "Apply"
 msgstr "应用"
+
+#. module: payment
+#: model:payment.method,name:payment.payment_method_appota
+msgid "Appota"
+msgstr "Appota"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_form
@@ -1115,7 +1138,9 @@ msgid ""
 "Express checkout allows customers to pay faster by using a payment method "
 "that provides all required billing and shipping information, thus allowing "
 "to skip the checkout process."
-msgstr "快速结账允许客户使用一种可提供所有必要账单和发货信息的付款方式，从而跳过结账流程，加快付款速度。"
+msgstr ""
+"快速结账允许客户使用一种可提供所有必要账单和发货信息的付款方式，从而跳过结账"
+"流程，加快付款速度。"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_fps
@@ -1276,8 +1301,7 @@ msgstr "ID"
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
 msgid ""
-"If you believe that it is an error, please contact the website "
-"administrator."
+"If you believe that it is an error, please contact the website administrator."
 msgstr "如果您认为这是一个错误，请联系网站管理员。"
 
 #. module: payment
@@ -1401,6 +1425,11 @@ msgstr "Kredivo"
 #: model:payment.method,name:payment.payment_method_krungthai_bank
 msgid "KrungThai Bank"
 msgstr "泰京银行"
+
+#. module: payment
+#: model:payment.method,name:payment.payment_method_kfh
+msgid "Kuwait Finance House"
+msgstr "科威特金融机构"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_linepay
@@ -2402,8 +2431,8 @@ msgstr "Sofort"
 #. odoo-python
 #: code:addons/payment/wizards/payment_capture_wizard.py:0
 msgid ""
-"Some of the transactions you intend to capture can only be captured in full."
-" Handle the transactions individually to capture a partial amount."
+"Some of the transactions you intend to capture can only be captured in full. "
+"Handle the transactions individually to capture a partial amount."
 msgstr "您计划收款的交易，只能作全额收款。若要分开收款，请单独处理个别交易。"
 
 #. module: payment
@@ -2523,8 +2552,7 @@ msgstr "用于此付款方式的基本图像；格式为 64x64 px。"
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__brand_ids
 msgid ""
-"The brands of the payment methods that will be displayed on the payment "
-"form."
+"The brands of the payment methods that will be displayed on the payment form."
 msgstr "将显示在付款表单上的付款方式品牌。"
 
 #. module: payment
@@ -2584,15 +2612,19 @@ msgid ""
 "The list of countries in which this payment method can be used (if the "
 "provider allows it). In other countries, this payment method is not "
 "available to customers."
-msgstr "可使用该付款方式的国家列表（如果供应商允许）。在其他国家，客户无法使用此付款方式。"
+msgstr ""
+"可使用该付款方式的国家列表（如果供应商允许）。在其他国家，客户无法使用此付款"
+"方式。"
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__supported_currency_ids
 msgid ""
-"The list of currencies for that are supported by this payment method (if the"
-" provider allows it). When paying with another currency, this payment method"
-" is not available to customers."
-msgstr "该付款方式支持的币别列表（如果提供商允许）。使用其他币别付款时，客户无法使用此付款方式。"
+"The list of currencies for that are supported by this payment method (if the "
+"provider allows it). When paying with another currency, this payment method "
+"is not available to customers."
+msgstr ""
+"该付款方式支持的币别列表（如果提供商允许）。使用其他币别付款时，客户无法使用"
+"此付款方式。"
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__provider_ids
@@ -2609,7 +2641,8 @@ msgstr "公司的主要币别，用于显示币别字段。"
 msgid ""
 "The maximum payment amount that this payment provider is available for. "
 "Leave blank to make it available for any payment amount."
-msgstr "这个支付提供商可用的最大支付金额。如果没有设置，任何支付金额都是可用的。"
+msgstr ""
+"这个支付提供商可用的最大支付金额。如果没有设置，任何支付金额都是可用的。"
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_provider__auth_msg
@@ -2649,8 +2682,10 @@ msgstr "支付应该是直接的，有重定向的，或者是通过令牌进行
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__primary_payment_method_id
 msgid ""
-"The primary payment method of the current payment method, if the latter is a brand.\n"
-"For example, \"Card\" is the primary payment method of the card brand \"VISA\"."
+"The primary payment method of the current payment method, if the latter is a "
+"brand.\n"
+"For example, \"Card\" is the primary payment method of the card brand "
+"\"VISA\"."
 msgstr ""
 "当前付款方式的主要付款方式（如果后者是一个品牌）。\n"
 "例如，\"Card \"是 \"VISA \"卡品牌的主要支付方式。"
@@ -2728,24 +2763,24 @@ msgstr "使用令牌付款时，渲染内嵌付款表单的模板。"
 #. odoo-python
 #: code:addons/payment/models/payment_transaction.py:0
 msgid ""
-"The transaction with reference %(ref)s for %(amount)s encountered an error "
-"(%(provider_name)s)."
+"The transaction with reference %(ref)s for %(amount)s encountered an error (%"
+"(provider_name)s)."
 msgstr "对%(amount)s的参考%(ref)s交易遇到一个错误 (%(provider_name)s)。"
 
 #. module: payment
 #. odoo-python
 #: code:addons/payment/models/payment_transaction.py:0
 msgid ""
-"The transaction with reference %(ref)s for %(amount)s has been authorized "
-"(%(provider_name)s)."
+"The transaction with reference %(ref)s for %(amount)s has been authorized (%"
+"(provider_name)s)."
 msgstr "对%(amount)s的参考%(ref)s交易已经被授权 (%(provider_name)s)。"
 
 #. module: payment
 #. odoo-python
 #: code:addons/payment/models/payment_transaction.py:0
 msgid ""
-"The transaction with reference %(ref)s for %(amount)s has been confirmed "
-"(%(provider_name)s)."
+"The transaction with reference %(ref)s for %(amount)s has been confirmed (%"
+"(provider_name)s)."
 msgstr "参考号码%(ref)s的交易%(amount)s已经被 (%(provider_name)s) 确认。"
 
 #. module: payment
@@ -2788,8 +2823,10 @@ msgstr "此操作还将存档为此服务商登记的 %s 个令牌。"
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_provider__allow_tokenization
 msgid ""
-"This controls whether customers can save their payment methods as payment tokens.\n"
-"A payment token is an anonymous link to the payment method details saved in the\n"
+"This controls whether customers can save their payment methods as payment "
+"tokens.\n"
+"A payment token is an anonymous link to the payment method details saved in "
+"the\n"
 "provider's database, allowing the customer to reuse it for a next purchase."
 msgstr ""
 "这控制了客户是否可以将他们的支付方式保存为支付令牌。\n"
@@ -2802,12 +2839,15 @@ msgid ""
 "This controls whether customers can use express payment methods. Express "
 "checkout enables customers to pay with Google Pay and Apple Pay from which "
 "address information is collected at payment."
-msgstr "这控制了客户是否可以使用快速支付方式。快速结账允许客户使用Google支付和Apple支付来支付，在支付时收集地址信息。"
+msgstr ""
+"这控制了客户是否可以使用快速支付方式。快速结账允许客户使用Google支付和Apple支"
+"付来支付，在支付时收集地址信息。"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_link_wizard_view_form
 msgid ""
-"This partner has no email, which may cause issues with some payment providers.\n"
+"This partner has no email, which may cause issues with some payment "
+"providers.\n"
 "                     Setting an email for this partner is advised."
 msgstr ""
 "该合作伙伴没有电子邮箱地址，可能导致某些支付服务提供商出现问题。\n"
@@ -2819,7 +2859,8 @@ msgstr ""
 msgid ""
 "This payment method needs a partner in crime; you should enable a payment "
 "provider supporting this method first."
-msgstr "这种付款方式需要一个合作伙伴；您应首先启用支持这种付款方式的付款提供商。"
+msgstr ""
+"这种付款方式需要一个合作伙伴；您应首先启用支持这种付款方式的付款提供商。"
 
 #. module: payment
 #. odoo-python
@@ -2855,7 +2896,8 @@ msgstr "令牌化"
 msgid ""
 "Tokenization is the process of saving the payment details as a token that "
 "can later be reused without having to enter the payment details again."
-msgstr "令牌化是将支付信息保存为令牌的过程，以后无需再次输入支付信息即可重复使用。"
+msgstr ""
+"令牌化是将支付信息保存为令牌的过程，以后无需再次输入支付信息即可重复使用。"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_toss_pay
@@ -2948,6 +2990,16 @@ msgid "VISA"
 msgstr "VISA"
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_vnptwallet
+msgid "VNPT Money"
+msgstr "VNPT Money"
+
+#. module: payment
+#: model:payment.method,name:payment.payment_method_vpbank
+msgid "VP Bank"
+msgstr "VP Bank"
+
+#. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__operation__validation
 msgid "Validation of the payment method"
 msgstr "支付方式的验证"
@@ -2958,9 +3010,19 @@ msgid "Venmo"
 msgstr "Venmo"
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_vietcapital
+msgid "Viet Capital"
+msgstr "Viet Capital"
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_vietcom
 msgid "Vietcombank"
 msgstr "Vietcombank"
+
+#. module: payment
+#: model:payment.method,name:payment.payment_method_viettelpay
+msgid "Viettel Pay"
+msgstr "Viettel Pay"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_vipps
@@ -2976,6 +3038,11 @@ msgstr "无效剩余金额"
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Void Transaction"
 msgstr "无效交易"
+
+#. module: payment
+#: model:payment.method,name:payment.payment_method_wero
+msgid "WERO"
+msgstr ""
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_wallets_india
@@ -3046,6 +3113,11 @@ msgid "Wire Transfer"
 msgstr "电汇"
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_woori
+msgid "Woori Bank"
+msgstr "友利银行"
+
+#. module: payment
 #: model:payment.provider,name:payment.payment_provider_worldline
 msgid "Worldline"
 msgstr "Worldline"
@@ -3075,7 +3147,7 @@ msgstr "您无法更改现有交易的付款服务商公司。"
 #. odoo-python
 #: code:addons/payment/models/payment_method.py:0
 msgid "You cannot delete the default payment method."
-msgstr ""
+msgstr "无法删除默认付款方式。"
 
 #. module: payment
 #. odoo-python
@@ -3252,6 +3324,7 @@ msgstr "不支持快速结账"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_ideal
+#: model:payment.method,name:payment.payment_method_ideal_brand
 msgid "iDEAL"
 msgstr "iDEAL"
 

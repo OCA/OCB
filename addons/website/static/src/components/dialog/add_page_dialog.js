@@ -7,8 +7,8 @@ import { useAutofocus, useService } from '@web/core/utils/hooks';
 import { _t } from "@web/core/l10n/translation";
 import { WebsiteDialog } from '@website/components/dialog/dialog';
 import { Switch } from '@website/components/switch/switch';
-import { applyTextHighlight } from "@website/js/text_processing";
-import { useRef, useState, useSubEnv, Component, onWillStart, onMounted } from "@odoo/owl";
+import { applyTextHighlight, removeTextHighlight } from "@website/js/text_processing";
+import { useRef, useState, useSubEnv, Component, onWillStart, onMounted, status } from "@odoo/owl";
 import wUtils from '@website/js/utils';
 
 const NO_OP = () => {};
@@ -133,8 +133,9 @@ export class AddPageTemplatePreview extends Component {
             const iframeEl = this.iframeRef.el;
             // Firefox replaces the built content with about:blank.
             const isFirefox = isBrowserFirefox();
-            if (isFirefox) {
-                // Make sure empty preview iframe is loaded.
+            if (isFirefox && !(iframeEl?.contentDocument.readyState === "complete")) {
+                // Make sure empty preview iframe is loaded. This was necessary
+                // in Firefox < 148 as it created and parsed a new document.
                 // This event is never triggered on Chrome.
                 await new Promise(resolve => {
                     iframeEl.contentDocument.body.onload = resolve;
@@ -281,6 +282,11 @@ export class AddPageTemplatePreview extends Component {
         for (const previewEl of wrapEl.querySelectorAll(".o_new_page_snippet_preview, .s_dialog_preview")) {
             previewEl.remove();
         }
+        // Remove highlighted text content from the cloned page. The full
+        // highlight structure will be restored on page load.
+        for (const textHighlightEl of wrapEl.querySelectorAll(".o_text_highlight")) {
+            removeTextHighlight(textHighlightEl);
+        }
         this.env.addPage(wrapEl.innerHTML, this.props.template.name && _t("Copy of %s", this.props.template.name));
     }
 }
@@ -358,6 +364,9 @@ export class AddPageTemplates extends Component {
         // Displaying the correct images in the previews also relies on the
         // website id having been forced.
         await this.env.getCssLinkEls();
+        if (status(this) === "destroyed") {
+            return new Promise(() => {});
+        }
 
         if (this.pages) {
             return this.pages;

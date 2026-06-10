@@ -89,9 +89,13 @@ class StockPicking(models.Model):
 
     def _create_move_from_pos_order_lines(self, lines):
         self.ensure_one()
-        lines_by_product = groupby(sorted(lines, key=lambda l: l.product_id.id), key=lambda l: l.product_id.id)
+
+        def get_grouping_key(line):
+            return (line.product_id.id, tuple(sorted(line.attribute_value_ids.ids)))
+
+        lines_by_product_and_attrs = groupby(sorted(lines, key=get_grouping_key), key=get_grouping_key)
         move_vals = []
-        for dummy, olines in lines_by_product:
+        for dummy, olines in lines_by_product_and_attrs:
             order_lines = self.env['pos.order.line'].concat(*olines)
             move_vals.append(self._prepare_stock_move_vals(order_lines[0], order_lines))
         moves = self.env['stock.move'].create(move_vals)
@@ -126,12 +130,15 @@ class StockPicking(models.Model):
                 continue
             if rec.pos_order_id.shipping_date and not rec.pos_order_id.to_invoice:
                 cost_per_account = defaultdict(lambda: 0.0)
-                for line in rec.pos_order_id.lines:
+                for line in rec.move_line_ids:
                     if not line.product_id.is_storable or line.product_id.valuation != 'real_time':
                         continue
+                    line = line.with_company(line.company_id)
                     out = line.product_id.categ_id.property_stock_account_output_categ_id
                     exp = line.product_id._get_product_accounts()['expense']
-                    cost_per_account[(out, exp)] += line.total_cost
+                    line_cost = next(iter(line.move_id._get_price_unit().values())) * line.quantity_product_uom
+                    if line_cost != 0:
+                        cost_per_account[out, exp] += line_cost
                 move_vals = []
                 for (out_acc, exp_acc), cost in cost_per_account.items():
                     move_vals.append({
@@ -285,38 +292,43 @@ class StockMove(models.Model):
         moves_remaining = self - moves_to_assign
         existing_lots = moves_remaining._create_production_lots_for_pos_order(related_order_lines)
         move_lines_to_create = []
-        mls_qties = []
         if are_qties_done:
             for move in moves_remaining:
-                move.move_line_ids.quantity = 0
+                move.move_line_ids.unlink()
                 for line in lines_data[move.product_id.id]['order_lines']:
-                    sum_of_lots = 0
                     for lot in line.pack_lot_ids.filtered(lambda l: l.lot_name):
                         qty = 1 if line.product_id.tracking == 'serial' else abs(line.qty)
-                        ml_vals = dict(move._prepare_move_line_vals(qty))
                         if existing_lots:
                             existing_lot = existing_lots.filtered_domain([('product_id', '=', line.product_id.id), ('name', '=', lot.lot_name)])
-                            quant = self.env['stock.quant']
+                            quants = self.env['stock.quant']
                             if existing_lot:
-                                quant = self.env['stock.quant'].search(
+                                quants = self.env['stock.quant'].search(
                                     [('lot_id', '=', existing_lot.id), ('quantity', '>', '0.0'), ('location_id', 'child_of', move.location_id.id)],
                                     order='id desc',
-                                    limit=1
                                 )
-                                if quant:
-                                    ml_vals.update({
-                                        'quant_id': quant.id,
-                                    })
-                                else:
-                                    ml_vals.update({
-                                        'lot_name': existing_lot.name,
-                                        'lot_id': existing_lot.id,
-                                    })
+                            qty_left_to_assign = qty
+                            for quant in quants:
+                                if qty_left_to_assign <= 0:
+                                    break
+                                qty_chg = min(qty_left_to_assign, quant.quantity)
+                                ml_vals = dict(move._prepare_move_line_vals(qty_chg))
+                                qty_left_to_assign -= qty_chg
+                                ml_vals.update({
+                                    'quant_id': quant.id,
+                                })
+                                move_lines_to_create.append(ml_vals)
+                            if qty_left_to_assign > 0:
+                                ml_vals = dict(move._prepare_move_line_vals(qty_left_to_assign))
+                                ml_vals.update({
+                                    'lot_name': existing_lot.name,
+                                    'lot_id': existing_lot.id,
+                                })
+                                move_lines_to_create.append(ml_vals)
                         else:
+                            ml_vals = dict(move._prepare_move_line_vals(qty))
                             ml_vals.update({'lot_name': lot.lot_name})
-                        move_lines_to_create.append(ml_vals)
-                        mls_qties.append(qty)
-                        sum_of_lots += qty
+                            move_lines_to_create.append(ml_vals)
+
             self.env['stock.move.line'].create(move_lines_to_create)
         else:
             for move in moves_remaining:

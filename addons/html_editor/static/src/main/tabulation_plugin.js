@@ -1,7 +1,12 @@
 import { Plugin } from "@html_editor/plugin";
 import { closestBlock, isBlock } from "@html_editor/utils/blocks";
 import { splitTextNode } from "@html_editor/utils/dom";
-import { isEditorTab, isTextNode, isZWS } from "@html_editor/utils/dom_info";
+import {
+    isEditorTab,
+    isParagraphRelatedElement,
+    isTextNode,
+    isZWS,
+} from "@html_editor/utils/dom_info";
 import {
     descendants,
     getAdjacentPreviousSiblings,
@@ -70,8 +75,8 @@ export class TabulationPlugin extends Plugin {
         if (selection.isCollapsed) {
             this.insertTab();
         } else {
-            const traversedBlocks = this.dependencies.selection.getTraversedBlocks();
-            this.indentBlocks(traversedBlocks);
+            const targetedBlocks = this.dependencies.selection.getTargetedBlocks();
+            this.indentBlocks(targetedBlocks);
         }
         this.dependencies.history.addStep();
     }
@@ -80,8 +85,8 @@ export class TabulationPlugin extends Plugin {
         if (this.delegateTo("shift_tab_overrides")) {
             return;
         }
-        const traversedBlocks = this.dependencies.selection.getTraversedBlocks();
-        this.outdentBlocks(traversedBlocks);
+        const targetedBlocks = this.dependencies.selection.getTargetedBlocks();
+        this.outdentBlocks(targetedBlocks);
         this.dependencies.history.addStep();
     }
 
@@ -105,7 +110,12 @@ export class TabulationPlugin extends Plugin {
     indentBlocks(blocks) {
         const selectionToRestore = this.dependencies.selection.getEditableSelection();
         const tab = parseHTML(this.document, tabHtml);
-        for (const block of blocks) {
+        const indentableBlocks = [...blocks].filter(
+            (block) =>
+                block.isContentEditable &&
+                (isParagraphRelatedElement(block) || block.tagName === "BLOCKQUOTE")
+        );
+        for (const block of indentableBlocks) {
             block.prepend(tab.cloneNode(true));
         }
         this.dependencies.selection.setSelection(selectionToRestore, { normalize: false });

@@ -318,7 +318,7 @@ class Lead(models.Model):
     @api.depends('team_id', 'type')
     def _compute_stage_id(self):
         for lead in self:
-            if not lead.stage_id:
+            if not lead.stage_id or (lead.team_id and lead.stage_id.team_id and lead.team_id != lead.stage_id.team_id):
                 lead.stage_id = lead._stage_find(domain=[('fold', '=', False)]).id
 
     @api.depends('user_id')
@@ -537,10 +537,10 @@ class Lead(models.Model):
                 lead.meeting_display_date = False
                 lead.meeting_display_label = _('No Meeting')
             elif lead_meeting_info['next_meeting_date']:
-                lead.meeting_display_date = lead_meeting_info['next_meeting_date']
+                lead.meeting_display_date = fields.Datetime.context_timestamp(lead, lead_meeting_info['next_meeting_date'])
                 lead.meeting_display_label = _('Next Meeting')
             else:
-                lead.meeting_display_date = lead_meeting_info['last_meeting_date']
+                lead.meeting_display_date = fields.Datetime.context_timestamp(lead, lead_meeting_info['last_meeting_date'])
                 lead.meeting_display_label = _('Last Meeting')
 
     @api.depends('email_domain_criterion', 'email_normalized', 'partner_id',
@@ -918,7 +918,7 @@ class Lead(models.Model):
         for lead, vals in zip(self, vals_list):
             vals.setdefault('type', lead.type)
             vals.setdefault('team_id', lead.team_id.id)
-            vals['date_open'] = now if lead.type == 'opportunity' else False
+            vals['date_open'] = now if lead.type == 'opportunity' and lead.user_id.active else False
             if not lead.user_id.active:
                 vals['user_id'] = False
         return vals_list
@@ -1447,7 +1447,7 @@ class Lead(models.Model):
         return {
             'description': lambda fname, leads: '<br/><br/>'.join(desc for desc in leads.mapped('description') if not is_html_empty(desc)),
             'type': lambda fname, leads: 'opportunity' if any(lead.type == 'opportunity' for lead in leads) else 'lead',
-            'priority': lambda fname, leads: max(leads.mapped('priority')) if leads else False,
+            'priority': lambda fname, leads: max(priorities) if (priorities := leads.filtered('priority').mapped('priority')) else False,
             'tag_ids': lambda fname, leads: leads.mapped('tag_ids'),
             'lost_reason_id': lambda fname, leads:
                 False if leads and leads[0].probability
@@ -2062,7 +2062,7 @@ class Lead(models.Model):
             name_from_email = name_emails[0][0] if name_emails else False
             if name_from_email:
                 continue  # already containing name + email
-            name_from_email = self.partner_name or self.contact_name
+            name_from_email = self.contact_name or self.partner_name
             emails_normalized = tools.email_normalize_all(email)
             email_normalized = emails_normalized[0] if emails_normalized else False
             if email.lower() == self.email_from.lower() or (email_normalized and self.email_normalized == email_normalized):

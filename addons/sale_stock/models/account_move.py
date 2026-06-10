@@ -38,7 +38,7 @@ class AccountMove(models.Model):
             return res
 
         current_invoice_amls = self.invoice_line_ids.filtered(lambda aml: aml.display_type == 'product' and aml.product_id and aml.product_id.type == 'consu' and aml.quantity)
-        all_invoices_amls = current_invoice_amls.sale_line_ids.invoice_lines.filtered(lambda aml: aml.move_id.state == 'posted').sorted(lambda aml: (aml.date, aml.move_name, aml.id))
+        all_invoices_amls = current_invoice_amls.sale_line_ids.invoice_lines.filtered(lambda aml: aml._filter_aml_lot_valuation()).sorted(lambda aml: (aml.date, aml.move_name, aml.id))
         index = all_invoices_amls.ids.index(current_invoice_amls[:1].id) if current_invoice_amls[:1] in all_invoices_amls else 0
         previous_amls = all_invoices_amls[:index]
         invoiced_qties = current_invoice_amls._get_invoiced_qty_per_product()
@@ -112,7 +112,7 @@ class AccountMove(models.Model):
 
         return res
 
-    @api.depends('line_ids.sale_line_ids.order_id')
+    @api.depends('line_ids.sale_line_ids.order_id.effective_date')
     def _compute_delivery_date(self):
         # EXTENDS 'account'
         super()._compute_delivery_date()
@@ -135,10 +135,22 @@ class AccountMove(models.Model):
 
     def _get_anglo_saxon_price_ctx(self):
         ctx = super()._get_anglo_saxon_price_ctx()
-        move_is_downpayment = self.invoice_line_ids.filtered(
-            lambda line: any(line.sale_line_ids.mapped("is_downpayment"))
-        )
+        move_is_downpayment = None
+        if not self.reversed_entry_id and self.move_type == "out_refund":
+            move_is_downpayment = self.invoice_line_ids.filtered(
+                lambda line: any(line.sale_line_ids.mapped("is_downpayment"))
+            )
         return dict(ctx, move_is_downpayment=move_is_downpayment)
+
+    def _get_protected_vals(self, vals, records):
+        res = super()._get_protected_vals(vals, records)
+        # `delivery_date` should be protected on any account.move/account.move.line write
+        perma_protected = {self._fields['delivery_date']}
+        if records._name == self._name:
+            res.append((perma_protected, records))
+        elif records._name == self.line_ids._name:
+            res.append((perma_protected, records.move_id))
+        return res
 
 
 class AccountMoveLine(models.Model):
@@ -154,10 +166,10 @@ class AccountMoveLine(models.Model):
 
         so_line = self.sale_line_ids and self.sale_line_ids[-1] or False
         move_is_downpayment = self.env.context.get("move_is_downpayment")
-        if move_is_downpayment is None:
+        if move_is_downpayment is None and not self.move_id.reversed_entry_id and self.move_type == "out_refund":
             move_is_downpayment = self.move_id.invoice_line_ids.filtered(
-            lambda line: any(line.sale_line_ids.mapped("is_downpayment"))
-        )
+                lambda line: any(line.sale_line_ids.mapped("is_downpayment"))
+            )
         if so_line:
             is_line_reversing = False
             if self.move_id.move_type == 'out_refund' and not move_is_downpayment:
@@ -200,3 +212,10 @@ class AccountMoveLine(models.Model):
             average_price_unit = product._compute_average_price(qty_invoiced, qty_to_invoice, so_line.move_ids, is_returned=is_line_reversing)
             price_unit = self.product_id.uom_id.with_company(self.company_id)._compute_price(average_price_unit, self.product_uom_id)
         return price_unit
+
+    def _related_analytic_distribution(self):
+        # EXTENDS 'account'
+        vals = super()._related_analytic_distribution()
+        if not self.sale_line_ids and not self.analytic_distribution and self.move_id.stock_move_id.sale_line_id:
+            vals |= self.move_id.stock_move_id.sale_line_id.analytic_distribution or {}
+        return vals

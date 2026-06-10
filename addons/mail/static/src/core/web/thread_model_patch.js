@@ -54,6 +54,18 @@ patch(Thread.prototype, {
         if (this.model === "discuss.channel" && !this.selfMember) {
             this.store.env.services["bus_service"].addChannel(this.busChannel);
         }
+        if (this.model === "mail.box") {
+            if (this.store.discuss.isActive) {
+                this.setAsDiscussThread();
+            } else {
+                this.store.env.services.action.doAction({
+                    context: { active_id: `mail.box_${this.id}` },
+                    tag: "mail.action_discuss",
+                    type: "ir.actions.client",
+                });
+            }
+            return;
+        }
         if (!this.store.discuss.isActive && !this.store.env.services.ui.isSmall) {
             this.openChatWindow(options);
             return;
@@ -63,15 +75,18 @@ patch(Thread.prototype, {
             return;
         }
         if (this.model !== "discuss.channel") {
-            this.store.env.services.action.doAction({
-                type: "ir.actions.act_window",
-                res_id: this.id,
-                res_model: this.model,
-                views: [[false, "form"]],
-            });
+            this.store.env.services.action.doAction(this.openRecordActionRequest);
             return;
         }
         super.open();
+    },
+    get openRecordActionRequest() {
+        return {
+            type: "ir.actions.act_window",
+            res_id: this.id,
+            res_model: this.model,
+            views: [[false, "form"]],
+        };
     },
     async unpin() {
         const chatWindow = this.store.ChatWindow.get({ thread: this });

@@ -1,24 +1,27 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* mail_plugin
-# 
+# * mail_plugin
+#
 # Translators:
 # Wil Odoo, 2024
 # Junko Augias, 2025
-# 
+#
+# "Junko Augias (juau)" <juau@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-25 08:39+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Junko Augias, 2025\n"
-"Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
+"POT-Creation-Date: 2025-12-29 18:37+0000\n"
+"PO-Revision-Date: 2025-10-31 05:39+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-18/"
+"mail_plugin/ja/>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mail_plugin
 #. odoo-javascript
@@ -31,7 +34,9 @@ msgstr "%s従業員 "
 #: code:addons/mail_plugin/controllers/authenticate.py:0
 msgid ""
 "Access Error: Only Internal Users can link their inboxes to this database."
-msgstr "アクセスエラー:  このデータベースに受信トレイをリンクできるのは内部ユーザのみです。"
+msgstr ""
+"アクセスエラー:  このデータベースに受信トレイをリンクできるのは内部ユーザのみ"
+"です。"
 
 #. module: mail_plugin
 #. odoo-javascript
@@ -69,7 +74,8 @@ msgstr "年間収益"
 msgid ""
 "Attachments could not be logged in Odoo because their total size exceeded "
 "the allowed maximum."
-msgstr "添付ファイルの合計サイズが許容上限を超えたため、Odooに記録できませんでした。"
+msgstr ""
+"添付ファイルの合計サイズが許容上限を超えたため、Odooに記録できませんでした。"
 
 #. module: mail_plugin
 #. odoo-python
@@ -156,7 +162,7 @@ msgstr "連絡先"
 #. odoo-javascript
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 msgid "Contact Details"
-msgstr "コンタクトの詳細"
+msgstr "連絡先詳細"
 
 #. module: mail_plugin
 #. odoo-javascript
@@ -174,7 +180,8 @@ msgstr "連絡先が見つかりました (%(count)s)"
 #. odoo-javascript
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 msgid "Could not autocomplete the company. Internal error. Try again later..."
-msgstr "会社を自動入力できませんでした。内部エラーです。後で再試行して下さい..."
+msgstr ""
+"会社を自動入力できませんでした。内部エラーです。後で再試行して下さい..."
 
 #. module: mail_plugin
 #. odoo-javascript
@@ -309,7 +316,7 @@ msgstr "開始:"
 #. odoo-javascript
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 msgid "Gmail Inbox"
-msgstr "Gmail受信箱"
+msgstr "Gmail受信トレイ"
 
 #. module: mail_plugin
 #: model:ir.model,name:mail_plugin.model_ir_http
@@ -449,7 +456,9 @@ msgstr "この連絡先にリンクしている企業は、エンリッチでき
 #. odoo-javascript
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 msgid "No company linked to this contact could be enriched or found in Odoo"
-msgstr "この連絡先にリンクしている企業は、エンリッチできない、またはOdooで見つかりませんでした"
+msgstr ""
+"この連絡先にリンクしている企業は、エンリッチできない、またはOdooで見つかりま"
+"せんでした"
 
 #. module: mail_plugin
 #. odoo-javascript
@@ -516,7 +525,9 @@ msgstr "パートナーのIAPは1人につき1つのみ許可されます"
 msgid ""
 "Oops, looks like you have exhausted your free enrichment requests. Please "
 "log in to try again."
-msgstr "無料エンリッチメントリクエストを使い果たしたようです。ログインして再度お試し下さい。"
+msgstr ""
+"無料エンリッチメントリクエストを使い果たしたようです。ログインして再度お試し"
+"下さい。"
 
 #. module: mail_plugin
 #. odoo-javascript
@@ -528,7 +539,7 @@ msgstr "IAPサーバーがダウンしているため、後で戻ってきて下
 #. odoo-javascript
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 msgid "Outlook Inbox"
-msgstr "Outlook受信箱"
+msgstr "Outlook受信トレイ"
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__partner_id
@@ -660,7 +671,8 @@ msgstr "この連絡先はOdooのデータベースに存在しません。"
 #. odoo-javascript
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 msgid "This contact has no email address, no company could be enriched."
-msgstr "この連絡先にはEメールアドレスがなく、エンリッチできる会社はありません。"
+msgstr ""
+"この連絡先にはEメールアドレスがなく、エンリッチできる会社はありません。"
 
 #. module: mail_plugin
 #. odoo-python
@@ -668,7 +680,9 @@ msgstr "この連絡先にはEメールアドレスがなく、エンリッチ�
 msgid ""
 "This is your notification address. Search the Contact manually to link this "
 "email to a record."
-msgstr "これはあなたの通知アドレスです。このメールをレコードにリンクするには、手動で連絡先を検索します。"
+msgstr ""
+"これはあなたの通知アドレスです。このメールをレコードにリンクするには、手動で"
+"連絡先を検索します。"
 
 #. module: mail_plugin
 #. odoo-python
@@ -682,7 +696,9 @@ msgstr "この取引先は存在しません"
 msgid ""
 "Warning: Attachments could not be logged in Odoo because their total size "
 "exceeded the allowed maximum."
-msgstr "警告: 添付ファイルの合計サイズが許容上限を超えたため、Odooに記録できませんでした。"
+msgstr ""
+"警告: 添付ファイルの合計サイズが許容上限を超えたため、Odooに記録できませんで"
+"した。"
 
 #. module: mail_plugin
 #. odoo-javascript
@@ -691,8 +707,8 @@ msgid ""
 "Warning: Could not fetch the attachments %(attachments)s as their sizes are "
 "bigger then the maximum size of %(size)sMB per each attachment."
 msgstr ""
-"警告: "
-"添付ファイル%(attachments)sのサイズが各添付ファイルの最大サイズ%(size)sMBを超えているため、添付ファイルを取得できませんでした。"
+"警告: 添付ファイル%(attachments)sのサイズが各添付ファイルの最大サイズ%"
+"(size)sMBを超えているため、添付ファイルを取得できませんでした。"
 
 #. module: mail_plugin
 #. odoo-javascript

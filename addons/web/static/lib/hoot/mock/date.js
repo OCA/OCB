@@ -2,6 +2,7 @@
 
 import { getTimeOffset, isTimeFrozen, resetTimeOffset } from "@web/../lib/hoot-dom/helpers/time";
 import { createMock, HootError, isNil } from "../hoot_utils";
+import { ensureTest } from "../main_runner";
 
 /**
  * @typedef DateSpecs
@@ -29,26 +30,27 @@ const { DateTimeFormat, Locale } = Intl;
 /**
  * @param {Date} baseDate
  */
-const computeTimeZoneOffset = (baseDate) => {
+function computeTimeZoneOffset(baseDate) {
     const utcDate = new Date(baseDate.toLocaleString(DEFAULT_LOCALE, { timeZone: "UTC" }));
     const tzDate = new Date(baseDate.toLocaleString(DEFAULT_LOCALE, { timeZone: timeZoneName }));
-    return (utcDate - tzDate) / 60_000; // in minutes
-};
+    return (utcDate - tzDate) / 60000; // in minutes
+}
 
 /**
  * @param {number} id
  */
-const getDateParams = () => [
-    ...dateParams.slice(0, -1),
-    dateParams.at(-1) + getTimeStampDiff() + getTimeOffset(),
-];
+function getDateParams() {
+    return [...dateParams.slice(0, -1), dateParams.at(-1) + getTimeStampDiff() + getTimeOffset()];
+}
 
-const getTimeStampDiff = () => (isTimeFrozen() ? 0 : $now() - dateTimeStamp);
+function getTimeStampDiff() {
+    return isTimeFrozen() ? 0 : $now() - dateTimeStamp;
+}
 
 /**
  * @param {string | DateSpecs} dateSpecs
  */
-const parseDateParams = (dateSpecs) => {
+function parseDateParams(dateSpecs) {
     /** @type {DateSpecs} */
     const specs =
         (typeof dateSpecs === "string" ? dateSpecs.match(DATE_REGEX)?.groups : dateSpecs) || {};
@@ -61,22 +63,22 @@ const parseDateParams = (dateSpecs) => {
         specs.second ?? DEFAULT_DATE[5],
         specs.millisecond ?? DEFAULT_DATE[6],
     ].map(Number);
-};
+}
 
 /**
  * @param {typeof dateParams} newDateParams
  */
-const setDateParams = (newDateParams) => {
+function setDateParams(newDateParams) {
     dateParams = newDateParams;
     dateTimeStamp = $now();
 
     resetTimeOffset();
-};
+}
 
 /**
  * @param {string | number | null | undefined} tz
  */
-const setTimeZone = (tz) => {
+function setTimeZone(tz) {
     if (typeof tz === "string") {
         if (!tz.includes("/")) {
             throw new HootError(`invalid time zone: must be in the format <Country/...Location>`);
@@ -98,7 +100,7 @@ const setTimeZone = (tz) => {
     for (const callback of timeZoneChangeCallbacks) {
         callback(tz ?? DEFAULT_TIMEZONE_NAME);
     }
-};
+}
 
 class MockDateTimeFormat extends DateTimeFormat {
     constructor(locales, options) {
@@ -106,6 +108,11 @@ class MockDateTimeFormat extends DateTimeFormat {
             ...options,
             timeZone: options?.timeZone ?? timeZoneName ?? DEFAULT_TIMEZONE_NAME,
         });
+    }
+
+    /** @type {Intl.DateTimeFormat["format"]} */
+    format(date) {
+        return super.format(date || new MockDate());
     }
 
     resolvedOptions() {
@@ -155,7 +162,7 @@ export function cleanupDate() {
  * @see {@link mockTimeZone} for the time zone params.
  *
  * @param {string | DateSpecs} [date]
- * @param  {string | number | null} [tz]
+ * @param {string | number | null} [tz]
  * @example
  *  mockDate("2023-12-25T20:45:00"); // 2023-12-25 20:45:00 UTC
  * @example
@@ -164,6 +171,7 @@ export function cleanupDate() {
  *  mockDate("2019-02-11 09:30:00.001", +2);
  */
 export function mockDate(date, tz) {
+    ensureTest("mockDate");
     setDateParams(date ? parseDateParams(date) : DEFAULT_DATE);
     if (!isNil(tz)) {
         setTimeZone(tz);
@@ -181,6 +189,7 @@ export function mockDate(date, tz) {
  *  mockTimeZone("ja-JP"); // UTC + 9
  */
 export function mockLocale(newLocale) {
+    ensureTest("mockLocale");
     locale = newLocale;
 
     if (!isNil(locale) && isNil(timeZoneName)) {
@@ -207,6 +216,7 @@ export function mockLocale(newLocale) {
  *  mockTimeZone(null) // Resets to test default (+1)
  */
 export function mockTimeZone(tz) {
+    ensureTest("mockTimeZone");
     setTimeZone(tz);
 }
 

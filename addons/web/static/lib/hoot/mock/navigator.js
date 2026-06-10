@@ -1,7 +1,15 @@
 /** @odoo-module */
 
-import { createMock, HootError, MIME_TYPE, MockEventTarget } from "../hoot_utils";
-import { getSyncValue, setSyncValue } from "./sync_values";
+import { isInstanceOf } from "../../hoot-dom/hoot_dom_utils";
+import {
+    createMock,
+    getSyncValue,
+    HootError,
+    MIME_TYPE,
+    MockEventTarget,
+    setSyncValue,
+} from "../hoot_utils";
+import { ensureTest } from "../main_runner";
 
 /**
  * @typedef {"android" | "ios" | "linux" | "mac" | "windows"} Platform
@@ -25,7 +33,9 @@ const { userAgent: $userAgent } = navigator;
 // Internal
 //-----------------------------------------------------------------------------
 
-const getBlobValue = (value) => (value instanceof Blob ? value.text() : value);
+function getBlobValue(value) {
+    return isInstanceOf(value, Blob) ? value.text() : value;
+}
 
 /**
  * Returns the final synchronous value of several item types.
@@ -33,88 +43,92 @@ const getBlobValue = (value) => (value instanceof Blob ? value.text() : value);
  * @param {unknown} value
  * @param {string} type
  */
-const getClipboardValue = (value, type) =>
-    getBlobValue(value instanceof ClipboardItem ? value.getType(type) : value);
+function getClipboardValue(value, type) {
+    return getBlobValue(isInstanceOf(value, ClipboardItem) ? value.getType(type) : value);
+}
 
-const getMockValues = () => ({
-    /** @type {Navigator["sendBeacon"]} */
-    sendBeacon: throwNotImplemented("sendBeacon"),
-    userAgent: makeUserAgent("linux"),
-    /** @type {Navigator["vibrate"]} */
-    vibrate: throwNotImplemented("vibrate"),
-});
+function getMockValues() {
+    return {
+        sendBeacon: throwNotImplemented("sendBeacon"),
+        userAgent: makeUserAgent("linux"),
+        /** @type {Navigator["vibrate"]} */
+        vibrate: throwNotImplemented("vibrate"),
+    };
+}
 
 /**
  * @returns {Record<PermissionName, { name: string; state: PermissionState }>}
  */
-const getPermissions = () => ({
-    "background-sync": {
-        state: "granted", // should always be granted
-        name: "background_sync",
-    },
-    "local-fonts": {
-        state: "denied",
-        name: "local_fonts",
-    },
-    "payment-handler": {
-        state: "denied",
-        name: "payment_handler",
-    },
-    "persistent-storage": {
-        state: "denied",
-        name: "durable_storage",
-    },
-    "screen-wake-lock": {
-        state: "denied",
-        name: "screen_wake_lock",
-    },
-    "storage-access": {
-        state: "denied",
-        name: "storage-access",
-    },
-    "window-management": {
-        state: "denied",
-        name: "window_placement",
-    },
-    accelerometer: {
-        state: "denied",
-        name: "sensors",
-    },
-    camera: {
-        state: "denied",
-        name: "video_capture",
-    },
-    geolocation: {
-        state: "denied",
-        name: "geolocation",
-    },
-    gyroscope: {
-        state: "denied",
-        name: "sensors",
-    },
-    magnetometer: {
-        state: "denied",
-        name: "sensors",
-    },
-    microphone: {
-        state: "denied",
-        name: "audio_capture",
-    },
-    midi: {
-        state: "denied",
-        name: "midi",
-    },
-    notifications: {
-        state: "denied",
-        name: "notifications",
-    },
-    push: {
-        state: "denied",
-        name: "push",
-    },
-});
+function getPermissions() {
+    return {
+        "background-sync": {
+            state: "granted", // should always be granted
+            name: "background_sync",
+        },
+        "local-fonts": {
+            state: "denied",
+            name: "local_fonts",
+        },
+        "payment-handler": {
+            state: "denied",
+            name: "payment_handler",
+        },
+        "persistent-storage": {
+            state: "denied",
+            name: "durable_storage",
+        },
+        "screen-wake-lock": {
+            state: "denied",
+            name: "screen_wake_lock",
+        },
+        "storage-access": {
+            state: "denied",
+            name: "storage-access",
+        },
+        "window-management": {
+            state: "denied",
+            name: "window_placement",
+        },
+        accelerometer: {
+            state: "denied",
+            name: "sensors",
+        },
+        camera: {
+            state: "denied",
+            name: "video_capture",
+        },
+        geolocation: {
+            state: "denied",
+            name: "geolocation",
+        },
+        gyroscope: {
+            state: "denied",
+            name: "sensors",
+        },
+        magnetometer: {
+            state: "denied",
+            name: "sensors",
+        },
+        microphone: {
+            state: "denied",
+            name: "audio_capture",
+        },
+        midi: {
+            state: "denied",
+            name: "midi",
+        },
+        notifications: {
+            state: "denied",
+            name: "notifications",
+        },
+        push: {
+            state: "denied",
+            name: "push",
+        },
+    };
+}
 
-const getUserAgentBrowser = () => {
+function getUserAgentBrowser() {
     if (/Firefox/i.test($userAgent)) {
         return "Gecko/20100101 Firefox/1000.0"; // Firefox
     }
@@ -124,12 +138,12 @@ const getUserAgentBrowser = () => {
     if (/Safari/i.test($userAgent)) {
         return "AppleWebKit/1000.00 (KHTML, like Gecko) Version/1000.00 Safari/1000.00"; // Safari
     }
-};
+}
 
 /**
  * @param {Platform} platform
  */
-const makeUserAgent = (platform) => {
+function makeUserAgent(platform) {
     const userAgent = ["Mozilla/5.0"];
     switch (platform.toLowerCase()) {
         case "android": {
@@ -162,16 +176,16 @@ const makeUserAgent = (platform) => {
         userAgent.push(userAgentBrowser);
     }
     return userAgent.join(" ");
-};
+}
 
 /**
  * @param {string} fnName
  */
-const throwNotImplemented = (fnName) => {
+function throwNotImplemented(fnName) {
     return function notImplemented() {
-        throw new HootError(`Unmocked navigator method: ${fnName}`);
+        throw new HootError(`unmocked navigator method: ${fnName}`);
     };
-};
+}
 
 /** @type {Set<MockPermissionStatus>} */
 const permissionStatuses = new Set();
@@ -213,7 +227,7 @@ export class MockClipboardItem extends ClipboardItem {
     // Added synchronous methods to enhance speed in tests
 
     async getType(type) {
-        return getSyncValue(this)[type];
+        return getSyncValue(this, false)[type];
     }
 }
 
@@ -257,18 +271,137 @@ export class MockPermissionStatus extends MockEventTarget {
     }
 }
 
+export class MockServiceWorker extends MockEventTarget {
+    static publicListeners = ["error", "message"];
+
+    /** @type {ServiceWorkerState} */
+    state = "activated";
+
+    /**
+     * @param {string} scriptURL
+     */
+    constructor(scriptURL) {
+        super(...arguments);
+
+        /** @type {string} */
+        this.scriptURL = scriptURL;
+    }
+
+    /**
+     * @param {any} _message
+     */
+    postMessage(_message) {}
+}
+
+export class MockServiceWorkerContainer extends MockEventTarget {
+    static publicListeners = ["controllerchange", "message", "messageerror"];
+
+    /**
+     * @private
+     */
+    _readyResolved = false;
+
+    /**
+     * @private
+     * @type {Map<string, MockServiceWorkerRegistration>}
+     */
+    _registrations = new Map();
+
+    /** @type {MockServiceWorker | null} */
+    controller = null;
+
+    get ready() {
+        return this._readyPromise;
+    }
+
+    constructor() {
+        super(...arguments);
+
+        const { promise, resolve } = Promise.withResolvers();
+        /**
+         * @type {Promise<MockServiceWorkerRegistration>}
+         * @private
+         */
+        this._readyPromise = promise;
+        /**
+         * @type {(value: MockServiceWorkerRegistration) => void}
+         * @private
+         */
+        this._resolveReady = resolve;
+    }
+
+    async getRegistration(scope = "/") {
+        return this._registrations.get(scope);
+    }
+
+    async getRegistrations() {
+        return Array.from(this._registrations.values());
+    }
+
+    /**
+     * @param {string} scriptURL
+     * @param {{ scope?: string }} [options]
+     */
+    async register(scriptURL, options = {}) {
+        const scope = options.scope ?? "/";
+
+        const registration = new MockServiceWorkerRegistration(scriptURL, scope);
+        this._registrations.set(scope, registration);
+
+        if (!this.controller) {
+            this.controller = registration.active;
+            this.dispatchEvent(new Event("controllerchange"));
+        }
+
+        if (!this._readyResolved) {
+            this._readyResolved = true;
+            this._resolveReady(registration);
+        }
+
+        return registration;
+    }
+
+    startMessages() {}
+}
+
+export class MockServiceWorkerRegistration {
+    /** @type {MockServiceWorker | null} */
+    installing = null;
+    /** @type {MockServiceWorker | null} */
+    waiting = null;
+
+    /**
+     * @param {string} scriptURL
+     * @param {string} scope
+     */
+    constructor(scriptURL, scope) {
+        /** @type {MockServiceWorker | null} */
+        this.active = new MockServiceWorker(scriptURL);
+        /** @type {string} */
+        this.scope = scope;
+    }
+
+    async unregister() {
+        return true;
+    }
+
+    async update() {}
+}
+
 export const currentPermissions = getPermissions();
 
 export const mockClipboard = new MockClipboard();
 
 export const mockPermissions = new MockPermissions();
 
+export const mockServiceWorker = new MockServiceWorkerContainer();
+
 export const mockNavigator = createMock(navigator, {
     clipboard: { value: mockClipboard },
     maxTouchPoints: { get: () => (globalThis.ontouchstart === undefined ? 0 : 1) },
     permissions: { value: mockPermissions },
     sendBeacon: { get: () => mockValues.sendBeacon },
-    serviceWorker: { get: () => undefined },
+    serviceWorker: { value: mockServiceWorker },
     userAgent: { get: () => mockValues.userAgent },
     vibrate: { get: () => mockValues.vibrate },
 });
@@ -284,6 +417,7 @@ export function cleanupNavigator() {
  * @param {PermissionState} [value]
  */
 export function mockPermission(name, value) {
+    ensureTest("mockPermission");
     if (!(name in currentPermissions)) {
         throw new TypeError(
             `The provided value '${name}' is not a valid enum value of type PermissionName`
@@ -303,6 +437,7 @@ export function mockPermission(name, value) {
  * @param {Navigator["sendBeacon"]} callback
  */
 export function mockSendBeacon(callback) {
+    ensureTest("mockSendBeacon");
     mockValues.sendBeacon = callback;
 }
 
@@ -310,6 +445,7 @@ export function mockSendBeacon(callback) {
  * @param {Platform} platform
  */
 export function mockUserAgent(platform = "linux") {
+    ensureTest("mockUserAgent");
     mockValues.userAgent = makeUserAgent(platform);
 }
 
@@ -317,5 +453,6 @@ export function mockUserAgent(platform = "linux") {
  * @param {Navigator["vibrate"]} callback
  */
 export function mockVibrate(callback) {
+    ensureTest("mockVibrate");
     mockValues.vibrate = callback;
 }

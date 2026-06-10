@@ -2,11 +2,13 @@ import * as ProductScreen from "@point_of_sale/../tests/tours/utils/product_scre
 import * as ReceiptScreen from "@point_of_sale/../tests/tours/utils/receipt_screen_util";
 import * as Dialog from "@point_of_sale/../tests/tours/utils/dialog_util";
 import * as PaymentScreen from "@point_of_sale/../tests/tours/utils/payment_screen_util";
+import * as PartnerList from "@point_of_sale/../tests/tours/utils/partner_list_util";
 import * as TicketScreen from "@point_of_sale/../tests/tours/utils/ticket_screen_util";
 import * as Chrome from "@point_of_sale/../tests/tours/utils/chrome_util";
 import * as Utils from "@point_of_sale/../tests/tours/utils/common";
 import { registry } from "@web/core/registry";
 import { inLeftSide, negateStep } from "@point_of_sale/../tests/tours/utils/common";
+import * as Order from "@point_of_sale/../tests/tours/utils/generic_components/order_widget_util";
 
 registry.category("web_tour.tours").add("ChromeTour", {
     steps: () =>
@@ -72,7 +74,7 @@ registry.category("web_tour.tours").add("ChromeTour", {
             ProductScreen.isShown(),
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Cash"),
-            PaymentScreen.enterPaymentLineAmount("Cash", "20", true, { change: "18.0" }),
+            PaymentScreen.enterPaymentLineAmount("Cash", "20", true, { change: "-18.0" }),
             PaymentScreen.validateButtonIsHighlighted(true),
             PaymentScreen.clickValidate(),
             ReceiptScreen.totalAmountContains("2.0"),
@@ -160,7 +162,12 @@ registry.category("web_tour.tours").add("test_tracking_number_closing_session", 
             ReceiptScreen.clickNextOrder(),
             ProductScreen.isShown(),
             Chrome.clickMenuOption("Close Register"),
-            Utils.selectButton("Close Register"),
+            {
+                content: `Select button close register`,
+                trigger: `button:contains(close register)`,
+                run: "click",
+                expectUnloadPage: true,
+            },
             Chrome.startPoS(),
             Dialog.confirm("Open Register"),
             ProductScreen.clickDisplayedProduct("Desk Pad", true, "1.0"),
@@ -198,5 +205,126 @@ registry.category("web_tour.tours").add("test_limited_categories", {
             ProductScreen.clickSubcategory("Child 2"),
             ProductScreen.productIsDisplayed("Product 1").map(negateStep),
             ProductScreen.productIsDisplayed("Product 2"),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_limited_categories_child_product_search", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            // The product in the child category is not pre-loaded (limited product count = 1).
+            // Typing its name should not show it in the local list.
+            ProductScreen.searchProduct("Child Cat Product"),
+            ProductScreen.productIsDisplayed("Child Cat Product").map(negateStep),
+            // Clicking "Search more" triggers loadProductFromDB which queries the server.
+            // With the fix, the domain now includes child category IDs so the product is found.
+            {
+                content: "Click 'Search more' to search for unloaded product on the server",
+                trigger: ".search-more-button button",
+                run: "click",
+            },
+            ProductScreen.productIsDisplayed("Child Cat Product"),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("CustomerNoteIsPresentAfterRefresh", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.clickDisplayedProduct("Desk Organizer", true, "1.0", "5.10"),
+            inLeftSide([
+                { ...ProductScreen.clickLine("Desk Organizer")[0], isActive: ["mobile"] },
+                ...ProductScreen.addCustomerNote("Test customer note"),
+                ...Order.hasLine({
+                    customerNote: "Test customer note",
+                }),
+            ]),
+            {
+                content: "Wait for the debouncedSync to be complete",
+                trigger: "body",
+                run: async () => await new Promise((resolve) => setTimeout(resolve, 250)),
+            },
+            Utils.refresh(),
+            inLeftSide([
+                { ...ProductScreen.clickLine("Desk Organizer")[0], isActive: ["mobile"] },
+                ...Order.hasLine({
+                    customerNote: "Test customer note",
+                }),
+            ]),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_chrome_without_cash_move_permission", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            Chrome.isCashMoveButtonHidden(),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_click_all_orders_keep_customer", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.clickPartnerButton(),
+            ProductScreen.clickCustomer("Partner Test 1"),
+            ProductScreen.clickPartnerButton(),
+            PartnerList.clickPartnerOptions("Partner Test 1"),
+            {
+                isActive: ["auto"],
+                trigger: "div.o_popover :contains('All Orders')",
+                content: "Check the popover opened",
+                run: "click",
+            },
+            TicketScreen.clickDiscard(),
+            ProductScreen.isShown(),
+            {
+                content: "customer is selected",
+                trigger: ".product-screen .set-partner:contains('Partner Test 1')",
+            },
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_ctrl_number_ignored", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.addOrderline("Whiteboard Pen", "1", "6", "6.0"),
+            {
+                trigger: "body",
+                run: () => {
+                    window.dispatchEvent(new KeyboardEvent("keyup", { key: "5", ctrlKey: true }));
+                },
+            },
+            {
+                trigger: "body",
+                run: () =>
+                    new Promise((resolve) => {
+                        setTimeout(resolve, 300); // wait 300ms so NumberBuffer timeout runs
+                    }),
+            },
+            inLeftSide([
+                { ...ProductScreen.clickLine("Whiteboard Pen")[0], isActive: ["mobile"] },
+                ...ProductScreen.selectedOrderlineHasDirect("Whiteboard Pen", "1", "6.0"),
+            ]),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_set_opening_note_without_cash_method", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            {
+                content: "Add Opening Notes",
+                trigger: ".opening-notes",
+                run: "edit Opening Notes",
+            },
+            Dialog.confirm("Open Register"),
+            Chrome.waitRequest(),
         ].flat(),
 });

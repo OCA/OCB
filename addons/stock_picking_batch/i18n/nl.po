@@ -1,30 +1,29 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* stock_picking_batch
-# 
+# * stock_picking_batch
+#
 # Translators:
 # Wil Odoo, 2024
 # Manon Rondou, 2025
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2025
-# 
+# "Manon Rondou (ronm)" <ronm@odoo.com>, 2025.
+# Bren Driesen <brdri@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-19 20:37+0000\n"
-"PO-Revision-Date: 2024-09-25 09:42+0000\n"
-"Last-Translator: Erwin van der Ploeg <erwin@odooexperts.nl>, 2025\n"
-"Language-Team: Dutch (https://app.transifex.com/odoo/teams/41243/nl/)\n"
+"POT-Creation-Date: 2026-04-10 18:39+0000\n"
+"PO-Revision-Date: 2026-05-27 15:24+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-18/"
+"stock_picking_batch/nl/>\n"
+"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: nl\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-#. module: stock_picking_batch
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
-msgid "2023-08-20"
-msgstr "20-08-2023"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_type_kanban_batch
@@ -87,19 +86,23 @@ msgstr "<strong>→</strong>"
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_type__batch_max_lines
 msgid ""
-"A transfer will not be automatically added to batches that will exceed this number of lines if the transfer is added to it.\n"
+"A transfer will not be automatically added to batches that will exceed this "
+"number of lines if the transfer is added to it.\n"
 "Leave this value as '0' if no line limit."
 msgstr ""
-"Een verplaatsing wordt niet automatisch toegevoegd aan batches die dit aantal regels overschrijden als de verplaatsing eraan wordt toegevoegd.\n"
+"Een verplaatsing wordt niet automatisch toegevoegd aan batches die dit "
+"aantal regels overschrijden als de verplaatsing eraan wordt toegevoegd.\n"
 "Laat deze waarde op '0' staan als er geen lijnlimiet is."
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_type__batch_max_pickings
 msgid ""
-"A transfer will not be automatically added to batches that will exceed this number of transfers.\n"
+"A transfer will not be automatically added to batches that will exceed this "
+"number of transfers.\n"
 "Leave this value as '0' if no transfer limit."
 msgstr ""
-"Een verplaatsing wordt niet automatisch toegevoegd aan batches die dit aantal verplaatsingen overschrijden.\n"
+"Een verplaatsing wordt niet automatisch toegevoegd aan batches die dit "
+"aantal verplaatsingen overschrijden.\n"
 "Laat deze waarde op '0' staan als er geen overdrachtslimiet is."
 
 #. module: stock_picking_batch
@@ -262,7 +265,7 @@ msgstr "Eigenschappen batch"
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.view_picking_internal_search_inherit
 msgid "Batch Transfer"
-msgstr "Batchepicking"
+msgstr "Batchpicking"
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_picking_to_batch
@@ -273,7 +276,7 @@ msgstr "Batchregels"
 #: model:ir.actions.act_window,name:stock_picking_batch.stock_picking_batch_action
 #: model:ir.ui.menu,name:stock_picking_batch.stock_picking_batch_menu
 msgid "Batch Transfers"
-msgstr "Batchepickings"
+msgstr "Batchpickings"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
@@ -422,7 +425,7 @@ msgstr "Schermnaam"
 #: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_batch__state__done
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
 msgid "Done"
-msgstr "Gereed"
+msgstr "Voltooid"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_to_batch__is_create_draft
@@ -645,6 +648,12 @@ msgid "My Transfers"
 msgstr "Mijn verplaatsingen"
 
 #. module: stock_picking_batch
+#. odoo-python
+#: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
+msgid "New"
+msgstr "Nieuw"
+
+#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
 msgstr "Volgende activiteitenafspraak"
@@ -722,10 +731,9 @@ msgstr "Pickingsoort"
 #. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
-msgid ""
-"Please add 'Done' quantities to the batch picking to create a new pack."
+msgid "Please add 'Done' quantities to the batch picking to create a new pack."
 msgstr ""
-"Voeg 'Gereed'-hoeveelheden toe aan de batch om een nieuw verpakking te "
+"Voeg 'Voltooide'-hoeveelheden toe aan de batch om een nieuwe verpakking te "
 "maken."
 
 #. module: stock_picking_batch
@@ -791,12 +799,12 @@ msgstr "Inpakken"
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
 msgid "Quantity"
-msgstr "Aantal"
+msgstr "Hoeveelheid"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
 msgid "Quantity Done"
-msgstr "Aantal gereed"
+msgstr "Aantal voltooid"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__rating_ids
@@ -807,8 +815,7 @@ msgstr "Beoordelingen"
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.action_picking_tree_wave
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.stock_picking_batch_action
 msgid ""
-"Regroup multiple orders into one picking and consolidate at the packing "
-"zone."
+"Regroup multiple orders into one picking and consolidate at the packing zone."
 msgstr ""
 "Groepeer meerdere orders in één picking en consolideer deze in de "
 "verpakkingszone."
@@ -846,14 +853,20 @@ msgstr "Geplande datum"
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__scheduled_date
 msgid ""
 "Scheduled date for the transfers to be processed.\n"
-"              - If manually set then scheduled date for all transfers in batch will automatically update to this date.\n"
-"              - If not manually changed and transfers are added/removed/updated then this will be their earliest scheduled date\n"
-"                but this scheduled date will not be set for all transfers in batch."
+"              - If manually set then scheduled date for all transfers in "
+"batch will automatically update to this date.\n"
+"              - If not manually changed and transfers are added/removed/"
+"updated then this will be their earliest scheduled date\n"
+"                but this scheduled date will not be set for all transfers in "
+"batch."
 msgstr ""
 "Geplande datum waarop de verplaatsing moeten worden verwerkt.\n"
-"- Indien handmatig ingesteld, wordt de geplande datum voor alle verplaatsingen in batch automatisch bijgewerkt naar deze datum.\n"
-"- Indien niet handmatig gewijzigd en verplaatsingen worden toegevoegd / verwijderd / bijgewerkt, is dit de vroegste geplande datum\n"
-"maar deze geplande datum wordt niet ingesteld voor alle verplaatsingen in batch."
+"- Indien handmatig ingesteld, wordt de geplande datum voor alle "
+"verplaatsingen in batch automatisch bijgewerkt naar deze datum.\n"
+"- Indien niet handmatig gewijzigd en verplaatsingen worden toegevoegd / "
+"verwijderd / bijgewerkt, is dit de vroegste geplande datum\n"
+"maar deze geplande datum wordt niet ingesteld voor alle verplaatsingen in "
+"batch."
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
@@ -912,8 +925,8 @@ msgstr ""
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_type__wave_group_by_category
 msgid ""
-"Split transfers by product category, then group transfers that have the same"
-" product category."
+"Split transfers by product category, then group transfers that have the same "
+"product category."
 msgstr ""
 "Splits overschrijvingen op per productcategorie en groepeer vervolgens "
 "overschrijvingen met dezelfde productcategorie."
@@ -953,7 +966,7 @@ msgid ""
 msgstr ""
 "Status gebaseerd op activiteiten\n"
 "Te laat: Datum is al gepasseerd\n"
-"Vandaag: Activiteit datum is vandaag\n"
+"Vandaag: Datum van activiteit is vandaag\n"
 "Gepland: Toekomstige activiteiten."
 
 #. module: stock_picking_batch
@@ -991,11 +1004,13 @@ msgstr "Samenvatting:"
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid ""
-"The following transfers cannot be added to batch transfer %(batch)s. Please check their states and operation types.\n"
+"The following transfers cannot be added to batch transfer %(batch)s. Please "
+"check their states and operation types.\n"
 "\n"
 "Incompatibilities: %(incompatible_transfers)s"
 msgstr ""
-"De volgende verplaatsingen kunnen niet worden toegevoegd aan de batch %(batch)s. Controleer de statussen en bewerkingssoorten.\n"
+"De volgende verplaatsingen kunnen niet worden toegevoegd aan de batch %"
+"(batch)s. Controleer de statussen en bewerkingssoorten.\n"
 "\n"
 "Incompatibiliteiten: %(incompatible_transfers)s"
 
@@ -1150,7 +1165,7 @@ msgstr "Indien aangevinkt, maak de batch in conceptstatus"
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid "You cannot delete Done batch transfers."
-msgstr "Je kunt batchverpaatsingen die gereed zijn niet verwijderen."
+msgstr "Je kunt batchverpaatsingen die voltooid zijn niet verwijderen."
 
 #. module: stock_picking_batch
 #. odoo-python
@@ -1187,3 +1202,6 @@ msgstr "verzending_volume"
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__estimated_shipping_weight
 msgid "shipping_weight"
 msgstr "verzending_gewicht"
+
+#~ msgid "2023-08-20"
+#~ msgstr "20-08-2023"

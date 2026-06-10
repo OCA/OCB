@@ -13,10 +13,12 @@ function applyForAJob(jobName, application) {
         content: "Select Job",
         trigger: `.oe_website_jobs h3:contains(${jobName})`,
         run: "click",
+        expectUnloadPage: true,
     }, {
         content: "Apply",
         trigger: ".js_hr_recruitment a:contains('Apply')",
         run: "click",
+        expectUnloadPage: true,
     }, {
         content: "Complete name",
         trigger: "input[name=partner_name]",
@@ -41,6 +43,7 @@ function applyForAJob(jobName, application) {
         content: "Send the form",
         trigger: ".s_website_form_send",
         run: "click",
+        expectUnloadPage: true,
     }, {
         content: "Check the form is submitted without errors",
         trigger: "#jobs_thankyou h1:contains('Congratulations')",
@@ -62,6 +65,7 @@ registry.category("web_tour.tours").add('website_hr_recruitment_tour', {
         run: () => {
             window.location.href = '/jobs';
         },
+        expectUnloadPage: true,
     },
     ...applyForAJob('Internship', {
         name: 'Jack Doe',
@@ -98,11 +102,22 @@ registerWebsitePreviewTour('website_hr_recruitment_tour_edit_form', {
         this.anchor.value = "FAKE_JOB_ID_DEFAULT_VAL";
     },
 }, {
+    content: 'Make the department_id field visible',
+    trigger: "body",
+    run: () => {
+        const departmentEl = document.querySelector('.o_iframe:not(.o_ignore_in_tour)').contentDocument.querySelector('input[name="department_id"]');
+        departmentEl.value = 'FAKE_DEPARTMENT_ID_DEFAULT_VAL';
+        departmentEl.type = 'text';
+        departmentEl.closest('.s_website_form_field').classList.remove('s_website_form_dnone');
+    },
+},
+{
     content: 'Edit the form',
     trigger: ':iframe input[type="file"]',
     run: "click",
-}, {
-    content: 'Add a new field',
+},
+{
+    content: 'Add a new field so the changes are saved',
     trigger: 'we-button[data-add-field]',
     run: "click",
 },
@@ -126,11 +141,27 @@ registerWebsitePreviewTour('website_hr_recruitment_tour_edit_form', {
 }, {
     content: 'Check that a job_id has been loaded',
     trigger: ":iframe form input[name=job_id]:not(:visible):not([value='']):not([value=FAKE_JOB_ID_DEFAULT_VAL])",
+}, {
+    content: 'Check that a department_id has been loaded',
+    trigger: ':iframe input[name="department_id"][value="FAKE_DEPARTMENT_ID_DEFAULT_VAL"]',
+    run: function () {
+        if (this.anchor.value === "FAKE_DEPARTMENT_ID_DEFAULT_VAL") {
+            console.error('The department_id data-for should have been applied');
+        }
+    }
 },
 ...clickOnEditAndWaitEditMode(),
 {
-    content: 'Verify that the job_id field has kept its default value',
+    content: 'Verify that the job_id hidden field has lost its default value',
     trigger: ":iframe form input[name=job_id]:not(:visible):not([value='']):not([value=FAKE_JOB_ID_DEFAULT_VAL])",
+}, {
+    content: 'Verify that the department_id shown field has kept its default value',
+    trigger: ':iframe form input[name="department_id"][value="FAKE_DEPARTMENT_ID_DEFAULT_VAL"]',
+    run: function () {
+        if (this.anchor.value !== "FAKE_DEPARTMENT_ID_DEFAULT_VAL") {
+            console.error('The department_id field has lost its default value');
+        }
+    },
 },
 ]);
 

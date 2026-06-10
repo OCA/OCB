@@ -107,6 +107,16 @@ class SaleOrder(models.Model):
                     ('company_id', '=', order.company_id.id),
                 ], limit=1)
 
+    def _compute_pricelist_id(self):
+        # Override to compute pricelists for carts using the partner's GeoIP,
+        # providing a fallback in case they don't have an address set.
+        if not (country_code := self.env['website']._get_geoip_country_code()):
+            return super()._compute_pricelist_id()
+        if website_orders := self.filtered('website_id'):
+            website_orders = website_orders.with_context(country_code=country_code)
+            super(SaleOrder, website_orders)._compute_pricelist_id()
+        return super(SaleOrder, self - website_orders)._compute_pricelist_id()
+
     def _search_abandoned_cart(self, operator, value):
         website_ids = self.env['website'].search_read(fields=['id', 'cart_abandoned_delay', 'partner_id'])
         deadlines = [[
@@ -139,8 +149,8 @@ class SaleOrder(models.Model):
             if not order.user_id:
                 order.user_id = (
                     order.website_id.salesperson_id
-                    or order.partner_id.parent_id.user_id.id
                     or order.partner_id.user_id.id
+                    or order.partner_id.parent_id.user_id.id
                 )
 
     #=== CRUD METHODS ===#
@@ -215,6 +225,13 @@ class SaleOrder(models.Model):
         if website_id:
             return self.env['website'].browse(website_id).get_base_url()
         return super()._get_note_url()
+
+    def _get_non_delivery_lines(self):
+        """Exclude delivery-related lines."""
+        return self.order_line.filtered(lambda line: not line.is_delivery)
+
+    def _get_amount_total_excluding_delivery(self):
+        return sum(self._get_non_delivery_lines().mapped('price_total'))
 
     def _cart_update_order_line(self, product_id, quantity, order_line, **kwargs):
         self.ensure_one()
@@ -423,7 +440,12 @@ class SaleOrder(models.Model):
         if not filtered_sol:
             return self.env['sale.order.line']
 
-        if product.product_tmpl_id._has_no_variant_attributes():
+        has_configurable_no_variant_attributes = any(
+            len(line.value_ids) > 1 or line.attribute_id.display_type == 'multi'
+            for line in product.attribute_line_ids
+            if line.attribute_id.create_variant == 'no_variant'
+        )
+        if has_configurable_no_variant_attributes:
             filtered_sol = filtered_sol.filtered(
                 lambda sol:
                     sol.product_no_variant_attribute_value_ids.ids == no_variant_attribute_value_ids
@@ -693,6 +715,7 @@ class SaleOrder(models.Model):
         # searching on website_published will also search for available website (_search method on computed field)
         return self.env['delivery.carrier'].sudo().search([
             ('website_published', '=', True),
+            *self.env['delivery.carrier']._check_company_domain(self.company_id),
         ]).filtered(lambda carrier: carrier._is_available_for_order(self))
 
     #=== TOOLING ===#
@@ -741,8 +764,13 @@ class SaleOrder(models.Model):
                 "Your cart is not ready to be paid, please verify previous steps."
             ))
 
-        if not self.only_services and not self.carrier_id:
-            raise ValidationError(_("No shipping method is selected."))
+        if not self.only_services:
+            if not self.carrier_id:
+                raise ValidationError(_("No shipping method is selected."))
+            if self.carrier_id not in self._get_delivery_methods():
+                raise ValidationError(
+                    _("The delivery method is not compatible with your delivery address.")
+                )
 
     def _is_delivery_ready(self):
         return not self._has_deliverable_products() or self.carrier_id

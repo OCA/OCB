@@ -26,7 +26,7 @@
                     <field name="currency_id" string="Payment Currency" optional="hide"/>
                     <field name="activity_ids" widget="list_activity" optional="hide"/>
                     <field name="amount_company_currency_signed" widget="monetary" string="Amount" sum="Total"/>
-                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'in_process'"/>
+                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'in_process'" decoration-success="state == 'paid'"/>
                 </list>
             </field>
         </record>
@@ -107,7 +107,7 @@
                     <filter string="In Process" name="state_in_process" domain="[('state', '=', 'in_process')]"/>
                     <separator/>
                     <filter string="Sent" name="state_sent" domain="[('is_sent', '=', 'True')]"/>
-                    <filter string="Not Sent" name="state_sent" domain="[('is_sent', '=', 'False')]"/>
+                    <filter string="Not Sent" name="state_no_sent" domain="[('is_sent', '!=', 'True')]"/>
                     <filter string="No Bank Matching" name="unmatched" domain="[('is_matched', '=', False)]"/>
                     <filter string="Reconciled" name="reconciled" domain="[('is_reconciled', '=', True)]"/>
                     <separator/>

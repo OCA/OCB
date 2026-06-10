@@ -52,14 +52,15 @@ class HRLeave(models.Model):
         # If the type of leave is overtime deductible, we have to check that the employee has enough extra hours
         for leave in leaves:
             if not leave.overtime_deductible:
+                leave.sudo().overtime_id.unlink()
                 continue
             employee = leave.employee_id.sudo()
             duration = leave.number_of_hours
-            if duration > employee.total_overtime:
-                if employee.user_id == self.env.user:
-                    raise ValidationError(_('You do not have enough extra hours to request this leave'))
-                raise ValidationError(_('The employee does not have enough extra hours to request this leave.'))
             if not leave.sudo().overtime_id:
+                if duration > employee.total_overtime:
+                    if employee.user_id == self.env.user:
+                        raise ValidationError(_('You do not have enough extra hours to request this leave'))
+                    raise ValidationError(_('The employee does not have enough extra hours to request this leave.'))
                 leave.sudo().overtime_id = self.env['hr.attendance.overtime'].sudo().create({
                     'employee_id': employee.id,
                     'date': leave.date_from,
@@ -69,12 +70,12 @@ class HRLeave(models.Model):
 
     def action_reset_confirm(self):
         overtime_leaves = self.filtered('overtime_deductible')
+        self._check_overtime_deductible(self)
         res = super().action_reset_confirm()
-        overtime_leaves.overtime_id.sudo().unlink()
         return res
-    
-    def action_confirm(self):
-        res = super().action_confirm()
+
+    def action_approve(self, check_state=True):
+        res = super().action_approve(check_state)
         self._check_overtime_deductible(self)
         return res
 
@@ -83,16 +84,8 @@ class HRLeave(models.Model):
         self.sudo().overtime_id.unlink()
         return res
 
-    def _validate_leave_request(self):
-        super()._validate_leave_request()
-        self._update_leaves_overtime()
-
-    def _remove_resource_leave(self):
-        res = super()._remove_resource_leave()
-        self._update_leaves_overtime()
-        return res
-
     def _update_leaves_overtime(self):
+        # Deprecated - will be removed in master
         employee_dates = defaultdict(set)
         for leave in self:
             if leave.employee_id:

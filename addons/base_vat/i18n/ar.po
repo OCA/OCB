@@ -1,50 +1,55 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* base_vat
-# 
+# * base_vat
+#
 # Translators:
 # Wil Odoo, 2024
 # Malaz Abuidris <msea@odoo.com>, 2025
-# 
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 13:03+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2025\n"
-"Language-Team: Arabic (https://app.transifex.com/odoo/teams/41243/ar/)\n"
+"POT-Creation-Date: 2026-05-29 17:38+0000\n"
+"PO-Revision-Date: 2026-05-09 09:11+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-18/base_vat/"
+"ar/>\n"
+"Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ar\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
-msgid ""
-"10XXXXXXXXY or 20XXXXXXXXY or 15XXXXXXXXY or 16XXXXXXXXY or 17XXXXXXXXY"
+msgid "10XXXXXXXXY or 20XXXXXXXXY or 15XXXXXXXXY or 16XXXXXXXXY or 17XXXXXXXXY"
 msgstr ""
 "10XXXXXXXXY أو 20XXXXXXXXY أو 15XXXXXXXXY أو 16XXXXXXXXY أو 17XXXXXXXXY "
 
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
-msgid "17291716060 (NIN) or 1729171602 (VKN)"
-msgstr "17291716060 (NIN) أو 1729171602 (VKN) "
+msgid "11111111111 (NIN) or 2222222222 (VKN)"
+msgstr ""
+
+#. module: base_vat
+#. odoo-python
+#: code:addons/base_vat/models/res_partner.py:0
+msgid ""
+"12345678 or UA12345678 (EDRPOU), 1234567890 (RNOPP) or 123456789012 (IPN)"
+msgstr ""
+"12345678 أو UA12345678 (EDRPOU), 1234567890 (RNOPP) أو 123456789012 (IPN)"
 
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "1792060346001 or 1792060346"
 msgstr "1792060346001 أو 1792060346 "
-
-#. module: base_vat
-#. odoo-python
-#: code:addons/base_vat/models/res_partner.py:0
-msgid "3101012009"
-msgstr "3101012009"
 
 #. module: base_vat
 #. odoo-python
@@ -63,6 +68,11 @@ msgstr "49-098-576 أو 49098576 "
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "AR200-5536168-2 or 20055361682"
 msgstr "AR200-5536168-2 أو 20055361682 "
+
+#. module: base_vat
+#: model:ir.actions.server,name:base_vat.vies_iap_check_update_ir_actions_server
+msgid "Base VAT: Sync updates from IAP VIES"
+msgstr ""
 
 #. module: base_vat
 #. odoo-python
@@ -85,16 +95,6 @@ msgstr "الشركات"
 #: model:ir.model,name:base_vat.model_res_config_settings
 msgid "Config Settings"
 msgstr "تهيئة الإعدادات "
-
-#. module: base_vat
-#. odoo-python
-#: code:addons/base_vat/models/res_partner.py:0
-msgid ""
-"Connection with the VIES server failed. The VAT number %s could not be "
-"validated."
-msgstr ""
-"Connection with the VIES server failed. The VAT number %s could not be "
-"validated."
 
 #. module: base_vat
 #: model:ir.model,name:base_vat.model_res_partner
@@ -161,6 +161,12 @@ msgstr "Intra-Community Valid"
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
+msgid "Invalid IAP VIES endpoint"
+msgstr ""
+
+#. module: base_vat
+#. odoo-python
+#: code:addons/base_vat/models/res_partner.py:0
 msgid "MXGODE561231GR8 or GODE561231GR8"
 msgstr "MXGODE561231GR8 أو GODE561231GR8 "
 
@@ -189,7 +195,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid ""
-"The %(vat_label)s number [%(wrong_vat)s] for %(record_label)s does not seem to be valid. \n"
+"The %(vat_label)s number [%(wrong_vat)s] for %(record_label)s does not seem "
+"to be valid. \n"
 "Note: the expected format is %(expected_format)s"
 msgstr ""
 "يبدو أن رقم %(vat_label)s  [%(wrong_vat)s] لـ %(record_label)s غير صالح. \n"
@@ -198,8 +205,20 @@ msgstr ""
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
-msgid "The VAT number %s could not be interpreted by the VIES server."
-msgstr "The VAT number %s could not be interpreted by the VIES server."
+msgid "The Intra-Community validity has been updated to: %s."
+msgstr ""
+
+#. module: base_vat
+#. odoo-python
+#: code:addons/base_vat/models/res_partner.py:0
+msgid "The VIES check failed. Please check the Tax ID manually."
+msgstr ""
+
+#. module: base_vat
+#. odoo-python
+#: code:addons/base_vat/models/res_partner.py:0
+msgid "The VIES check is pending. The status will be updated soon."
+msgstr "فحص VIES قيد الانتظار. سيتم تحديث الحالة قريبًا."
 
 #. module: base_vat
 #. odoo-python
@@ -208,28 +227,18 @@ msgid ""
 "The country detected for this foreign VAT number does not match any of the "
 "countries composing the country group set on this fiscal position."
 msgstr ""
-"لا تطابق الدولة التي تم رصدها لرقم ضريبة القيمة المضافة هذا أي من الدول التي"
-" تشكّل مجموعة الدولة التي تم تعيينها لهذا الوضع المالي. "
+"لا تطابق الدولة التي تم رصدها لرقم ضريبة القيمة المضافة هذا أي من الدول التي "
+"تشكّل مجموعة الدولة التي تم تعيينها لهذا الوضع المالي. "
 
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/account_fiscal_position.py:0
 msgid ""
-"The country of the foreign VAT number could not be detected. Please assign a"
-" country to the fiscal position or set a country group"
+"The country of the foreign VAT number could not be detected. Please assign a "
+"country to the fiscal position or set a country group"
 msgstr ""
 "تعذر رصد دولة رقم ضريبة القيمة المضافة الأجنبية. يُرجى تعيين دولة للوضع "
 "المالي أو قم بتعيين مجموعة دولة "
-
-#. module: base_vat
-#. odoo-python
-#: code:addons/base_vat/models/res_partner.py:0
-msgid ""
-"The request for VAT validation was not processed. VIES service has responded"
-" with the following error: %s"
-msgstr ""
-"The request for VAT validation was not processed. VIES service has responded"
-" with the following error: %s"
 
 #. module: base_vat
 #. odoo-python
@@ -258,14 +267,13 @@ msgstr "Vies Vat To Check"
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "XXXXXXXXX [9 digits] and it should respect the Luhn algorithm checksum"
-msgstr ""
-"XXXXXXXXX [9 أرقام] ويجب أن تضع بعين الاعتبار Luhn algorithm checksum "
+msgstr "XXXXXXXXX [9 أرقام] ويجب أن تضع بعين الاعتبار Luhn algorithm checksum "
 
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
-msgid "either 11 digits for CPF or 14 digits for CNPJ"
-msgstr "إما 11 رقم لـ CPF أو 14 رقم لـ CNPJ "
+msgid "either 11 digits for CPF or 14 characters for CNPJ"
+msgstr ""
 
 #. module: base_vat
 #. odoo-python
@@ -278,3 +286,29 @@ msgstr "الوضع المالي [%s] "
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "partner [%s]"
 msgstr "الشريك [%s] "
+
+#~ msgid "either 11 digits for CPF or 14 digits for CNPJ"
+#~ msgstr "إما 11 رقم لـ CPF أو 14 رقم لـ CNPJ "
+
+#~ msgid ""
+#~ "Connection with the VIES server failed. The VAT number %s could not be "
+#~ "validated."
+#~ msgstr ""
+#~ "Connection with the VIES server failed. The VAT number %s could not be "
+#~ "validated."
+
+#~ msgid "The VAT number %s could not be interpreted by the VIES server."
+#~ msgstr "The VAT number %s could not be interpreted by the VIES server."
+
+#~ msgid ""
+#~ "The request for VAT validation was not processed. VIES service has "
+#~ "responded with the following error: %s"
+#~ msgstr ""
+#~ "The request for VAT validation was not processed. VIES service has "
+#~ "responded with the following error: %s"
+
+#~ msgid "3101012009"
+#~ msgstr "3101012009"
+
+#~ msgid "17291716060 (NIN) or 1729171602 (VKN)"
+#~ msgstr "17291716060 (NIN) أو 1729171602 (VKN) "

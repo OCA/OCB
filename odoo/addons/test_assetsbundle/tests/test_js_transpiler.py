@@ -401,9 +401,9 @@ return __exports;
         input_content = """export const v = 5;
 
 const a = 12;
-const b = 15;
+const $b = 15;
 
-export { a, b };
+export { a, $b };
 
 export default 100;
 
@@ -417,9 +417,9 @@ let __exports = {};
 const v = __exports.v = 5;
 
 const a = 12;
-const b = 15;
+const $b = 15;
 
-Object.assign(__exports, { a,  b });
+Object.assign(__exports, { a,  $b });
 
 __exports[Symbol.for("default")] = 100;
 
@@ -521,4 +521,25 @@ return __exports;
 });
 """
 
+        self.assertEqual(result, expected_result)
+
+    def test_14_unnamed_import(self):
+        input_content = """
+// first line
+
+import "@test_assetsbundle/some_file";
+"""
+
+        result = transpile_javascript("/test_assetsbundle/static/src/a.js", input_content)
+        expected_result = """odoo.define('@test_assetsbundle/a', ['@test_assetsbundle/some_file'], function (require) {
+'use strict';
+let __exports = {};
+
+// first line
+
+require("@test_assetsbundle/some_file");
+
+return __exports;
+});
+"""
         self.assertEqual(result, expected_result)

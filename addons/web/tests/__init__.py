@@ -14,6 +14,7 @@ from . import test_profiler
 from . import test_session_info
 from . import test_assets
 from . import test_login
+from . import test_web_read
 from . import test_web_search_read
 from . import test_web_read_group
 from . import test_domain
@@ -23,3 +24,4 @@ from . import test_res_users
 from . import test_webmanifest
 from . import test_ir_qweb
 from . import test_reports
+from . import test_pivot_export

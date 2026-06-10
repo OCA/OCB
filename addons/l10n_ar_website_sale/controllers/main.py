@@ -41,24 +41,35 @@ class L10nARWebsiteSale(WebsiteSale):
             fnames.add('l10n_latam_identification_type_id')
         return fnames
 
-    def _validate_address_values(self, address_values, partner_sudo, address_type, *args, **kwargs):
+    def _validate_address_values(self, address_values, partner_sudo, address_type, use_delivery_as_billing=None, *args, **kwargs):
         """ We extend the method to add a new validation. If AFIP Resposibility is:
 
         * Final Consumer or Foreign Customer: then it can select any identification type.
         * Any other (Monotributista, RI, etc): should select always "CUIT" identification type
         """
         invalid_fields, missing_fields, error_messages = super()._validate_address_values(
-            address_values, partner_sudo, address_type, *args, **kwargs
+            address_values, partner_sudo, address_type, use_delivery_as_billing, *args, **kwargs
         )
 
         # Identification type and AFIP Responsibility Combination
-        if address_type == 'billing' and request.website.sudo().company_id.country_id.code == 'AR':
-            if missing_fields and any(
-                fname in missing_fields
-                for fname in [
-                    'l10n_latam_identification_type_id', 'l10n_ar_afip_responsibility_type_id'
-                ]
-            ):
+        if (
+            (address_type == 'billing' or use_delivery_as_billing) and
+            request.website.sudo().company_id.country_id.code == 'AR'
+        ):
+            fnames = {'l10n_latam_identification_type_id', 'l10n_ar_afip_responsibility_type_id'}
+            for fname in fnames:
+                if fname in address_values:
+                    continue
+                if fvalue := partner_sudo[fname]:
+                    # fill in values in case they weren't displayed as part of the form
+                    address_values[fname] = fvalue.id
+                else:
+                    missing_fields.add(fname)
+            if missing_fields & fnames:
+                if request.httprequest.path != '/my/account':
+                    error_messages.append(request.env._(
+                        'Please go to "My Account" to add your Identification and/or AFIP Resposibility Types.',
+                    ))
                 return invalid_fields, missing_fields, error_messages
 
             afip_resp = request.env['l10n_ar.afip.responsibility.type'].browse(

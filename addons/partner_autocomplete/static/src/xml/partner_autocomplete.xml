@@ -40,14 +40,15 @@
 
     <t t-name="partner_autocomplete.PartnerAutoCompleteMany2XField" t-inherit="web.Many2XAutocomplete" t-inherit-mode="primary">
         <xpath expr="//AutoComplete" position="replace">
-            <PartnerAutoComplete
+            <PartnerAutoComplete t-else=""
                 value="this.props.value || ''"
                 autoSelect="true"
                 sources="sources"
                 onSelect.bind="onSelect"
                 onChange.bind="onChange"
                 input="inputRef"
-                placeholder="placeholder || ''"
+                placeholder="props.placeholder || ''"
+                id="this.props.id"
             />
         </xpath>
     </t>
@@ -58,7 +59,6 @@
                 <span t-esc="option.name"/>,
                 <span class="text-muted" t-esc="option.description"/>
             </div>
-            <img style="width: 24px; max-height: 100%" class="ms-1" t-att-src="option.logoUrl" onerror="this.style.display='none'"/>
         </div>
     </t>
 

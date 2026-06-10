@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo import Command
+from odoo.exceptions import UserError
 from odoo.tests import tagged
+
 from freezegun import freeze_time
 
 
@@ -48,3 +51,95 @@ class TestAccountPartner(AccountTestInvoicingCommon):
 
         self.assertEqual(self.partner_a.supplier_rank, 1)
         self.assertEqual(self.partner_a.customer_rank, 1)
+
+    def test_manually_write_partner_id(self):
+        move = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'invoice_date': '2025-04-29',
+            'partner_id': self.partner_a.id,
+            'invoice_line_ids': [Command.create({
+                'quantity': 1,
+                'price_unit': 500.0,
+                'tax_ids': [],
+            })],
+        })
+        move.action_post()
+        reversal = move._reverse_moves(cancel=True)
+
+        receivable_lines = (move + reversal).line_ids.filtered(lambda l: l.display_type == 'payment_term')
+
+        # Changing the partner should be possible despite being in locked periods as long as the VAT is the same
+        move.company_id.fiscalyear_lock_date = move.date
+
+        # Initially, move's commercial partner should be partner_a
+        self.assertEqual(move.commercial_partner_id, self.partner_a)
+        self.assertEqual(receivable_lines.mapped('reconciled'), [True, True])
+
+        self.partner_a.parent_id = self.partner_b
+
+        # Assert accounting move and move lines now use new commercial partner
+        self.assertEqual(move.commercial_partner_id, self.partner_b)
+        self.assertTrue(
+            all(line.partner_id == self.partner_b for line in move.line_ids),
+            "All move lines should be reassigned to the new commercial partner."
+        )
+        self.assertEqual(receivable_lines.mapped('reconciled'), [True, True])
+
+    def test_manually_write_partner_id_different_vat(self):
+        move = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'invoice_date': '2025-04-29',
+            'partner_id': self.partner_a.id,
+            'invoice_line_ids': [Command.create({
+                'quantity': 1,
+                'price_unit': 500.0,
+            })],
+        })
+        move.action_post()
+        self.partner_a.vat = 'SOMETHING'
+        self.partner_b.vat = 'DIFFERENT'
+        with self.assertRaisesRegex(UserError, "different Tax ID"):
+            self.partner_a.parent_id = self.partner_b
+
+    def test_manually_write_partner_id_empty_string_vs_False(self):
+        move = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'invoice_date': '2025-04-29',
+            'partner_id': self.partner_a.id,
+            'invoice_line_ids': [Command.create({
+                'quantity': 1,
+                'price_unit': 500.0,
+            })],
+        })
+        move.action_post()
+        self.partner_a.vat = ''
+        self.partner_b.vat = False
+
+        self.partner_a.parent_id = self.partner_b
+
+    def test_res_partner_bank(self):
+        partner = self.env['res.partner'].create({'name': 'MyCustomer'})
+        account = self.env['res.partner.bank'].create({
+            'acc_number': '123456789',
+            'partner_id': partner.id,
+        })
+        self.env.user.groups_id = (
+            self.env.ref('base.group_partner_manager')
+            + self.env.ref('account.group_account_user')
+            + self.env.ref('account.group_validate_bank_account')
+        )
+        account.allow_out_payment = True
+
+        with self.assertRaisesRegex(UserError, "has been trusted"), self.cr.savepoint():
+            account.write({'acc_number': '1234567890999'})
+        with self.assertRaisesRegex(UserError, "has been trusted"), self.cr.savepoint():
+            account.write({'sanitized_acc_number': '1234567890999'})
+        with self.assertRaisesRegex(UserError, "has been trusted"), self.cr.savepoint():
+            account.write({'partner_id': self.env['res.partner'].create({'name': 'MyCustomer 2'}).id})
+
+        account.allow_out_payment = False
+        account.write({'acc_number': '1234567890999000'})
+
+        account.env.user.groups_id -= self.env.ref('account.group_validate_bank_account')
+        with self.assertRaisesRegex(UserError, "You do not have the rights to trust"), self.cr.savepoint():
+            account.write({'allow_out_payment': True})

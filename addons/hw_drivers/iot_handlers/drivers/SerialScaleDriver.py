@@ -34,7 +34,7 @@ Toledo8217Protocol = SerialProtocol(
     timeout=1,
     writeTimeout=1,
     measureRegexp=b"\x02\\s*([0-9.]+)N?\\r",
-    statusRegexp=b"\x02\\s*(\\?.)\\r",
+    statusRegexp=b"\x02\\s*\\?([^\x00])\\r",
     commandDelay=0.2,
     measureDelay=0.5,
     newMeasureDelay=0.2,
@@ -87,6 +87,7 @@ class ScaleDriver(SerialDriver):
         self.device_type = 'scale'
         self._set_actions()
         self._is_reading = True
+        self.tare_mode = False
 
         # The HW Proxy can only expose one scale,
         # only the last scale connected is kept
@@ -152,10 +153,16 @@ class ScaleDriver(SerialDriver):
         answer = self._get_raw_response(self._connection)
         match = re.search(self._protocol.measureRegexp, answer)
         if match:
+            if self.net_weight_char and self.net_weight_char in answer:
+                self.tare_mode = True
+            else:
+                self.tare_mode = False
             self.data = {
                 'value': float(match.group(1)),
                 'status': self._status
             }
+        else:
+            self._read_status(answer)
 
     # Ensures compatibility with Community edition
     def _scale_read_hw_proxy(self):
@@ -181,6 +188,7 @@ class Toledo8217Driver(ScaleDriver):
     def __init__(self, identifier, device):
         super(Toledo8217Driver, self).__init__(identifier, device)
         self.device_manufacturer = 'Toledo'
+        self.net_weight_char = b'N'
 
     @classmethod
     def supported(cls, device):
@@ -208,6 +216,44 @@ class Toledo8217Driver(ScaleDriver):
             _logger.exception('Error while probing %s with protocol %s' % (device, protocol.name))
         return False
 
+    @staticmethod
+    def _get_raw_response(connection):
+        return connection.read_until(b"\r")
+
+    def _read_status(self, answer):
+        """
+        Status byte in form of an ascii character (Ex: 'D') is sent if scale is in motion, or is net/gross weight is negative or over capacity.
+        Convert the status byte to a binary string, and check its bits to see if there is an error.
+        LSB is the last char so the binary string is read in reverse and the first char is a parity bit, so we ignore it.
+        :param answer: scale answer (Example: b'\x02?D\r')
+        :type answer: bytestring
+        """
+        status_char_error_bits = (
+            'Scale in motion',  # 0
+            'Over capacity',  # 1
+            'Under zero',  # 2
+            'Outside zero capture range',  # 3
+            'Center of zero',  # 4
+            'Net weight',  # 5
+            'Bad Command from host',  # 6
+        )
+
+        status_match = self._protocol.statusRegexp and re.search(self._protocol.statusRegexp, answer)
+        if status_match:
+            status_char = status_match.group(1).decode()  # Example: b'D' extracted from b'\x02?D\r'
+            binary_status_char = format(ord(status_char), '08b')  # Example: '00001101'
+            for index, bit in enumerate(binary_status_char[1:][::-1]):  # Read the bits in reverse order (LSB is at the last char) + ignore the first "parity" bit
+                if int(bit):
+                    # Ignore the 'Net weight' error as it's normal in tare mode
+                    if index == 5 and self.tare_mode:
+                        continue
+                    _logger.debug("Scale error: %s. Status string: %s. Scale answer: %s.", status_char_error_bits[index], binary_status_char, answer)
+                    self.data = {
+                        'value': 0,
+                        'status': self._status,
+                    }
+                    break
+
 
 class AdamEquipmentDriver(ScaleDriver):
     """Driver for the Adam Equipment serial scale."""
@@ -220,6 +266,7 @@ class AdamEquipmentDriver(ScaleDriver):
         self._is_reading = False
         self._last_weight_time = 0
         self.device_manufacturer = 'Adam'
+        self.net_weight_char = b''
 
     def _check_last_weight_time(self):
         """The ADAM doesn't make the difference between a value of 0 and "the same value as last time":
@@ -282,3 +329,6 @@ class AdamEquipmentDriver(ScaleDriver):
         except Exception:
             _logger.exception('Error while probing %s with protocol %s' % (device, protocol.name))
         return False
+
+    def _read_status(self, answer):
+        pass

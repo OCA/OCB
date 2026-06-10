@@ -61,8 +61,8 @@ export class ErrorDialog extends Component {
         if (this.props.serverHost) {
             this.contextDetails += `on ${this.props.serverHost} `;
         }
-        if (this.props.model && this.props.id) {
-            this.contextDetails += `on model ${this.props.model} and id ${this.props.id} `;
+        if (this.props.model) {
+            this.contextDetails += `on model ${this.props.model} `;
         }
         this.contextDetails += `on ${DateTime.now()
             .setZone("UTC")
@@ -93,6 +93,12 @@ ClientErrorDialog.title = _t("Odoo Client Error");
 // -----------------------------------------------------------------------------
 export class NetworkErrorDialog extends ErrorDialog {}
 NetworkErrorDialog.title = _t("Odoo Network Error");
+
+// -----------------------------------------------------------------------------
+// Request Entity Too Large Dialog
+// -----------------------------------------------------------------------------
+export class RequestEntityTooLargeErrorDialog extends ErrorDialog {}
+RequestEntityTooLargeErrorDialog.title = _t("The request sent to the server was too large");
 
 // -----------------------------------------------------------------------------
 // RPC Error Dialog

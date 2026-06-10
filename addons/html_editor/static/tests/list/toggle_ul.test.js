@@ -55,6 +55,14 @@ describe("Range collapsed", () => {
             });
         });
 
+        test("should create a list inside a blockquote", async () => {
+            await testEditor({
+                contentBefore: "<blockquote>ab[]cd</blockquote>",
+                stepFunction: toggleUnorderedList,
+                contentAfter: "<blockquote><ul><li>ab[]cd</li></ul></blockquote>",
+            });
+        });
+
         test("should turn a paragraph in a div into a list", async () => {
             await testEditor({
                 contentBefore: "<div><p>ab[]cd</p></div>",
@@ -293,6 +301,22 @@ describe("Range collapsed", () => {
                         </tbody>
                     </table>
                 `),
+            });
+        });
+
+        test("should convert list item with line breaks into a single paragraph (1)", async () => {
+            await testEditor({
+                contentBefore: "<ul><li>ab<br>cd<br>ef[]</li></ul>",
+                stepFunction: toggleUnorderedList,
+                contentAfter: "<p>ab<br>cd<br>ef[]</p>",
+            });
+        });
+
+        test("should convert list item with line breaks into a single paragraph (2)", async () => {
+            await testEditor({
+                contentBefore: "<ul><li>ab<br><b>cd</b><br><i>ef[]</i></li></ul>",
+                stepFunction: toggleUnorderedList,
+                contentAfter: "<p>ab<br><b>cd</b><br><i>ef[]</i></p>",
             });
         });
     });

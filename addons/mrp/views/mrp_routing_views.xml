@@ -95,7 +95,7 @@
                                 <field name="company_id" invisible="1"/>
                                 <field name="name"/>
                                 <field name="bom_id" invisible="context.get('bom_id_invisible', False)" domain="[]" readonly="context.get('default_bom_id', False)"/>
-                                <field name="workcenter_id" context="{'default_company_id': company_id}"/>
+                                <field name="workcenter_id"/>
                                 <field name="possible_bom_product_template_attribute_value_ids" invisible="1"/>
                                 <field name="bom_product_template_attribute_value_ids" widget="many2many_tags" options="{'no_create': True}" groups="product.group_product_variant"/>
                                 <field name="allow_operation_dependencies" invisible="1"/>
@@ -123,7 +123,7 @@
                                     <field name="worksheet_type" widget="radio"/>
                                     <field name="worksheet" help="Upload your PDF file." widget="pdf_viewer" invisible="worksheet_type != 'pdf'" required="worksheet_type == 'pdf'"/>
                                     <field name="worksheet_google_slide" placeholder="Google Slide Link" widget="embed_viewer" invisible="worksheet_type != 'google_slide'" required="worksheet_type == 'google_slide'"/>
-                                    <field name="note" invisible="worksheet_type != 'text'"/>
+                                    <field name="note" invisible="worksheet_type != 'text'" options="{'embedded_components': False}"/>
                                 </group>
                             </page>
                         </notebook>

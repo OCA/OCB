@@ -2,6 +2,7 @@
 
 import { on } from "@odoo/hoot-dom";
 import { MockEventTarget } from "../hoot_utils";
+import { ensureTest } from "../main_runner";
 
 //-----------------------------------------------------------------------------
 // Global
@@ -22,10 +23,11 @@ const { animate, scroll, scrollBy, scrollIntoView, scrollTo } = Element.prototyp
 // Internal
 //-----------------------------------------------------------------------------
 
-const forceInstantScroll = (args) =>
-    !allowAnimations && args[0] && typeof args[0] === "object"
+function forceInstantScroll(args) {
+    return !allowAnimations && args[0] && typeof args[0] === "object"
         ? [{ ...args[0], behavior: "instant" }, ...args.slice(1)]
         : args;
+}
 
 const animationChangeBus = new MockEventTarget();
 const animationChangeCleanups = [];
@@ -94,6 +96,7 @@ export function cleanupAnimations() {
  * @param {boolean} [enable=false]
  */
 export function disableAnimations(enable = false) {
+    ensureTest("disableAnimations");
     allowAnimations = enable;
 }
 
@@ -104,6 +107,7 @@ export function disableAnimations(enable = false) {
  * @param {boolean} [enable=true]
  */
 export function enableTransitions(enable = true) {
+    ensureTest("enableTransitions");
     allowTransitions = enable;
     animationChangeBus.dispatchEvent(new CustomEvent("toggle-transitions"));
 }

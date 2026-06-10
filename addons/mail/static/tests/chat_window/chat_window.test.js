@@ -20,16 +20,13 @@ import {
 } from "@mail/../tests/mail_test_helpers";
 import { describe, expect, test } from "@odoo/hoot";
 import { mockDate, tick } from "@odoo/hoot-mock";
-import { EventBus } from "@odoo/owl";
 import {
     Command,
     getService,
-    patchWithCleanup,
     preloadBundle,
     serverState,
     withUser,
 } from "@web/../tests/web_test_helpers";
-import { browser } from "@web/core/browser/browser";
 
 import { rpc } from "@web/core/network/rpc";
 
@@ -205,18 +202,18 @@ test.skip("Fold state of chat window is sync among browser tabs", async () => {
     pyEnv["discuss.channel"].create({ name: "General" });
     const env1 = await start({ asTab: true });
     const env2 = await start({ asTab: true });
-    await click(".o_menu_systray i[aria-label='Messages']", { target: env1 });
-    await click(".o-mail-NotificationItem", { target: env1 });
-    await contains(".o-mail-ChatWindow-header", { target: env2 });
-    await click(".o-mail-ChatWindow-header", { target: env1 }); // Fold
-    await contains(".o-mail-Thread", { count: 0, target: env1 });
-    await contains(".o-mail-Thread", { count: 0, target: env2 });
-    await click(".o-mail-ChatBubble", { target: env2 }); // Unfold
-    await contains(".o-mail-ChatWindow .o-mail-Thread", { target: env1 });
-    await contains(".o-mail-ChatWindow .o-mail-Thread", { target: env2 });
-    await click("[title*='Close Chat Window']", { target: env1 });
-    await contains(".o-mail-ChatWindow", { count: 0, target: env1 });
-    await contains(".o-mail-ChatWindow", { count: 0, target: env2 });
+    await click(`${env1.selector} .o_menu_systray i[aria-label='Messages']`);
+    await click(`${env1.selector} .o-mail-NotificationItem`);
+    await contains(`${env2.selector} .o-mail-ChatWindow-header`);
+    await click(`${env1.selector} .o-mail-ChatWindow-header`); // Fold
+    await contains(`${env1.selector} .o-mail-Thread`, { count: 0 });
+    await contains(`${env2.selector} .o-mail-Thread`, { count: 0 });
+    await click(`${env2.selector} .o-mail-ChatBubble`); // Unfold
+    await contains(`${env1.selector} .o-mail-ChatWindow .o-mail-Thread`);
+    await contains(`${env2.selector} .o-mail-ChatWindow .o-mail-Thread`);
+    await click(`${env1.selector} [title*='Close Chat Window']`);
+    await contains(`${env1.selector} .o-mail-ChatWindow`, { count: 0 });
+    await contains(`${env2.selector} .o-mail-ChatWindow`, { count: 0 });
 });
 
 test("Mobile: opening a chat window should not update channel state on the server", async () => {
@@ -772,13 +769,14 @@ test("chat window: composer state conservation on toggle discuss", async () => {
     });
     // Set attachments of the composer
     await inputFiles(".o-mail-Composer-coreMain .o_input_file", [textFile1, textFile2]);
-    await contains(".o-mail-AttachmentCard .fa-check", { count: 2 });
+    await contains(".o-mail-AttachmentCard:not(.o-isUploading) .fa-check", { count: 2 });
     await openDiscuss();
     await contains(".o-mail-ChatWindow", { count: 0 });
     await openFormView("discuss.channel", channelId);
-    await contains(".o-mail-Composer-footer .o-mail-AttachmentList .o-mail-AttachmentCard", {
-        count: 2,
-    });
+    await contains(
+        ".o-mail-Composer-footer .o-mail-AttachmentList .o-mail-AttachmentCard:not(.o-isUploading)",
+        { count: 2 }
+    );
     await contains(".o-mail-Composer-input", { value: "XDU for the win !" });
 });
 
@@ -941,7 +939,7 @@ test("Open chat window of new inviter", async () => {
     });
     await contains(".o-mail-ChatWindow", { text: "Newbie" });
     await contains(".o_notification", {
-        text: "Newbie connected. This is their first connection. Wish them luck.",
+        text: "Newbie just connected for the first time. Wish them luck!",
     });
 });
 
@@ -1053,9 +1051,6 @@ test("Notification settings rendering in chatwindow", async () => {
 });
 
 test("open channel in chat window from push notification", async () => {
-    patchWithCleanup(window.navigator, {
-        serviceWorker: Object.assign(new EventBus(), { register: () => Promise.resolve() }),
-    });
     const pyEnv = await startServer();
     const [channelId] = pyEnv["discuss.channel"].create([
         { name: "General" },
@@ -1069,7 +1064,7 @@ test("open channel in chat window from push notification", async () => {
     await start();
     await contains(".o-mail-ChatWindow", { text: "Sales" });
     await contains(".o-mail-ChatWindow", { text: "General", count: 0 });
-    browser.navigator.serviceWorker.dispatchEvent(
+    navigator.serviceWorker.dispatchEvent(
         new MessageEvent("message", {
             data: { action: "OPEN_CHANNEL", data: { id: channelId } },
         })

@@ -7,6 +7,7 @@ registry.category("web_tour.tours").add("self_attribute_selector", {
     steps: () => [
         Utils.clickBtn("Order Now"),
         ProductPage.clickProduct("Desk Organizer"),
+        ProductPage.checkAttributePrice("Size", "S", "$ 0.25"),
         ...ProductPage.setupAttribute([
             { name: "Size", value: "M" },
             { name: "Fabric", value: "Leather" },
@@ -71,6 +72,19 @@ registry.category("web_tour.tours").add("selfAlwaysAttributeVariants", {
         Utils.clickBtn("Pay"),
         Utils.clickBtn("Ok"),
         Utils.checkIsNoBtn("Order Now"),
+    ],
+});
+
+registry.category("web_tour.tours").add("selfAlwaysAttributeVariantsKiosk", {
+    steps: () => [
+        Utils.checkIsNoBtn("My Order"),
+        Utils.clickBtn("Order Now"),
+        ProductPage.clickProduct("Chair"),
+        ...ProductPage.setupAttribute([{ name: "Color", value: "Red" }]),
+        Utils.clickBtn("Order"),
+        CartPage.checkProduct("Chair (Red)", "15", "1"),
+        Utils.clickBtn("Pay"),
+        Utils.checkBtn("Close"),
     ],
 });
 

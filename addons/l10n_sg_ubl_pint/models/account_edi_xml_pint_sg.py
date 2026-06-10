@@ -3,7 +3,17 @@
 from odoo import models, _
 
 
-SG_TAX_CATEGORIES = {'SR', 'SRCA-S', 'SRCA-C', 'SROVR-RS', 'SROVR-LVG', 'SRLVG', 'ZR', 'ES33', 'ESN33', 'DS', 'OS', 'NG', 'NA'}
+SG_TAX_CATEGORIES = {'SR', 'SRCA-S', 'SRCA-C', 'SROVR-RS', 'SRRC', 'SROVR-LVG', 'SRLVG', 'ZR', 'ES33', 'ESN33', 'DS', 'OS', 'NG', 'NA'}
+SG_GST_CODES_REQUIRING_ADDRESS = {'SR', 'SRCA-S', 'SRCA-C', 'ZR', 'SRRC', 'SROVR-RS', 'SROVR-LVG', 'SRLVG', 'NA'}
+
+
+class AccountEdiXmlUBL21(models.AbstractModel):
+    _inherit = 'account.edi.xml.ubl_21'
+
+    def _get_customization_ids(self):
+        vals = super()._get_customization_ids()
+        vals['pint_sg'] = 'urn:peppol:pint:billing-1@sg-1'
+        return vals
 
 
 class AccountEdiXmlUBLPINTSG(models.AbstractModel):
@@ -25,9 +35,16 @@ class AccountEdiXmlUBLPINTSG(models.AbstractModel):
         # OVERRIDE account_edi_ubl_cii
         return f"{invoice.name.replace('/', '_')}_pint_sg.xml"
 
+    # -------------------------------------------------------------------------
+    # EXPORT: Old helpers
+    # -------------------------------------------------------------------------
+
     def _get_partner_party_vals(self, partner, role):
         # EXTENDS account_edi_ubl_cii
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals = super()._get_partner_party_vals(partner, role)
+        vals.setdefault('party_tax_scheme_vals', [])
 
         for party_tax_scheme in vals['party_tax_scheme_vals']:
             party_tax_scheme['tax_scheme_vals'] = {'id': 'GST'}
@@ -36,6 +53,8 @@ class AccountEdiXmlUBLPINTSG(models.AbstractModel):
 
     def _get_invoice_tax_totals_vals_list(self, invoice, taxes_vals):
         # EXTENDS account_edi_ubl_cii
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals_list = super()._get_invoice_tax_totals_vals_list(invoice, taxes_vals)
         company_currency = invoice.company_id.currency_id
         if invoice.currency_id != company_currency:
@@ -51,6 +70,8 @@ class AccountEdiXmlUBLPINTSG(models.AbstractModel):
 
     def _get_tax_category_list(self, customer, supplier, taxes):
         # EXTENDS account_edi_ubl_cii
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals_list = super()._get_tax_category_list(customer, supplier, taxes)
         for vals in vals_list:
             vals['tax_scheme_vals'] = {'id': 'GST'}
@@ -58,6 +79,8 @@ class AccountEdiXmlUBLPINTSG(models.AbstractModel):
 
     def _get_additional_document_reference_list(self, invoice):
         # EXTENDS account.edi.xml.ubl_20
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         additional_document_reference_list = super()._get_additional_document_reference_list(invoice)
         if invoice.currency_id != invoice.company_id.currency_id:
             amounts_in_accounting_currency = (
@@ -66,7 +89,7 @@ class AccountEdiXmlUBLPINTSG(models.AbstractModel):
             )
             # [BR-53-GST-SG]-If the GST accounting currency code (BT-6-GST) is present, then the Invoice total GST amount (BT-111-GST),
             # Invoice total including GST amount and Invoice Total excluding GST amount in accounting currency shall be provided.
-            additional_document_reference_list.append([{
+            additional_document_reference_list.extend([{
                 'id': invoice.company_id.currency_id.name,
                 'document_description': amount,
                 'document_type_code': code,
@@ -75,6 +98,8 @@ class AccountEdiXmlUBLPINTSG(models.AbstractModel):
 
     def _export_invoice_vals(self, invoice):
         # EXTENDS account_edi_ubl_cii
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals = super()._export_invoice_vals(invoice)
 
         vals['vals'].update({
@@ -98,5 +123,65 @@ class AccountEdiXmlUBLPINTSG(models.AbstractModel):
             for tax_subtotal_val in tax_total_val.get('tax_subtotal_vals', ()):
                 if tax_subtotal_val['tax_category_vals']['tax_category_code'] not in SG_TAX_CATEGORIES:
                     constraints['sg_vat_category_required'] = _("You must set a Singaporean tax category on each taxes of the invoice.")
+
+        # Invoice with GST category code of value 'SR', 'SRCA-S', 'SRCA-C', 'ZR', 'SRRC', 'SROVR-RS', 'SROVR-LVG', 'SRLVG', 'NA' should contain
+        # seller address line and seller post code
+        for tax_category in vals['taxes_vals']['tax_details']:
+            if tax_category['tax_category_id'] in SG_GST_CODES_REQUIRING_ADDRESS:
+                constraints['sg_seller_street_addr_required'] = self._check_required_fields(vals['supplier'], 'street')
+                constraints['sg_seller_post_code_required'] = self._check_required_fields(vals['supplier'], 'zip')
+
+        return constraints
+
+    # -------------------------------------------------------------------------
+    # EXPORT: New (dict_to_xml) helpers
+    # -------------------------------------------------------------------------
+
+    def _add_invoice_header_nodes(self, document_node, vals):
+        # EXTENDS account.edi.xml.ubl_bis3
+        super()._add_invoice_header_nodes(document_node, vals)
+        invoice = vals['invoice']
+
+        # see https://docs.peppol.eu/poac/sg/2024-Q2/pint-sg/bis/#_bis_identifiers
+        document_node['cbc:CustomizationID'] = {'_text': self._get_customization_ids()['pint_sg']}
+        document_node['cbc:ProfileID'] = {'_text': 'urn:peppol:bis:billing'}
+        document_node['cbc:UUID'] = {'_text': invoice._l10n_sg_get_uuid()}
+
+        if invoice.currency_id != invoice.company_id.currency_id:
+            amounts_in_accounting_currency = (
+                ('sgdtotal-excl-gst', invoice.amount_untaxed_signed),
+                ('sgdtotal-incl-gst', invoice.amount_total_signed),
+            )
+            # [BR-53-GST-SG] - If the GST accounting currency code (BT-6-GST) is present, then the Invoice total GST amount (BT-111-GST),
+            # Invoice total including GST amount and Invoice Total excluding GST amount in accounting currency shall be provided.
+
+            document_node['cac:AdditionalDocumentReference'] = [
+                {
+                    'cbc:ID': {'_text': invoice.company_id.currency_id.name},
+                    'cbc:DocumentTypeCode': {'_text': code},
+                    'cbc:DocumentDescription': {'_text': amount},
+                }
+                for code, amount in amounts_in_accounting_currency
+            ]
+
+    def _export_invoice_constraints_new(self, invoice, vals):
+        # EXTENDS account_edi_ubl_cii
+        constraints = super()._export_invoice_constraints_new(invoice, vals)
+
+        # Tax category must be filled on the line, with a value from SG categories.
+        for tax_total_node in vals['document_node']['cac:TaxTotal']:
+            for tax_subtotal_node in tax_total_node['cac:TaxSubtotal']:
+                for tax_category_node in tax_subtotal_node['cac:TaxCategory']:
+                    if tax_category_node['cbc:ID']['_text'] not in SG_TAX_CATEGORIES:
+                        constraints['sg_vat_category_required'] = _("You must set a Singaporean tax category on each taxes of the invoice.")
+
+                    # Invoice with GST category code of value 'SR', 'SRCA-S', 'SRCA-C', 'ZR', 'SRRC',
+                    # 'SROVR-RS', 'SROVR-LVG', 'SRLVG', 'NA' should contain seller address line and seller
+                    # post code
+                    if tax_category_node['cbc:ID']['_text'] in SG_GST_CODES_REQUIRING_ADDRESS:
+                        constraints['sg_seller_street_addr_required'] = \
+                            self._check_required_fields(vals['supplier'], 'street')
+                        constraints['sg_seller_post_code_required'] = \
+                            self._check_required_fields(vals['supplier'], 'zip')
 
         return constraints

@@ -1,7 +1,19 @@
-import { isTextNode, isParagraphRelatedElement } from "../utils/dom_info";
+import {
+    isTextNode,
+    isParagraphRelatedElement,
+    isIconElement,
+    isEmptyBlock,
+} from "../utils/dom_info";
 import { Plugin } from "../plugin";
 import { closestBlock, isBlock } from "../utils/blocks";
-import { unwrapContents, wrapInlinesInBlocks, splitTextNode } from "../utils/dom";
+import { fillClipboardData } from "../utils/clipboard";
+import {
+    unwrapContents,
+    wrapInlinesInBlocks,
+    splitTextNode,
+    setTagName,
+    fillEmpty,
+} from "../utils/dom";
 import { ancestors, childNodes, closestElement } from "../utils/dom_traversal";
 import { parseHTML } from "../utils/html";
 import {
@@ -68,6 +80,8 @@ export const CLIPBOARD_WHITELISTS = {
         "img-thumbnail",
         "rounded",
         "rounded-circle",
+        // Odoo tables
+        "o_table",
         "table",
         "table-bordered",
         /^padding-/,
@@ -215,14 +229,7 @@ export class ClipboardPlugin extends Plugin {
                 }
             }
         }
-        const dataHtmlElement = this.document.createElement("data");
-        dataHtmlElement.append(clonedContents);
-        prependOriginToImages(dataHtmlElement, window.location.origin);
-        const odooHtml = dataHtmlElement.innerHTML;
-        const odooText = selection.textContent();
-        ev.clipboardData.setData("text/plain", odooText);
-        ev.clipboardData.setData("text/html", odooHtml);
-        ev.clipboardData.setData("application/vnd.odoo.odoo-editor", odooHtml);
+        fillClipboardData(ev, selection.textContent(), clonedContents);
         if (commonAncestor && commonAncestor.nodeType === Node.ELEMENT_NODE) {
             this.dispatchTo("normalize_handlers", commonAncestor);
         }
@@ -243,11 +250,12 @@ export class ClipboardPlugin extends Plugin {
         this.dispatchTo("before_paste_handlers", selection);
         // refresh selection after potential changes from `before_paste` handlers
         selection = this.dependencies.selection.getEditableSelection();
-
-        this.handlePasteUnsupportedHtml(selection, ev.clipboardData) ||
-            this.handlePasteOdooEditorHtml(ev.clipboardData) ||
-            this.handlePasteHtml(selection, ev.clipboardData) ||
-            this.handlePasteText(selection, ev.clipboardData);
+        if (!this.delegateTo("paste_overrides", selection, ev.clipboardData)) {
+            this.handlePasteUnsupportedHtml(selection, ev.clipboardData) ||
+                this.handlePasteOdooEditorHtml(ev.clipboardData) ||
+                this.handlePasteHtml(selection, ev.clipboardData) ||
+                this.handlePasteText(selection, ev.clipboardData);
+        }
 
         this.dispatchTo("after_paste_handlers", selection);
         this.dependencies.history.addStep();
@@ -334,17 +342,23 @@ export class ClipboardPlugin extends Plugin {
      */
     pasteText(selection, text) {
         const textFragments = text.split(/\r?\n/);
+        const preEl = closestElement(selection.anchorNode, "PRE");
         let textIndex = 1;
         for (const textFragment of textFragments) {
-            // Replace consecutive spaces by alternating nbsp.
-            const modifiedTextFragment = textFragment.replace(/( {2,})/g, (match) => {
-                let alertnateValue = false;
-                return match.replace(/ /g, () => {
-                    alertnateValue = !alertnateValue;
-                    const replaceContent = alertnateValue ? "\u00A0" : " ";
-                    return replaceContent;
+            let modifiedTextFragment = textFragment;
+
+            // <pre> preserves whitespace by default, so no need for &nbsp.
+            if (!preEl) {
+                // Replace consecutive spaces by alternating nbsp.
+                modifiedTextFragment = textFragment.replace(/( {2,})/g, (match) => {
+                    let alternateValue = false;
+                    return match.replace(/ /g, () => {
+                        alternateValue = !alternateValue;
+                        const replaceContent = alternateValue ? "\u00A0" : " ";
+                        return replaceContent;
+                    });
                 });
-            });
+            }
             this.dependencies.dom.insert(modifiedTextFragment);
             // The selection must be updated after calling insert, as the insertion
             // process modifies the selection.
@@ -450,10 +464,7 @@ export class ClipboardPlugin extends Plugin {
             if (
                 (isParagraphRelatedElement(block) ||
                     this.dependencies.baseContainer.isCandidateForBaseContainer(block)) &&
-                // TODO specific exception for "PRE" to keep everything inside one PRE.
-                // Consider removing this if PRE is to be used as a paragraph.
-                block.nodeName !== "PRE" &&
-                !block.closest("li")
+                block.nodeName !== "PRE"
             ) {
                 // A linebreak at the beginning of a block is an empty line.
                 const isEmptyLine = block.firstChild.nodeName === "BR";
@@ -487,8 +498,23 @@ export class ClipboardPlugin extends Plugin {
             } else {
                 let childrenNodes;
                 if (node.nodeName === "DIV") {
-                    if (this.dependencies.baseContainer.isCandidateForBaseContainer(node)) {
-                        childrenNodes = childNodes(node);
+                    if (!node.hasChildNodes()) {
+                        node.remove();
+                        return;
+                    } else if (this.dependencies.baseContainer.isCandidateForBaseContainer(node)) {
+                        const whiteSpace = node.style?.whiteSpace;
+                        if (whiteSpace && !["normal", "nowrap"].includes(whiteSpace)) {
+                            node.innerHTML = node.innerHTML.replace(/\n/g, "<br>");
+                        }
+                        const baseContainer = this.dependencies.baseContainer.createBaseContainer();
+                        const dir = node.getAttribute("dir");
+                        if (dir) {
+                            baseContainer.setAttribute("dir", dir);
+                        }
+                        baseContainer.append(...node.childNodes);
+
+                        node.replaceWith(baseContainer);
+                        childrenNodes = childNodes(baseContainer);
                     } else {
                         childrenNodes = unwrapContents(node);
                     }
@@ -501,7 +527,30 @@ export class ClipboardPlugin extends Plugin {
                 }
             }
         } else if (node.nodeType !== Node.TEXT_NODE) {
+            if (node.nodeName === "THEAD") {
+                const tbody = node.nextElementSibling;
+                if (tbody) {
+                    // If a <tbody> already exists, move all rows from
+                    // <thead> into the start of <tbody>.
+                    tbody.prepend(...node.children);
+                    node.remove();
+                    node = tbody;
+                } else {
+                    // Otherwise, replace the <thead> with <tbody>
+                    node = setTagName(node, "TBODY");
+                }
+            } else if (node.nodeName === "TH") {
+                // Convert all <th> into <td>
+                node = setTagName(node, "TD");
+            }
             if (node.nodeName === "TD") {
+                // Insert base container into empty TD.
+                if (isEmptyBlock(node)) {
+                    const baseContainer = this.dependencies.baseContainer.createBaseContainer();
+                    fillEmpty(baseContainer);
+                    node.replaceChildren(baseContainer);
+                }
+
                 if (node.hasAttribute("bgcolor") && !node.style["background-color"]) {
                     node.style["background-color"] = node.getAttribute("bgcolor");
                 }
@@ -544,14 +593,13 @@ export class ClipboardPlugin extends Plugin {
             // Remove all illegal attributes and classes from the node, then
             // clean its children.
             for (const attribute of [...node.attributes]) {
-                // Keep allowed styles on nodes with allowed tags.
                 // todo: should the whitelist be a resource?
                 if (
                     CLIPBOARD_WHITELISTS.styledTags.includes(node.nodeName) &&
                     attribute.name === "style"
                 ) {
                     node.removeAttribute(attribute.name);
-                    if (["SPAN", "FONT"].includes(node.tagName)) {
+                    if (["SPAN", "FONT"].includes(node.tagName) && !isIconElement(node)) {
                         for (const unwrappedNode of unwrapContents(node)) {
                             this.cleanForPaste(unwrappedNode);
                         }
@@ -579,7 +627,7 @@ export class ClipboardPlugin extends Plugin {
      * @returns {boolean}
      */
     isWhitelisted(item) {
-        if (item instanceof Attr) {
+        if (item.nodeType === Node.ATTRIBUTE_NODE) {
             return CLIPBOARD_WHITELISTS.attributes.includes(item.name);
         } else if (typeof item === "string") {
             return CLIPBOARD_WHITELISTS.classes.some((okClass) =>
@@ -751,17 +799,4 @@ export function isHtmlContentSupported(node) {
         node,
         '[data-oe-model]:not([data-oe-field="arch"]):not([data-oe-type="html"]),[data-oe-translation-id]'
     );
-}
-
-/**
- * Add origin to relative img src.
- * @param {string} origin
- */
-function prependOriginToImages(doc, origin) {
-    doc.querySelectorAll("img").forEach((img) => {
-        const src = img.getAttribute("src");
-        if (src && !src.startsWith("http") && !src.startsWith("//")) {
-            img.src = origin + (src.startsWith("/") ? src : "/" + src);
-        }
-    });
 }

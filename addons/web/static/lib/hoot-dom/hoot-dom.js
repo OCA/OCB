@@ -2,6 +2,7 @@
 
 import * as dom from "./helpers/dom";
 import * as events from "./helpers/events";
+import * as time from "./helpers/time";
 import { interactor } from "./hoot_dom_utils";
 
 /**
@@ -43,6 +44,7 @@ export {
     queryAllRects,
     queryAllTexts,
     queryAllValues,
+    queryAny,
     queryAttribute,
     queryFirst,
     queryOne,
@@ -52,15 +54,13 @@ export {
 } from "./helpers/dom";
 export { on } from "./helpers/events";
 export {
-    advanceFrame,
-    advanceTime,
     animationFrame,
     cancelAllTimers,
     Deferred,
     delay,
     freezeTime,
+    unfreezeTime,
     microTick,
-    runAllTimers,
     setFrameRate,
     tick,
     waitUntil,
@@ -71,7 +71,6 @@ export {
 //-----------------------------------------------------------------------------
 
 // DOM
-export const observe = interactor("query", dom.observe);
 export const waitFor = interactor("query", dom.waitFor);
 export const waitForNone = interactor("query", dom.waitForNone);
 
@@ -100,3 +99,11 @@ export const setInputFiles = interactor("interaction", events.setInputFiles);
 export const setInputRange = interactor("interaction", events.setInputRange);
 export const uncheck = interactor("interaction", events.uncheck);
 export const unload = interactor("interaction", events.unload);
+
+// Time
+export const advanceFrame = interactor("time", time.advanceFrame);
+export const advanceTime = interactor("time", time.advanceTime);
+export const runAllTimers = interactor("time", time.runAllTimers);
+
+// Debug
+export { exposeHelpers } from "./hoot_dom_utils";

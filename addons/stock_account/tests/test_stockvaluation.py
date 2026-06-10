@@ -1959,6 +1959,23 @@ class TestStockValuation(TestStockValuationBase):
         self._make_in_move(product, 1, unit_cost=77)
         self.assertEqual(product.standard_price, 77)
 
+    def test_fifo_manual_revaluation_after_manual_standard_price(self):
+        self.product1.categ_id.property_cost_method = 'fifo'
+        self._make_in_move(self.product1, 1, unit_cost=200)
+        self._make_in_move(self.product1, 1, unit_cost=300)
+        self.assertEqual(self.product1.standard_price, 250)
+
+        self.product1.standard_price = 300
+
+        Form(self.env['stock.valuation.layer.revaluation'].with_context({
+            'default_product_id': self.product1.id,
+            'default_company_id': self.env.company.id,
+            'default_account_id': self.stock_valuation_account,
+            'default_added_value': 200.0,
+        })).save().action_validate_revaluation()
+
+        self.assertEqual(self.product1.standard_price, 350)
+
     def test_create_done_move(self):
         """Stock Move created directly in Done state must impact de valuation."""
         self.product1.categ_id.property_cost_method = 'average'
@@ -2391,7 +2408,7 @@ class TestStockValuation(TestStockValuationBase):
         move2.picked = True
         move2._action_done()
 
-        self.assertAlmostEqual(self.product1.standard_price, 16.67)
+        self.assertAlmostEqual(self.product1.standard_price, 16.6666667)
         self.assertAlmostEqual(move2.stock_valuation_layer_ids.value, 200)
         self.assertAlmostEqual(self.product1.quantity_svl, 15)
         self.assertAlmostEqual(self.product1.value_svl, 250)
@@ -3074,14 +3091,14 @@ class TestStockValuation(TestStockValuationBase):
         self.assertRecordValues(
             amls,
             [
-                {'account_id': self.stock_input_account.id, 'debit': 240, 'credit': 0},
-                {'account_id': self.stock_valuation_account.id, 'debit': 0, 'credit': 240},
-                {'account_id': self.stock_valuation_account.id, 'debit': 239.97, 'credit': 0},
-                {'account_id': self.stock_input_account.id, 'debit': 0, 'credit': 239.97},
+                {'account_id': self.stock_input_account.id, 'debit': 240.0, 'credit': 0},
+                {'account_id': self.stock_valuation_account.id, 'debit': 0, 'credit': 240.0},
+                {'account_id': self.stock_valuation_account.id, 'debit': 240.0, 'credit': 0},
+                {'account_id': self.stock_input_account.id, 'debit': 0, 'credit': 240.0},
             ]
         )
 
-        self.assertEqual(self.product1.standard_price, 12.63)
+        self.assertAlmostEqual(self.product1.standard_price, 12.63157895)
 
     def test_change_cost_method_2(self):
         """ Change the cost method from FIFO to standard.
@@ -3159,12 +3176,12 @@ class TestStockValuation(TestStockValuationBase):
             [
                 {'account_id': self.stock_input_account.id, 'debit': 240, 'credit': 0},
                 {'account_id': self.stock_valuation_account.id, 'debit': 0, 'credit': 240},
-                {'account_id': self.stock_valuation_account.id, 'debit': 239.97, 'credit': 0},
-                {'account_id': self.stock_input_account.id, 'debit': 0, 'credit': 239.97},
+                {'account_id': self.stock_valuation_account.id, 'debit': 240.0, 'credit': 0},
+                {'account_id': self.stock_input_account.id, 'debit': 0, 'credit': 240.0},
             ]
         )
 
-        self.assertEqual(self.product1.standard_price, 12.63)
+        self.assertAlmostEqual(self.product1.standard_price, 12.63157895)
 
     def test_fifo_sublocation_valuation_1(self):
         """ Set the main stock as a view location. Receive 2 units of a
@@ -4057,8 +4074,21 @@ class TestStockValuation(TestStockValuationBase):
         res = self.env['stock.quant'].read_group([('product_id', '=', self.product1.id)], ['value:sum'], ['product_id'])
         self.assertEqual(res[0]['value'], 5 * 5 + 2 * 6)
 
+        # Ensure account tax is not applied for manual valuation changes
+        tax_group = self.env['account.tax.group'].create({
+            'name': 'Tax Group',
+            'company_id': self.env.company.id,
+        })
+        basic_tax = self.env['account.tax'].create({
+            'name': 'Basic 15% tax',
+            'amount': 15,
+            'tax_group_id': tax_group.id,
+        })
+        self.env.company.anglo_saxon_accounting = False
+        self.product1.property_account_expense_id.tax_ids = basic_tax
         self.product1.write({'standard_price': 7})
         self.assertEqual(self.product1.value_svl, 49)
+        self.assertEqual(len(self.product1.stock_valuation_layer_ids[-1].account_move_id.line_ids), 2)
 
     def test_average_manual_revaluation(self):
         self.product1.categ_id.property_cost_method = 'average'

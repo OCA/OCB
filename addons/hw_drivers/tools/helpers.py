@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import certifi
 import configparser
 import contextlib
 import datetime
@@ -31,11 +32,6 @@ from odoo.tools.misc import file_path
 
 lock = Lock()
 _logger = logging.getLogger(__name__)
-
-try:
-    import crypt
-except ImportError:
-    _logger.warning('Could not import library crypt')
 
 
 class Orientation(Enum):
@@ -120,7 +116,7 @@ def check_certificate():
     except EnvironmentError:
         _logger.exception("Unable to read certificate file")
         return {"status": CertificateStatus.ERROR,
-                "error_code": "ERR_IOT_HTTPS_CHECK_CERT_READ_EXCEPTION"}
+                "error_code": "Can't read certificate file"}
 
     cert_end_date = datetime.datetime.strptime(cert.get_notAfter().decode('utf-8'), "%Y%m%d%H%M%SZ") - datetime.timedelta(days=10)
     for key in cert.get_subject().get_components():
@@ -136,12 +132,48 @@ def check_certificate():
         return {"status": CertificateStatus.OK, "message": message}
 
 
+def check_version_upgrades(local_branch, db_branch):
+    """
+    Check if the iot is < 19.1 and upgrading to >= saas-19.1
+    If so and current python version is less than 3.12, run the scripts
+    located in upgrade_scripts/ to upgrade the python version
+    :param local_branch: The local git branch (Ex: "19.0" / "17.0-hw-drivers-compatibility-with-trixie-yaso")
+    :param db_branch: The git branch of the connected Odoo database (Ex: "saas-19.1" / "master" etc.)
+    """
+    if platform.system() != 'Linux':
+        _logger.debug("Ignoring version upgrade check on non-Linux system")
+        return
+
+    try:
+        # 1. Check if the upgrade script needs to be ran
+        # Needed if local branch is < 19.1 and db branch is >= 19.1 + python version < 3.12
+        _logger.info("Checking for version upgrades for local branch %s / db_branch %s", local_branch, db_branch)
+        version_db = db_branch[-4:]
+        version_local = local_branch[-4:] if local_branch != 'master' else local_branch
+        local_python_version = tuple(int(x) for x in platform.python_version_tuple()[:2])
+        if version_local >= '19.1' or version_db < '19.1' or local_python_version >= (3, 12):
+            _logger.info("Ignoring unnecessary upgrade for local branch %s / db_branch %s with python version %s", local_branch, db_branch, local_python_version)
+            return
+        with writable():
+            _logger.warning("Updating to Debian Trixie for >= 19.1")
+            subprocess.run(
+                ['/home/pi/odoo/addons/hw_drivers/tools/upgrade_scripts/upgrade_trixie/upgrade_trixie.sh'], check=True,
+            )
+            # If we reach this point, we are about to reboot. Sleep to prevent git checkout.
+            time.sleep(30)
+    except subprocess.CalledProcessError:
+        _logger.exception("Failed to upgrade to debian Trixie. Check /home/pi/upgrade.log file for more details")
+
+
 def check_git_branch():
     """
     Check if the local branch is the same than the connected Odoo DB and
     checkout to match it if needed.
     """
     server = get_odoo_server_url()
+    if not server or platform.system() == 'Windows':
+        _logger.debug('Ignoring git branch check')
+        return
     urllib3.disable_warnings()
     http = urllib3.PoolManager(cert_reqs='CERT_NONE')
     try:
@@ -157,8 +189,8 @@ def check_git_branch():
 
             db_branch = json.loads(response.data)['result']['server_serie'].replace('~', '-')
             if not subprocess.check_output(git + ['ls-remote', 'origin', db_branch]):
-                db_branch = 'master'
-
+                _logger.warning("Connected database is a development branch, skipping as it's likely an error.")
+                return
             local_branch = (
                 subprocess.check_output(git + ['symbolic-ref', '-q', '--short', 'HEAD']).decode('utf-8').rstrip()
             )
@@ -170,6 +202,8 @@ def check_git_branch():
 
             if db_branch != local_branch:
                 try:
+                    check_version_upgrades(local_branch, db_branch)
+
                     with writable():
                         subprocess.run(git + ['branch', '-m', db_branch], check=True)
                         subprocess.run(git + ['remote', 'set-branches', 'origin', db_branch], check=True)
@@ -178,6 +212,9 @@ def check_git_branch():
                             ['/home/pi/odoo/addons/point_of_sale/tools/posbox/configuration/posbox_update.sh'], check=True
                         )
                 except subprocess.CalledProcessError:
+                    # reset local branch name if update failed, to allow new attempt on next restart
+                    with writable():
+                        subprocess.run(git + ['branch', '-m', local_branch], check=False)
                     _logger.exception("Failed to update the code with git.")
                 finally:
                     odoo_restart()
@@ -208,33 +245,32 @@ def check_image():
     return {'major': version[0], 'minor': version[1]}
 
 
-def save_conf_server(url, token, db_uuid, enterprise_code):
+def save_conf_server(url, token, db_uuid, enterprise_code, db_name=None):
     """
     Save server configurations in odoo.conf
     :param url: The URL of the server
     :param token: The token to authenticate the server
     :param db_uuid: The database UUID
     :param enterprise_code: The enterprise code
+    :param db_name: The database name
     """
     update_conf({
         'remote_server': url,
         'token': token,
         'db_uuid': db_uuid,
         'enterprise_code': enterprise_code,
+        'db_name': db_name,
     })
 
 
 def generate_password():
+    """Resets (pi) user password generating a new random one.
+
+    :return: The new generated password
     """
-    Generate an unique code to secure raspberry pi
-    """
-    alphabet = 'abcdefghijkmnpqrstuvwxyz23456789'
-    password = ''.join(secrets.choice(alphabet) for i in range(12))
+    password = secrets.token_urlsafe(16)
     try:
-        shadow_password = crypt.crypt(password, crypt.mksalt())
-        subprocess.run(('sudo', 'usermod', '-p', shadow_password, 'pi'), check=True)
-        with writable():
-            subprocess.run(('sudo', 'cp', '/etc/shadow', '/root_bypass_ramdisks/etc/shadow'), check=True)
+        subprocess.run(['sudo', 'chpasswd'], input=f"pi:{password}", text=True, check=True)
         return password
     except subprocess.CalledProcessError as e:
         _logger.exception("Failed to generate password: %s", e.output)
@@ -266,13 +302,34 @@ def get_img_name():
     major, minor = get_version()[1:].split('.')
     return 'iotboxv%s_%s.zip' % (major, minor)
 
+
 def get_ip():
-    interfaces = netifaces.interfaces()
-    for interface in interfaces:
-        if netifaces.ifaddresses(interface).get(netifaces.AF_INET):
-            addr = netifaces.ifaddresses(interface).get(netifaces.AF_INET)[0]['addr']
-            if addr != '127.0.0.1':
-                return addr
+    """Get the local IP address of the IoT Box by creating
+    a dummy connection to the gateway or Google DNS.
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect((get_gateway() or '8.8.8.8', 1))  # Google DNS
+        return s.getsockname()[0]
+    except OSError as e:
+        _logger.warning("Could not get local IP address: %s", e)
+        return None
+    finally:
+        s.close()
+
+
+def get_gateway():
+    """Get the router IP address (default gateway)
+
+    :return: The IP address of the default gateway or None if it can't be determined
+    """
+    gws = netifaces.gateways()
+    default = gws.get("default", {})
+    gw = default.get(netifaces.AF_INET)
+    if gw:
+        return gw[0]
+    return None
+
 
 def get_mac_address():
     interfaces = netifaces.interfaces()
@@ -281,6 +338,20 @@ def get_mac_address():
             addr = netifaces.ifaddresses(interface).get(netifaces.AF_LINK)[0]['addr']
             if addr != '00:00:00:00:00:00':
                 return addr
+
+
+def get_serial_number():
+    if platform.system() == 'Linux':
+        return read_file_first_line('/sys/firmware/devicetree/base/serial-number').strip("\x00")
+
+    # On windows, get motherboard's uuid (serial number isn't reliable as it's not always present)
+    command = ['powershell', '-Command', "(Get-CimInstance Win32_ComputerSystemProduct).UUID"]
+    p = subprocess.run(command, stdout=subprocess.PIPE, check=False)
+    if p.returncode != 0:
+        _logger.error("Failed to get Windows IoT serial number")
+        return False
+
+    return p.stdout.decode().strip() or False
 
 def get_path_nginx():
     return str(list(Path().absolute().parent.glob('*nginx*'))[0])
@@ -353,7 +424,7 @@ def load_certificate():
     db_uuid = get_conf('db_uuid')
     enterprise_code = get_conf('enterprise_code')
     if not db_uuid:
-        return "ERR_IOT_HTTPS_LOAD_NO_CREDENTIAL"
+        return "No database UUID found on the IoT Box configuration, try pairing again."
 
     url = 'https://www.odoo.com/odoo-enterprise/iot/x509'
     data = {
@@ -371,18 +442,29 @@ def load_certificate():
             body = json.dumps(data).encode('utf8'),
             headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         )
-    except Exception as e:
+    except Exception:
         _logger.exception("An error occurred while trying to reach odoo.com servers.")
-        return "ERR_IOT_HTTPS_LOAD_REQUEST_EXCEPTION\n\n%s" % e
+        return "ERR_SSL_CERT_DOWNLOAD"
 
     if response.status != 200:
-        return "ERR_IOT_HTTPS_LOAD_REQUEST_STATUS %s\n\n%s" % (response.status, response.reason)
+        _logger.error("Server returned an invalid status while trying to get the certificate: %s %s", response.status, response.reason)
+        return "ERR_SSL_CERT_DOWNLOAD"
 
-    result = json.loads(response.data.decode()).get('result', {})
-    error = result.get('error')
-    if error:
-        _logger.error("An error received from odoo.com while trying to get the certificate: %s", error)
-        return "ERR_IOT_HTTPS_LOAD_REQUEST_NO_RESULT"
+    response_body = json.loads(response.data.decode())
+    server_error = response_body.get('error')
+    if server_error:
+        _logger.error("A server error received from odoo.com while trying to get the certificate: %s", server_error)
+        return server_error
+
+    result = response_body.get('result', {})
+    certificate_error = result.get('error')
+    if certificate_error:
+        _logger.error("An error received from odoo.com while trying to get the certificate: %s", certificate_error)
+        return certificate_error
+
+    if not result.get('x509_pem') or not result.get('private_key_pem'):
+        _logger.error("The certificate received from odoo.com is not valid.")
+        return "The certificate received from odoo.com is not valid, try restarting."
 
     update_conf({'subject': result['subject_cn']})
     if platform.system() == 'Linux':
@@ -425,16 +507,21 @@ def download_iot_handlers(auto=True):
     server = get_odoo_server_url()
     if server:
         urllib3.disable_warnings()
-        pm = urllib3.PoolManager(cert_reqs='CERT_NONE')
+        pm = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         server = server + '/iot/get_handlers'
         try:
             resp = pm.request('POST', server, fields={'mac': get_mac_address(), 'auto': auto}, timeout=8)
+            if resp.status != 200:
+                _logger.error('Bad IoT handlers response received: status %s', resp.status)
+                return
             if resp.data:
+                zip_file = zipfile.ZipFile(io.BytesIO(resp.data))
                 delete_iot_handlers()
+                path = path_file('odoo', 'addons', 'hw_drivers', 'iot_handlers')
                 with writable():
-                    path = path_file('odoo', 'addons', 'hw_drivers', 'iot_handlers')
-                    zip_file = zipfile.ZipFile(io.BytesIO(resp.data))
                     zip_file.extractall(path)
+        except zipfile.BadZipFile:
+            _logger.exception('Bad IoT handlers response received: not a zip file')
         except Exception:
             _logger.exception('Could not reach configured server to download IoT handlers')
 
@@ -569,18 +656,20 @@ def update_conf(values, section='iot.box'):
     :param values: The dictionary of key-value pairs to update the config with.
     :param section: The section to update the key-value pairs in (Default: iot.box).
     """
-    _logger.debug("Updating odoo.conf with values: %s", values)
-    conf = get_conf()
-    get_conf.cache_clear()  # Clear the cache to get the updated config
+    with writable():
+        _logger.debug("Updating odoo.conf with values: %s", values)
+        conf = get_conf()
+        get_conf.cache_clear()  # Clear the cache to get the updated config
 
-    if not conf.has_section(section):
-        _logger.debug("Creating new section '%s' in odoo.conf", section)
-        conf.add_section(section)
+        if not conf.has_section(section):
+            _logger.debug("Creating new section '%s' in odoo.conf", section)
+            conf.add_section(section)
 
-    for key, value in values.items():
-        conf.set(section, key, value) if value else conf.remove_option(section, key)
+        for key, value in values.items():
+            conf.set(section, key, value) if value else conf.remove_option(section, key)
 
-    write_file("odoo.conf", conf)
+        with open(path_file("odoo.conf"), "w", encoding='utf-8') as f:
+            conf.write(f)
 
 
 @cache
@@ -605,6 +694,10 @@ def disconnect_from_server():
         'token': '',
         'db_uuid': '',
         'enterprise_code': '',
+        'db_name': '',
+        'screen_orientation': '',
+        'browser_url': '',
+        'iot_handlers_etag': '',
     })
 
 

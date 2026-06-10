@@ -51,17 +51,12 @@ const SCREEN_CONFIG = {
     },
 };
 const CAMERA_CONFIG = {
-    width: { max: 1280 },
-    height: { max: 720 },
-    aspectRatio: 16 / 9,
-    frameRate: {
-        max: 30,
-    },
+    width: 1280,
 };
 const IS_CLIENT_RTC_COMPATIBLE = Boolean(window.RTCPeerConnection && window.MediaStream);
-const DEFAULT_ICE_SERVERS = [
-    { urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"] },
-];
+function GET_DEFAULT_ICE_SERVERS() {
+    return [{ urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"] }];
+}
 
 /**
  * @param {Array<RTCIceServer>} iceServers
@@ -218,7 +213,7 @@ export class Rtc extends Record {
     /** @type {{urls: string[]}[]} */
     iceServers = Record.attr(undefined, {
         compute() {
-            return this.iceServers ? this.iceServers : DEFAULT_ICE_SERVERS;
+            return this.iceServers ? this.iceServers : GET_DEFAULT_ICE_SERVERS();
         },
     });
     selfSession = Record.one("RtcSession");
@@ -240,6 +235,15 @@ export class Rtc extends Record {
     cleanups = [];
     /** @type {number} */
     sfuTimeout;
+    /** @type {number} count of how many times the p2p service attempted a connection recovery */
+    _p2pRecoveryCount = 0;
+    upgradeConnectionDebounce = debounce(
+        () => {
+            this._upgradeConnection();
+        },
+        15000,
+        { leading: true, trailing: false }
+    );
 
     callActions = Record.attr([], {
         compute() {
@@ -650,6 +654,9 @@ export class Rtc extends Record {
      * @param {Boolean} [param2.important] if the log is important and should be kept even if logRtc is disabled
      */
     log(session, entry, { error, step, state, important, ...data } = {}) {
+        if (!session) {
+            return;
+        }
         session.logStep = entry;
         if (!this.store.settings.logRtc && !important) {
             return;
@@ -730,7 +737,7 @@ export class Rtc extends Record {
                 }
                 for (const [id, info] of Object.entries(payload)) {
                     const session = await this.store.RtcSession.getWhenReady(Number(id));
-                    if (!session || !this.state.channel) {
+                    if (!this.state.channel || !session || session.eq(this.selfSession)) {
                         return;
                     }
                     // `isRaisingHand` is turned into the Date `raisingHand`
@@ -770,6 +777,22 @@ export class Rtc extends Record {
                     }, 2000);
                 }
                 return;
+            case "recovery": {
+                const { id } = payload;
+                const session = await this.store.RtcSession.getWhenReady(id);
+                if (
+                    !this.store.self.isInternalUser ||
+                    this.serverInfo ||
+                    this.state.fallbackMode ||
+                    !session?.channel.eq(this.state.channel)
+                ) {
+                    return;
+                }
+                this._p2pRecoveryCount++;
+                if (this._p2pRecoveryCount > 1 || !hasTurn(this.iceServers)) {
+                    this.upgradeConnectionDebounce();
+                }
+            }
         }
     }
 
@@ -815,6 +838,18 @@ export class Rtc extends Record {
         }
     }
 
+    async _upgradeConnection() {
+        const channelId = this.state.channel?.id;
+        if (this.serverInfo || this.state.fallbackMode || !channelId) {
+            return;
+        }
+        await rpc(
+            "/mail/rtc/channel/upgrade_connection",
+            { channel_id: channelId },
+            { silent: true }
+        );
+    }
+
     async _downgradeConnection() {
         this.serverInfo = undefined;
         this.state.fallbackMode = true;
@@ -858,7 +893,6 @@ export class Rtc extends Record {
             if (session.eq(this.selfSession)) {
                 continue;
             }
-            this.log(session, "init call", { step: "init call" });
             this.p2pService.addPeer(session.id, { sequence });
         }
     }
@@ -931,6 +965,9 @@ export class Rtc extends Record {
         this.state.channel.rtcInvitingSession = undefined;
         if (camera) {
             await this.toggleVideo("camera");
+        }
+        if (!this.selfSession) {
+            return;
         }
         await this._initConnection();
         await this.resetAudioTrack({ force: audio });
@@ -1035,6 +1072,7 @@ export class Rtc extends Record {
         browser.clearTimeout(this.sfuTimeout);
         this.sfuClient = undefined;
         this.network = undefined;
+        this._p2pRecoveryCount = 0;
         this.state.updateAndBroadcastDebounce?.cancel();
         this.state.disconnectAudioMonitor?.();
         this.state.audioTrack?.stop();
@@ -1266,6 +1304,10 @@ export class Rtc extends Record {
             stopVideo();
             return;
         }
+        if (!this.selfSession) {
+            closeStream(sourceStream);
+            return;
+        }
         let outputTrack = sourceStream ? sourceStream.getVideoTracks()[0] : undefined;
         if (outputTrack) {
             outputTrack.addEventListener("ended", async () => {
@@ -1288,6 +1330,9 @@ export class Rtc extends Record {
                 );
                 this.store.settings.useBlur = false;
             }
+        } else if (!this.store.settings.useBlur && type === "camera") {
+            this.blurManager?.close();
+            this.blurManager = undefined;
         }
         switch (type) {
             case "camera": {
@@ -1577,10 +1622,11 @@ export const rtcService = {
      * @param {Partial<import("services").Services>} services
      */
     start(env, services) {
-        const rtc = env.services["mail.store"].rtc;
+        const store = env.services["mail.store"];
+        const rtc = store.rtc;
         rtc.p2pService = services["discuss.p2p"];
         rtc.p2pService.acceptOffer = async (id, sequence) => {
-            const session = await this.store.RtcSession.getWhenReady(Number(id));
+            const session = await store.RtcSession.getWhenReady(Number(id));
             /**
              * We only accept offers for new connections (higher sequence),
              * or offers that renegotiate an existing connection (same sequence).

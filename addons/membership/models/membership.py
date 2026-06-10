@@ -28,7 +28,7 @@ class MembershipLine(models.Model):
     date = fields.Date(string='Join Date',
         help="Date on which member has joined the membership")
     member_price = fields.Float(string='Membership Fee',
-        digits='Product Price', required=True,
+        min_display_digits='Product Price', required=True,
         help='Amount for the membership')
     account_invoice_line = fields.Many2one('account.move.line', string='Account Invoice line', readonly=True, ondelete='cascade')
     account_invoice_id = fields.Many2one('account.move', related='account_invoice_line.move_id', string='Invoice', readonly=True)
@@ -50,13 +50,12 @@ class MembershipLine(models.Model):
         if not self:
             return
 
-        self._cr.execute('''
-            SELECT reversed_entry_id, COUNT(id)
-            FROM account_move
-            WHERE reversed_entry_id IN %s
-            GROUP BY reversed_entry_id
-        ''', [tuple(self.mapped('account_invoice_id.id'))])
-        reverse_map = dict(self._cr.fetchall())
+        groups = self.env['account.move'].sudo().read_group(
+            domain=[('reversed_entry_id', 'in', self.account_invoice_id.ids)],
+            fields=['reversed_entry_id'],
+            groupby=['reversed_entry_id']
+        )
+        reverse_map = {g['reversed_entry_id'][0]: g['reversed_entry_id_count'] for g in groups}
         for line in self:
             move_state = line.account_invoice_id.state
             payment_state = line.account_invoice_id.payment_state

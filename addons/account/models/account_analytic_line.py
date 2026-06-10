@@ -11,7 +11,9 @@ class AccountAnalyticLine(models.Model):
         'product.product',
         string='Product',
         check_company=True,
+        index='btree_not_null',
     )
+    product_category = fields.Many2one(related='product_id.categ_id')
     general_account_id = fields.Many2one(
         'account.account',
         string='Financial Account',
@@ -87,3 +89,23 @@ class AccountAnalyticLine(models.Model):
                 account=self.env['account.analytic.account'].browse(self.env.context['account_id']).name
             )
         return super().view_header_get(view_id, view_type)
+
+    def create(self, vals):
+        analytic_lines = super().create(vals)
+        analytic_lines.move_line_id._update_analytic_distribution()
+        return analytic_lines
+
+    def write(self, vals):
+        affected_move_lines = self.move_line_id
+        res = super().write(vals)
+        if any(field in vals for field in ['amount', 'move_line_id'] + self._get_plan_fnames()):
+            if 'move_line_id' in vals:
+                affected_move_lines |= self.move_line_id
+            affected_move_lines._update_analytic_distribution()
+        return res
+
+    def unlink(self):
+        affected_move_lines = self.move_line_id
+        res = super().unlink()
+        affected_move_lines._update_analytic_distribution()
+        return res

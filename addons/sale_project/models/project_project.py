@@ -41,8 +41,8 @@ class ProjectProject(models.Model):
     vendor_bill_count = fields.Integer(related='account_id.vendor_bill_count', groups='account.group_account_readonly', export_string_translation=False)
     partner_id = fields.Many2one(compute="_compute_partner_id", store=True, readonly=False)
     display_sales_stat_buttons = fields.Boolean(compute='_compute_display_sales_stat_buttons', export_string_translation=False)
-    sale_order_state = fields.Selection(related='sale_order_id.state', export_string_translation=False)
-    reinvoiced_sale_order_id = fields.Many2one('sale.order', string='Sales Order', groups='sales_team.group_sale_salesman', copy=False, domain="[('partner_id', '=', partner_id)]",
+    sale_order_state = fields.Selection(related='sale_order_id.state', export_string_translation=False, tracking=False)
+    reinvoiced_sale_order_id = fields.Many2one('sale.order', string='Sales Order', groups='sales_team.group_sale_salesman', copy=False, domain="[('partner_id', '=', partner_id)]", index='btree_not_null',
         help="Products added to stock pickings, whose operation type is configured to generate analytic costs, will be re-invoiced in this sales order if they are set up for it.",
     )
 
@@ -277,6 +277,18 @@ class ProjectProject(models.Model):
                 action['res_id'] = res_id
             return action
 
+        if section_name == 'cost_of_goods_sold':
+            move_ids = [res_id] if res_id else self.env['account.move'].search(domain).ids
+            action = {
+                'name': _('Cost of Goods Sold Items'),
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move.line',
+                'views': [[False, 'list'], [False, 'form']],
+                'domain': [('move_id', 'in', move_ids), ('display_type', '=', 'cogs')],
+                'context': {'create': False, 'edit': False},
+            }
+            return action
+
         return super().action_profitability_items(section_name, domain, res_id)
 
     @api.depends('sale_order_id.invoice_status', 'tasks.sale_order_id.invoice_status')
@@ -501,6 +513,7 @@ class ProjectProject(models.Model):
             'materials': self.env._('Materials'),
             'other_invoice_revenues': self.env._('Customer Invoices'),
             'downpayments': self.env._('Down Payments'),
+            'cost_of_goods_sold': self.env._('Cost of Goods Sold'),
         }
 
     def _get_profitability_sequence_per_invoice_type(self):
@@ -668,7 +681,7 @@ class ProjectProject(models.Model):
                 self._get_revenues_items_from_invoices_domain([('id', 'not in', excluded_move_line_ids)]),
                 [('analytic_distribution', 'in', self.account_id.ids)]
             ]),
-            ['price_subtotal', 'parent_state', 'currency_id', 'analytic_distribution', 'move_type', 'move_id', 'display_type']
+            ['balance', 'parent_state', 'company_currency_id', 'analytic_distribution', 'move_id', 'display_type', 'date']
         )
         res = {
             'revenues': {
@@ -690,23 +703,17 @@ class ProjectProject(models.Model):
             for move_lines, ml_type in ((revenues_lines, 'revenues'), (cogs_lines, 'costs')):
                 amount_invoiced = amount_to_invoice = 0.0
                 for move_line in move_lines:
-                    currency = move_line.currency_id
-                    price_subtotal = currency._convert(move_line.price_subtotal, self.currency_id, self.company_id)
+                    currency = move_line.company_currency_id
+                    line_balance = currency._convert(move_line.balance, self.currency_id, self.company_id, move_line.date)
                     # an analytic account can appear several time in an analytic distribution with different repartition percentage
                     analytic_contribution = sum(
                         percentage for ids, percentage in move_line.analytic_distribution.items()
                         if str(self.account_id.id) in ids.split(',')
                     ) / 100.
                     if move_line.parent_state == 'draft':
-                        if move_line.move_type == 'out_invoice':
-                            amount_to_invoice += price_subtotal * analytic_contribution
-                        else:  # move_line.move_type == 'out_refund'
-                            amount_to_invoice -= price_subtotal * analytic_contribution
+                        amount_to_invoice -= line_balance * analytic_contribution
                     else:  # move_line.parent_state == 'posted'
-                        if move_line.move_type == 'out_invoice':
-                            amount_invoiced += price_subtotal * analytic_contribution
-                        else:  # moves_read['move_type'] == 'out_refund'
-                            amount_invoiced -= price_subtotal * analytic_contribution
+                        amount_invoiced -= line_balance * analytic_contribution
                 # don't display the section if the final values are both 0 (invoice -> credit note)
                 if amount_invoiced != 0 or amount_to_invoice != 0:
                     section_id = 'other_invoice_revenues' if ml_type == 'revenues' else 'cost_of_goods_sold'

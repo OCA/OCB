@@ -1,25 +1,28 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* hr_contract
-# 
+# * hr_contract
+#
 # Translators:
 # Wil Odoo, 2024
 # Daye Jeong, 2024
 # Sarah Park, 2025
-# 
+#
+# "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-25 08:39+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Sarah Park, 2025\n"
-"Language-Team: Korean (https://app.transifex.com/odoo/teams/41243/ko/)\n"
+"POT-Creation-Date: 2025-12-29 18:37+0000\n"
+"PO-Revision-Date: 2026-02-14 09:09+0000\n"
+"Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-18/"
+"hr_contract/ko/>\n"
+"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract_history__contract_count
@@ -45,11 +48,13 @@ msgstr "/ 월"
 #. module: hr_contract
 #: model_terms:ir.ui.view,arch_db:hr_contract.hr_hr_employee_view_form3
 msgid ""
-"<span class=\"o_stat_text text-danger\" invisible=\"not contract_warning\" title=\"In Contract Since\">\n"
+"<span class=\"o_stat_text text-danger\" invisible=\"not contract_warning\" "
+"title=\"In Contract Since\">\n"
 "                                    In Contract Since\n"
 "                                </span>"
 msgstr ""
-"<span class=\"o_stat_text text-danger\" invisible=\"not contract_warning\" title=\"계약 중\">\n"
+"<span class=\"o_stat_text text-danger\" invisible=\"not contract_warning\" "
+"title=\"계약 중\">\n"
 "                                    계약 중\n"
 "                                </span>"
 
@@ -68,14 +73,16 @@ msgid ""
 "<span invisible=\"contracts_count != 1\" class=\"o_stat_text text-danger\">\n"
 "                                    Contract\n"
 "                                </span>\n"
-"                                <span invisible=\"contracts_count == 1\" class=\"o_stat_text text-danger\">\n"
+"                                <span invisible=\"contracts_count == 1\" "
+"class=\"o_stat_text text-danger\">\n"
 "                                    Contracts\n"
 "                                </span>"
 msgstr ""
 "<span invisible=\"contracts_count != 1\" class=\"o_stat_text text-danger\">\n"
 "                                    계약\n"
 "                                </span>\n"
-"                                <span invisible=\"contracts_count == 1\" class=\"o_stat_text text-danger\">\n"
+"                                <span invisible=\"contracts_count == 1\" "
+"class=\"o_stat_text text-danger\">\n"
 "                                    계약\n"
 "                                </span>"
 
@@ -85,14 +92,16 @@ msgid ""
 "<span invisible=\"contracts_count == 1\" class=\"o_stat_text\">\n"
 "                                        Contracts\n"
 "                                    </span>\n"
-"                                    <span invisible=\"contracts_count &gt; 1\" class=\"o_stat_text\">\n"
+"                                    <span invisible=\"contracts_count &gt; "
+"1\" class=\"o_stat_text\">\n"
 "                                        Contract\n"
 "                                    </span>"
 msgstr ""
 "<span invisible=\"contracts_count == 1\" class=\"o_stat_text\">\n"
 "                                        계약\n"
 "                                    </span>\n"
-"                                    <span invisible=\"contracts_count &gt; 1\" class=\"o_stat_text\">\n"
+"                                    <span invisible=\"contracts_count &gt; "
+"1\" class=\"o_stat_text\">\n"
 "                                        계약\n"
 "                                    </span>"
 
@@ -107,7 +116,9 @@ msgstr "<span>일</span>"
 msgid ""
 "According to Employee's Working Permit Expiration Date, this contract has "
 "been put in red on the %s. Please advise and correct."
-msgstr "직원의 취업 허가 만료일에 따라 이 계약은 %s이 빨간색으로 표시되어 있습니다. 확인 후 수정해주시기 바랍니다."
+msgstr ""
+"직원의 취업 허가 만료일에 따라 이 계약은 %s이 빨간색으로 표시되어 있습니다. "
+"확인 후 수정해주시기 바랍니다."
 
 #. module: hr_contract
 #. odoo-python
@@ -115,7 +126,9 @@ msgstr "직원의 취업 허가 만료일에 따라 이 계약은 %s이 빨간�
 msgid ""
 "According to the contract's end date, this contract has been put in red on "
 "the %s. Please advise and correct."
-msgstr "계약 종료일에 따라, 이 계약은 %s이 빨간색으로 표시되어 있습니다. 확인 후 수정해주시기 바랍니다."
+msgstr ""
+"계약 종료일에 따라, 이 계약은 %s이 빨간색으로 표시되어 있습니다. 확인 후 수정"
+"해주시기 바랍니다."
 
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract__message_needaction
@@ -173,11 +186,13 @@ msgstr "관리자"
 #. odoo-python
 #: code:addons/hr_contract/models/hr_contract.py:0
 msgid ""
-"An employee can only have one contract at the same time. (Excluding Draft and Cancelled contracts).\n"
+"An employee can only have one contract at the same time. (Excluding Draft "
+"and Cancelled contracts).\n"
 "\n"
 "Employee: %(employee_name)s"
 msgstr ""
-"직원은 동시에 둘 이상의 근로 계약을 가질 수 없습니다. (초안으로 작성되었거나 반려된 근로 계약서는 제외됩니다.)\n"
+"직원은 동시에 둘 이상의 근로 계약을 가질 수 없습니다. (초안으로 작성되었거나 "
+"반려된 근로 계약서는 제외됩니다.)\n"
 "\n"
 "직원: %(employee_name)s"
 
@@ -215,7 +230,8 @@ msgid ""
 "Calendar Mismatch: The employee's calendar does not match this contract's "
 "calendar. This could lead to unexpected behaviors."
 msgstr ""
-"캘린더가 일치하지 않음: 직원의 캘린더가 이 계약의 캘린더와 일치하지 않습니다. 이로 인해 예기치 않은 동작이 발생할 수 있습니다."
+"캘린더가 일치하지 않음: 직원의 캘린더가 이 계약의 캘린더와 일치하지 않습니"
+"다. 이로 인해 예기치 않은 동작이 발생할 수 있습니다."
 
 #. module: hr_contract
 #: model:ir.model.fields.selection,name:hr_contract.selection__hr_contract__state__cancel
@@ -265,7 +281,9 @@ msgstr "근로 계약"
 msgid ""
 "Contract %(contract)s: start date (%(start)s) must be earlier than contract "
 "end date (%(end)s)."
-msgstr "계약 %(contract)s: 계약 시작일(%(start)s)은 계약 종료일(%(end)s)보다 빨라야 합니다."
+msgstr ""
+"계약 %(contract)s: 계약 시작일(%(start)s)은 계약 종료일(%(end)s)보다 빨라야 "
+"합니다."
 
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract__contracts_count
@@ -657,7 +675,8 @@ msgstr "이 옵션을 선택하면 일부 정보가 전달 오류를 생성합�
 msgid ""
 "If the active field is set to False, it will allow you to hide the resource "
 "record without removing it."
-msgstr "활성 필드를 False로 설정하면 리소스 레코드를 제거하지 않고 숨길 수 있습니다."
+msgstr ""
+"활성 필드를 False로 설정하면 리소스 레코드를 제거하지 않고 숨길 수 있습니다."
 
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract_history__is_under_contract
@@ -870,13 +889,13 @@ msgstr "담당 사용자"
 #: model:ir.model.fields.selection,name:hr_contract.selection__hr_contract__state__open
 #: model:ir.model.fields.selection,name:hr_contract.selection__hr_contract_history__state__open
 msgid "Running"
-msgstr "실행 중"
+msgstr "진행 중"
 
 #. module: hr_contract
 #: model_terms:ir.ui.view,arch_db:hr_contract.hr_contract_history_view_search
 #: model_terms:ir.ui.view,arch_db:hr_contract.hr_contract_view_search
 msgid "Running Contracts"
-msgstr "실행 중인 계약"
+msgstr "진행 중인 계약"
 
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract__message_has_sms_error

@@ -33,12 +33,12 @@ function commonParentGet(node1, node2, root = undefined) {
 //--------------------------------------------------------------------------
 
 const RE_COL_MATCH = /(^| )col(-[\w\d]+)*( |$)/;
-const RE_COMMAS_OUTSIDE_PARENTHESES = /,(?![^(]*?\))/g;
 const RE_OFFSET_MATCH = /(^| )offset(-[\w\d]+)*( |$)/;
 const RE_PADDING_MATCH = /[ ]*padding[^;]*;/g;
 const RE_PADDING = /([\d.]+)/;
 const RE_WHITESPACE = /[\s\u200b]*/;
 const SELECTORS_IGNORE = /(^\*$|:hover|:before|:after|:active|:link|::|'|\([^(),]+[,(])|@page/;
+const RE_THEME_COLOR_CLASS = /^bg-o-color-\d+$/;
 // CSS properties relating to font, which Outlook seem to have trouble inheriting.
 const FONT_PROPERTIES_TO_INHERIT = [
     "color",
@@ -61,7 +61,8 @@ export const TABLE_ATTRIBUTES = {
 };
 // Cancel tables default styles.
 export const TABLE_STYLES = {
-    "border-collapse": "collapse",
+    "border-collapse": "separate",
+    "border-spacing": "0px",
     "text-align": "inherit",
     "font-size": "unset",
     "line-height": "inherit",
@@ -77,6 +78,10 @@ const GROUPED_STYLES = {
         "border-right-style",
         "border-bottom-style",
         "border-left-style",
+        "border-top-color",
+        "border-right-color",
+        "border-bottom-color",
+        "border-left-color",
     ],
     padding: ["padding-top", "padding-bottom", "padding-left", "padding-right"],
     margin: ["margin-top", "margin-bottom", "margin-left", "margin-right"],
@@ -437,6 +442,7 @@ export function cardToTable(element) {
                 col.append(child);
             }
             const subTable = _createTable();
+            subTable.style.height = "100%";
             const superRow = document.createElement("tr");
             const superCol = document.createElement("td");
             row.append(col);
@@ -523,6 +529,7 @@ export function classToStyle(element, cssRules) {
                 style = `${key}:${value};${style}`;
             }
         }
+        style = correctBorderAttributes(style);
         if (Object.keys(style || {}).length === 0) {
             writes.push(() => {
                 node.removeAttribute("style");
@@ -532,6 +539,18 @@ export function classToStyle(element, cssRules) {
                 node.setAttribute("style", style);
                 if (node.style.width) {
                     node.setAttribute("width", node.style.width.replace("px", "").trim());
+                }
+            });
+        }
+
+        const themeColorClasses = [...node.classList].filter((c) => RE_THEME_COLOR_CLASS.test(c));
+        if (themeColorClasses.length) {
+            writes.push(() => {
+                for (const cls of themeColorClasses) {
+                    node.classList.remove(cls);
+                }
+                if (!node.classList.length) {
+                    node.removeAttribute("class");
                 }
             });
         }
@@ -567,7 +586,7 @@ export function classToStyle(element, cssRules) {
         ) {
             writes.push(() => {
                 node.before(
-                    _createMso(`<table align="center" border="0"
+                    createMso(`<table align="center" border="0"
                     role="presentation" cellpadding="0" cellspacing="0"
                     style="border-radius: 6px; border-collapse: separate !important;">
                         <tbody>
@@ -580,7 +599,7 @@ export function classToStyle(element, cssRules) {
                     `)
                 );
                 node.after(
-                    _createMso(`</td>
+                    createMso(`</td>
                         </tr>
                     </tbody>
                 </table>`)
@@ -668,16 +687,16 @@ function enforceTablesResponsivity(element) {
             td.removeAttribute("width");
             if (index === 0) {
                 div.before(
-                    _createMso(`
+                    createMso(`
                     <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
                         <tr>
                             <td valign="top" style="width: ${width};">`)
                 );
             } else {
-                div.before(_createMso(`</td><td valign="top" style="width: ${width};">`));
+                div.before(createMso(`</td><td valign="top" style="width: ${width};">`));
             }
             if (index === tds.length - 1) {
-                div.after(_createMso(`</td></tr></table>`));
+                div.after(createMso(`</td></tr></table>`));
             }
             index++;
         }
@@ -799,7 +818,7 @@ function enforceImagesResponsivity(element) {
     // Remove the height attribute in card images so they can resize
     // responsively, but leave it for Outlook.
     for (const image of element.querySelectorAll('img[width="100%"][height]')) {
-        image.before(_createMso(image.outerHTML));
+        image.before(createMso(image.outerHTML));
         image.classList.add("mso-hide");
         image.removeAttribute("height");
     }
@@ -819,6 +838,13 @@ export async function toInline(element, cssRules) {
         imgTop.style.setProperty("height", _getHeight(imgTop) + "px");
     }
 
+    // Fix empty element heights to be always visible as they might have borders
+    // (used as separation) and can be rendered with height 0px.
+    // like having empty div with % height and display inline-block.
+    for (const el of element.querySelectorAll(".o_not_editable[class*='border-']:empty")) {
+        el.style.height = getComputedStyle(el).height;
+    }
+
     attachmentThumbnailToLinkImg(element);
     fontToImg(element);
     await svgToPng(element);
@@ -830,7 +856,7 @@ export async function toInline(element, cssRules) {
         clone.setAttribute("width", width);
         clone.style.setProperty("width", width + "px");
         clone.style.removeProperty("max-width");
-        image.before(_createMso(clone.outerHTML));
+        image.before(createMso(clone.outerHTML));
         _hideForOutlook(image);
     }
 
@@ -908,7 +934,7 @@ function flattenBackgroundImages(element) {
         const vml = _backgroundImageToVml(backgroundImage);
         if (vml) {
             // Put the Outlook version after the original one in an mso conditional.
-            backgroundImage.after(_createMso(vml));
+            backgroundImage.after(createMso(vml));
             // Hide the original element for Outlook.
             backgroundImage.classList.add("mso-hide");
         }
@@ -1199,6 +1225,26 @@ export function formatTables(element) {
         }
     }
 }
+export function splitSelectors(str) {
+    const result = [];
+    let current = "";
+    let depth = 0;
+    for (const char of str) {
+        if (char === "(") {
+            depth++;
+        } else if (char === ")") {
+            depth--;
+        }
+        if (char === "," && depth === 0) {
+            result.push(current.trim());
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
 /**
  * Parse through the given document's stylesheets, preprocess(*) them and return
  * the result as an array of objects, each containing a selector string , a
@@ -1241,7 +1287,7 @@ export function getCSSRules(doc) {
             for (const subRule of subRules) {
                 const selectorText = subRule.selectorText || "";
                 // Split selectors, making sure not to split at commas in parentheses.
-                for (const selector of selectorText.split(RE_COMMAS_OUTSIDE_PARENTHESES)) {
+                for (const selector of splitSelectors(selectorText)) {
                     if (selector && !SELECTORS_IGNORE.test(selector)) {
                         cssRules.push({ selector: selector.trim(), rawRule: subRule });
                         if (selector === "body") {
@@ -1396,7 +1442,7 @@ function responsiveToStaticForOutlook(element) {
             }
         }
         // The opening tag of `outlookTd` is for Outlook.
-        td.before(_createMso(outlookTd.outerHTML.replace("</td>", "")));
+        td.before(createMso(outlookTd.outerHTML.replace("</td>", "")));
         // The opening tag of `td` is for the others.
         _hideForOutlook(td, "opening");
     }
@@ -1596,8 +1642,15 @@ function _createColumnGrid() {
  * @param {string} content
  * @returns {Comment}
  */
-function _createMso(content = "") {
-    return document.createComment(`[if mso]>${content}<![endif]`);
+export function createMso(content = "") {
+    // We remove comments having opposite condition from the one we will insert
+    // We remove comment tags having the same condition
+    const showRegex = /<!--\[if\s+mso\]>([\s\S]*?)<!\[endif\]-->/g;
+    const hideRegex = /<!--\[if\s+!mso\]>([\s\S]*?)<!\[endif\]-->/g;
+    let contentToInsert = content;
+    contentToInsert = contentToInsert.replace(showRegex, (matchedContent, group) => group);
+    contentToInsert = contentToInsert.replace(hideRegex, "");
+    return document.createComment(`[if mso]>${contentToInsert}<![endif]`);
 }
 /**
  * Return a table element, with its default styles and attributes, as well as
@@ -1681,7 +1734,8 @@ function _getMatchedCSSRules(node, cssRules) {
         node.mozMatchesSelector ||
         node.msMatchesSelector ||
         node.oMatchesSelector;
-    const styles = cssRules.map((rule) => rule.style).filter(Boolean);
+
+    const styles = cssRules.map((rule) => removeBlacklistedStyles(rule, node)).filter(Boolean);
 
     // Add inline styles at the highest specificity.
     if (node.style.length) {
@@ -1863,7 +1917,11 @@ function _getHeight(element) {
  */
 function _hideForOutlook(node, onlyHideTag = false) {
     if (!onlyHideTag) {
-        node.setAttribute("style", `${node.getAttribute("style") || ""} mso-hide: all;`.trim());
+        let style = (node.getAttribute("style") || "").trim();
+        if (style && !style.endsWith(";")) {
+            style += ";";
+        }
+        node.setAttribute("style", `${style} mso-hide: all;`);
     }
     node[onlyHideTag === "closing" ? "append" : "before"](document.createComment("[if !mso]><!"));
     node[onlyHideTag === "opening" ? "prepend" : "after"](document.createComment("<![endif]"));
@@ -1918,4 +1976,87 @@ function _wrap(element, wrapperTag, wrapperClass, wrapperStyle) {
     element.parentElement.insertBefore(wrapper, element);
     wrapper.append(element);
     return wrapper;
+}
+
+function isBlacklistedStyle(node, selector, key) {
+    return (
+        node.matches("table, thead, tbody, tfoot, tr, td, th") &&
+        ["table", "thead", "tbody", "tfoot", "tr", "td", "th"].some((elName) =>
+            selector.includes(elName)
+        ) &&
+        key.includes("color")
+    );
+}
+
+function removeBlacklistedStyles(rule, node) {
+    if (!rule.style) {
+        return rule.style;
+    }
+    const styles = {};
+    for (const [key, value] of Object.entries(rule.style)) {
+        if (isBlacklistedStyle(node, rule.selector, key)) {
+            continue;
+        }
+        styles[key] = value;
+    }
+    return styles;
+}
+
+/**
+ * Corrects the `border-style` attribute in the provided inline style string.
+ * This is specifically for Outlook, which displays borders even when their widths are set to 0px.
+ * If all border widths are 0, the function updates `border-style` to `none`.
+ *
+ * @param {string} style - The inline style string to correct.
+ * @returns {string} - The corrected inline style string.
+ */
+function correctBorderAttributes(style) {
+    const stylesObject = style
+        .replace(/\s+/g, " ")
+        .split(";")
+        .reduce((styles, styleString) => {
+            const [attribute, value] = styleString.split(":").map((str) => str.trim());
+            if (attribute) {
+                styles[attribute] = value;
+            }
+            return styles;
+        }, {});
+
+    const BORDER_WIDTHS_ATTRIBUTES = [
+        "border-bottom-width",
+        "border-left-width",
+        "border-right-width",
+        "border-top-width",
+    ];
+
+    const isBorderStyleApplied = BORDER_WIDTHS_ATTRIBUTES.some(
+        (attribute) => attribute in stylesObject
+    );
+
+    if (!isBorderStyleApplied) {
+        return style;
+    }
+
+    const totalBorderWidth = BORDER_WIDTHS_ATTRIBUTES.reduce((totalWidth, attribute) => {
+        const widthValue = stylesObject[attribute] || "0px";
+        const numericWidth = parseFloat(widthValue.replace("px", "")) || 0;
+        return totalWidth + numericWidth;
+    }, 0);
+
+    if (totalBorderWidth === 0) {
+        let correctedStyle = style.trim();
+        if (correctedStyle.slice(-1) != ";") {
+            correctedStyle += ";";
+        }
+        correctedStyle = correctedStyle.replace(
+            /(;|^)\s*border-style\s*:[^;]*(;|$)|$/,
+            "$1border-style:none$2"
+        );
+        return correctedStyle;
+    }
+
+    if (/border-style\s*:/i.test(style)) {
+        return style;
+    }
+    return style.trim().replace(/;?$/, "; border-style: solid;");
 }

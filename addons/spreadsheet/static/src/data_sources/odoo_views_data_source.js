@@ -1,6 +1,7 @@
 /** @odoo-module */
 // @ts-check
 
+import { LoadingDataError } from "@spreadsheet/o_spreadsheet/errors";
 import { LOADING_ERROR, LoadableDataSource, getFields } from "./data_source";
 import { Domain } from "@web/core/domain";
 import { user } from "@web/core/user";
@@ -67,7 +68,7 @@ export class OdooViewsDataSource extends LoadableDataSource {
      */
     _assertMetaDataLoaded() {
         if (!this._isModelValid) {
-            throw this.loadError;
+            throw this._loadError;
         }
         if (!this._metaDataLoaded) {
             this.loadMetadata();
@@ -101,6 +102,13 @@ export class OdooViewsDataSource extends LoadableDataSource {
 
     isMetaDataLoaded() {
         return this._metaData.fields !== undefined;
+    }
+
+    _assertMetadataIsLoaded() {
+        if (this._metaData.fields === undefined) {
+            this.loadMetadata();
+            throw new LoadingDataError();
+        }
     }
 
     /**
@@ -148,5 +156,9 @@ export class OdooViewsDataSource extends LoadableDataSource {
         const model = this._metaData.resModel;
         const result = await this.serverData.fetch("ir.model", "display_name_for", [[model]]);
         return (result[0] && result[0].display_name) || "";
+    }
+
+    get source() {
+        return {};
     }
 }

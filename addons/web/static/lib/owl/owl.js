@@ -684,7 +684,7 @@
     const characterDataSetData = getDescriptor$1(characterDataProto, "data").set;
     const nodeGetFirstChild = getDescriptor$1(nodeProto$2, "firstChild").get;
     const nodeGetNextSibling = getDescriptor$1(nodeProto$2, "nextSibling").get;
-    const NO_OP = () => { };
+    const NO_OP$1 = () => { };
     function makePropSetter(name) {
         return function setProp(value) {
             // support 0, fallback to empty string for other falsy values
@@ -1014,7 +1014,7 @@
                         idx: info.idx,
                         refIdx: info.refIdx,
                         setData: makeRefSetter(index, ctx.refList),
-                        updateData: NO_OP,
+                        updateData: NO_OP$1,
                     });
             }
         }
@@ -1640,6 +1640,7 @@
             let current = fiber;
             do {
                 current.node.fiber = current;
+                fibersInError.set(current, error);
                 current = current.parent;
             } while (current);
             fibersInError.set(fiber.root, error);
@@ -2386,12 +2387,18 @@
         const node = getCurrent();
         let render = batchedRenderFunctions.get(node);
         if (!render) {
-            render = batched(node.render.bind(node, false));
+            const wrapper = { fn: batched(node.render.bind(node, false)) };
+            render = (...args) => wrapper.fn(...args);
             batchedRenderFunctions.set(node, render);
             // manual implementation of onWillDestroy to break cyclic dependency
-            node.willDestroy.push(clearReactivesForCallback.bind(null, render));
+            node.willDestroy.push(cleanupRenderAndReactives.bind(null, wrapper, render));
         }
         return reactive(state, render);
+    }
+    const NO_OP = () => { };
+    function cleanupRenderAndReactives(wrapper, render) {
+        wrapper.fn = NO_OP;
+        clearReactivesForCallback(render);
     }
     class ComponentNode {
         constructor(C, props, app, parent, parentKey) {
@@ -3853,7 +3860,16 @@
             return key;
         }
     }
-    const TRANSLATABLE_ATTRS = ["label", "title", "placeholder", "alt"];
+    const TRANSLATABLE_ATTRS = [
+        "alt",
+        "aria-label",
+        "aria-placeholder",
+        "aria-roledescription",
+        "aria-valuetext",
+        "label",
+        "placeholder",
+        "title",
+    ];
     const translationRE = /^(\s*)([\s\S]+?)(\s*)$/;
     class CodeGenerator {
         constructor(ast, options) {
@@ -4533,7 +4549,7 @@
             const isNewBlock = !block || forceNewBlock;
             let codeIdx = this.target.code.length;
             if (isNewBlock) {
-                const n = ast.content.filter((c) => c.type !== 6 /* TSet */).length;
+                const n = ast.content.filter((c) => !c.hasNoRepresentation).length;
                 let result = null;
                 if (n <= 1) {
                     for (let child of ast.content) {
@@ -4547,15 +4563,15 @@
             let index = 0;
             for (let i = 0, l = ast.content.length; i < l; i++) {
                 const child = ast.content[i];
-                const isTSet = child.type === 6 /* TSet */;
+                const forceNewBlock = !child.hasNoRepresentation;
                 const subCtx = createContext(ctx, {
                     block,
                     index,
-                    forceNewBlock: !isTSet,
+                    forceNewBlock,
                     isLast: ctx.isLast && i === l - 1,
                 });
                 this.compileAST(child, subCtx);
-                if (!isTSet) {
+                if (forceNewBlock) {
                     index++;
                 }
             }
@@ -4971,11 +4987,11 @@
             parseTPortal(node, ctx) ||
             parseTCall(node, ctx) ||
             parseTCallBlock(node) ||
-            parseTEscNode(node, ctx) ||
-            parseTOutNode(node, ctx) ||
-            parseTKey(node, ctx) ||
             parseTTranslation(node, ctx) ||
             parseTTranslationContext(node, ctx) ||
+            parseTKey(node, ctx) ||
+            parseTEscNode(node, ctx) ||
+            parseTOutNode(node, ctx) ||
             parseTSlot(node, ctx) ||
             parseComponent(node, ctx) ||
             parseDOMNode(node, ctx) ||
@@ -5043,19 +5059,29 @@
     function parseTDebugLog(node, ctx) {
         if (node.hasAttribute("t-debug")) {
             node.removeAttribute("t-debug");
-            return {
+            const content = parseNode(node, ctx);
+            const ast = {
                 type: 12 /* TDebug */,
-                content: parseNode(node, ctx),
+                content,
             };
+            if (content === null || content === void 0 ? void 0 : content.hasNoRepresentation) {
+                ast.hasNoRepresentation = true;
+            }
+            return ast;
         }
         if (node.hasAttribute("t-log")) {
             const expr = node.getAttribute("t-log");
             node.removeAttribute("t-log");
-            return {
+            const content = parseNode(node, ctx);
+            const ast = {
                 type: 13 /* TLog */,
                 expr,
-                content: parseNode(node, ctx),
+                content,
             };
+            if (content === null || content === void 0 ? void 0 : content.hasNoRepresentation) {
+                ast.hasNoRepresentation = true;
+            }
+            return ast;
         }
         return null;
     }
@@ -5285,11 +5311,19 @@
         }
         const key = node.getAttribute("t-key");
         node.removeAttribute("t-key");
-        const body = parseNode(node, ctx);
-        if (!body) {
+        const content = parseNode(node, ctx);
+        if (!content) {
             return null;
         }
-        return { type: 10 /* TKey */, expr: key, content: body };
+        const ast = {
+            type: 10 /* TKey */,
+            expr: key,
+            content,
+        };
+        if (content.hasNoRepresentation) {
+            ast.hasNoRepresentation = true;
+        }
+        return ast;
     }
     // -----------------------------------------------------------------------------
     // t-call
@@ -5398,7 +5432,7 @@
         if (node.textContent !== node.innerHTML) {
             body = parseChildren(node, ctx);
         }
-        return { type: 6 /* TSet */, name, value, defaultValue, body };
+        return { type: 6 /* TSet */, name, value, defaultValue, body, hasNoRepresentation: true };
     }
     // -----------------------------------------------------------------------------
     // Components
@@ -5577,30 +5611,51 @@
     // -----------------------------------------------------------------------------
     // Translation
     // -----------------------------------------------------------------------------
+    function wrapInTTranslationAST(r) {
+        const ast = { type: 16 /* TTranslation */, content: r };
+        if (r === null || r === void 0 ? void 0 : r.hasNoRepresentation) {
+            ast.hasNoRepresentation = true;
+        }
+        return ast;
+    }
     function parseTTranslation(node, ctx) {
         if (node.getAttribute("t-translation") !== "off") {
             return null;
         }
         node.removeAttribute("t-translation");
-        return {
-            type: 16 /* TTranslation */,
-            content: parseNode(node, ctx),
-        };
+        const result = parseNode(node, ctx);
+        if ((result === null || result === void 0 ? void 0 : result.type) === 3 /* Multi */) {
+            const children = result.content.map(wrapInTTranslationAST);
+            return makeASTMulti(children);
+        }
+        return wrapInTTranslationAST(result);
     }
     // -----------------------------------------------------------------------------
     // Translation Context
     // -----------------------------------------------------------------------------
+    function wrapInTTranslationContextAST(r, translationCtx) {
+        const ast = {
+            type: 17 /* TTranslationContext */,
+            content: r,
+            translationCtx,
+        };
+        if (r === null || r === void 0 ? void 0 : r.hasNoRepresentation) {
+            ast.hasNoRepresentation = true;
+        }
+        return ast;
+    }
     function parseTTranslationContext(node, ctx) {
         const translationCtx = node.getAttribute("t-translation-context");
         if (!translationCtx) {
             return null;
         }
         node.removeAttribute("t-translation-context");
-        return {
-            type: 17 /* TTranslationContext */,
-            content: parseNode(node, ctx),
-            translationCtx,
-        };
+        const result = parseNode(node, ctx);
+        if ((result === null || result === void 0 ? void 0 : result.type) === 3 /* Multi */) {
+            const children = result.content.map((c) => wrapInTTranslationContextAST(c, translationCtx));
+            return makeASTMulti(children);
+        }
+        return wrapInTTranslationContextAST(result, translationCtx);
     }
     // -----------------------------------------------------------------------------
     // Portal
@@ -5645,6 +5700,13 @@
         }
         return children;
     }
+    function makeASTMulti(children) {
+        const ast = { type: 3 /* Multi */, content: children };
+        if (children.every((c) => c.hasNoRepresentation)) {
+            ast.hasNoRepresentation = true;
+        }
+        return ast;
+    }
     /**
      * Parse all the child nodes of a given node and return an ast if possible.
      * In the case there are multiple children, they are wrapped in a astmulti.
@@ -5657,7 +5719,7 @@
             case 1:
                 return children[0];
             default:
-                return { type: 3 /* Multi */, content: children };
+                return makeASTMulti(children);
         }
     }
     /**
@@ -5761,7 +5823,7 @@
     }
 
     // do not modify manually. This file is generated by the release script.
-    const version = "2.7.0";
+    const version = "2.8.2";
 
     // -----------------------------------------------------------------------------
     //  Scheduler
@@ -6270,8 +6332,8 @@
     Object.defineProperty(exports, '__esModule', { value: true });
 
 
-    __info__.date = '2025-03-26T12:58:40.935Z';
-    __info__.hash = 'e788e36';
+    __info__.date = '2026-01-30T07:49:47.618Z';
+    __info__.hash = '52abf8d';
     __info__.url = 'https://github.com/odoo/owl';
 
 

@@ -66,16 +66,18 @@ class ProductProduct(models.Model):
         for bom_line, moves_list in groupby(stock_moves.filtered(lambda sm: sm.state != 'cancel'), lambda sm: sm.bom_line_id):
             if bom_line not in bom_lines:
                 for move in moves_list:
-                    component_quantity = next(
-                        (bml.product_qty for bml in move.product_id.bom_line_ids if bml in bom_lines),
-                        1
+                    component_bml = next(
+                        (bml for bml in move.product_id.bom_line_ids if bml in bom_lines),
+                        False
                     )
-                    value += component_quantity * move.product_id._compute_average_price(qty_invoiced * move.product_qty, qty_to_invoice * move.product_qty, move, is_returned=is_returned)
+                    component_quantity = component_bml.product_uom_id._compute_quantity(component_bml.product_qty, move.product_uom) \
+                        if component_bml else 1
+                    value += component_quantity * move.product_id._compute_average_price(qty_invoiced * component_quantity, qty_to_invoice * component_quantity, move, is_returned=is_returned)
                 continue
             line_qty = bom_line.product_uom_id._compute_quantity(bom_lines[bom_line]['qty'], bom_line.product_id.uom_id)
             moves = self.env['stock.move'].concat(*moves_list)
             value += line_qty * bom_line.product_id._compute_average_price(qty_invoiced * line_qty, qty_to_invoice * line_qty, moves, is_returned=is_returned)
-        return value
+        return bom.product_uom_id._compute_price(value / bom.product_qty, self.uom_id)
 
     def _compute_bom_price(self, bom, boms_to_recompute=False, byproduct_bom=False):
         self.ensure_one()

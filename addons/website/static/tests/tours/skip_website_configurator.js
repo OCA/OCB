@@ -19,6 +19,7 @@ registry.category("web_tour.tours").add('skip_website_configurator', {
         content: "validate the website creation modal",
         trigger: '.modal button.btn-primary',
         run: "click",
+        expectUnloadPage: true,
     },
     {
         content: "skip configurator",
@@ -42,6 +43,6 @@ registry.category("web_tour.tours").add('skip_website_configurator', {
     },
     {
         content: "Wait title is present before close tour",
-        trigger: ":iframe h2:contains(/^welcome to your/)",
+        trigger: ":iframe h2:contains(welcome to your)",
     }
 ]});

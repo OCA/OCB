@@ -44,6 +44,7 @@ class L10nMyEDITestSubmission(TestAccountMoveSendCommon):
             'street': 'that other street, 3',
             'city': 'Main city',
             'phone': '+60123456786',
+            'ref': "MY-REF",
         })
         cls.product_a.l10n_my_edi_classification_code = "001"
 
@@ -551,7 +552,7 @@ class L10nMyEDITestSubmission(TestAccountMoveSendCommon):
                     'success': True,
                 }]
             }
-        elif endpoint == 'api/l10n_my_edi/1/get_submission_statuses' and self.get_submission_status_count == 0:
+        elif endpoint == 'api/l10n_my_edi/1/get_submission_statuses' and self.get_submission_status_count < 3:
             self.get_submission_status_count += 1
             return {
                 'statuses': {
@@ -564,7 +565,7 @@ class L10nMyEDITestSubmission(TestAccountMoveSendCommon):
                 },
                 'document_count': 1,
             }
-        elif endpoint == 'api/l10n_my_edi/1/get_submission_statuses' and self.get_submission_status_count == 1:
+        elif endpoint == 'api/l10n_my_edi/1/get_submission_statuses' and self.get_submission_status_count == 3:
             self.get_submission_status_count += 1
             return {
                 'statuses': {

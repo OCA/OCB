@@ -26,6 +26,8 @@ import { HtmlViewer } from "./html_viewer";
 import { withSequence } from "@html_editor/utils/resource";
 import { fixInvalidHTML, instanceofMarkup } from "@html_editor/utils/sanitize";
 
+const HTML_FIELD_METADATA_ATTRIBUTES = ["data-last-history-steps"];
+
 /**
  * Check whether the current value contains nodes that would break
  * on insertion inside an existing body.
@@ -80,6 +82,7 @@ export class HtmlField extends Component {
         this.ormService = useService("orm");
 
         this.isDirty = false;
+        this.lastChangeId = 0;
         this.state = useState({
             key: 0,
             showCodeView: false,
@@ -145,18 +148,38 @@ export class HtmlField extends Component {
         stripVersion(element);
     }
 
-    async updateValue(value) {
+    async updateValue(value, { changeId } = { changeId: this.lastChangeId }) {
         this.lastValue = normalizeHTML(value, this.clearElementToCompare.bind(this));
-        this.isDirty = false;
-        await this.props.record.update({ [this.props.name]: value }).catch(() => {
-            this.isDirty = true;
-        });
+        await this.props.record.update({ [this.props.name]: value }).then(
+            () => {
+                if (this.lastChangeId === changeId) {
+                    this.isDirty = false;
+                }
+            },
+            () => {}
+        );
         this.props.record.model.bus.trigger("FIELD_IS_DIRTY", this.isDirty);
     }
 
     async getEditorContent() {
-        await this.editor.shared.media?.savePendingImages();
-        return this.editor.getElContent();
+        const content = this.editor.getElContent();
+        const oldSrcToNewSrcMap = await this.editor.shared.media?.savePendingImages(content);
+        // Update the actual editable if still in the DOM.
+        if (this.editor.editable && oldSrcToNewSrcMap) {
+            this.editor.editable
+                .querySelectorAll('.o_b64_image_to_save, .o_modified_image_to_save')
+              .forEach((unsavedImage) => {
+                const oldSrc = unsavedImage.getAttribute('src');
+                if (oldSrcToNewSrcMap.has(oldSrc)) {
+                  unsavedImage.setAttribute(
+                    'src',
+                    oldSrcToNewSrcMap.get(oldSrc)
+                  );
+                }
+                unsavedImage.classList.remove("o_b64_image_to_save", "o_modified_image_to_save");
+              });
+        }
+        return content;
     }
 
     async _commitChanges({ urgent }) {
@@ -171,12 +194,13 @@ export class HtmlField extends Component {
             if (urgent) {
                 await this.updateValue(this.editor.getContent());
             }
+            const changeId = this.lastChangeId;
             const el = await this.getEditorContent();
             const content = el.innerHTML;
             this.clearElementToCompare(el);
             const comparisonValue = el.innerHTML;
             if (!urgent || (urgent && this.lastValue !== comparisonValue)) {
-                await this.updateValue(content);
+                await this.updateValue(content, { changeId });
             }
         }
     }
@@ -195,6 +219,9 @@ export class HtmlField extends Component {
 
     onChange() {
         this.isDirty = true;
+        // Keep track of every change individually to avoid resetting dirtiness
+        // after committing a change if another change occurred in the meantime.
+        this.lastChangeId++;
         this.props.record.model.bus.trigger("FIELD_IS_DIRTY", true);
     }
 
@@ -264,6 +291,7 @@ export class HtmlField extends Component {
         }
         if (this.props.codeview) {
             config.resources = {
+                ...config.resources,
                 user_commands: [
                     {
                         id: "codeview",
@@ -350,3 +378,23 @@ export const htmlField = {
 };
 
 registry.category("fields").add("html", htmlField, { force: true });
+
+export function getHtmlFieldMetadata(content) {
+    const metadata = {};
+    for (const attribute of HTML_FIELD_METADATA_ATTRIBUTES) {
+        const regex = new RegExp(`${attribute}\\s*=\\s*"([^"]+)"`);
+        metadata[attribute] = content.match(regex)?.[1];
+    }
+    return metadata;
+}
+export function setHtmlFieldMetadata(content, metadata) {
+    const htmlContent = content.toString() || "<div></div>";
+    const parser = new DOMParser();
+    const contentDocument = parser.parseFromString(htmlContent, "text/html");
+    for (const [attribute, value] of Object.entries(metadata)) {
+        if (value) {
+            contentDocument.body.firstChild.setAttribute(attribute, value);
+        }
+    }
+    return contentDocument.body.innerHTML;
+}

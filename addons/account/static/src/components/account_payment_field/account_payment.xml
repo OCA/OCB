@@ -40,11 +40,15 @@
                            <a role="button" tabindex="0" class="js_payment_info fa fa-info-circle" t-att-index="line_index" style="margin-right:5px;" aria-label="Info" title="Journal Entry Info" data-bs-toggle="tooltip" t-on-click.stop="(ev) => this.onInfoClick(ev, line)"></a>
                         </td>
                         <td t-if="!line.is_exchange">
-                            <i class="o_field_widget text-start o_payment_label">Paid on <t t-out="line.formattedDate"></t></i>
+                            <i class="o_field_widget text-start o_payment_label">
+                                <t t-if="line.is_refund">Reversed on </t>
+                                <t t-else="">Paid on </t>
+                                <t t-out="line.formattedDate"></t>
+                            </i>
                         </td>
                         <td t-if="line.is_exchange" colspan="2">
                             <i class="o_field_widget text-start text-muted text-start">
-                                <span class="oe_form_field oe_form_field_float oe_form_field_monetary fw-bold">
+                                <span class="oe_form_field oe_form_field_float oe_form_field_monetary fw-bold" dir="ltr">
                                     <t t-out="line.amount_formatted"/>
                                 </span>
                                 <span> Exchange Difference</span>
@@ -52,7 +56,7 @@
                         </td>
                     </t>
                     <td t-if="!line.is_exchange" style="text-align:right;">
-                        <span class="oe_form_field oe_form_field_float oe_form_field_monetary" style="margin-left: -10px;">
+                        <span class="oe_form_field oe_form_field_float oe_form_field_monetary" style="margin-left: -10px;" dir="ltr">
                             <t t-out="line.amount_formatted"/>
                         </span>
                     </td>

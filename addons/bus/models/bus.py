@@ -9,8 +9,10 @@ import selectors
 import threading
 import time
 from psycopg2 import InterfaceError
+from psycopg2.pool import PoolError
 
 import odoo
+from ..tools import orjson
 from odoo import api, fields, models
 from odoo.service.server import CommonServer
 from odoo.tools import json_default, SQL
@@ -20,6 +22,7 @@ _logger = logging.getLogger(__name__)
 
 # longpolling timeout connection
 TIMEOUT = 50
+DEFAULT_GC_RETENTION_SECONDS = 60 * 60 * 24  # 24 hours
 
 # custom function to call instead of default PostgreSQL's `pg_notify`
 ODOO_NOTIFY_FUNCTION = os.getenv('ODOO_NOTIFY_FUNCTION', 'pg_notify')
@@ -91,12 +94,13 @@ class ImBus(models.Model):
 
     @api.autovacuum
     def _gc_messages(self):
-        timeout_ago = fields.Datetime.now() - datetime.timedelta(seconds=TIMEOUT*2)
-        domain = [('create_date', '<', timeout_ago)]
-        records = self.search(domain, limit=models.GC_UNLINK_LIMIT)
-        if len(records) >= models.GC_UNLINK_LIMIT:
-            self.env.ref('base.autovacuum_job')._trigger()
-        return records.unlink()
+        gc_retention_seconds = int(
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("bus.gc_retention_seconds", DEFAULT_GC_RETENTION_SECONDS)
+        )
+        timeout_ago = fields.Datetime.now() - datetime.timedelta(seconds=gc_retention_seconds)
+        self.env.cr.execute("DELETE FROM bus_bus WHERE create_date < %s", (timeout_ago,))
 
     @api.model
     def _sendone(self, target, notification_type, message):
@@ -176,7 +180,7 @@ class ImBus(models.Model):
         for notif in notifications:
             result.append({
                 'id': notif['id'],
-                'message': json.loads(notif['message']),
+                'message': orjson.loads(notif['message']),
             })
         return result
 
@@ -240,7 +244,7 @@ class ImDispatch(threading.Thread):
                     conn.poll()
                     channels = []
                     while conn.notifies:
-                        channels.extend(json.loads(conn.notifies.pop().payload))
+                        channels.extend(orjson.loads(conn.notifies.pop().payload))
                     # relay notifications to websockets that have
                     # subscribed to the corresponding channels.
                     websockets = set()
@@ -254,7 +258,7 @@ class ImDispatch(threading.Thread):
             try:
                 self.loop()
             except Exception as exc:
-                if isinstance(exc, InterfaceError) and stop_event.is_set():
+                if isinstance(exc, (InterfaceError, PoolError)) and stop_event.is_set():
                     continue
                 _logger.exception("Bus.loop error, sleep and retry")
                 time.sleep(TIMEOUT)

@@ -1,20 +1,24 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* l10n_din5008
+# * l10n_din5008
 #
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.3alpha1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-08 10:58+0000\n"
-"PO-Revision-Date: 2024-04-24 08:11+0000\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: \n"
+"POT-Creation-Date: 2026-04-10 19:07+0000\n"
+"PO-Revision-Date: 2026-02-07 10:31+0000\n"
+"Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-18-l10n/"
+"l10n_din5008/de/>\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: \n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: l10n_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.din5008_css
@@ -30,11 +34,6 @@ msgstr ""
 "                            .company_header {\n"
 "                                .name_container {\n"
 "                                    color:"
-
-#. module: l10n_din5008
-#: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_wizard_preview
-msgid "/12345"
-msgstr ""
 
 #. module: l10n_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.din5008_css
@@ -63,7 +62,7 @@ msgid ""
 "                        &amp;.invoice_note {\n"
 "                            td {\n"
 "                                .address {\n"
-"                                    &gt; span {\n"
+"                                    .colored_address {\n"
 "                                        color:"
 msgstr ""
 ";\n"
@@ -73,7 +72,7 @@ msgstr ""
 "                        &amp;.invoice_note {\n"
 "                            td {\n"
 "                                .address {\n"
-"                                    &gt; span {\n"
+"                                    .colored_address {\n"
 "                                        color:"
 
 #. module: l10n_din5008
@@ -94,16 +93,6 @@ msgstr ""
 "[name=stock_move_table], .o_main_table {\n"
 "                                    th {\n"
 "                                        color:"
-
-#. module: l10n_din5008
-#: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
-msgid "<span class=\"fw-bold\">Invoicing Address:</span>"
-msgstr "<span class=\"fw-bold\">Rechnungsadresse:</span>"
-
-#. module: l10n_din5008
-#: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
-msgid "<span class=\"fw-bold\">Invoicing and Shipping Address:</span>"
-msgstr "<span class=\"fw-bold\">Rechnungs- und Lieferadresse:</span>"
 
 #. module: l10n_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
@@ -118,7 +107,7 @@ msgstr "<span class=\"fw-bold\">Lieferadresse:</span>"
 #. module: l10n_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.external_layout_din5008
 msgid "<span>|</span>"
-msgstr ""
+msgstr "<span>|</span>"
 
 #. module: l10n_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.external_layout_din5008
@@ -211,6 +200,11 @@ msgid "INV/"
 msgstr "INV/"
 
 #. module: l10n_din5008
+#: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
+msgid "Incoterm"
+msgstr "Incoterm"
+
+#. module: l10n_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.external_layout_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
 msgid "Invoice"
@@ -297,8 +291,6 @@ msgid "Street2"
 msgstr "Straße 2"
 
 #. module: l10n_din5008
-#: model_terms:ir.ui.view,arch_db:l10n_din5008.external_layout_din5008
-#: model_terms:ir.ui.view,arch_db:l10n_din5008.external_layout_din5008_account_move
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
 msgid "Tax ID"
 msgstr "USt-IdNr."
@@ -321,6 +313,11 @@ msgstr ""
 
 #. module: l10n_din5008
 #: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
+msgid "VAT"
+msgstr "USt-IdNr."
+
+#. module: l10n_din5008
+#: model_terms:ir.ui.view,arch_db:l10n_din5008.report_invoice_document
 msgid "Vendor Bill"
 msgstr "Lieferantenrechnung"
 
@@ -333,3 +330,6 @@ msgstr "Lieferantengutschrift"
 #: model:ir.model.fields,field_description:l10n_din5008.field_base_document_layout__zip
 msgid "Zip"
 msgstr "Postleitzahl"
+
+#~ msgid "/12345"
+#~ msgstr "/12345"

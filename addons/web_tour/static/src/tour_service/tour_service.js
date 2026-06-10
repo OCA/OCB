@@ -37,6 +37,7 @@ const StepSchema = {
         },
     },
     trigger: { type: String },
+    expectUnloadPage: { type: Boolean, optional: true },
     //ONLY IN DEBUG MODE
     pause: { type: Boolean, optional: true },
     break: { type: Boolean, optional: true },
@@ -55,7 +56,7 @@ const userMenuRegistry = registry.category("user_menuitems");
 export const tourService = {
     // localization dependency to make sure translations used by tours are loaded
     dependencies: ["orm", "effect", "overlay", "localization"],
-    start: async (_env, { orm, effect, overlay }) => {
+    start: async (env, { orm, effect, overlay }) => {
         await whenReady();
         let toursEnabled = session?.tour_enabled;
         const tourRegistry = registry.category("web_tour.tours");
@@ -180,7 +181,7 @@ export const tourService = {
             if (tourConfig.mode === "auto") {
                 new TourAutomatic(tour).start();
             } else {
-                new TourInteractive(tour).start(pointer, async () => {
+                new TourInteractive(tour).start(env, pointer, async () => {
                     pointer.stop();
                     tourState.clear();
                     browser.console.log("tour succeeded");

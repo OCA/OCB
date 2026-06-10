@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from datetime import datetime
+from functools import partial
 from unittest.mock import patch
 
 from odoo.exceptions import UserError, ValidationError
@@ -312,20 +313,73 @@ class TestWebsiteSaleCart(BaseUsersCommon, ProductAttributesCommon, WebsiteSaleC
             ]
         })
         no_variant_ptavs = product_no_variants.attribute_line_ids.product_template_value_ids
+        no_variant_ptav = no_variant_ptavs[0]
+        add_one = partial(
+            self.empty_cart._cart_update,
+            product_id=product_no_variants.product_variant_id.id,
+            add_qty=1,
+        )
         self.assertEqual(len(self.empty_cart.order_line), 0)
-        self.empty_cart._cart_update(
-            product_id=product_no_variants.product_variant_id.id,
-            add_qty=1,
-            no_variant_attribute_value_ids=no_variant_ptavs[0].ids,
-        )
+
+        add_one(no_variant_attribute_value_ids=no_variant_ptav.ids)
         self.assertEqual(len(self.empty_cart.order_line), 1)
-        self.empty_cart._cart_update(
-            product_id=product_no_variants.product_variant_id.id,
-            add_qty=1,
-            no_variant_attribute_value_ids=no_variant_ptavs[0].ids,
-        )
+
+        add_one(no_variant_attribute_value_ids=no_variant_ptav.ids)
         self.assertEqual(len(self.empty_cart.order_line), 1)
         self.assertEqual(self.empty_cart.order_line.product_uom_qty, 2)
+
+        # Providing `no_variant_attribute_value_ids` should be optional if there's only 1 value...
+        product_no_variants.attribute_line_ids.value_ids = self.no_variant_attribute.value_ids[0]
+        add_one(no_variant_attribute_value_ids=[])
+        self.assertEqual(len(self.empty_cart.order_line), 1)
+        self.assertEqual(self.empty_cart.order_line.product_uom_qty, 3)
+
+        # ...except if it's a multi-checkbox attribute, making the value optional
+        self.no_variant_attribute.display_type = 'multi'
+        add_one(no_variant_attribute_value_ids=[])
+        self.assertEqual(len(self.empty_cart.order_line), 2)
+        self.assertEqual(self.empty_cart.order_line.mapped('product_uom_qty'), [3, 1])
+
+        add_one(no_variant_attribute_value_ids=no_variant_ptav.ids)
+        self.assertEqual(len(self.empty_cart.order_line), 2)
+        self.assertEqual(self.empty_cart.order_line.mapped('product_uom_qty'), [4, 1])
+
+    def test_cart_new_pricelist_from_geoip(self):
+        """Check that, when adding a new partner to a website order, the partner's GeoIP
+        is factored into the pricelist recomputation.
+        """
+        eu_group = self.env.ref('base.europe')
+        not_eu_group = self.env['res.country.group'].create({
+            'name': "Not EU",
+            'country_ids': self.env['res.country'].search([
+                ('id', 'not in', eu_group.country_ids.ids),
+            ]).ids,
+        })
+
+        _pricelist_eu, pricelist_not_eu = self.env['product.pricelist'].create([{
+            'name': "EU",
+            'country_group_ids': eu_group.ids,
+            'website_id': self.website.id,
+            'sequence': 1,
+        }, {
+            'name': "Not EU",
+            'country_group_ids': not_eu_group.ids,
+            'website_id': self.website.id,
+            'sequence': 2,
+        }])
+
+        website = self.website.with_user(self.public_user)
+        with (
+            MockRequest(website.env, website=website, country_code='US'),
+            patch.object(website.__class__, '_get_geoip_country_code', return_value='US'),
+        ):
+            self.WebsiteSaleController.cart_update_json(product_id=self.product.id, add_qty=1)
+            cart = website.sale_get_order()
+            self.assertEqual(cart.pricelist_id, pricelist_not_eu)
+            cart.partner_id = self.env['res.partner'].create({
+                'name': "New Partner",
+            })
+            self.assertEqual(cart.pricelist_id, pricelist_not_eu)
 
     def test_remove_archived_product_line(self):
         """If an order has a line containing an archived product,

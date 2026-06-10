@@ -3,6 +3,7 @@ import base64
 import binascii
 from datetime import time
 import logging
+import math
 import re
 from io import BytesIO
 
@@ -13,7 +14,7 @@ from PIL import Image
 from lxml import etree, html
 
 from odoo import api, fields, models, tools
-from odoo.tools import posix_to_ldml, float_utils, format_date, format_duration
+from odoo.tools import posix_to_ldml, float_is_zero, float_utils, format_date, format_duration
 from odoo.tools.mail import safe_attrs
 from odoo.tools.misc import get_lang, babel_locale_parse
 from odoo.tools.mimetypes import guess_mimetype
@@ -182,33 +183,42 @@ class FloatConverter(models.AbstractModel):
 
     @api.model
     def value_to_html(self, value, options):
+        min_precision = options.get('min_precision')
         if 'decimal_precision' in options:
             precision = self.env['decimal.precision'].precision_get(options['decimal_precision'])
+        elif options.get('precision') is None:
+            int_digits = int(math.log10(abs(value))) + 1 if value != 0 else 1
+            # Within 15 digits, we have a float with no parasite digits.
+            # 14 is chosen here, as float_round will add a digit when performing its computations.
+            max_dec_digits = max(14 - int_digits, 0)
+            # We display maximum 6 decimal digits or the number of significant decimal digits if it's lower
+            precision = min(6, max_dec_digits)
+            min_precision = min_precision or 1
         else:
             precision = options['precision']
 
-        if precision is None:
-            fmt = '%f'
-        else:
-            value = float_utils.float_round(value, precision_digits=precision)
-            fmt = '%.{precision}f'.format(precision=precision)
+        fmt = f'%.{precision}f'
+        if min_precision and min_precision < precision:
+            _, dec_part = float_utils.float_split_str(value, precision)
+            digits_count = len(dec_part.rstrip('0'))
+            if digits_count < min_precision:
+                fmt = f'%.{min_precision}f'
+            elif digits_count < precision:
+                fmt = f'%.{digits_count}f'
 
-        formatted = self.user_lang().format(fmt, value, grouping=True).replace(r'-', '-\N{ZERO WIDTH NO-BREAK SPACE}')
-
-        # %f does not strip trailing zeroes. %g does but its precision causes
-        # it to switch to scientific notation starting at a million *and* to
-        # strip decimals. So use %f and if no precision was specified manually
-        # strip trailing 0.
-        if precision is None:
-            formatted = re.sub(r'(?:(0|\d+?)0+)$', r'\1', formatted)
-
-        return formatted
+        value = float_utils.float_round(value, precision_digits=precision)
+        return self.user_lang().format(fmt, value, grouping=True).replace(r'-', '-\N{ZERO WIDTH NO-BREAK SPACE}')
 
     @api.model
     def record_to_html(self, record, field_name, options):
         if 'precision' not in options and 'decimal_precision' not in options:
             _, precision = record._fields[field_name].get_digits(record.env) or (None, None)
             options = dict(options, precision=precision)
+        if 'min_precision' not in options:
+            field = record._fields[field_name]
+            if hasattr(field, 'get_min_display_digits'):
+                min_precision = field.get_min_display_digits(record.env)
+                options = dict(options, min_precision=min_precision)
         return super(FloatConverter, self).record_to_html(record, field_name, options)
 
 
@@ -358,6 +368,19 @@ class ManyToManyConverter(models.AbstractModel):
         return nl2br(text)
 
 
+class OneToManyConverter(models.AbstractModel):
+    _name = 'ir.qweb.field.one2many'
+    _description = 'Qweb field one2many'
+    _inherit = 'ir.qweb.field'
+
+    @api.model
+    def value_to_html(self, value, options):
+        if not value:
+            return False
+        text = ', '.join(value.sudo().mapped('display_name'))
+        return nl2br(text)
+
+
 class HTMLConverter(models.AbstractModel):
     _name = 'ir.qweb.field.html'
     _description = 'Qweb Field HTML'
@@ -398,18 +421,20 @@ class ImageConverter(models.AbstractModel):
         except binascii.Error:
             raise ValueError("Invalid image content") from None
 
-        if img_b64 and guess_mimetype(img_b64, '') == 'image/webp':
+        mimetype = guess_mimetype(img_b64, '') if img_b64 else None
+        if mimetype == 'image/webp':
             return self.env["ir.qweb"]._get_converted_image_data_uri(value)
+        elif mimetype != "image/svg+xml":
+            try:
+                image = Image.open(BytesIO(img_b64))
+                image.verify()
+                mimetype = Image.MIME[image.format]
+            except OSError as exc:
+                raise ValueError("Non-image binary fields can not be converted to HTML") from exc
+            except Exception as exc:  # noqa: BLE001
+                raise ValueError("Invalid image content") from exc
 
-        try:
-            image = Image.open(BytesIO(img_b64))
-            image.verify()
-        except IOError:
-            raise ValueError("Non-image binary fields can not be converted to HTML") from None
-        except: # image.verify() throws "suitable exceptions", I have no idea what they are
-            raise ValueError("Invalid image content") from None
-
-        return "data:%s;base64,%s" % (Image.MIME[image.format], value.decode('ascii'))
+        return "data:%s;base64,%s" % (mimetype, value.decode('ascii'))
 
     @api.model
     def value_to_html(self, value, options):
@@ -425,7 +450,7 @@ class ImageUrlConverter(models.AbstractModel):
 
     @api.model
     def value_to_html(self, value, options):
-        return Markup('<img src="%s">' % (value))
+        return Markup('<img src="%s">') % (value)
 
 class MonetaryConverter(models.AbstractModel):
     """ ``monetary`` converter, has a mandatory option
@@ -478,6 +503,9 @@ class MonetaryConverter(models.AbstractModel):
             else:
                 company = self.env.company
             value = options['from_currency']._convert(value, display_currency, company, date)
+
+        if float_is_zero(value, precision_digits=display_currency.decimal_places):
+            value = 0.0
 
         lang = self.user_lang()
         formatted_amount = lang.format(fmt, display_currency.round(value), grouping=True)\

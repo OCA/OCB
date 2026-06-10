@@ -288,6 +288,48 @@ class TestSaleOrder(SaleCommon):
         self.assertEqual(so2.order_line.product_packaging_id, company2_pack_of_10)
         self.assertEqual(so2.order_line.product_packaging_qty, 1.0)
 
+    def test_compute_packaging_02(self):
+        """Create a SO and use packaging. Check product_qty and product_packaging
+        are correctly calculated when packaging_qty is manually changed.
+        """
+        # Required for `product_packaging_qty` to be visible in the view
+        self.env.user.groups_id += self.env.ref('product.group_stock_packaging')
+        packaging_one, packaging_four = self.env['product.packaging'].create([{
+            'name': "One pack",
+            'product_id': self.product.id,
+            'qty': 1.0,
+        }, {
+            'name': "Four pack",
+            'product_id': self.product.id,
+            'qty': 4.0,
+        }])
+
+        so = self.empty_order
+        so_form = Form(so)
+        with so_form.order_line.new() as line:
+            line.product_id = self.product
+            line.product_uom_qty = 1.0
+        so_form.save()
+        self.assertEqual(so.order_line.product_packaging_id, packaging_one)
+        self.assertEqual(so.order_line.product_packaging_qty, 1.0)
+        with so_form.order_line.edit(0) as line:
+            line.product_packaging_qty = 4.0
+        so_form.save()
+        self.assertEqual(so.order_line.product_uom_qty, 4.0)
+        self.assertEqual(so.order_line.product_packaging_id, packaging_one)
+
+        with so_form.order_line.edit(0) as line:
+            line.product_packaging_qty = 5.0
+        so_form.save()
+        self.assertEqual(so.order_line.product_packaging_id, packaging_one)
+        self.assertEqual(so.order_line.product_packaging_qty, 5.0)
+
+        with so_form.order_line.edit(0) as line:
+            line.product_uom_qty = 4.0
+        so_form.save()
+        self.assertEqual(so.order_line.product_packaging_id, packaging_four)
+        self.assertEqual(so.order_line.product_packaging_qty, 1.0)
+
     def _create_sale_order(self):
         """Create dummy sale order (without lines)"""
         return self.env['sale.order'].with_context(
@@ -341,21 +383,49 @@ class TestSaleOrder(SaleCommon):
 
     def test_sol_names(self):
         """Check that the SOL description gets used for the display name."""
+        no_variant_attr = self.env['product.attribute'].create({
+            'name': "Attribute",
+            'create_variant': 'no_variant',
+            'value_ids': [
+                Command.create({'name': "Value 1", 'sequence': 1}),
+                Command.create({'name': "Value 2", 'sequence': 2}),
+            ],
+        })
+        no_variant_product_tmpl = self.env['product.template'].create({
+            'name': "No Variant",
+            'attribute_line_ids': [Command.create({
+                'attribute_id': no_variant_attr.id,
+                'value_ids': no_variant_attr.value_ids.ids,
+            })],
+        })
+        no_variant_product = no_variant_product_tmpl.product_variant_id
+        ptals = no_variant_product_tmpl.valid_product_template_attribute_line_ids
+        ptav1 = next(iter(ptals.product_template_value_ids))
+        product_with_desc = self.env['product.product'].create({
+            'name': "Product with description",
+            'description_sale': "Additional\ninfo.",
+        })
+
         self.sale_order.order_line = [
             Command.create({'is_downpayment': True}),
             Command.create({'display_type': 'line_note', 'name': "Foo\nBar\nBaz"}),
+            Command.create({
+                'product_id': no_variant_product.id,
+                'product_no_variant_attribute_value_ids': ptav1.ids,
+            }),
+            Command.create({'product_id': product_with_desc.id}),
         ]
-        sol1, sol2, sol3, sol4 = self.sale_order.order_line
+        sol1, sol2, sol3, sol4, sol5, sol6 = self.sale_order.order_line
         sol1.name += "\nOK THANK YOU\nGOOD BYE"
 
         self.assertEqual(
             sol1.display_name,
             f"{self.sale_order.name} - OK THANK YOU ({self.partner.name})",
-            "Product line with description should display the first line of description",
+            "Product line with a custom description should display the first line of description",
         )
         self.assertEqual(
             sol2.display_name,
-            f"{self.sale_order.name} - {sol2.product_id.name} ({self.partner.name})",
+            f"{self.sale_order.name} - {sol2.product_id.display_name} ({self.partner.name})",
             "Product line without description should display the product name",
         )
         self.assertEqual(
@@ -367,6 +437,17 @@ class TestSaleOrder(SaleCommon):
             sol4.display_name,
             f"{self.sale_order.name} - Foo ({self.partner.name})",
             "Multi-line note should display the first line only",
+        )
+        self.assertIn(f"{no_variant_attr.name}: {ptav1.name}", sol5.name.split('\n'))
+        self.assertEqual(
+            sol5.display_name,
+            f"{self.sale_order.name} - {no_variant_product.name} ({self.partner.name})",
+            "Lines with attribute-based descriptions should display the product name",
+        )
+        self.assertEqual(
+            sol6.display_name,
+            f"{self.sale_order.name} - {product_with_desc.display_name} ({self.partner.name})",
+            "Product lines with standard sales description should display the product name",
         )
 
     def test_state_changes(self):
@@ -504,6 +585,27 @@ class TestSaleOrder(SaleCommon):
         sale_order.partner_id = self.partner2
 
         self.assertIn(self.partner2, sale_order.message_partner_ids)
+
+    def test_scheduled_mark_so_as_sent(self):
+        """Check that a order gets marked as sent after a scheduled message was sent."""
+        order = self.sale_order
+        composer = self.env['mail.compose.message'].with_context(
+            active_id=order.id,
+            active_ids=order.ids,
+            active_model=order._name,
+            mark_so_as_sent=True,
+        ).new({'body': '<h1>Your Sales Order</h1>'})
+        composer.action_schedule_message(
+            scheduled_date=fields.Datetime.now() + timedelta(hours=1),
+        )
+
+        scheduled_message = self.env['mail.scheduled.message'].search([
+            ('model', '=', order._name),
+            ('res_id', '=', order.id),
+        ], limit=1)
+        self.assertEqual(order.state, 'draft')
+        scheduled_message.post_message()
+        self.assertEqual(order.state, 'sent')
 
     def test_so_discount_is_not_reset(self):
         """ Discounts should not be recomputed on order confirmation """
@@ -711,6 +813,44 @@ class TestSaleOrder(SaleCommon):
             ],
         })
         self.assertEqual(new_order.order_line.price_unit, 22.0)
+
+    def test_sale_order_unit_price_recompute_on_product_change(self):
+        """Ensure price_unit is correctly recomputed when the product is
+           changed after manually changing the price.
+        """
+        product2 = self.env['product.product'].create({
+            'name': "Test Product2",
+            'list_price': 0.0,
+        })
+        sol = self.sale_order.order_line[0]
+        # Manually change the product & price on the SO line
+        with Form(sol) as sol_form:
+            sol_form.product_id = product2
+            sol_form.price_unit = 100
+        # Expected price_subtotal = custom unit price * quantity
+        self.assertAlmostEqual(
+            sol.price_subtotal, 100 * sol.product_uom_qty,
+            msg="price_total should be equal to expected_total",
+        )
+        # Unit price should reset after changing the product
+        with Form(sol) as sol_form:
+            sol_form.product_id = self.product
+        # Expected price_subtotal = list price * quantity
+        self.assertAlmostEqual(
+            sol.price_subtotal, self.product.list_price * sol.product_uom_qty,
+            msg="price_total should be equal to expected_total",
+        )
+
+    def test_sale_order_email_subtitle(self):
+        """Test email notification subtitle for Sale Order with and without partner name."""
+        partner = self.env['res.partner'].create({'type': 'invoice', 'parent_id': self.partner.id})
+        self.sale_order.partner_id = partner
+        context = self.sale_order._notify_by_email_prepare_rendering_context(message=self.env['mail.message'])
+        self.assertEqual(context['subtitles'][0], self.sale_order.name)
+
+        self.sale_order.partner_id.name = "Test Partner"
+        context = self.sale_order._notify_by_email_prepare_rendering_context(message=self.env['mail.message'])
+        self.assertEqual(context['subtitles'][0], f"{self.sale_order.name} - Test Partner")
 
 
 @tagged('post_install', '-at_install')
@@ -1034,7 +1174,8 @@ class TestSaleMailComposerUI(MailCommon, HttpCase):
         cls.env['mail.alias.domain'].create({'name': 'example.com'})
         cls.partner = cls.env['res.partner'].create({
             'name': 'test customer',
-            'email': 'dummy@example.com'
+            'lang': 'en_US',
+            'email': 'en@example.com',
         })
         cls.quotation = cls.env['sale.order'].create({
             'partner_id': cls.partner.id,
@@ -1048,3 +1189,54 @@ class TestSaleMailComposerUI(MailCommon, HttpCase):
                 "mail_attachment_removal_tour",
                 login="admin",
             )
+
+    def test_mail_button_translation(self):
+        """Test the final rendering context to ensure the button is properly translated
+        for each recipient's language, checking both the 'View' and the type_name. """
+        self.env['res.lang']._activate_lang('fr_FR')
+        self.partner_fr = self.env['res.partner'].create({
+            'name': 'French Customer',
+            'lang': 'fr_FR',
+            'email': 'fr@example.com',
+        })
+        # Quotation -> SO
+        self.quotation.action_confirm()
+        self.message = self.env['mail.message'].create({
+            'model': 'sale.order',
+            'res_id': self.quotation.id,
+            'body': 'Testing button translation',
+            'message_type': 'comment',
+        })
+        recipients_data = [
+            {'id': self.partner.id, 'lang': 'en_US', 'type': 'customer', 'notif': 'email',
+             'groups': []},
+            {'id': self.partner_fr.id, 'lang': 'fr_FR', 'type': 'follower', 'notif': 'email',
+             'groups': []},
+        ]
+
+        iterator = self.quotation._notify_get_classified_recipients_iterator(
+            message=self.message,
+            recipients_data=recipients_data,
+            msg_vals={'model': 'sale.order'}
+        )
+        results = {lang: group for lang, render_values, group in iterator}
+
+        button_en = results['en_US'].get('button_access', {}).get('title', '')
+        button_fr = results['fr_FR'].get('button_access', {}).get('title', '')
+
+        self.assertNotEqual(
+            button_en,
+            button_fr,
+            "The button text is identical, the context language was not fetched correctly."
+        )
+
+        self.assertEqual(
+            button_en,
+            "View Sales Order",
+            f"Expected 'View Sales Order', got '{button_en}'"
+        )
+        self.assertEqual(
+            button_fr,
+            "Voir Commande client",
+            f"Expected 'Voir Commande client', got '{button_fr}'"
+        )

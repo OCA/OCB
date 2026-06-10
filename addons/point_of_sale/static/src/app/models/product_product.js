@@ -129,7 +129,15 @@ export class ProductProduct extends Base {
     // product.pricelist.item records are loaded with a search_read
     // and were automatically sorted based on their _order by the
     // ORM. After that they are added in this order to the pricelists.
-    get_price(pricelist, quantity, price_extra = 0, recurring = false, list_price = false) {
+    get_price(
+        pricelist,
+        quantity,
+        price_extra = 0,
+        recurring = false,
+        list_price = false,
+        original_line = false,
+        related_lines = []
+    ) {
         // In case of nested pricelists, it is necessary that all pricelists are made available in
         // the POS. Display a basic alert to the user in the case where there is a pricelist item
         // but we can't load the base pricelist to get the price when calling this method again.
@@ -144,8 +152,18 @@ export class ProductProduct extends Base {
             );
         }
 
-        let price = (list_price || this.lst_price) + (price_extra || 0);
+        if (original_line && original_line.isLotTracked()) {
+            related_lines.push(
+                ...original_line.order_id.lines.filter((line) => line.product_id.id === this.id)
+            );
+            quantity = related_lines.reduce((sum, line) => {
+                return sum + line.get_quantity();
+            }, 0);
+        }
+
         const rule = this.getPricelistRule(pricelist, quantity);
+
+        let price = (list_price || this.lst_price) + (price_extra || 0);
         if (!rule) {
             return price;
         }
@@ -188,7 +206,22 @@ export class ProductProduct extends Base {
 
     getPricelistRule(pricelist, quantity) {
         const rules = !pricelist ? [] : this.cachedPricelistRules[pricelist?.id] || [];
-        return rules.find((rule) => !rule.min_quantity || quantity >= rule.min_quantity);
+        const applicableRules = rules.filter(
+            (rule) => !rule.min_quantity || quantity >= rule.min_quantity
+        );
+        if (!applicableRules) {
+            return undefined;
+        }
+        const productIdRule = applicableRules?.find(
+            (rule) => rule.product_id && rule.product_id.id === this.id
+        );
+        const productTmplIdRule = applicableRules?.find(
+            (rule) => rule.product_tmpl_id && rule.product_tmpl_id.id === this.raw.product_tmpl_id
+        );
+        const categoryRule = applicableRules?.find(
+            (rule) => rule.categ_id && this.parentCategories.includes(rule.categ_id.id)
+        );
+        return productIdRule || productTmplIdRule || categoryRule || applicableRules[0];
     }
     getImageUrl() {
         return (
@@ -219,28 +252,32 @@ export class ProductProduct extends Base {
         return [];
     }
 
-    _isArchivedCombination(attributeValueIds) {
-        if (!this._archived_combinations) {
+    _isArchivedCombination(attributeValueIds, exclusion) {
+        const excludedPTAV = new Set();
+        if (exclusion && exclusion.size > 0) {
+            for (const ptavId of attributeValueIds) {
+                for (const excludedPtavId of exclusion.get(ptavId) || []) {
+                    excludedPTAV.add(excludedPtavId);
+                }
+            }
+        } else if (!this._archived_combinations) {
             return false;
         }
-        const excludedPTAV = new Set();
-        let isCombinationArchived = false;
-        for (const archivedCombination of this._archived_combinations) {
-            const ptavCommon = archivedCombination.filter((ptav) =>
-                attributeValueIds.includes(ptav)
-            );
-            if (ptavCommon.length === attributeValueIds.length) {
-                // all attributes must be disabled from each other
-                archivedCombination.forEach((ptav) => excludedPTAV.add(ptav));
-            } else if (ptavCommon.length === attributeValueIds.length - 1) {
-                // In this case we only need to disable the remaining ptav
-                const disablePTAV = archivedCombination.find(
-                    (ptav) => !attributeValueIds.includes(ptav)
+        if (this._archived_combinations) {
+            for (const archivedCombination of this._archived_combinations) {
+                const ptavCommon = archivedCombination.filter((ptav) =>
+                    attributeValueIds.includes(ptav)
                 );
-                excludedPTAV.add(disablePTAV);
-            }
-            if (ptavCommon.length === attributeValueIds.length) {
-                isCombinationArchived = true;
+                if (ptavCommon.length === attributeValueIds.length) {
+                    // all attributes must be disabled from each other
+                    archivedCombination.forEach((ptav) => excludedPTAV.add(ptav));
+                } else if (ptavCommon.length === attributeValueIds.length - 1) {
+                    // In this case we only need to disable the remaining ptav
+                    const disablePTAV = archivedCombination.find(
+                        (ptav) => !attributeValueIds.includes(ptav)
+                    );
+                    excludedPTAV.add(disablePTAV);
+                }
             }
         }
         this.attribute_line_ids.forEach((attribute_line) => {
@@ -248,7 +285,7 @@ export class ProductProduct extends Base {
                 ptav["excluded"] = excludedPTAV.has(ptav.id);
             });
         });
-        return isCombinationArchived;
+        return attributeValueIds.some((id) => excludedPTAV.has(id));
     }
 
     get productDisplayName() {
@@ -256,6 +293,9 @@ export class ProductProduct extends Base {
     }
     get canBeDisplayed() {
         return this.active && this.available_in_pos;
+    }
+    get variants() {
+        return this.product_tmpl_id?.["<-product.product.product_tmpl_id"];
     }
 }
 registry.category("pos_available_models").add(ProductProduct.pythonModel, ProductProduct);

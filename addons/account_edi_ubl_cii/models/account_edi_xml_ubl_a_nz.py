@@ -27,6 +27,8 @@ class AccountEdiXmlUBLANZ(models.AbstractModel):
 
     def _get_partner_party_tax_scheme_vals_list(self, partner, role):
         # EXTENDS account.edi.xml.ubl_bis3
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals_list = super()._get_partner_party_tax_scheme_vals_list(partner, role)
 
         for vals in vals_list:
@@ -37,7 +39,10 @@ class AccountEdiXmlUBLANZ(models.AbstractModel):
 
     def _get_partner_party_vals(self, partner, role):
         # EXTENDS account.edi.xml.ubl_bis3
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals = super()._get_partner_party_vals(partner, role)
+        vals.setdefault('party_tax_scheme_vals', [])
 
         if partner.country_code == 'AU' and partner.vat:
             vals['endpoint_id'] = partner.vat.replace(" ", "")
@@ -51,6 +56,8 @@ class AccountEdiXmlUBLANZ(models.AbstractModel):
 
     def _get_partner_party_legal_entity_vals_list(self, partner):
         # EXTENDS account.edi.xml.ubl_bis3
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals_list = super()._get_partner_party_legal_entity_vals_list(partner)
 
         for vals in vals_list:
@@ -68,6 +75,8 @@ class AccountEdiXmlUBLANZ(models.AbstractModel):
 
     def _get_tax_category_list(self, customer, supplier, taxes):
         # EXTENDS account.edi.xml.ubl_bis3
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals_list = super()._get_tax_category_list(customer, supplier, taxes)
         for vals in vals_list:
             vals['tax_scheme_vals'] = {'id': 'GST'}
@@ -75,6 +84,8 @@ class AccountEdiXmlUBLANZ(models.AbstractModel):
 
     def _export_invoice_vals(self, invoice):
         # EXTENDS account.edi.xml.ubl_21
+        # Old helper not used by default (see _export_invoice override in account.edi.xml.ubl_bis3)
+        # If you change this method, please change the corresponding new helper (at the end of this file).
         vals = super()._export_invoice_vals(invoice)
 
         vals['vals'].update({
@@ -82,3 +93,93 @@ class AccountEdiXmlUBLANZ(models.AbstractModel):
         })
 
         return vals
+
+    # -------------------------------------------------------------------------
+    # EXPORT: New (dict_to_xml) helpers
+    # -------------------------------------------------------------------------
+
+    def _ubl_get_line_allowance_charge_discount_node(self, vals, discount_values):
+        # EXTENDS account.edi.xml.ubl_bis3
+        discount_node = super()._ubl_get_line_allowance_charge_discount_node(vals, discount_values)
+        discount_node['cbc:AllowanceChargeReason'] = None
+        discount_node['cbc:MultiplierFactorNumeric'] = None
+        discount_node['cbc:BaseAmount'] = None
+        return discount_node
+
+    def _ubl_add_tax_currency_code_node(self, vals):
+        # OVERRIDE
+        self._ubl_add_tax_currency_code_node_empty(vals)
+
+    def _ubl_tax_totals_node_grouping_key(self, base_line, tax_data, vals, currency):
+        # EXTENDS account.edi.xml.ubl_bis3
+        tax_total_keys = super()._ubl_tax_totals_node_grouping_key(base_line, tax_data, vals, currency)
+
+        company_currency = vals['company'].currency_id
+        if (
+            tax_total_keys['tax_total_key']
+            and company_currency != vals['currency']
+            and tax_total_keys['tax_total_key']['currency'] == company_currency
+        ):
+            tax_total_keys['tax_total_key'] = None
+
+        return tax_total_keys
+
+    def _ubl_add_customization_id_node(self, vals):
+        # EXTENDS account.edi.xml.ubl_bis3
+        super()._ubl_add_customization_id_node(vals)
+        vals['document_node']['cbc:CustomizationID']['_text'] = 'urn:cen.eu:en16931:2017#conformant#urn:fdc:peppol.eu:2017:poacc:billing:international:aunz:3.0'
+
+    def _ubl_add_party_endpoint_id_node(self, vals):
+        # EXTENDS
+        super()._ubl_add_party_endpoint_id_node(vals)
+        partner = vals['party_vals']['partner']
+        commercial_partner = partner.commercial_partner_id
+
+        if commercial_partner.country_code == 'AU' and commercial_partner.vat:
+            vat = commercial_partner.vat.replace(" ", "")
+            vals['party_node']['cbc:EndpointID']['_text'] = vat
+        elif commercial_partner.country_code == 'NZ' and commercial_partner.company_registry:
+            vals['party_node']['cbc:EndpointID']['_text'] = commercial_partner.company_registry
+
+    def _ubl_add_party_tax_scheme_nodes(self, vals):
+        # EXTENDS
+        super()._ubl_add_party_tax_scheme_nodes(vals)
+        partner = vals['party_vals']['partner']
+        commercial_partner = partner.commercial_partner_id
+
+        if (
+            (commercial_partner.country_code == 'AU' and commercial_partner.vat)
+            or (commercial_partner.country_code == 'NZ' and commercial_partner.company_registry)
+        ):
+            vals['party_node']['cac:PartyTaxScheme'] = [{
+                'cbc:CompanyID': {
+                    '_text': vals['party_node']['cbc:EndpointID']['_text'],
+                    'schemeID': None,
+                },
+                'cac:TaxScheme': {
+                    'cbc:ID': {'_text': 'GST'},
+                },
+            }]
+
+    def _ubl_add_party_legal_entity_nodes(self, vals):
+        # EXTENDS
+        super()._ubl_add_party_legal_entity_nodes(vals)
+        partner = vals['party_vals']['partner']
+        commercial_partner = partner.commercial_partner_id
+
+        if commercial_partner.country_code == 'AU' and commercial_partner.vat:
+            vals['party_node']['cac:PartyLegalEntity'] = [{
+                'cbc:RegistrationName': {'_text': commercial_partner.name},
+                'cbc:CompanyID': {
+                    '_text': vals['party_node']['cbc:EndpointID']['_text'],
+                    'schemeID': '0151',
+                },
+            }]
+        elif commercial_partner.country_code == 'NZ' and commercial_partner.company_registry:
+            vals['party_node']['cac:PartyLegalEntity'] = [{
+                'cbc:RegistrationName': {'_text': commercial_partner.name},
+                'cbc:CompanyID': {
+                    '_text': vals['party_node']['cbc:EndpointID']['_text'],
+                    'schemeID': '0088',
+                },
+            }]

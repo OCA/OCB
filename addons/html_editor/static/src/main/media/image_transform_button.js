@@ -31,17 +31,17 @@ export class ImageTransformButton extends Component {
                 this.mouseDownInsideTransform = false;
             }
         });
-        useExternalListener(this.props.document, "click", (ev) => {
-            if (!this.isNodeInsideTransform(ev.target) && !this.mouseDownInsideTransform) {
-                this.closeImageTransformation();
-            }
-            this.mouseDownInsideTransform = false;
-        });
-        // When we click on any character the image is deleted and we need to close the image transform
-        // We handle this by selectionchange
-        useExternalListener(this.props.document, "selectionchange", (ev) => {
-            this.closeImageTransformation();
-        });
+        useExternalListener(
+            this.props.document,
+            "click",
+            (ev) => {
+                if (!this.isNodeInsideTransform(ev.target) && !this.mouseDownInsideTransform) {
+                    this.closeImageTransformation();
+                }
+                this.mouseDownInsideTransform = false;
+            },
+            { capture: true }
+        );
     }
 
     isNodeInsideTransform(node) {

@@ -548,6 +548,10 @@
                     this.websiteAnimateWidget.destroy()
                     this.websiteAnimateWidget = null;
                 }
+                if (this.textHighlightWidget) {
+                    this.textHighlightWidget.destroy()
+                    this.textHighlightWidget = null;
+                }
 
                 // display quiz slide, or quiz attached to a slide
                 if (slide.category === 'quiz' || slide.isQuiz) {
@@ -576,6 +580,8 @@
                         $target: $content,
                     });
                     this.websiteAnimateWidget.attachTo($wpContainer);
+                    this.textHighlightWidget = new publicWidget.registry.TextHighlight();
+                    this.textHighlightWidget.attachTo($wpContainer);
                 }
                 unhideConditionalElements();
             } finally {
@@ -611,7 +617,7 @@
             const slide = this._slideValue;
             self._pushUrlState();
             return this._fetchSlideContent().then(function() { // render content
-                var websiteName = document.title.split(" | ")[1]; // get the website name from title
+                var websiteName = document.title.split(" | ").at(-1); // get the website name from title
                 document.title =  (websiteName) ? slide.name + ' | ' + websiteName : slide.name;
                 if  (uiUtils.getSize() < SIZES.MD) {
                     self._toggleSidebar(); // hide sidebar when small device screen
@@ -695,7 +701,10 @@
             const slide = this._slideValue;
             this.call("dialog", "add", SlideShareDialog, {
                 category: slide.category,
-                documentMaxPage: slide.category == 'document' && this.getDocumentMaxPage(),
+                documentMaxPage:
+                    slide.category == "document" &&
+                    new URL(slide.embedUrl, window.location.href).origin === window.location.origin &&
+                    this.getDocumentMaxPage(),
                 emailSharing: slide.emailSharing === 'True',
                 embedCode: slide.embedCode || '',
                 id: slide.id,

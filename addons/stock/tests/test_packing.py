@@ -1937,6 +1937,36 @@ class TestPacking(TestPackingCommon):
         # check that the package is now in the Customer location
         self.assertEqual(pack.location_id, delivery.location_dest_id)
 
+    def test_unpick_move_after_pack_undone(self):
+        """
+        Ensure that stock moves are marked as not picked when a package level is undone.
+        """
+        self.warehouse.out_type_id.show_entire_packs = True
+        pack = self.env['stock.quant.package'].create({
+            'name': 'pack',
+        })
+        self.env['stock.quant']._update_available_quantity(self.productA, self.stock_location, 5, package_id=pack)
+        delivery = self.env['stock.picking'].create({
+            'picking_type_id': self.warehouse.out_type_id.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.ref('stock.stock_location_customers'),
+            'move_ids': [
+                Command.create({
+                    'name': self.productA.name,
+                    'product_id': self.productA.id,
+                    'product_uom_qty': 5,
+                    'product_uom': self.productA.uom_id.id,
+                    'location_id': self.stock_location.id,
+                    'location_dest_id': self.ref('stock.stock_location_customers'),
+                }),
+            ],
+        })
+        delivery.action_confirm()
+        delivery.package_level_ids.is_done = True
+        self.assertTrue(delivery.move_ids.picked)
+        delivery.package_level_ids.is_done = False
+        self.assertFalse(delivery.move_ids.picked)
+
 
 @odoo.tests.tagged('post_install', '-at_install')
 class TestPackagePropagation(TestPackingCommon):
@@ -2040,3 +2070,65 @@ class TestPackagePropagation(TestPackingCommon):
         # action_assign => On move lines, result_package_id is not set.
         self.assertEqual(partial_deliveries.move_line_ids.package_id, package, "The package should be used as source.")
         self.assertFalse(partial_deliveries.move_line_ids.result_package_id, "If the contents of a single pack are reserved by multiple picks, the entire pack can't reproduce on each pick.")
+
+    def test_reusable_package_propagation_backorder(self):
+        """ Test a reusable package should not be propagated to the next picking
+        when a backorder occured and using the same reusable package"""
+        reusable_package = self.env['stock.quant.package'].create({
+            'name': 'Reusable Package',
+            'package_use': 'reusable',
+        })
+        self.productA = self.env['product.product'].create({
+            'name': 'productA',
+            'is_storable': True,
+            'tracking': 'none',
+        })
+        self.env['stock.quant']._update_available_quantity(self.productA, self.stock_location, 2)
+        pg = self.env['procurement.group'].create({'name': 'propagation_test'})
+        self.env['procurement.group'].run([
+            pg.Procurement(
+                self.productA,
+                2.0,
+                self.productA.uom_id,
+                self.customer_location,
+                'propagation_test',
+                'propagation_test',
+                self.warehouse.company_id,
+                {
+                    'warehouse_id': self.warehouse,
+                    'group_id': pg
+                }
+            )
+        ])
+        picking = self.env['stock.picking'].search([
+            ('group_id', '=', pg.id),
+            ('location_id', '=', self.stock_location.id),
+        ])
+        picking.action_assign()
+        picking.move_ids.move_line_ids.result_package_id = reusable_package
+        picking.move_ids.move_line_ids.quantity = 1
+        picking.move_ids.picked = True
+        picking._action_done()
+        self.assertEqual(picking.state, 'done')
+        pack_lines = self.env['stock.picking'].search([
+            ('group_id', '=', pg.id),
+            ('location_id', '=', self.pack_location.id),
+        ]).move_line_ids
+
+        self.assertEqual(len(pack_lines), 1, 'Should have only 1 stock move line')
+        self.assertFalse(pack_lines[0].result_package_id, 'Should not have the reusable package')
+
+        # Do the backorder
+        backorder = picking.backorder_ids
+        backorder.action_assign()
+
+        # Put in the same package
+        backorder.move_ids.move_line_ids.result_package_id = reusable_package
+        backorder.move_ids.move_line_ids.quantity = 1
+        backorder.move_ids.picked = True
+        backorder._action_done()
+        pack = self.env['stock.picking'].search([
+            ('group_id', '=', pg.id),
+            ('location_id', '=', self.pack_location.id),
+        ])
+        self.assertFalse(pack.move_line_ids.result_package_id, 'Should not have the reusable package')

@@ -280,7 +280,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     # Company-dependent fields are stored as jsonb (see column_type).
     _column_type: typing.Tuple[str, str] | None = None
 
-    args = None                         # the parameters given to __init__()
+    _args__ = None                      # the parameters given to __init__()
     _module = None                      # the field's module name
     _modules = None                     # modules that define this field
     _setup_done = True                  # whether the field is completely set up
@@ -333,7 +333,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     def __init__(self, string: str | Sentinel = SENTINEL, **kwargs):
         kwargs['string'] = string
         self._sequence = next(_global_seq)
-        self.args = {key: val for key, val in kwargs.items() if val is not SENTINEL}
+        self.args = self._args__ = {key: val for key, val in kwargs.items() if val is not SENTINEL}
 
     def __str__(self):
         if self.name is None:
@@ -352,7 +352,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     # The base field setup is done by field.__set_name__(), which determines the
     # field's name, model name, module and its parameters.
     #
-    # The dictionary field.args gives the parameters passed to the field's
+    # The dictionary field._args__ gives the parameters passed to the field's
     # constructor.  Most parameters have an attribute of the same name on the
     # field.  The parameters as attributes are assigned by the field setup.
     #
@@ -362,7 +362,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     # are given to the new field as the parameter '_base_fields'; it is a list
     # of fields in override order (or reverse MRO).
     #
-    # In order to save memory, a field should avoid having field.args and/or
+    # In order to save memory, a field should avoid having field._args__ and/or
     # many attributes when possible.  We call "direct" a field that can be set
     # up directly from its definition class.  Direct fields are non-related
     # fields defined on models, and can be shared across registries.  We call
@@ -370,15 +370,15 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     # therefore specific to the registry.
     #
     # Toplevel field are set up once, and are no longer set up from scratch
-    # after that.  Those fields can save memory by discarding field.args and
+    # after that.  Those fields can save memory by discarding field._args__ and
     # field._base_fields once set up, because those are no longer necessary.
     #
     # Non-toplevel non-direct fields are the fields on definition classes that
     # may not be shared.  In other words, those fields are never used directly,
     # and are always recreated as toplevel fields.  On those fields, the base
-    # setup is useless, because only field.args is used for setting up other
+    # setup is useless, because only field._args__ is used for setting up other
     # fields.  We therefore skip the base setup for those fields.  The only
-    # attributes of those fields are: '_sequence', 'args', 'model_name', 'name'
+    # attributes of those fields are: '_sequence', '_args__', 'model_name', 'name'
     # and '_module', which makes their __dict__'s size minimal.
 
     def __set_name__(self, owner, name):
@@ -395,13 +395,13 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
             self._module = owner._module
             owner._field_definitions.append(self)
 
-        if not self.args.get('related'):
+        if not self._args__.get('related'):
             self._direct = True
         if self._direct or self._toplevel:
             self._setup_attrs(owner, name)
             if self._toplevel:
-                # free memory, self.args and self._base_fields are no longer useful
-                self.__dict__.pop('args', None)
+                # free memory, self._args__ and self._base_fields are no longer useful
+                self.__dict__.pop('_args__', None)
                 self.__dict__.pop('_base_fields', None)
 
     #
@@ -413,21 +413,21 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         # determine all inherited field attributes
         attrs = {}
         modules = []
-        for field in self.args.get('_base_fields', ()):
+        for field in self._args__.get('_base_fields', ()):
             if not isinstance(self, type(field)):
                 # 'self' overrides 'field' and their types are not compatible;
                 # so we ignore all the parameters collected so far
                 attrs.clear()
                 modules.clear()
                 continue
-            attrs.update(field.args)
+            attrs.update(field._args__)
             if field._module:
                 modules.append(field._module)
-        attrs.update(self.args)
+        attrs.update(self._args__)
         if self._module:
             modules.append(self._module)
 
-        attrs['args'] = self.args
+        attrs['_args__'] = dict(self._args__)
         attrs['model_name'] = model_class._name
         attrs['name'] = name
         attrs['_module'] = modules[-1] if modules else None
@@ -490,7 +490,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         attrs = self._get_attrs(model_class, name)
 
         # determine parameters that must be validated
-        extra_keys = [key for key in attrs if not hasattr(self, key)]
+        extra_keys = tuple(key for key in attrs if not hasattr(self, key))
         if extra_keys:
             attrs['_extra_keys'] = extra_keys
 
@@ -545,6 +545,8 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
                 warnings.warn(f'Property {self}.readonly should be a boolean ({self.readonly}).')
 
             self._setup_done = True
+            # column_type might be changed during Field.setup
+            lazy_property.reset_all(self)
 
     #
     # Setup of non-related fields
@@ -899,6 +901,8 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     def _description_sortable(self, env):
         if self.column_type and self.store:  # shortcut
             return True
+        if self.inherited_field and self.inherited_field._description_sortable(env):  # avoid compuation for inherited field
+            return True
 
         model = env[self.model_name]
         query = model._as_query(ordered=False)
@@ -910,6 +914,8 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
 
     def _description_groupable(self, env):
         if self.column_type and self.store:  # shortcut
+            return True
+        if self.inherited_field and self.inherited_field._description_groupable(env):  # avoid compuation for inherited field
             return True
 
         model = env[self.model_name]
@@ -924,6 +930,8 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     def _description_aggregator(self, env):
         if not self.aggregator or self.column_type and self.store:  # shortcut
             return self.aggregator
+        if self.inherited_field and self.inherited_field._description_aggregator(env):  # avoid compuation for inherited field
+            return self.inherited_field.aggregator
 
         model = env[self.model_name]
         query = model._as_query(ordered=False)
@@ -1576,6 +1584,14 @@ class Float(Field[float]):
         :class:`~odoo.addons.base.models.decimal_precision.DecimalPrecision` record name.
     :type digits: tuple(int,int) or str
 
+    :param min_display_digits: An int or a string referencing a
+        :class:`~odoo.addons.base.models.decimal_precision.DecimalPrecision` record name.
+        Represents the minimum number of decimal digits to display in the UI.
+        So if it's equal to 3:
+        - `3.1` will be shown as `'3.100'`.
+        - `3.1234` will be shown as `'3.1234'`.
+    :type min_display_digits: int or str
+
     When a float is a quantity associated with an unit of measure, it is important
     to use the right tool to compare or round values with the correct precision.
 
@@ -1609,10 +1625,19 @@ class Float(Field[float]):
 
     type = 'float'
     _digits = None                      # digits argument passed to class initializer
+    _min_display_digits = None
     aggregator = 'sum'
 
-    def __init__(self, string: str | Sentinel = SENTINEL, digits: str | tuple[int, int] | None | Sentinel = SENTINEL, **kwargs):
-        super(Float, self).__init__(string=string, _digits=digits, **kwargs)
+    def __init__(
+        self,
+        string: str | Sentinel = SENTINEL,
+        digits: str | tuple[int, int] | typing.Literal[0, False] | Sentinel | None = SENTINEL,
+        min_display_digits: str | int | Sentinel | None = SENTINEL,
+        **kwargs,
+    ):
+        if digits is SENTINEL and min_display_digits is not SENTINEL:
+            digits = False
+        super().__init__(string=string, _digits=digits, _min_display_digits=min_display_digits, **kwargs)
 
     @property
     def _column_type(self):
@@ -1631,10 +1656,18 @@ class Float(Field[float]):
         else:
             return self._digits
 
+    def get_min_display_digits(self, env):
+        if isinstance(self._min_display_digits, str):
+            return env['decimal.precision'].precision_get(self._min_display_digits)
+        return self._min_display_digits
+
     _related__digits = property(attrgetter('_digits'))
 
     def _description_digits(self, env):
         return self.get_digits(env)
+
+    def _description_min_display_digits(self, env):
+        return self.get_min_display_digits(env)
 
     def convert_to_column(self, value, record, values=None, validate=True):
         value_float = value = float(value or 0.0)
@@ -1842,15 +1875,19 @@ class _String(Field[str | typing.Literal[False]]):
                 return value
             base_lang = record._get_base_lang()
             lang = record.env.lang or 'en_US'
+            delay_translation = value != record.with_context(edit_translations=None, check_translations=None, lang=lang)[self.name]
 
             if lang != base_lang:
                 base_value = record.with_context(edit_translations=None, check_translations=True, lang=base_lang)[self.name]
-                base_terms_iter = iter(self.get_trans_terms(base_value))
-                get_base = lambda term: next(base_terms_iter)
+                base_terms = self.get_trans_terms(base_value)
+                translated_terms = self.get_trans_terms(value) if value != base_value else base_terms
+                if len(base_terms) != len(translated_terms):
+                    # term number mismatch, ignore all translations
+                    value = base_value
+                    translated_terms = base_terms
+                get_base = dict(zip(translated_terms, base_terms)).__getitem__
             else:
                 get_base = lambda term: term
-
-            delay_translation = value != record.with_context(edit_translations=None, check_translations=None, lang=lang)[self.name]
 
             # use a wrapper to let the frontend js code identify each term and
             # its metadata in the 'edit_translations' context
@@ -1949,7 +1986,12 @@ class _String(Field[str | typing.Literal[False]]):
 
         # not dirty fields
         if not dirty:
-            cache.update_raw(records, self, [{lang: cache_value} for _id in records._ids], dirty=False)
+            if self.compute and self.inverse and any(records._ids):
+                # invalidate the values in other languages to force their recomputation
+                values = [{lang: cache_value} for _id in records._ids]
+                cache.update_raw(records, self, values, dirty=False)
+            else:
+                cache.update(records, self, itertools.repeat(cache_value), dirty=False)
             return
 
         # model translation
@@ -2576,6 +2618,11 @@ class Binary(Field):
             super().compute_value(records)
 
     def read(self, records):
+        def _encode(s: str | bool) -> bytes | bool:
+            if isinstance(s, str):
+                return s.encode("utf-8")
+            return s
+
         # values are stored in attachments, retrieve them
         assert self.attachment
         domain = [
@@ -2583,9 +2630,9 @@ class Binary(Field):
             ('res_field', '=', self.name),
             ('res_id', 'in', records.ids),
         ]
-        # Note: the 'bin_size' flag is handled by the field 'datas' itself
+        bin_size = records.env.context.get('bin_size')
         data = {
-            att.res_id: att.datas
+            att.res_id: _encode(human_size(att.file_size)) if bin_size else att.datas
             for att in records.env['ir.attachment'].sudo().search(domain)
         }
         records.env.cache.insert_missing(records, self, map(data.get, records._ids))
@@ -2728,7 +2775,14 @@ class Image(Binary):
             record.env.cache.set(record, self, value, dirty=(self.store and self.column_type))
 
     def _image_process(self, value, env):
-        if self.readonly and not self.max_width and not self.max_height:
+        if self.readonly and (
+            (not self.max_width and not self.max_height)
+            or (
+                isinstance(self.related_field, Image)
+                and self.max_width == self.related_field.max_width
+                and self.max_height == self.related_field.max_height
+            )
+        ):
             # no need to process images for computed fields, or related fields
             return value
         try:
@@ -2859,10 +2913,10 @@ class Selection(Field[str | typing.Literal[False]]):
         for field in self._base_fields:
             # We cannot use field.selection or field.selection_add here
             # because those attributes are overridden by ``_setup_attrs``.
-            if 'selection' in field.args:
+            if 'selection' in field._args__:
                 if self.related:
                     _logger.warning("%s: selection attribute will be ignored as the field is related", self)
-                selection = field.args['selection']
+                selection = field._args__['selection']
                 if isinstance(selection, list):
                     if values is not None and list(values) != [kv[0] for kv in selection]:
                         _logger.warning("%s: selection=%r overrides existing selection; use selection_add instead", self, selection)
@@ -2873,17 +2927,17 @@ class Selection(Field[str | typing.Literal[False]]):
                     self.selection = selection
                     self.ondelete = None
 
-            if 'selection_add' in field.args:
+            if 'selection_add' in field._args__:
                 if self.related:
                     _logger.warning("%s: selection_add attribute will be ignored as the field is related", self)
-                selection_add = field.args['selection_add']
+                selection_add = field._args__['selection_add']
                 assert isinstance(selection_add, list), \
                     "%s: selection_add=%r must be a list" % (self, selection_add)
                 assert values is not None, \
                     "%s: selection_add=%r on non-list selection %r" % (self, selection_add, self.selection)
 
                 values_add = {kv[0]: (kv[1] if len(kv) > 1 else None) for kv in selection_add}
-                ondelete = field.args.get('ondelete') or {}
+                ondelete = field._args__.get('ondelete') or {}
                 new_values = [key for key in values_add if key not in values]
                 for key in new_values:
                     ondelete.setdefault(key, 'set null')
@@ -2941,13 +2995,13 @@ class Selection(Field[str | typing.Literal[False]]):
             module = field._module
             if not module:
                 continue
-            if 'selection' in field.args:
+            if 'selection' in field._args__:
                 value_modules.clear()
-                if isinstance(field.args['selection'], list):
-                    for value, label in field.args['selection']:
+                if isinstance(field._args__['selection'], list):
+                    for value, label in field._args__['selection']:
                         value_modules[value].add(module)
-            if 'selection_add' in field.args:
-                for value_label in field.args['selection_add']:
+            if 'selection_add' in field._args__:
+                for value_label in field._args__['selection_add']:
                     if len(value_label) > 1:
                         value_modules[value_label[0]].add(module)
         return value_modules
@@ -3112,7 +3166,7 @@ class _Relational(Field[M], typing.Generic[M]):
                 _logger.warning(env._(
                     "Couldn't generate a company-dependent domain for field %s. "
                     "The model doesn't have a 'company_id' or 'company_ids' field, and isn't company-dependent either.",
-                    f'{self.model_name}.{self.name}'
+                    self.model_name + '.' + self.name,
                 ))
                 return domain
             company_domain = env[self.comodel_name]._check_company_domain(companies=unquote(cids))
@@ -3524,9 +3578,10 @@ class Properties(Field):
             assert self.definition.count(".") == 1
             self.definition_record, self.definition_record_field = self.definition.rsplit('.', 1)
 
-            # make the field computed, and set its dependencies
-            self._depends = (self.definition_record, )
-            self.compute = self._compute
+            if not self.inherited_field:
+                # make the field computed, and set its dependencies
+                self._depends = (self.definition_record, )
+                self.compute = self._compute
 
     def setup_related(self, model):
         super().setup_related(model)
@@ -3728,7 +3783,7 @@ class Properties(Field):
 
     def _compute(self, records):
         """Add the default properties value when the container is changed."""
-        for record in records:
+        for record in records.sudo():
             record[self.name] = self._add_default_values(
                 record.env,
                 {self.name: record[self.name], self.definition_record: record[self.definition_record]},

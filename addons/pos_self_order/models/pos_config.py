@@ -1,9 +1,12 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import uuid
 import base64
+import zipfile
+import qrcode
+from io import BytesIO
 from os.path import join as opj
 from typing import Optional, List, Dict
-from werkzeug.urls import url_quote
+from werkzeug.urls import url_quote, url_unquote
 from odoo.exceptions import UserError, ValidationError, AccessError
 
 from odoo import api, fields, models, _, service
@@ -87,6 +90,21 @@ class PosConfig(models.Model):
         help="Name of the image to display on the self order screen",
     )
     has_paper = fields.Boolean("Has paper", default=True)
+
+    @api.model
+    def _load_pos_self_data_fields(self, pos_config_id):
+        return ['id', 'name', 'company_id', 'journal_id', 'payment_method_ids', 'limit_categories',
+            'iface_available_categ_ids', 'iface_splitbill', 'module_pos_restaurant', 'self_ordering_mode',
+            'self_ordering_service_mode', 'self_ordering_default_language_id', 'self_ordering_available_language_ids',
+            'self_ordering_image_home_ids', 'self_ordering_default_user_id', 'self_ordering_pay_after',
+            'self_ordering_image_brand', 'self_ordering_image_brand_name', 'currency_id', 'printer_ids', 'has_paper',
+            'floor_ids', 'fiscal_position_ids', 'is_order_printer', 'iface_print_via_proxy', 'receipt_header',
+            'receipt_footer', 'proxy_ip', 'current_session_id', 'pricelist_id', 'available_pricelist_ids',
+            'default_fiscal_position_id', 'use_pricelist', 'module_pos_restaurant', 'is_header_or_footer',
+            'rounding_method', 'cash_rounding', 'only_round_cash_method', 'has_active_session', 'self_ordering_takeaway',
+            'epson_printer_ip', 'iface_tax_included', 'status', 'takeaway_fp_id', 'takeaway', 'trusted_config_ids',
+            'other_devices',
+        ]
 
     def _update_access_token(self):
         self.access_token = uuid.uuid4().hex[:16]
@@ -250,16 +268,12 @@ class PosConfig(models.Model):
                 'id': image.id,
                 'data': image.sudo().datas.decode('utf-8'),
             })
-
-            # Only one image is needed for the mobile mode
-            if self.self_ordering_mode == 'mobile':
-                break
         return encoded_images
 
     def _load_self_data_models(self):
         return ['pos.session', 'pos.order', 'pos.order.line', 'pos.payment', 'pos.payment.method', 'res.currency', 'pos.category', 'product.product', 'product.combo', 'product.combo.item',
             'res.company', 'account.tax', 'account.tax.group', 'pos.printer', 'res.country', 'product.pricelist', 'product.pricelist.item', 'account.fiscal.position', 'account.fiscal.position.tax',
-            'res.lang', 'product.attribute', 'product.attribute.custom.value', 'product.template.attribute.line', 'product.template.attribute.value',
+            'res.lang', 'product.template.attribute.line', 'product.attribute', 'product.attribute.custom.value', 'product.template.attribute.value',
             'decimal.precision', 'uom.uom', 'pos.printer', 'pos_self_order.custom_link', 'restaurant.floor', 'restaurant.table', 'account.cash.rounding']
 
     def load_self_data(self):
@@ -366,4 +380,60 @@ class PosConfig(models.Model):
             'iface_splitbill': True,
             'module_pos_restaurant': True,
             'self_ordering_mode': 'kiosk',
+            'self_ordering_pay_after': 'each',
         })
+
+    def __generate_single_qr_code(self, url):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+        return qr.make_image(fill_color="black", back_color="transparent")
+
+    def get_pos_qr_order_data(self):
+        url_form = "https://www.odoo.com/app/point-of-sale-restaurant-qr-code"
+        table_data = []
+        if self.self_ordering_mode not in ['mobile', 'consultation']:
+            return {
+                'success': False,
+                'error': 'INVALID_SELF_ORDERING_MODE',
+            }
+
+        table_ids = None
+        if self.module_pos_restaurant:
+            table_ids = self.floor_ids.table_ids
+
+        if table_ids and self.self_ordering_mode == 'mobile':
+            for table in table_ids:
+                url = self._get_self_order_url(table.id)
+                table_data.append({
+                    'url': url,
+                    'name': f"{table.floor_id.name} - {table.table_number}",
+                })
+        else:
+            url = self._get_self_order_url()
+            table_data.append({
+                'url': url,
+                'name': "generic",
+            })
+
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", 0) as zip_file:
+            for index, qr_data in enumerate(table_data, start=1):
+                images = self.__generate_single_qr_code(url_unquote(qr_data['url']))
+                with zip_file.open(f"{qr_data['name']} ({index}).png", "w") as buf:
+                    images.save(buf, format="PNG")
+        zip_buffer.seek(0)
+
+        return {
+            'success': True,
+            'table_data': table_data,
+            'self_ordering_mode': self.self_ordering_mode,
+            'db_name': self.env.cr.dbname,
+            'redirect_url': url_form,
+            'zip_archive': base64.b64encode(zip_buffer.read()).decode('utf-8'),
+        }

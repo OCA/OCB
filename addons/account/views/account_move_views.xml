@@ -56,7 +56,8 @@
                                     </group>
                                     <group string="Currency" groups="base.group_multi_currency">
                                         <field name="currency_id" invisible="1"/>
-                                        <field name="amount_currency"/>
+                                        <field name="display_type" invisible="1"/>
+                                        <field name="amount_currency" readonly="display_type != 'tax' or parent_state != 'draft'"/>
                                     </group>
                                     <group string="Product" invisible="not product_id">
                                         <field name="product_id" readonly="1"/>
@@ -174,7 +175,7 @@
                            widget="analytic_distribution"
                            groups="analytic.group_analytic_accounting"
                            optional="hide"
-                           options="{'product_field': 'product_id', 'account_field': 'account_id', 'force_applicability': 'optional'}"
+                           options="{'product_field': 'product_id', 'account_field': 'account_id', 'force_applicability': 'optional', 'multi_edit': true}"
                     />
                     <field name="tax_ids" widget="many2many_tags" optional="hide" readonly="1"/>
                     <field name="amount_currency" string="In Currency" groups="base.group_multi_currency" optional="hide" readonly="1" invisible="is_same_currency"/>
@@ -346,6 +347,7 @@
                     <filter string="Cash" name="cash" domain="[('journal_id.type', '=', 'cash')]" context="{'default_journal_type': 'cash'}"/>
                     <filter string="Credit" name="credit" domain="[('journal_id.type', '=', 'credit')]" context="{'default_journal_type': 'credit'}"/>
                     <filter string="Miscellaneous" domain="[('journal_id.type', '=', 'general')]" name="misc_filter" context="{'default_journal_type': 'general'}"/>
+                    <filter string="Journals" name="journal_ids" domain="[('journal_id', 'in', context.get('journal_ids'))]" invisible="not context.get('journal_ids')"/>
                     <separator/>
                     <filter string="Payable" domain="[('account_id.account_type', '=', 'liability_payable'), ('account_id.non_trade', '=', False)]" help="From Trade Payable accounts" name="trade_payable"/>
                     <filter string="Receivable" domain="[('account_id.account_type', '=', 'asset_receivable'), ('account_id.non_trade', '=', False)]" help="From Trade Receivable accounts" name="trade_receivable"/>
@@ -474,7 +476,7 @@
                     <field name="made_sequence_gap" column_invisible="True"/>
                     <field name="invoice_date" string="Invoice Date" optional="hide" readonly="state != 'draft'"/>
                     <field name="date" readonly="state in ['cancel', 'posted']"/>
-                    <field name="name" decoration-danger="made_sequence_gap and state == 'posted'" widget="char_with_placeholder_field" placeholder="/"/>
+                    <field name="name" decoration-danger="made_sequence_gap and state == 'posted'" widget="char_with_placeholder_field" placeholder="/" readonly="state != 'draft'"/>
                     <field name="partner_id" optional="show" readonly="state != 'draft'"/>
                     <field name="ref" optional="show"/>
                     <field name="journal_id"/>
@@ -870,7 +872,7 @@
                                     class="oe_stat_button"
                                     icon="fa-bars"
                                     type="object"
-                                    invisible="not matched_payment_ids">
+                                    invisible="not payment_count">
                                     <field name="payment_count" string="Payments" widget="statinfo"/>
                             </button>
                             <button name="open_reconcile_view"
@@ -929,6 +931,7 @@
                         <field name="bank_partner_id" invisible="1"/>
                         <field name="display_qr_code" invisible="1"/>
                         <field name="show_reset_to_draft_button" invisible="1"/>
+                        <field name="expected_currency_rate" invisible="1"/>
 
                         <field name="invoice_has_outstanding" invisible="1"/>
                         <field name="is_move_sent" invisible="1"/>
@@ -975,8 +978,8 @@
                                            context="{
                                             'res_partner_search_mode': (context.get('default_move_type', 'entry') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
                                             'show_address': 1, 'default_is_company': True, 'show_vat': True}"
-                                           domain="[('company_id', 'in', (False, company_id))]"
                                            options='{"no_quick_create": True}'
+                                           default_focus="1"
                                            invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')"
                                            placeholder="Search a name or Tax ID..."
                                            readonly="state != 'draft'"/>
@@ -997,8 +1000,8 @@
                                        readonly="state != 'draft'"/>
                                 <label for="ref" string="Bill Reference"
                                        invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')" />
-                                <field name="ref" nolabel="1" invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')" />
-                                <field name="ref" invisible="move_type in ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund')"/>
+                                <field name="ref" default_focus="1" nolabel="1" invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')"/>
+                                <field name="ref" default_focus="1" invisible="move_type in ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund')"/>
                                 <field name="tax_cash_basis_origin_move_id" invisible="not tax_cash_basis_origin_move_id"/>
                                 <label name="invoice_vendor_bill_id_label" for="invoice_vendor_bill_id" string="Auto-Complete" class="oe_edit_only"
                                        invisible="state != 'draft' or move_type != 'in_invoice'"/>
@@ -1045,8 +1048,8 @@
                                     <field name="invoice_date_due" force_save="1"
                                            placeholder="Date"
                                            invisible="invoice_payment_term_id"/>
-                                    <span class="o_form_label mx-3 oe_edit_only"
-                                          invisible="state != 'draft' or invoice_payment_term_id"> or </span>
+                                    <span class="o_form_label mx-3 oe_edit_only text-center" style="width: 6ch;"
+                                          invisible="state != 'draft' or invoice_payment_term_id">or</span>
                                     <field name="invoice_payment_term_id"
                                            context="{'example_date': invoice_date, 'example_amount': tax_totals['total_amount_currency']}"
                                            placeholder="Payment Terms"
@@ -1062,32 +1065,41 @@
                                            groups="account.group_account_readonly"
                                            options="{'no_create': True, 'no_open': True}"
                                            readonly="posted_before and name not in (False, '', '/')"/>
-
-                                    <span class="o_form_label mx-3 oe_edit_only"
-                                          groups="account.group_account_readonly"
-                                          invisible="move_type == 'entry'">
-                                        <span groups="base.group_multi_currency">in </span>
-                                    </span>
+                                    <div name="in_and_refresh_button_div"
+                                         groups="base.group_multi_currency"
+                                         class="d-flex flex-column mx-3 text-center"
+                                         style="width: 6ch;"
+                                         invisible="move_type == 'entry'">
+                                        <div>in</div>
+                                        <div class="d-flex flex-column justify-content-center flex-grow-1"
+                                             invisible="state != 'draft' or invoice_currency_rate == expected_currency_rate">
+                                            <button type="object"
+                                                    name="refresh_invoice_currency_rate"
+                                                    icon="fa-refresh"
+                                                    title="Refresh currency rate to the invoice date"
+                                                    class="btn btn-link p-0"/>
+                                        </div>
+                                    </div>
                                     <div name="currency_div"
                                          groups="base.group_multi_currency"
                                          class="w-100"
-                                         style="white-space: pre;"
                                          invisible="move_type == 'entry'">
-                                        <field name="currency_id"
-                                               readonly="state != 'draft'"
-                                               class="oe_inline"
-                                               options="{'no_create': True}"
-                                               context="{'search_default_active': 1, 'search_default_inactive': 1}"/>
-                                        <div class="break"/>
+                                        <div class="d-flex gap-1">
+                                            <field name="currency_id"
+                                                   readonly="state != 'draft'"
+                                                   class="oe_inline"
+                                                   options="{'no_create': True}"
+                                                   context="{'search_default_active': 1, 'search_default_inactive': 1}"/>
+                                            <widget name="account_pick_currency_date" invisible="state != 'draft' or currency_id == company_currency_id"/>
+                                        </div>
                                         <div name="currency_conversion_div"
-                                             class="d-flex text-muted float-start"
+                                             class="d-flex gap-1 text-muted"
                                              invisible="currency_id == company_currency_id">
-                                            <span>1 </span>
-                                            <field name="company_currency_id" readonly="True" options="{'no_open': True}"/>
-                                            <span> = </span>
-                                            <field name="invoice_currency_rate" digits="[12,6]" readonly="True"/>
-                                            <span> </span>
-                                            <field name="currency_id" readonly="True" options="{'no_open': True}"/>
+                                            <span>1</span>
+                                            <field name="company_currency_id" readonly="True" options="{'no_open': True}" class="w-auto"/>
+                                            <span>=</span>
+                                            <field name="invoice_currency_rate" digits="[12,6]" readonly="state != 'draft'"/>
+                                            <field name="currency_id" readonly="True" options="{'no_open': True}" class="w-auto"/>
                                         </div>
                                     </div>
                                 </div>
@@ -1238,7 +1250,11 @@
                                             </group>
                                             <group>
                                                 <field name="account_id" domain="[('deprecated', '=', False), ('company_ids', 'parent_of', company_id)]" options="{'no_create': True}" context="{'partner_id': partner_id, 'move_type': parent.move_type}"/>
-                                                <field name="tax_ids" widget="many2many_tags"/>
+                                                <field name="tax_ids" widget="many2many_tags"
+                                                    domain="[('type_tax_use', '=?', parent.invoice_filter_type_domain), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id)]"
+                                                    context="{'append_type_to_tax_name': not parent.invoice_filter_type_domain, 'active_test': True}"
+                                                    options="{'no_create': True}"
+                                                />
                                                 <field name="analytic_distribution" widget="analytic_distribution" groups="analytic.group_analytic_accounting"/>
                                             </group>
                                             <group>
@@ -1267,10 +1283,14 @@
                                             <field name="invoice_payments_widget" colspan="2" nolabel="1" widget="payment"/>
                                             <field name="amount_residual" class="oe_subtotal_footer_separator" invisible="state == 'draft'"/>
                                         </group>
-                                        <field name="invoice_outstanding_credits_debits_widget"
-                                            class="oe_invoice_outstanding_credits_debits py-3"
-                                            colspan="2" nolabel="1" widget="payment"
-                                            invisible="state != 'posted' or not invoice_has_outstanding"/>
+                                        <group
+                                            class="oe_subtotal_footer px-4"
+                                            invisible="state != 'posted' or not invoice_has_outstanding"
+                                            groups="account.group_account_invoice,account.group_account_readonly">
+                                            <field name="invoice_outstanding_credits_debits_widget"
+                                                class="oe_invoice_outstanding_credits_debits py-3"
+                                                colspan="2" nolabel="1" widget="payment"/>
+                                        </group>
                                     </group>
                                 </group>
                             </page>
@@ -1386,7 +1406,7 @@
                                         <field name="debit" sum="Total Debit"/>
                                         <field name="credit" sum="Total Credit"/>
                                         <field name="balance" invisible="1"/>
-                                        <field name="tax_ids" string="Taxes Applied" widget="autosave_many2many_tags" options="{'no_create': True}"/>
+                                        <field name="tax_ids" string="Taxes Applied" widget="many2many_tags" options="{'no_create': True}"/>
                                         <field name="date_maturity" required="0" invisible="context.get('view_no_maturity', False)"/>
                                       </group>
                                     </form>
@@ -1409,6 +1429,12 @@
                                         <field name="partner_bank_id"
                                                context="{'default_partner_id': bank_partner_id, 'display_account_trust': True}"
                                                domain="[('partner_id.ref_company_ids', 'parent_of', company_id)]"
+                                               invisible="move_type != 'out_invoice'"
+                                               readonly="is_move_sent and state != 'draft'"/>
+                                        <field name="partner_bank_id"
+                                               context="{'default_partner_id': bank_partner_id, 'display_account_trust': True}"
+                                               domain="[('partner_id', '=', bank_partner_id)]"
+                                               invisible="move_type != 'out_refund'"
                                                readonly="is_move_sent and state != 'draft'"/>
                                         <field name="payment_reference"
                                             invisible="move_type not in ('out_invoice', 'out_refund')"
@@ -1606,14 +1632,15 @@
                     <filter string="To Check" name="to_check" domain="[('checked', '=', False), ('state', '!=', 'draft')]"/>
                     <separator/>
                     <!-- not_paid & partial -->
-                    <filter name="open" string="To pay" domain="[('state', '=', 'posted'), ('payment_state', 'in', ('not_paid', 'partial'))]"/>
+                    <filter name="open" string="To pay" domain="[('state', '!=', 'cancel'), ('payment_state', 'in', ('not_paid', 'partial')), ('move_type', '!=', 'entry')]"/>
                     <!-- in_payment & paid -->
                     <filter name="in_payment" string="In payment" domain="[('state', '=', 'posted'), ('payment_state', '=', 'in_payment')]"/>
                     <!-- overdue -->
                     <filter name="late" string="Overdue" domain="[
                         ('invoice_date_due', '&lt;', time.strftime('%Y-%m-%d')),
                         ('state', '=', 'posted'),
-                        ('payment_state', 'in', ('not_paid', 'partial'))
+                        ('payment_state', 'in', ('not_paid', 'partial')),
+                        ('move_type', '!=', 'entry')
                     ]" help="Overdue invoices, maturity date passed"/>
                     <separator/>
                     <filter name="invoice_date" string="Invoice Date" date="invoice_date"/>
@@ -2039,5 +2066,17 @@ if records:
             </field>
         </record>
 
+        <record id="action_move_export_zip" model="ir.actions.server">
+            <field name="name">Export ZIP</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="binding_model_id" ref="account.model_account_move"/>
+            <field name="binding_view_types">list,form</field>
+            <field name="state">code</field>
+            <field name="sequence">7</field>
+            <field name="code">
+                if records:
+                    action = records.action_export_zip()
+            </field>
+        </record>
     </data>
 </odoo>

@@ -1,9 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import re
-from datetime import datetime
 
+from datetime import datetime
 from pytz import UTC
+from lxml import etree
 
 from odoo import _, api, models
 from odoo.addons.account_edi_ubl_cii.models.account_edi_xml_ubl_20 import UBL_NAMESPACES
@@ -107,16 +108,22 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
             # The current version is 1.1 (document with signature), the type code depends on the move type.
             'document_type_code_attrs': {'listVersionID': 1.1},
             'document_type_code': document_type_code,
-            # The issue time must be the current time set in the UTC time zone
+            # The issue date and time must be the current time set in the UTC time zone
+            'issue_date': datetime.now(tz=UTC).strftime("%Y-%m-%d"),
             'issue_time': datetime.now(tz=UTC).strftime("%H:%M:%SZ"),
             # Exchange rate information must be provided if applicable
             'tax_exchange_rate': self._l10n_my_edi_get_tax_exchange_rate(invoice),
             'invoice_incoterm_code': invoice.invoice_incoterm_id.code,
-            'custom_form_reference': invoice.l10n_my_edi_custom_form_reference,
+            # Depending on the move type, it will either be about exports (invoices) or imports (bills)
+            'custom_form_reference': invoice.l10n_my_edi_custom_form_reference if document_type_code in {"11", "12", "13", "14"} else None,
+            'export_custom_form_reference': invoice.l10n_my_edi_custom_form_reference if document_type_code in {"01", "02", "03", "04"} else None,
         })
 
         # these are optional, and since we can't have the correct one at the time of generating, we avoid adding them.
         vals['vals'].pop('payment_means_vals_list', None)
+
+        # For Myinvois, prepaid amount is defined as a separate node.
+        vals['vals'].get('monetary_total_vals', {}).pop('prepaid_amount', None)
 
         # We add the company industrial classification to the supplier vals.
         vals['vals']['accounting_supplier_party_vals']['party_vals'].update({
@@ -125,19 +132,71 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
         })
         # We ensure that the customer does not have their ttx set (it could be on the record if they're also supplier)
         customer_identification_vals = [
-            vals for vals in vals['vals']['accounting_customer_party_vals']['party_vals']['party_identification_vals'] if vals['id_attrs'] != {'schemeID': 'TTX'}
+            vals for vals in vals['vals']['accounting_customer_party_vals']['party_vals']['party_identification_vals'] if vals.get('id_attrs', {}) != {'schemeID': 'TTX'}
         ]
         vals['vals']['accounting_customer_party_vals']['party_vals']['party_identification_vals'] = customer_identification_vals
 
+        vals['vals'].update({
+            'prepaid_payment_vals': {
+                'currency': invoice.currency_id,
+                'currency_dp': self._get_currency_decimal_places(invoice.currency_id),
+                'amount': invoice.amount_total - invoice.amount_residual,
+            },
+        })
+
         # Debit/Credit note original invoice ref.
-        if original_document:
+        # Applies to credit notes, debit notes, refunds for both invoices and self-billed invoices.
+        # The original document is mandatory; but in some specific cases it will be empty (sending a credit note for an invoice
+        # managed outside Odoo/...)
+        if document_type_code in ('02', '03', '04', '12', '13', '14'):
+            original_document_id = None
+            if original_document:
+                if original_document.l10n_my_edi_file_id:
+                    decoded_vals = self._decode_myinvois_attachment(original_document.l10n_my_edi_file_id)
+                    original_document_id = decoded_vals.get('original_document_id')
+                if not original_document_id and self._is_self_billed(document_type_code) and original_document.ref:
+                    original_document_id = original_document.ref
+                if not original_document_id:
+                    original_document_id = original_document.name
+
             vals['vals'].update({
                 'billing_reference_vals': {
-                    'id': original_document.name,
-                    'uuid': original_document.l10n_my_edi_external_uuid,
+                    'id': original_document_id or 'NA',
+                    'uuid': (original_document and original_document.l10n_my_edi_external_uuid) or 'NA',
                 },
             })
 
+            # For credit, debit, refund notes, and their self-billed variants,
+            # the PrepaidPayment amount must be set to 0. This ensures the PayableAmount reflects the full refund/adjustment
+            # amount without being reduced by the prepayment, as per MyInvois specifications.
+            vals['vals'].get('monetary_total_vals', {})['payable_amount'] = invoice.amount_total
+            vals['vals']['prepaid_payment_vals']['amount'] = 0
+
+        return vals
+
+    def _decode_myinvois_attachment(self, attachment):
+        """ Extract data from MyInvois xml. """
+        def get_node(node, xpath):
+            nodes = node.xpath(xpath)
+            return nodes[0] if nodes else None
+
+        def get_value(node):
+            if node is None:
+                return None
+            return node.text
+
+        vals = {}
+        try:
+            root = etree.fromstring(attachment.raw)
+            invoice_id_node = get_node(root, "//*[local-name()='Invoice']/*[local-name()='ID']")
+        except etree.XMLSyntaxError:
+            # Not an xml
+            return {}
+        except AttributeError:
+            # Not a MyInvois xml
+            return {}
+
+        vals['original_document_id'] = get_value(invoice_id_node)
         return vals
 
     def _get_delivery_vals_list(self, invoice):
@@ -174,14 +233,30 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
         # The API expects the iso3166-2 code for the state, in the same way as it expects the iso3166 code for the countries.
         # In Odoo, we mostly use these (although there is no standard format) so we'll try to use what Odoo gives us.
         # For malaysia, the codes where updated, but we use a mapping to ensure that outdated data will still end up correct.
-        subentity_code = partner.state_id.code or ''
 
-        if partner.country_id.code == 'MY' and partner.state_id.code in MALAYSIAN_SUBDIVISION_CODES:
-            subentity_code = MALAYSIAN_SUBDIVISION_CODES[partner.state_id.code]
+        subentity_code = ''
 
-        # The API does not expect the country code inside the state code, only the number part.
-        if f'{partner.country_id.code}-' in subentity_code:
-            subentity_code = subentity_code.split('-')[1]
+        if partner.state_id:
+            if (
+                partner._l10n_my_edi_get_tin_for_myinvois() == 'EI00000000010'
+                and partner.l10n_my_identification_number == 'NA'
+            ):
+                # Special case for consolidated entities (e.g., general public).
+                # When TIN is 'EI00000000010' and Identification Number is 'NA', MyInvois requires
+                # the CountrySubentityCode to be fixed as '17' regardless of the actual state.
+                subentity_code = '17'
+            elif partner.country_id.code != 'MY':
+                # For non-Malaysian partners return the state name instead of state code
+                subentity_code = partner.state_id.name
+            else:
+                # Get the subentity code for the partner, based on its state.
+                subentity_code = partner.state_id.code
+                # Map outdated subdivision codes to their latest expected values
+                # to ensure compatibility with the current version.
+                subentity_code = MALAYSIAN_SUBDIVISION_CODES.get(subentity_code, subentity_code)
+
+            # Strip 'MY-' prefix if present as we only need number part
+            subentity_code = subentity_code.split('-')[1] if 'MY-' in subentity_code else subentity_code
 
         vals.update({
             'address_lines': [partner.street or '', partner.street2 or ''],
@@ -206,13 +281,11 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
         Additionally, companies registered to use SST (sales & services tax) must provide their SST number.
         Finally, if a supplier is using TTX (tourism tax), once again that number must be provided.
         """
-        # EXTENDS 'account_edi_ubl_cii'
-        vals = super()._get_partner_party_identification_vals_list(partner)
-
-        vals.append({
+        # OVERRIDE 'account_edi_ubl_cii'
+        vals = [{
             'id_attrs': {'schemeID': 'TIN'},
             'id': partner._l10n_my_edi_get_tin_for_myinvois(),
-        })
+        }]
 
         if partner.l10n_my_identification_type and partner.l10n_my_identification_number:
             vals.append({
@@ -271,11 +344,12 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
         for partner_type in ('supplier', 'customer'):
             partner = vals[partner_type]
             phone_number = partner.phone or partner.mobile
-            if phone_number:
+            # 'NA' is a valid value in some cases, e.g. consolidated invoices.
+            if phone_number != 'NA':
                 phone = self._l10n_my_edi_get_formatted_phone_number(phone_number)
                 if E_164_REGEX.match(phone) is None:
                     self._l10n_my_edi_make_validation_error(constraints, 'phone_number_format', partner_type, partner.display_name)
-            else:
+            elif not phone_number:
                 self._l10n_my_edi_make_validation_error(constraints, 'phone_number_required', partner_type, partner.display_name)
 
             # We need to provide both l10n_my_identification_type and l10n_my_identification_number
@@ -301,10 +375,6 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
                 self._l10n_my_edi_make_validation_error(constraints, 'tax_ids_required', line.id, line.display_name)
             elif any(tax.l10n_my_tax_type == 'E' for tax in line.tax_ids) and not invoice.l10n_my_edi_exemption_reason:
                 self._l10n_my_edi_make_validation_error(constraints, 'tax_exemption_required', invoice.id, invoice.display_name)
-
-        document_type_code, original_document = self._l10n_my_edi_get_document_type_code(invoice)
-        if document_type_code != '01' and not original_document:
-            self._l10n_my_edi_make_validation_error(constraints, 'adjustment_origin', invoice.id, invoice.display_name)
 
         return constraints
 
@@ -510,8 +580,14 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
                 line_name=record_name
             ),
             'tax_exemption_required': _(
-                "You must set a Tax Exemption Reason on the invoice : %(invoice_name)s as some taxes have the type 'Tax exemption'.",
+                "You must set a Tax Exemption Reason on the invoice : %(invoice_name)s as some taxes have the type 'Tax exemption' without a reason set.",
                 invoice_name=record_name
+            ),
+            'tax_exemption_required_on_tax': _(
+                "You must set a Tax Exemption Reason on each tax exempt taxes in order to use them in a Myinvois Document.",
+            ),
+            'missing_general_public': _(
+                "You must have a commercial partner named 'General Public' with a VAT number set to 'EI00000000010' in order to proceed.",
             ),
         }
 

@@ -88,6 +88,7 @@ class SaleOrder(models.Model):
         string="Status",
         readonly=True, copy=False, index=True,
         tracking=3,
+        group_expand=True,
         default='draft')
     locked = fields.Boolean(
         help="Locked orders cannot be modified.",
@@ -223,7 +224,7 @@ class SaleOrder(models.Model):
         compute='_compute_team_id',
         store=True, readonly=False, precompute=True, ondelete="set null",
         change_default=True, check_company=True,  # Unrequired company
-        tracking=True,
+        tracking=True, index=True,
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
 
     # Lines and line based computes
@@ -490,11 +491,14 @@ class SaleOrder(models.Model):
                 )
             order.team_id = cached_teams[key]
 
+    def _get_priced_lines(self):
+        return self.order_line.filtered(lambda x: not x.display_type)
+
     @api.depends('order_line.price_subtotal', 'currency_id', 'company_id', 'payment_term_id')
     def _compute_amounts(self):
         AccountTax = self.env['account.tax']
         for order in self:
-            order_lines = order.order_line.filtered(lambda x: not x.display_type)
+            order_lines = order._get_priced_lines()
             base_lines = [line._prepare_base_line_for_taxes_computation() for line in order_lines]
             base_lines += order._add_base_lines_for_early_payment_discount()
             AccountTax._add_tax_details_in_base_lines(base_lines, order.company_id)
@@ -524,7 +528,7 @@ class SaleOrder(models.Model):
         ):
             percentage = self.payment_term_id.discount_percentage
             currency = self.currency_id or self.company_id.currency_id
-            for line in self.order_line.filtered(lambda x: not x.display_type):
+            for line in self._get_priced_lines():
                 line_amount_after_discount = (line.price_subtotal / 100) * percentage
                 epd_lines.append(self.env['account.tax']._prepare_base_line_for_taxes_computation(
                     record=self,
@@ -532,8 +536,9 @@ class SaleOrder(models.Model):
                     quantity=1.0,
                     currency_id=currency,
                     sign=1,
+                    special_mode='total_excluded',
                     special_type='early_payment',
-                    tax_ids=line.tax_id,
+                    tax_ids=line.tax_id.flatten_taxes_hierarchy().filtered(lambda tax: tax.amount_type != 'fixed'),
                 ))
                 epd_lines.append(self.env['account.tax']._prepare_base_line_for_taxes_computation(
                     record=self,
@@ -541,6 +546,7 @@ class SaleOrder(models.Model):
                     quantity=1.0,
                     currency_id=currency,
                     sign=1,
+                    special_mode='total_excluded',
                     special_type='early_payment',
                 ))
         return epd_lines
@@ -779,7 +785,7 @@ class SaleOrder(models.Model):
     def _compute_tax_totals(self):
         AccountTax = self.env['account.tax']
         for order in self:
-            order_lines = order.order_line.filtered(lambda x: not x.display_type)
+            order_lines = order._get_priced_lines()
             base_lines = [line._prepare_base_line_for_taxes_computation() for line in order_lines]
             base_lines += order._add_base_lines_for_early_payment_discount()
             AccountTax._add_tax_details_in_base_lines(base_lines, order.company_id)
@@ -791,6 +797,7 @@ class SaleOrder(models.Model):
             )
 
     @api.depends('state')
+    @api.depends_context('lang')
     def _compute_type_name(self):
         for record in self:
             if record.state in ('draft', 'sent', 'cancel'):
@@ -833,8 +840,13 @@ class SaleOrder(models.Model):
 
     def onchange(self, values, field_names, fields_spec):
         self_with_context = self
-        if not field_names: # Some warnings should not be displayed for the first onchange
-            self_with_context = self.with_context(sale_onchange_first_call=True)
+        if not field_names:
+            self_with_context = self.with_context(
+                # Some warnings should not be displayed for the first onchange
+                sale_onchange_first_call=True,
+                # invoice & delivery address with higher `customer_rank` should take priority
+                res_partner_search_mode='customer',
+            )
         return super(SaleOrder, self_with_context).onchange(values, field_names, fields_spec)
 
     @api.onchange('commitment_date', 'expected_date')
@@ -908,7 +920,7 @@ class SaleOrder(models.Model):
 
     @api.onchange('pricelist_id')
     def _onchange_pricelist_id_show_update_prices(self):
-        self.show_update_pricelist = bool(self.order_line)
+        self.show_update_pricelist = bool(self.order_line and self._origin.pricelist_id != self.pricelist_id)
 
     @api.onchange('prepayment_percent')
     def _onchange_prepayment_percent(self):
@@ -956,7 +968,7 @@ class SaleOrder(models.Model):
                 update_commands = [Command.update(
                     order_line.id,
                     {'sequence': line.sequence + len(selected_combo_items) + line_index - index},
-                ) for line_index, order_line in enumerate(self.order_line) if line_index > index]
+                ) for line_index, order_line in enumerate(self.order_line.filtered(lambda l: not l.combo_item_id)) if line_index > index]
 
                 # Clear `selected_combo_items` to avoid applying the same changes multiple times.
                 line.selected_combo_items = False
@@ -1035,7 +1047,6 @@ class SaleOrder(models.Model):
     def action_quotation_send(self):
         """ Opens a wizard to compose an email, with relevant mail template loaded by default """
         self.filtered(lambda so: so.state in ('draft', 'sent')).order_line._validate_analytic_distribution()
-        lang = self.env.context.get('lang')
 
         ctx = {
             'default_model': 'sale.order',
@@ -1051,7 +1062,6 @@ class SaleOrder(models.Model):
         else:
             ctx.update({
                 'force_email': True,
-                'model_description': self.with_context(lang=lang).type_name,
             })
             if not self.env.context.get('hide_default_template'):
                 mail_template = self._find_mail_template()
@@ -1060,8 +1070,6 @@ class SaleOrder(models.Model):
                         'default_template_id': mail_template.id,
                         'mark_so_as_sent': True,
                     })
-                if mail_template and mail_template.lang:
-                    lang = mail_template._render_lang(self.ids)[self.id]
             else:
                 for order in self:
                     order._portal_ensure_token()
@@ -1161,12 +1169,11 @@ class SaleOrder(models.Model):
         # We don't need it and it creates issues in the creation of linked records.
         context = self._context.copy()
         context.pop('default_name', None)
+        context.pop('default_user_id', None)
 
         self.with_context(context)._action_confirm()
-        user = self[:1].create_uid
-        if user and user.sudo().has_group('sale.group_auto_done_setting'):
-            # Public user can confirm SO, so we check the group on any record creator.
-            self.action_lock()
+
+        self.filtered(lambda so: so._should_be_locked()).action_lock()
 
         if self.env.context.get('send_email'):
             self._send_order_confirmation_mail()
@@ -1342,7 +1349,7 @@ class SaleOrder(models.Model):
     def action_update_prices(self):
         self.ensure_one()
 
-        self._recompute_prices()
+        self.with_context(pricelist_update=True)._recompute_prices()
 
         if self.pricelist_id:
             message = _("Product prices have been recomputed according to pricelist %s.",
@@ -1453,13 +1460,12 @@ class SaleOrder(models.Model):
                 'default_partner_id': self.partner_id.id,
                 'default_partner_shipping_id': self.partner_shipping_id.id,
                 'default_invoice_payment_term_id': self.payment_term_id.id or self.partner_id.property_payment_term_id.id or self.env['account.move'].default_get(['invoice_payment_term_id']).get('invoice_payment_term_id'),
-                'default_invoice_origin': self.name,
             })
         action['context'] = context
         return action
 
     def _get_invoice_grouping_keys(self):
-        return ['company_id', 'partner_id', 'currency_id']
+        return ['company_id', 'partner_id', 'currency_id', 'fiscal_position_id']
 
     def _nothing_to_invoice_error_message(self):
         return _(
@@ -1760,17 +1766,6 @@ class SaleOrder(models.Model):
             elif self.state in ('draft', 'sent'):
                 access_opt['title'] = _("View Quotation")
 
-        # enable followers that have access through portal
-        follower_group = next(group for group in groups if group[0] == 'follower')
-        follower_group[2]['active'] = True
-        follower_group[2]['has_button_access'] = True
-        access_opt = follower_group[2].setdefault('button_access', {})
-        if self.state in ('draft', 'sent'):
-            access_opt['title'] = _("View Quotation")
-        else:
-            access_opt['title'] = _("View Order")
-        access_opt['url'] = self._notify_get_action_link('view', **local_msg_vals)
-
         return groups
 
     def _notify_by_email_prepare_rendering_context(self, message, msg_vals=False, model_description=False,
@@ -1781,7 +1776,7 @@ class SaleOrder(models.Model):
         )
         lang_code = render_context.get('lang')
         record = render_context['record']
-        subtitles = [f"{record.name} - {record.partner_id.name}" if record.partner_id else record.name]
+        subtitles = [f"{record.name} - {record.partner_id.name}" if record.partner_id.name else record.name]
         if self.amount_total:
             # Do not show the price in subtitles if zero (e.g. e-commerce orders are created empty)
             subtitles.append(
@@ -1811,6 +1806,11 @@ class SaleOrder(models.Model):
                 recipients, partner=self.partner_id, reason=_("Customer")
             )
         return recipients
+
+    def _get_model_description(self, model_name):
+        if not self:
+            return super()._get_model_description(model_name)
+        return self.type_name
 
     # PAYMENT #
 
@@ -2229,7 +2229,16 @@ class SaleOrder(models.Model):
                 'product_uom_qty': quantity,
                 'sequence': ((self.order_line and self.order_line[-1].sequence + 1) or 10),  # put it at the end of the order
             })
-        return sol.price_unit * (1-(sol.discount or 0.0)/100.0)
+        else:  # quantity of 0, no line to update, return defaut pricelist price
+            return self.pricelist_id._get_product_price(
+                product=self.env['product.product'].browse(product_id),
+                quantity=1.0,
+                currency=self.currency_id,
+                date=self.date_order,
+                **kwargs,
+            )
+
+        return sol._get_discounted_price()
 
     #=== TOOLING ===#
 

@@ -4,6 +4,8 @@ import { useSelfOrder } from "@pos_self_order/app/self_order_service";
 import { PopupTable } from "@pos_self_order/app/components/popup_table/popup_table";
 import { _t } from "@web/core/l10n/translation";
 import { OrderWidget } from "@pos_self_order/app/components/order_widget/order_widget";
+import { CancelPopup } from "@pos_self_order/app/components/cancel_popup/cancel_popup";
+import { rpc } from "@web/core/network/rpc";
 
 export class CartPage extends Component {
     static template = "pos_self_order.CartPage";
@@ -12,11 +14,20 @@ export class CartPage extends Component {
 
     setup() {
         this.selfOrder = useSelfOrder();
+        this.dialog = useService("dialog");
         this.router = useService("router");
         this.state = useState({
             selectTable: false,
             cancelConfirmation: false,
         });
+    }
+
+    get showCancelButton() {
+        return (
+            this.selfOrder.config.self_ordering_mode === "mobile" &&
+            this.selfOrder.config.self_ordering_pay_after === "each" &&
+            typeof this.selfOrder.currentOrder.id === "number"
+        );
     }
 
     get lines() {
@@ -36,6 +47,25 @@ export class CartPage extends Component {
         } else {
             return this.lines;
         }
+    }
+
+    async cancelOrder() {
+        this.dialog.add(CancelPopup, {
+            title: _t("Cancel order"),
+            confirm: async () => {
+                try {
+                    await rpc("/pos-self-order/remove-order", {
+                        access_token: this.selfOrder.access_token,
+                        order_id: this.selfOrder.currentOrder.id,
+                        order_access_token: this.selfOrder.currentOrder.access_token,
+                    });
+                    this.selfOrder.currentOrder.state = "cancel";
+                    this.router.navigate("default");
+                } catch (error) {
+                    this.selfOrder.handleErrorNotification(error);
+                }
+            },
+        });
     }
 
     getLineChangeQty(line) {
@@ -92,11 +122,13 @@ export class CartPage extends Component {
     getPrice(line) {
         const childLines = line.combo_line_ids;
         if (childLines.length == 0) {
-            return line.get_display_price();
+            const qty = this.getLineChangeQty(line) || line.qty;
+            return line.getDisplayPriceWithQty(qty);
         } else {
             let price = 0;
             for (const child of childLines) {
-                price += child.get_display_price();
+                const qty = this.getLineChangeQty(child) || child.qty;
+                price += child.getDisplayPriceWithQty(qty);
             }
             return price;
         }
@@ -131,6 +163,7 @@ export class CartPage extends Component {
         } else {
             this.selfOrder.removeLine(line);
         }
+        !this.lines.length && this.router.back();
     }
 
     async _changeQuantity(line, increase) {
@@ -161,7 +194,7 @@ export class CartPage extends Component {
         const order = this.selfOrder.currentOrder;
         this.selfOrder.editedLine = line;
 
-        if (order.state === "draft" && !order.lastChangesSent[line.uuid]) {
+        if (order.state === "draft" && !order.uiState.lineChanges[line.uuid]) {
             this.selfOrder.selectedOrderUuid = order.uuid;
 
             if (line.combo_line_ids.length > 0) {

@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.4alpha1+e\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-07 13:56+0000\n"
-"PO-Revision-Date: 2024-06-07 13:56+0000\n"
+"POT-Creation-Date: 2025-12-29 19:02+0000\n"
+"PO-Revision-Date: 2025-12-29 19:02+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -29,7 +29,6 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,help:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_invoice_chain_index
 #: model:ir.model.fields,help:l10n_hu_edi.field_account_move__l10n_hu_invoice_chain_index
-#: model:ir.model.fields,help:l10n_hu_edi.field_account_payment__l10n_hu_invoice_chain_index
 msgid ""
 "\n"
 "            Index in the chain of modification invoices:\n"
@@ -46,17 +45,17 @@ msgstr ""
 
 #. module: l10n_hu_edi
 #: model_terms:ir.ui.view,arch_db:l10n_hu_edi.report_invoice_document
+msgid "<strong class=\"d-block mt-3\">Shipping Address:</strong>"
+msgstr ""
+
+#. module: l10n_hu_edi
+#: model_terms:ir.ui.view,arch_db:l10n_hu_edi.report_invoice_document
 msgid "<strong>Customer:</strong>"
 msgstr ""
 
 #. module: l10n_hu_edi
 #: model_terms:ir.ui.view,arch_db:l10n_hu_edi.report_invoice_document
-msgid "<strong>Payment Mode:</strong>"
-msgstr ""
-
-#. module: l10n_hu_edi
-#: model_terms:ir.ui.view,arch_db:l10n_hu_edi.report_invoice_document
-msgid "<strong>Shipping Address:</strong>"
+msgid "<strong>Payment Mode</strong>"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -119,6 +118,11 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model,name:l10n_hu_edi.model_account_move_send
 msgid "Account Move Send"
+msgstr ""
+
+#. module: l10n_hu_edi
+#: model:ir.model,name:l10n_hu_edi.model_account_debit_note
+msgid "Add Debit Note wizard"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -293,14 +297,6 @@ msgid "Could not parse time of previous transaction"
 msgstr ""
 
 #. module: l10n_hu_edi
-#. odoo-python
-#: code:addons/l10n_hu_edi/__init__.py:0
-msgid ""
-"Could not set NAV tax types on taxes because some taxes from l10n_hu are missing.\n"
-"You should set the type manually or reload the CoA before sending invoices to NAV."
-msgstr ""
-
-#. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_l10n_hu_edi_cancellation__create_uid
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_l10n_hu_edi_tax_audit_export__create_uid
 msgid "Created by"
@@ -384,6 +380,11 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields.selection,name:l10n_hu_edi.selection__l10n_hu_edi_cancellation__code__erratic_invoice_number
 msgid "ERRATIC_INVOICE_NUMBER - Erroneous invoice number"
+msgstr ""
+
+#. module: l10n_hu_edi
+#: model:ir.model,name:l10n_hu_edi.model_account_tax
+msgid "ETA tax codes mixin"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -555,7 +556,6 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_batch_upload_index
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_batch_upload_index
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_batch_upload_index
 msgid "Index of invoice within a batch upload"
 msgstr ""
 
@@ -573,7 +573,6 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_invoice_chain_index
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_invoice_chain_index
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_invoice_chain_index
 msgid "Invoice Chain Index"
 msgstr ""
 
@@ -586,14 +585,12 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_attachment
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_attachment
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_attachment
 msgid "Invoice XML file"
 msgstr ""
 
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_attachment_filename
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_attachment_filename
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_attachment_filename
 msgid "Invoice XML filename"
 msgstr ""
 
@@ -625,26 +622,20 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_send_time
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_send_time
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_send_time
 msgid "Invoice upload time"
 msgstr ""
 
 #. module: l10n_hu_edi
 #. odoo-python
-#: code:addons/l10n_hu_edi/wizard/account_move_send.py:0
+#: code:addons/l10n_hu_edi/models/account_move_send.py:0
 msgid ""
 "Invoices issued in Hungary must, with few exceptions, be reported to the "
-"NAV's Online-Invoice system!"
+"NAV's Online-Invoice system."
 msgstr ""
 
 #. module: l10n_hu_edi
 #: model:ir.model,name:l10n_hu_edi.model_account_move
 msgid "Journal Entry"
-msgstr ""
-
-#. module: l10n_hu_edi
-#: model:ir.model,name:l10n_hu_edi.model_account_move_line
-msgid "Journal Item"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -695,11 +686,6 @@ msgid "Kilowatt hour"
 msgstr ""
 
 #. module: l10n_hu_edi
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move_send__l10n_hu_edi_enable_nav_30
-msgid "L10N Hu Edi Enable Nav 30"
-msgstr ""
-
-#. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_res_config_settings__l10n_hu_edi_is_active
 msgid "L10N Hu Edi Is Active"
 msgstr ""
@@ -727,8 +713,8 @@ msgid "Linear meter"
 msgstr ""
 
 #. module: l10n_hu_edi
-#: model:ir.model.fields.selection,name:l10n_hu_edi.selection__uom_uom__l10n_hu_edi_code__litre
-msgid "Litre"
+#: model:ir.model.fields.selection,name:l10n_hu_edi.selection__uom_uom__l10n_hu_edi_code__liter
+msgid "Liter"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -793,7 +779,8 @@ msgid "NAM other export transaction VAT law § 110-118"
 msgstr ""
 
 #. module: l10n_hu_edi
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move_send__l10n_hu_edi_checkbox_nav_30
+#. odoo-python
+#: code:addons/l10n_hu_edi/models/account_move_send.py:0
 #: model_terms:ir.ui.view,arch_db:l10n_hu_edi.view_move_form_inherit_l10n_hu_edi
 msgid "NAV 3.0"
 msgstr ""
@@ -801,7 +788,6 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_state
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_state
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_state
 msgid "NAV 3.0 status"
 msgstr ""
 
@@ -870,14 +856,7 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,help:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_payment_mode
 #: model:ir.model.fields,help:l10n_hu_edi.field_account_move__l10n_hu_payment_mode
-#: model:ir.model.fields,help:l10n_hu_edi.field_account_payment__l10n_hu_payment_mode
 msgid "NAV expected payment mode of the invoice."
-msgstr ""
-
-#. module: l10n_hu_edi
-#. odoo-python
-#: code:addons/l10n_hu_edi/models/l10n_hu_edi_connection.py:0
-msgid "NAV replied with non-OK funcCode: %s"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -938,7 +917,6 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_payment_mode
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_payment_mode
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_payment_mode
 msgid "Payment mode"
 msgstr ""
 
@@ -950,7 +928,8 @@ msgstr ""
 #. module: l10n_hu_edi
 #. odoo-python
 #: code:addons/l10n_hu_edi/models/account_move.py:0
-msgid "Please create a sales tax with type ATK (outside the scope of the VAT Act)."
+msgid ""
+"Please create a sales tax with type ATK (outside the scope of the VAT Act)."
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -965,6 +944,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/l10n_hu_edi/models/account_move.py:0
 msgid "Please set NAV credentials in the Accounting Settings!"
+msgstr ""
+
+#. module: l10n_hu_edi
+#. odoo-python
+#: code:addons/l10n_hu_edi/models/account_move.py:0
+msgid "Please set a valid recipient bank account number!"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -1020,7 +1005,7 @@ msgstr ""
 #. module: l10n_hu_edi
 #. odoo-python
 #: code:addons/l10n_hu_edi/models/account_move.py:0
-msgid "Please use HUF as company currency!"
+msgid "Please use HUF or EUR as your company currency."
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -1093,6 +1078,11 @@ msgid "SECOND_HAND - Profit-margin based regime for second-hand sales"
 msgstr ""
 
 #. module: l10n_hu_edi
+#: model:ir.model.fields.selection,name:l10n_hu_edi.selection__product_template__l10n_hu_product_code_type__szj
+msgid "SZJ - Service Registry Code"
+msgstr ""
+
+#. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_l10n_hu_edi_tax_audit_export__selection_mode
 msgid "Selection mode"
 msgstr ""
@@ -1139,11 +1129,6 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields.selection,name:l10n_hu_edi.selection__account_tax__l10n_hu_tax_type__travel_agency
 msgid "TRAVEL_AGENCY - Profit-margin based regime for travel agencies"
-msgstr ""
-
-#. module: l10n_hu_edi
-#: model:ir.model,name:l10n_hu_edi.model_account_tax
-msgid "Tax"
 msgstr ""
 
 #. module: l10n_hu_edi
@@ -1301,21 +1286,18 @@ msgstr ""
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_transaction_code
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_transaction_code
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_transaction_code
 msgid "Transaction Code"
 msgstr ""
 
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_message_html
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_message_html
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_message_html
 msgid "Transaction messages"
 msgstr ""
 
 #. module: l10n_hu_edi
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_bank_statement_line__l10n_hu_edi_messages
 #: model:ir.model.fields,field_description:l10n_hu_edi.field_account_move__l10n_hu_edi_messages
-#: model:ir.model.fields,field_description:l10n_hu_edi.field_account_payment__l10n_hu_edi_messages
 msgid "Transaction messages (JSON)"
 msgstr ""
 
@@ -1358,8 +1340,6 @@ msgstr ""
 
 #. module: l10n_hu_edi
 #. odoo-python
-#: code:addons/l10n_hu_edi/models/account_move.py:0
-#: code:addons/l10n_hu_edi/models/account_move.py:0
 #: code:addons/l10n_hu_edi/models/account_move.py:0
 msgid "View invoice(s)"
 msgstr ""

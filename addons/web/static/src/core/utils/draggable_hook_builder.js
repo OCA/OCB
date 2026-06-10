@@ -258,6 +258,9 @@ function makeDOMHelpers(cleanup) {
             return {};
         }
         const rect = el.getBoundingClientRect();
+
+        rect.height = el.offsetHeight;
+
         if (options.adjust) {
             const style = getComputedStyle(el);
             const [pl, pr, pt, pb] = [
@@ -500,15 +503,14 @@ export function makeDraggableHook(hookParams) {
                 state.willDrag = false;
 
                 // Compute scrollable parent
-                const isDocumentScrollingElement = ctx.current.container
-                    === ctx.current.container.ownerDocument.scrollingElement;
+                const isDocumentScrollingElement =
+                    ctx.current.container === ctx.current.container.ownerDocument.scrollingElement;
                 // If the container is the "ownerDocument.scrollingElement",
                 // there is no need to get the scroll parent as it is the
                 // scrollable element itself.
                 // TODO: investigate if "getScrollParents" should not consider
                 // the "ownerDocument.scrollingElement" directly.
-                [ctx.current.scrollParentX, ctx.current.scrollParentY] =
-                    isDocumentScrollingElement
+                [ctx.current.scrollParentX, ctx.current.scrollParentY] = isDocumentScrollingElement
                     ? [ctx.current.container, ctx.current.container]
                     : getScrollParents(ctx.current.container);
 
@@ -572,7 +574,7 @@ export function makeDraggableHook(hookParams) {
                 if (state.dragging) {
                     preventClick = true;
                     if (!inErrorState) {
-                        if (target) {
+                        if (target && ctx.current.element.isConnected) {
                             callBuildHandler("onDrop", { target });
                         }
                         callBuildHandler("onDragEnd");
@@ -782,6 +784,8 @@ export function makeDraggableHook(hookParams) {
                         return;
                     }
                     dragStart();
+                } else if (!ctx.current.element.isConnected) {
+                    return dragEnd(null);
                 }
 
                 if (ctx.followCursor) {

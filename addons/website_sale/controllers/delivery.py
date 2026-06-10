@@ -47,7 +47,7 @@ class Delivery(WebsiteSale):
             return {}
 
         dm_id = int(dm_id)
-        if dm_id != order_sudo.carrier_id.id:
+        if dm_id in order_sudo._get_delivery_methods().ids and dm_id != order_sudo.carrier_id.id:
             for tx_sudo in order_sudo.transaction_ids:
                 if tx_sudo.state not in ('draft', 'cancel', 'error'):
                     raise UserError(_(
@@ -72,6 +72,7 @@ class Delivery(WebsiteSale):
         return {
             'success': True,
             'is_free_delivery': not bool(order.amount_delivery),
+            'compute_price_after_delivery': order.carrier_id.invoice_policy == 'real',
             'amount_delivery': Monetary.value_to_html(
                 order.amount_delivery, {'display_currency': currency}
             ),
@@ -112,6 +113,7 @@ class Delivery(WebsiteSale):
                 rate['price'], {'display_currency': order.currency_id}
             )
             rate['is_free_delivery'] = not bool(rate['price'])
+            rate['compute_price_after_delivery'] = delivery_method.invoice_policy == 'real'
         else:
             rate['amount_delivery'] = Monetary.value_to_html(
                 0.0, {'display_currency': order.currency_id}
@@ -179,7 +181,7 @@ class Delivery(WebsiteSale):
             # already accepted the amount and validated the payment.
             with request.env.protecting([order_sudo._fields['pricelist_id']], order_sudo):
                 order_sudo.partner_id = new_partner_sudo
-        elif order_sudo.partner_shipping_id.name.endswith(order_sudo.name):
+        elif order_sudo.name in order_sudo.partner_shipping_id.name:
             order_sudo.partner_shipping_id.write(partial_delivery_address)
             # TODO VFE TODO VCR do we want to trigger cart recomputation here ?
             # order_sudo._update_address(
@@ -205,17 +207,30 @@ class Delivery(WebsiteSale):
                 order_sudo=order_sudo,
             )
 
-        # Return the list of delivery methods available for the sales order.
-        return sorted([{
+        sorted_delivery_methods = sorted([{
             'id': dm.id,
             'name': dm.name,
             'description': dm.website_description,
             'minorAmount': payment_utils.to_minor_currency_units(price, order_sudo.currency_id),
-        } for dm, price in Delivery._get_delivery_methods_express_checkout(order_sudo).items()
+        } for dm, price in self._get_delivery_methods_express_checkout(order_sudo).items()
         ], key=lambda dm: dm['minorAmount'])
 
-    @staticmethod
-    def _get_delivery_methods_express_checkout(order_sudo):
+        # Preselect the cheapest method imitating the behavior of the express checkout form.
+        if (
+            sorted_delivery_methods
+            and order_sudo.carrier_id.id != sorted_delivery_methods[0]['id']
+            and (cheapest_dm := next((
+                dm for dm in order_sudo._get_delivery_methods()
+                if dm.id == sorted_delivery_methods[0]['id']), None
+            ))
+        ):
+            order_sudo._set_delivery_method(cheapest_dm)
+
+        # Return the list of delivery methods available for the sales order.
+        return {'delivery_methods': sorted_delivery_methods}
+
+    @classmethod
+    def _get_delivery_methods_express_checkout(cls, order_sudo):
         """ Return available delivery methods and their prices for the given order.
 
         :param sale.order order_sudo: The sudoed sales order.

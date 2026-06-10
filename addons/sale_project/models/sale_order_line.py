@@ -44,7 +44,7 @@ class SaleOrderLine(models.Model):
                 sale_order = None
                 so_create_values = {
                     'partner_id': partner_id,
-                    'company_id': self.env.context.get('default_company_id') or self.env.company.id,
+                    'company_id': self.env.context.get('company_id') or self.env.company.id,
                 }
                 if project_id:
                     try:
@@ -135,14 +135,27 @@ class SaleOrderLine(models.Model):
 
     @api.depends('order_id.partner_id', 'product_id', 'order_id.project_id')
     def _compute_analytic_distribution(self):
-        super()._compute_analytic_distribution()
-        for line in self:
-            if line.display_type or line.analytic_distribution or not line.product_id:
-                continue
-            project = line.product_id.project_id or line.order_id.project_id
-            distribution = project._get_analytic_distribution()
-            if distribution:
-                line.analytic_distribution = distribution
+        ctx_project = self.env['project.project'].browse(self.env.context.get('project_id'))
+        project_lines = self.filtered(lambda l: not l.display_type and (ctx_project or l.product_id.with_company(l.company_id).project_id or l.order_id.project_id))
+        empty_project_lines = project_lines.filtered(lambda l: not l.analytic_distribution)
+        super(SaleOrderLine, (self - project_lines) + empty_project_lines)._compute_analytic_distribution()
+
+        for line in project_lines:
+            project = ctx_project or line.product_id.with_company(line.company_id).project_id or line.order_id.project_id
+            if line.analytic_distribution:
+                applied_root_plans = self.env['account.analytic.account'].browse(
+                    list({int(account_id) for ids in line.analytic_distribution for account_id in ids.split(",")})
+                ).exists().root_plan_id
+                if accounts_to_add := project._get_analytic_accounts().filtered(
+                    lambda account: account.root_plan_id not in applied_root_plans
+                ):
+                    # project account is added to each analytic distribution line
+                    line.analytic_distribution = {
+                        f"{account_ids},{','.join(map(str, accounts_to_add.ids))}": percentage
+                        for account_ids, percentage in line.analytic_distribution.items()
+                    }
+            else:
+                line.analytic_distribution = project._get_analytic_distribution()
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -198,6 +211,7 @@ class SaleOrderLine(models.Model):
         # create the project or duplicate one
         return {
             'name': '%s - %s' % (self.order_id.client_order_ref, self.order_id.name) if self.order_id.client_order_ref else self.order_id.name,
+            'account_id': self.env.context.get('project_account_id') or self.order_id.project_account_id.id or self.env['account.analytic.account'].create(self.order_id._prepare_analytic_account_data()).id,
             'partner_id': self.order_id.partner_id.id,
             'sale_line_id': self.id,
             'active': True,
@@ -262,20 +276,19 @@ class SaleOrderLine(models.Model):
     def _timesheet_create_task_prepare_values(self, project):
         self.ensure_one()
         allocated_hours = 0.0
-        if self.product_id.service_type not in ['milestones', 'manual']:
+        if self.product_id.service_type != 'milestones':
             allocated_hours = self._convert_qty_company_hours(self.company_id)
         sale_line_name_parts = self.name.split('\n')
-        products_inside_template_line_with_name = self.order_id.sale_order_template_id.sale_order_template_line_ids.filtered(
-            lambda line: line.product_id and line.name).product_id
-        if self.product_id in products_inside_template_line_with_name:
-            title = self.product_id.name
-            description = '<br/>'.join(sale_line_name_parts)
-        else:
-            if len(sale_line_name_parts) > 1 and sale_line_name_parts[1]:
-                # if there's multiple lines, skip the product name part
-                sale_line_name_parts.pop(0)
+
+        if sale_line_name_parts and sale_line_name_parts[0] == self.product_id.display_name:
+            sale_line_name_parts.pop(0)
+
+        if len(sale_line_name_parts) == 1 and sale_line_name_parts[0]:
             title = sale_line_name_parts[0]
-            description = '<br/>'.join(sale_line_name_parts[1:])
+            description = ''
+        else:
+            title = self.product_id.display_name
+            description = '<br/>'.join(sale_line_name_parts)
 
         return {
             'name': title if project.sale_line_id else '%s - %s' % (self.order_id.name or '', title),
@@ -354,18 +367,15 @@ class SaleOrderLine(models.Model):
             if so_line.product_id.service_tracking in ['project_only', 'task_in_project']:
                 project = so_line.project_id
             if not project and _can_create_project(so_line):
-                project = so_line._timesheet_create_project()
-
-                # If the SO generates projects on confirmation and the project's SO is not set, set it to the project's SOL with the lowest (sequence, id)
-                if not so_line.order_id.project_id:
-                    so_line.order_id.project_id = project
                 # If no reference analytic account exists, set the account of the generated project to the account of the project's SO or create a new one
                 account = map_account_per_so.get(so_line.order_id.id)
                 if not account:
                     account = so_line.order_id.project_account_id or self.env['account.analytic.account'].create(so_line.order_id._prepare_analytic_account_data())
                     map_account_per_so[so_line.order_id.id] = account
-                project.account_id = account
-
+                project = so_line.with_context(project_account_id=account.id)._timesheet_create_project()
+                # If the SO generates projects on confirmation and the project's SO is not set, set it to the project's SOL with the lowest (sequence, id)
+                if not so_line.order_id.project_id:
+                    so_line.order_id.project_id = project
                 if so_line.product_id.project_template_id:
                     map_so_project_templates[(so_line.order_id.id, so_line.product_id.project_template_id.id)] = project
                 else:
@@ -431,7 +441,7 @@ class SaleOrderLine(models.Model):
             to this sale order line, or the analytic account of the project which uses this sale order line, if it exists.
         """
         values = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
-        if not values.get('analytic_distribution'):
+        if not values.get('analytic_distribution') and not self.analytic_distribution:
             if self.task_id.project_id.account_id:
                 values['analytic_distribution'] = {self.task_id.project_id.account_id.id: 100}
             elif self.project_id.account_id:
@@ -456,6 +466,6 @@ class SaleOrderLine(models.Model):
 
     def _prepare_procurement_values(self, group_id=False):
         values = super()._prepare_procurement_values(group_id=group_id)
-        if self.project_id:
+        if self.order_id.project_id:
             values['project_id'] = self.order_id.project_id.id
         return values

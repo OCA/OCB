@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import warnings
+import base64
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from operator import itemgetter
@@ -10,7 +11,7 @@ from odoo import http, _
 from odoo.addons.website.controllers.form import WebsiteForm
 from odoo.osv.expression import AND
 from odoo.http import request
-from odoo.tools import email_normalize
+from odoo.tools import email_normalize, escape_psql
 from odoo.tools.misc import groupby
 
 
@@ -294,10 +295,10 @@ class WebsiteHrRecruitment(WebsiteForm):
                 and applicant.create_date >= (datetime.now() - relativedelta(months=6))
 
         field_domain = {
-            'name': [('partner_name', '=ilike', value)],
+            'name': [('partner_name', '=ilike', escape_psql(value))],
             'email': [('email_normalized', '=', email_normalize(value))],
             'phone': [('partner_phone', '=', value)],
-            'linkedin': [('linkedin_profile', '=ilike', value)],
+            'linkedin': [('linkedin_profile', '=ilike', escape_psql(value))],
         }.get(field, [])
 
         applications_by_status = http.request.env['hr.applicant'].sudo().search(AND([
@@ -380,3 +381,21 @@ class WebsiteHrRecruitment(WebsiteForm):
         if candidate:
             data['record']['candidate_id'] = candidate.id
         return data
+
+    def insert_attachment(self, model, id_record, files):
+        if model.sudo().model == 'hr.applicant':
+            candidate_id = request.env['hr.applicant'].browse(id_record).candidate_id
+            if candidate_id:
+                attachment_value = []
+                for file in files:
+                    if file_data := file.read():
+                        attachment_value.append({
+                            'name': file.filename,
+                            'datas': base64.b64encode(file_data),
+                            'res_model': 'hr.candidate',
+                            'res_id': candidate_id,
+                        })
+                        file.stream.seek(0)
+                if attachment_value:
+                    request.env['ir.attachment'].sudo().create(attachment_value)
+        super().insert_attachment(model, id_record, files)

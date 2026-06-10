@@ -32,7 +32,7 @@ class ProjectTask(models.Model):
              "By default the sales order item set on the project will be selected. In the absence of one, the last prepaid sales order item that has time remaining will be used.\n"
              "Remove the sales order item in order to make this task non billable. You can also change or remove the sales order item of each timesheet entry individually.")
     project_sale_order_id = fields.Many2one('sale.order', string="Project's sale order", related='project_id.sale_order_id')
-    sale_order_state = fields.Selection(related='sale_order_id.state')
+    sale_order_state = fields.Selection(related='sale_order_id.state', tracking=False)
     task_to_invoice = fields.Boolean("To invoice", compute='_compute_task_to_invoice', search='_search_task_to_invoice', groups='sales_team.group_sale_salesman_all_leads')
     allow_billable = fields.Boolean(related="project_id.allow_billable")
     partner_id = fields.Many2one(inverse='_inverse_partner_id')
@@ -58,7 +58,7 @@ class ProjectTask(models.Model):
     @api.depends('sale_line_id', 'project_id', 'allow_billable')
     def _compute_sale_order_id(self):
         for task in self:
-            if not task.allow_billable:
+            if not (task.allow_billable and task.sale_line_id):
                 task.sale_order_id = False
                 continue
             sale_order = (
@@ -108,9 +108,11 @@ class ProjectTask(models.Model):
                 sale_line = False
                 if task.parent_id.sale_line_id and task.parent_id.partner_id.commercial_partner_id == task.partner_id.commercial_partner_id:
                     sale_line = task.parent_id.sale_line_id
+                elif task.milestone_id.sale_line_id:
+                    sale_line = task.milestone_id.sale_line_id
                 elif task.project_id.sale_line_id and task.project_id.partner_id.commercial_partner_id == task.partner_id.commercial_partner_id:
                     sale_line = task.project_id.sale_line_id
-                task.sale_line_id = sale_line or task.milestone_id.sale_line_id
+                task.sale_line_id = sale_line
 
     @api.depends('sale_order_id')
     def _compute_display_sale_order_button(self):
@@ -193,7 +195,7 @@ class ProjectTask(models.Model):
         if not self.display_sale_order_button:
             return {}
         return {
-            "name": "Portal Sale Order",
+            "name": self.env._("Portal Sale Order"),
             "type": "ir.actions.act_url",
             "url": self.sale_order_id.access_url,
         }

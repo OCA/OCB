@@ -5,6 +5,7 @@ import portalComposer from "@portal/js/portal_composer";
 import { _t } from "@web/core/l10n/translation";
 import { renderToElement } from "@web/core/utils/render";
 import { user } from "@web/core/user";
+import { Component } from "@odoo/owl";
 
 const PortalComposer = portalComposer.PortalComposer;
 
@@ -36,7 +37,9 @@ const RatingPopupComposer = publicWidget.Widget.extend({
             'csrf_token': odoo.csrf_token,
             'user_id': user.userId,
         }, options, {});
-        this.options.send_button_label = this.options.default_message_id ? _t("Update review") : _t("Post review");
+        Component.env.bus.addEventListener("reload_rating_popup_composer", (ev) =>
+            this._onReloadRatingPopupComposer(ev.detail)
+        );
 
         return def;
     },
@@ -83,6 +86,8 @@ const RatingPopupComposer = publicWidget.Widget.extend({
             this._composer.destroy();
         }
 
+        // Change the text of send button
+        this.options.send_button_label = this.options.default_message_id ? _t("Update review") : _t("Post review");
         // Instantiate the "Portal Composer" widget and insert it into the modal
         this._composer = new PortalComposer(this, this.options);
         return this._composer.appendTo(this.$('.o_rating_popup_composer_modal .o_portal_chatter_composer')).then(() => {
@@ -101,10 +106,10 @@ const RatingPopupComposer = publicWidget.Widget.extend({
 
     /**
      * @private
-     * @param {OdooEvent} event
+     * @param {OdooEvent|Object} eventOrData
      */
-    _onReloadRatingPopupComposer: function (event) {
-        const data = event.data;
+    _onReloadRatingPopupComposer: function (eventOrData) {
+        const data = eventOrData.data || eventOrData;
 
         // Refresh the internal state of the widget
         this.rating_avg = data.rating_avg || data["mail.thread"][0].rating_avg;
@@ -120,17 +125,31 @@ const RatingPopupComposer = publicWidget.Widget.extend({
         this._reloadRatingPopupComposer();
     },
 
+    /**
+     * Update the widget options using data received from the mail composer or popup rating composer
+     *
+     * @param {Object} data
+     * @private
+     */
     _update_options: function (data) {
-        const defaultOptions = {
+        const message = data["mail.message"] && data["mail.message"][0];
+        const updatedOptions = {
             default_message:
-                data.default_message ||
-                (data["mail.message"] && data["mail.message"][0].body.replace(/<[^>]+>/g, "")),
-            default_message_id: data.default_message_id || data["mail.message"][0].id,
+                data.default_message || (message && message.body.replace(/<[^>]+>/g, "")),
+            default_message_id:
+                data.default_message_id ||
+                (message &&
+                    (message.body.replace(/<[^>]+>/g, "") ||
+                        message.attachment_ids.length ||
+                        message.rating_id) &&
+                    message.id),
             default_attachment_ids: data.default_attachment_ids || data["ir.attachment"],
-            default_rating_value: data.default_rating_value || this.rating_value,
+            default_rating_value:
+                data.default_rating_value || this.rating_value || 4,
         };
-        Object.assign(data, defaultOptions);
-        this.options = Object.assign(this.options, data);
+        if (message?.author && message.author.id === this.options.partner_id) {
+            Object.assign(this.options, data, updatedOptions);
+        }
     },
 });
 

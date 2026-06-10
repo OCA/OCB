@@ -2,7 +2,6 @@ import { Reactive } from "@web/core/utils/reactive";
 import { ConnectionLostError, RPCError, rpc } from "@web/core/network/rpc";
 import { _t } from "@web/core/l10n/translation";
 import { formatCurrency as webFormatCurrency } from "@web/core/currency";
-import { attributeFormatter } from "@pos_self_order/app/utils";
 import { useState, markup } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
@@ -24,6 +23,7 @@ import {
     getTaxesAfterFiscalPosition,
     getTaxesValues,
 } from "@point_of_sale/app/models/utils/tax_utils";
+import { initLNA } from "@point_of_sale/app/utils/init_lna";
 
 const { DateTime } = luxon;
 
@@ -56,7 +56,7 @@ export class SelfOrder extends Reactive {
         this.currency = this.config.currency_id;
 
         this.markupDescriptions();
-        this.access_token = this.config.access_token;
+        this.access_token = odoo.access_token;
         this.lastEditedProductId = null;
         this.currentProduct = 0;
         this.currentTable = null;
@@ -145,6 +145,12 @@ export class SelfOrder extends Reactive {
             this.addToCart(product, 1, "", {}, {});
             this.router.navigate("cart");
         });
+
+        if (this.config.self_ordering_mode === "kiosk") {
+            initLNA(this.notification);
+        } else {
+            odoo.use_lna = false;
+        }
     }
 
     computeAvailableCategories() {
@@ -249,7 +255,8 @@ export class SelfOrder extends Reactive {
                 comboValues,
                 this.currentOrder.pricelist_id,
                 this.models["decimal.precision"].getAll(),
-                this.models["product.template.attribute.value"].getAllBy("id")
+                this.models["product.template.attribute.value"].getAllBy("id"),
+                this.currency
             );
 
             values.price_unit = 0;
@@ -352,7 +359,7 @@ export class SelfOrder extends Reactive {
 
         // When no payment methods redirect to confirmation page
         // the client will be able to pay at counter
-        if (paymentMethods.length === 0) {
+        if (paymentMethods.length === 0 || order.amount_total === 0) {
             let screenMode = "pay";
 
             if (Object.keys(order.changes).length > 0) {
@@ -508,7 +515,7 @@ export class SelfOrder extends Reactive {
                 order,
                 Object.values(printer.config.product_categories_ids)
             );
-            if (orderlines) {
+            if (orderlines.length > 0) {
                 const printingChanges = {
                     new: orderlines,
                     tracker: order.table_stand_number,
@@ -630,6 +637,7 @@ export class SelfOrder extends Reactive {
         }
 
         try {
+            const uuid = this.currentOrder.uuid;
             this.currentOrder.recomputeOrderData();
             const data = await rpc(
                 `/pos-self-order/process-order-args/${this.config.self_ordering_mode}`,
@@ -655,7 +663,10 @@ export class SelfOrder extends Reactive {
             }
 
             this.currentOrder.recomputeChanges();
-            return this.currentOrder;
+            const originalOrder = this.models["pos.order"].getBy("uuid", uuid);
+            return this.config.self_ordering_mode === "mobile" && originalOrder?.amount_total === 0
+                ? originalOrder
+                : this.currentOrder;
         } catch (error) {
             const order = this.models["pos.order"].getBy("uuid", this.selectedOrderUuid);
             this.handleErrorNotification(error, [order.access_token]);
@@ -880,20 +891,6 @@ export class SelfOrder extends Reactive {
     }
     getLinePrice(line) {
         return this.config.iface_tax_included ? line.price_subtotal_incl : line.price_subtotal;
-    }
-    getSelectedAttributes(line) {
-        const attributeValues = line.attribute_value_ids;
-        const customAttr = line.custom_attribute_value_ids;
-        return attributeFormatter(
-            this.models["product.attribute"].getAllBy("id"),
-            attributeValues,
-            customAttr
-        );
-    }
-    getFullProductName(line) {
-        const attrs = this.getSelectedAttributes(line);
-        const attrsStr = " (" + attrs.map((a) => a.value).join(", ") + ")";
-        return line.full_product_name + (attrs.length ? attrsStr : "");
     }
     showDownloadButton(order) {
         return this.config.self_ordering_mode === "mobile" && order.state === "paid";

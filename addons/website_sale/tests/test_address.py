@@ -1,5 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import json
+
 from unittest.mock import patch
 
 from werkzeug.exceptions import Forbidden
@@ -611,3 +613,122 @@ class TestCheckoutAddress(BaseUsersCommon, WebsiteSaleCommon):
             so.website_id = False
             so._compute_payment_term_id()
             self.assertFalse(so.payment_term_id, "The website default payment term should not be set on a sale order not coming from the website")
+
+    def test_12_recompute_taxes_on_address_change(self):
+        self.env.company.country_id = self.env.ref('base.us')
+        tax_15_incl, tax_0 = self.env['account.tax'].create([
+            {
+                'name': "15% excl",
+                'amount': 15,
+                'price_include_override': 'tax_included',
+            },
+            {
+                'name': "0%",
+                'amount': 0,
+            },
+        ])
+        fpos_be = self.env['account.fiscal.position'].create({
+            'name': "Fiscal Position BE",
+            'auto_apply': True,
+            'country_id': self.country_id,
+            'tax_ids': [Command.create({
+                'tax_src_id': tax_15_incl.id,
+                'tax_dest_id': tax_0.id,
+            })],
+        })
+        self.product.taxes_id = [Command.set(tax_15_incl.ids)]
+        self.partner.country_id = self.country_id
+
+        cart = self.empty_cart
+        cart.order_line = [Command.create({'product_id': self.product.id})]
+        amount_untaxed = cart.amount_untaxed
+
+        self.assertEqual(cart.fiscal_position_id, fpos_be)
+        self.assertEqual(cart.order_line.tax_id, tax_0)
+
+        self.partner.country_id = self.env.company.country_id
+        self.assertNotEqual(cart.fiscal_position_id, fpos_be)
+        self.assertEqual(cart.order_line.tax_id, tax_15_incl)
+        self.assertEqual(cart.amount_untaxed, amount_untaxed, "Untaxed amount should not change")
+
+        cart.action_confirm()
+        self.partner.country_id = self.country_id
+        self.assertEqual(
+            cart.order_line.tax_id, tax_15_incl,
+            "Tax should no longer change after order confirmation",
+        )
+
+    def test_13_shop_address_submit_eu_vat_number(self):
+        if not hasattr(self.env['res.partner'], 'check_vat'):
+            self.skipTest("base_vat is not installed")
+
+        partner = self.env['res.partner'].create({
+            'name': 'test partner',
+            'vat': '0477472701',
+            'country_id': self.country_id,
+        })
+        user = self.env['res.users'].create({
+            'name': 'test user',
+            'login': 'test',
+            'email': 'test@test.com',
+            'partner_id': partner.id,
+        })
+
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': partner.id,
+            'invoice_line_ids': [
+                Command.create({
+                    'product_id': self.product.id,
+                })
+            ],
+        })
+        invoice.action_post()
+        self.assertFalse(partner.can_edit_vat())
+
+        so = self._create_so(partner_id=partner.id)
+        address_values = {
+            **self.default_address_values,
+            'vat': '0477472701',
+            'name': partner.name,
+            'email': partner.email,
+        }
+        env = api.Environment(self.env.cr, user.id, {})
+        with MockRequest(env, website=self.website.with_env(env), sale_order_id=so.id) as req:
+            req.httprequest.method = "POST"
+            self.WebsiteSaleController.shop_address_submit(
+                partner_id=partner.id,
+                **address_values,
+            )
+
+        self.assertEqual(partner.vat, 'BE0477472701')
+
+    def test_imported_user_with_trailing_name_can_checkout(self):
+        """Ensure that an imported user with trailing spaces in their name can complete checkout without error."""
+
+        imported_user = self.env['res.users'].create({
+            'name': 'Imported User ',  # trailing space
+            'login': 'imported_user',
+            'email': 'imported@example.com',
+        })
+        imported_partner = imported_user.partner_id
+        so = self._create_so(partner_id=imported_partner.id)
+
+        env = api.Environment(self.env.cr, imported_user.id, {})
+        with MockRequest(env, website=self.website.with_env(env), sale_order_id=so.id) as req:
+            req.httprequest.method = "POST"
+
+            values = {
+                'name': 'Imported User',  # trimmed input
+                'email': 'imported@example.com',
+                'street': '123 Some Street',
+                'city': 'Cityville',
+                'zip': '12345',
+                'country_id': self.country_id,
+                'phone': '+33123456789',
+                'partner_id': imported_partner.id,
+                'address_type': 'delivery',
+                'use_delivery_as_billing': 'true',
+            }
+            res = self.WebsiteSaleController.shop_address_submit(**values).data
+            self.assertIsNotNone(json.loads(res).get('redirectUrl'), "We should get a 'redirectUrl' in the response")

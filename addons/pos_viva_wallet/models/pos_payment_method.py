@@ -15,13 +15,13 @@ class PosPaymentMethod(models.Model):
 
     # Viva Wallet
     viva_wallet_merchant_id = fields.Char(string="Merchant ID", help='Used when connecting to Viva Wallet: https://developer.vivawallet.com/getting-started/find-your-account-credentials/merchant-id-and-api-key/')
-    viva_wallet_api_key = fields.Char(string="API Key", help='Used when connecting to Viva Wallet: https://developer.vivawallet.com/getting-started/find-your-account-credentials/merchant-id-and-api-key/')
+    viva_wallet_api_key = fields.Char(string="API Key", groups='point_of_sale.group_pos_manager', help='Used when connecting to Viva Wallet: https://developer.vivawallet.com/getting-started/find-your-account-credentials/merchant-id-and-api-key/')
     viva_wallet_client_id = fields.Char(string="Client ID", help='Used when connecting to Viva Wallet: https://developer.vivawallet.com/getting-started/find-your-account-credentials/pos-apis-credentials/#find-your-pos-apis-credentials')
     viva_wallet_client_secret = fields.Char(string="Client secret")
     viva_wallet_terminal_id = fields.Char(string="Terminal ID", help='[Terminal ID of the Viva Wallet terminal], for example: 16002169')
     viva_wallet_bearer_token = fields.Char(default='Bearer Token')
     viva_wallet_webhook_verification_key = fields.Char()
-    viva_wallet_latest_response = fields.Json() # used to buffer the latest asynchronous notification from Adyen.
+    viva_wallet_latest_response = fields.Json()  # not used anymore, to remove in master
     viva_wallet_test_mode = fields.Boolean(string="Test mode", help="Run transactions in the test environment.")
     viva_wallet_webhook_endpoint = fields.Char(compute='_compute_viva_wallet_webhook_endpoint', readonly=True)
 
@@ -120,7 +120,6 @@ class PosPaymentMethod(models.Model):
 
         if data.get('success'):
             data.update({'pos_session_id': pos_session_id, 'data_webhook': data_webhook})
-            self.viva_wallet_latest_response = data
             self._send_notification(data)
         else:
             self._send_notification(
@@ -135,7 +134,13 @@ class PosPaymentMethod(models.Model):
         pos_session_sudo = self.env["pos.session"].browse(int(data.get('pos_session_id', False)))
         if pos_session_sudo:
             pos_session_sudo.config_id._notify('VIVA_WALLET_LATEST_RESPONSE', {
-                'config_id': pos_session_sudo.config_id.id
+                'config_id': pos_session_sudo.config_id.id,
+                'session_id': data.get('sessionId'),
+                'success': data.get('success', False),
+                'transactionId': data.get('transactionId'),
+                'cardType': data.get('cardType'),
+                'applicationLabel': data.get('applicationLabel'),
+                'primaryAccountNumberMasked': data.get('primaryAccountNumberMasked'),
             })
 
     def _load_pos_data_fields(self, config_id):
@@ -173,7 +178,7 @@ class PosPaymentMethod(models.Model):
             self.viva_wallet_webhook_verification_key = self._get_verification_key(
                 self._viva_wallet_webhook_get_endpoint(),
                 self.viva_wallet_merchant_id,
-                self.viva_wallet_api_key
+                self.sudo().viva_wallet_api_key
                 )
             if not self.viva_wallet_webhook_verification_key:
                 raise UserError(_("Can't update payment method. Please check the data and update it."))
@@ -189,7 +194,7 @@ class PosPaymentMethod(models.Model):
                 record.viva_wallet_webhook_verification_key = record._get_verification_key(
                     record._viva_wallet_webhook_get_endpoint(),
                     record.viva_wallet_merchant_id,
-                    record.viva_wallet_api_key,
+                    record.sudo().viva_wallet_api_key,
                 )
                 if not record.viva_wallet_webhook_verification_key:
                     raise UserError(_("Can't create payment method. Please check the data and update it."))
@@ -197,12 +202,8 @@ class PosPaymentMethod(models.Model):
         return records
 
     def get_latest_viva_wallet_status(self):
-        if not self.env.user.has_group('point_of_sale.group_pos_user'):
-            raise AccessError(_("Only 'group_pos_user' are allowed to get latest transaction status"))
-
-        self.ensure_one()
-        latest_response = self.sudo().viva_wallet_latest_response
-        return latest_response
+        # Not used anymore, to remove in master
+        return {'error': 'Your POS is out of date, please refresh the page.'}
 
     @api.constrains('use_payment_terminal')
     def _check_viva_wallet_credentials(self):

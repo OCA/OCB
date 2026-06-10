@@ -11,6 +11,7 @@ from odoo import http
 from odoo.addons.base.tests.common import HttpCaseWithUserDemo
 from odoo.addons.web_editor.controllers.main import Web_Editor
 from odoo.fields import Command
+from odoo.tools import mute_logger
 
 
 @odoo.tests.tagged('-at_install', 'post_install')
@@ -182,6 +183,24 @@ class TestUiHtmlEditor(HttpCaseWithUserDemo):
 
         self.start_tour("/", 'website_media_dialog_undraw', login='admin')
 
+    def test_dynamic_svg_theme_colors(self):
+        svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">'
+            '<rect width="10" height="4" fill="#3AADAA"/>'
+            '<rect y="4" width="10" height="4" fill="#7C6576"/>'
+            '<rect y="8" width="10" height="2" fill="#000000"/>'
+            '</svg>'
+        )
+        self.env['ir.attachment'].create({
+            'name': 'dynamic svg test',
+            'type': 'binary',
+            'mimetype': 'image/svg+xml',
+            'datas': base64.b64encode(svg.encode()),
+            'public': True,
+            'url': '/html_editor/shape/illustration/dynamic-svg-test',
+        })
+        self.start_tour("/", 'website_dynamic_svg_theme_colors', login='admin')
+
     def test_code_editor_usable(self):
         # TODO: enable debug mode when failing tests have been fixed (props validation)
         url = '/odoo/action-website.website_preview'
@@ -250,6 +269,7 @@ class TestUiTranslate(odoo.tests.HttpCase):
             'code': 'pa_GB',
             'iso_code': 'pa_GB',
             'url_code': 'pa_GB',
+            'direction': 'rtl',
         }, {
             'name': 'Fake User Lang',
             'code': 'fu_GB',
@@ -277,6 +297,7 @@ class TestUiTranslate(odoo.tests.HttpCase):
 
         self.start_tour(f"/website/force/{website.id}", 'snippet_translation', login='admin')
         self.start_tour(f"/website/force/{website_2.id}", 'snippet_translation_changing_lang', login='admin')
+        self.start_tour(f"/website/force/{website.id}", 'snippet_dialog_rtl', login='admin')
 
 
 @odoo.tests.common.tagged('post_install', '-at_install')
@@ -495,9 +516,6 @@ class TestUi(odoo.tests.HttpCase):
 
     def test_14_carousel_snippet_content_removal(self):
         self.start_tour(self.env['website'].get_client_action_url('/'), 'carousel_content_removal', login='admin')
-
-    def test_15_website_link_tools(self):
-        self.start_tour(self.env['website'].get_client_action_url('/'), 'link_tools', login="admin")
 
     def test_16_website_edit_megamenu(self):
         self.start_tour(self.env['website'].get_client_action_url('/'), 'edit_megamenu', login='admin')
@@ -757,5 +775,37 @@ class TestUi(odoo.tests.HttpCase):
     def test_website_seo_notification(self):
         self.start_tour(self.env['website'].get_client_action_url("/"), "website_seo_notification", login="admin")
 
+    def test_media_iframe_video_options(self):
+        self.start_tour("/", "website_media_iframe_video_options", login="admin")
+
     def test_popup_visibility_option(self):
         self.start_tour("/", "website_popup_visibility_option", login="admin")
+
+    def test_hiding_sidebar_header(self):
+        self.start_tour("/", "hide_sidebar_header", login="admin")
+
+    def test_header_color_and_undo_redo_issue(self):
+        self.start_tour("/", "undo_redo_header_oriented_issue", login="admin")
+
+    def test_website_edit_megamenu_visibility(self):
+        self.start_tour("/", 'edit_megamenu_visibility', login='admin')
+
+    @mute_logger("odoo.http")
+    def test_website_replace_remove_image(self):
+        self.start_tour("/", "website_replace_remove_image", login="admin")
+
+    def test_website_custom_colors_picking(self):
+        self.start_tour('/', 'website_custom_colors_picking', login='admin')
+
+    def test_adapt_custom_button_on_drop(self):
+        default_website = self.env.ref('website.default_website')
+        self.env['ir.ui.view'].with_context(website_id=default_website.id).save_snippet(
+            name='Custom Button',
+            arch="""<a class="btn btn-primary o_default_snippet_text s_custom_snippet o_snippet_drop_in_only s_custom_button" href="#" data-bs-original-title="" title="">Button</a>""",
+            thumbnail_url='/website/static/src/img/snippets_thumbs/s_button.svg',
+            snippet_key='s_button',
+            template_key='website.snippets')
+        self.start_tour('/', 'adapt_custom_button_on_drop', login='admin')
+
+    def test_cta_mockups_shape_color_option(self):
+        self.start_tour('/', 'cta_mockups_shape_color_option', login='admin')

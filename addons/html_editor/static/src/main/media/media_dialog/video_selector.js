@@ -37,7 +37,7 @@ export class VideoSelector extends Component {
         errorMessages: Function,
         vimeoPreviewIds: { type: Array, optional: true },
         isForBgVideo: { type: Boolean, optional: true },
-        media: { type: Object, optional: true },
+        media: { validate: (n) => n.nodeType === Node.ELEMENT_NODE, optional: true },
         "*": true,
     };
     static defaultProps = {
@@ -52,7 +52,6 @@ export class VideoSelector extends Component {
             youtube: "youtube",
             dailymotion: "dailymotion",
             vimeo: "vimeo",
-            youku: "youku",
         };
 
         this.OPTIONS = {
@@ -61,7 +60,6 @@ export class VideoSelector extends Component {
                 description: _t("Videos are muted when autoplay is enabled"),
                 platforms: [
                     this.PLATFORMS.youtube,
-                    this.PLATFORMS.dailymotion,
                     this.PLATFORMS.vimeo,
                 ],
                 urlParameter: "autoplay=1",
@@ -75,7 +73,6 @@ export class VideoSelector extends Component {
                 label: _t("Hide player controls"),
                 platforms: [
                     this.PLATFORMS.youtube,
-                    this.PLATFORMS.dailymotion,
                     this.PLATFORMS.vimeo,
                 ],
                 urlParameter: "controls=0",
@@ -86,16 +83,6 @@ export class VideoSelector extends Component {
                 urlParameter: "fs=0",
                 isHidden: () =>
                     this.state.options.filter((option) => option.id === "hide_controls")[0].value,
-            },
-            hide_dm_logo: {
-                label: _t("Hide Dailymotion logo"),
-                platforms: [this.PLATFORMS.dailymotion],
-                urlParameter: "ui-logo=0",
-            },
-            hide_dm_share: {
-                label: _t("Hide sharing button"),
-                platforms: [this.PLATFORMS.dailymotion],
-                urlParameter: "sharing-enable=0",
             },
         };
 
@@ -119,12 +106,7 @@ export class VideoSelector extends Component {
                     "";
                 if (src) {
                     this.state.urlInput = src;
-                    await this.updateVideo();
-
-                    this.state.options = this.state.options.map((option) => {
-                        const { urlParameter } = this.OPTIONS[option.id];
-                        return { ...option, value: src.indexOf(urlParameter) >= 0 };
-                    });
+                    await this.syncOptionsWithUrl();
                 }
             }
         });
@@ -148,7 +130,7 @@ export class VideoSelector extends Component {
 
         useAutofocus();
 
-        this.onChangeUrl = debounce((ev) => this.updateVideo(ev.target.value), 500);
+        this.onChangeUrl = debounce(async (ev) => await this.syncOptionsWithUrl(), 500);
     }
 
     get shownOptions() {
@@ -168,6 +150,7 @@ export class VideoSelector extends Component {
             return option;
         });
         await this.updateVideo();
+        this.state.urlInput = this.state.src;
     }
 
     async onClickSuggestion(src) {
@@ -274,5 +257,20 @@ export class VideoSelector extends Component {
             div.querySelector("iframe").src = video.src;
             return div;
         });
+    }
+
+    /**
+     * Utility method to make options and urlInput state consistent with state
+     * of component.
+     */
+    async syncOptionsWithUrl() {
+        await this.updateVideo();
+        this.state.options = this.state.options.map((option) => {
+            const { urlParameter } = this.OPTIONS[option.id];
+            return { ...option, value: this.state.urlInput.includes(urlParameter) };
+        });
+        // Ensure 'this.state.urlInput' and 'this.state.src' are consistent
+        // when the media dialog is closed without changing any options.
+        await this.updateVideo();
     }
 }

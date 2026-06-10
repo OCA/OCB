@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from datetime import datetime
+from freezegun import freeze_time
+from pytz import timezone
+
 from odoo.tests import tagged, TransactionCase
 
 @tagged('recruitment')
@@ -201,3 +205,86 @@ class TestRecruitment(TransactionCase):
         application2.action_archive()
         self.env.invalidate_all()
         self.assertEqual(candidate.application_count, 2, 'The applications_count should not change after archiving an application')
+
+    def test_candidate_related_partner_name(self):
+        """
+            Verify that the candidate's related partner's name is correctly set when
+            the email_from is not normalized e.g. it contains uppercase characters.
+        """
+        candidate = self.env['hr.candidate'].create({
+            'partner_name': 'Test Name',
+            'email_from': 'Test@test.com'
+        })
+        self.assertEqual(candidate.partner_id.name, 'Test Name')
+
+    @freeze_time('2026-01-01 12:30:00')
+    def test_job_overdue_activities(self):
+        self.env.user.tz = 'Europe/Brussels'
+        job = self.env["hr.job"].create({
+            "name": "Test Job",
+        })
+        stage = self.env['hr.recruitment.stage'].create({
+            'name': 'New',
+            'sequence': 0,
+            'hired_stage': False,
+        })
+        candidate = self.env['hr.candidate'].create({
+            'partner_name': 'Test Candidate',
+            'company_id': self.env.user.company_id.id
+        })
+        applicant = self.env["hr.applicant"].create({
+            'candidate_id': candidate.id,
+            "job_id": job.id,
+            "stage_id": stage.id,
+        })
+        self.assertEqual(job.activities_today, 0)
+        persistent_activity_type = self.env["mail.activity.type"].create({
+            "name": "Persistent Activity",
+            "keep_done": True,
+        })
+        activity = self.env["mail.activity"].create({
+            "activity_type_id": persistent_activity_type.id,
+            "date_deadline": datetime.now(tz=timezone(self.env.user.tz)).date(),
+            "res_id": applicant.id,
+            "res_model_id": self.env["ir.model"]._get_id("hr.applicant"),
+            "user_id": self.env.user.id,
+        })
+        job._compute_activities()
+        self.assertEqual(job.activities_today, 1)
+
+        activity.action_feedback()
+        self.assertFalse(activity.active)
+        self.env.cr.flush()
+
+        job._compute_activities()
+        self.assertEqual(job.activities_today, 0)
+
+    def test_default_template_applicant_refuse_reason_when_archived(self):
+        """
+        Ensure that an archived email template linked to a refuse reason
+        is not automatically set on the refuse wizard
+        """
+        candidate = self.env['hr.candidate'].create({'partner_name': 'Test'})
+        email_template = self.env['mail.template'].create({
+            'model_id': self.env['ir.model']._get('hr.applicant').id,
+            'name': 'template1',
+        })
+        application = self.env['hr.applicant'].create({'candidate_id': candidate.id})
+        refuse_reason = self.env['hr.applicant.refuse.reason'].create({
+            'name': 'Fired',
+            'template_id': email_template.id,
+        })
+        wizard = self.env['applicant.get.refuse.reason'].create({
+            'refuse_reason_id': refuse_reason.id,
+            'applicant_ids': [application.id],
+        })
+
+        self.assertEqual(wizard.template_id, email_template)
+
+        email_template.active = False
+        wizard = self.env['applicant.get.refuse.reason'].create({
+            'refuse_reason_id': refuse_reason.id,
+            'applicant_ids': [application.id],
+        })
+
+        self.assertFalse(wizard.template_id)

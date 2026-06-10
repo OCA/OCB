@@ -10,8 +10,8 @@
                     <field name="default_code"/>
                     <field name="name"/>
                     <field name="list_price"/>
-                    <field name="taxes_id" widget="many2many_tags"/>
-                    <field name="supplier_taxes_id" widget="many2many_tags"/>
+                    <field name="taxes_id" widget="many2many_tags" context="{'append_fields': ['company_id']}"/>
+                    <field name="supplier_taxes_id" widget="many2many_tags" context="{'append_fields': ['company_id']}"/>
                     <field name="activity_exception_decoration" widget="activity_exception"/>
                 </list>
             </field>
@@ -49,6 +49,12 @@
             <field name="priority">5</field>
             <field name="inherit_id" ref="product.product_template_form_view"/>
             <field name="arch" type="xml">
+                <div name="options" position='inside'>
+                    <span class="d-inline-flex" invisible="type == 'combo'">
+                        <field name="purchase_ok"/>
+                        <label for="purchase_ok"/>
+                    </span>
+                </div>
                 <xpath expr="//field[@name='company_id']" position="after">
                     <field name="fiscal_country_codes" invisible="1"/>
                 </xpath>
@@ -79,6 +85,7 @@
                                 'search_default_sale': 1,
                                 'search_default_service': type == 'service',
                                 'search_default_goods': type == 'consu',
+                                'append_fields': ['company_id'],
                             }"
                         />
                         <field name="tax_string" class="oe_inline"/>
@@ -93,6 +100,7 @@
                             'search_default_purchase': 1,
                             'search_default_service': type == 'service',
                             'search_default_goods': type == 'consu',
+                            'append_fields': ['company_id'],
                         }"
                     />
                 </div>

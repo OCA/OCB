@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import itertools
 from collections import defaultdict
 from contextlib import contextmanager
+
 from dateutil.relativedelta import relativedelta
-import itertools
 from psycopg2 import OperationalError
 from odoo.exceptions import UserError
 
-from odoo import api, fields, models, tools, _
+from odoo import _, api, fields, models, tools
 from odoo.osv import expression
 
 
@@ -37,7 +37,7 @@ class HrWorkEntry(models.Model):
         default=lambda self: self.env.company)
     conflict = fields.Boolean('Conflicts', compute='_compute_conflict', store=True)  # Used to show conflicting work entries first
     department_id = fields.Many2one('hr.department', related='employee_id.department_id', store=True)
-    country_id = fields.Many2one('res.country', related='employee_id.company_id.country_id')
+    country_id = fields.Many2one('res.country', related='employee_id.company_id.country_id', search='_search_country_id')
 
     # There is no way for _error_checking() to detect conflicts in work
     # entries that have been introduced in concurrent transactions, because of the transaction
@@ -105,7 +105,7 @@ class HrWorkEntry(models.Model):
                 result[work_entry.id] = cached_periods[(date_start, date_stop)]
             else:
                 dt = date_stop - date_start
-                duration = dt.days * 24 + dt.seconds / 3600  # Number of hours
+                duration = round(dt.total_seconds()) / 3600  # Number of hours
                 cached_periods[(date_start, date_stop)] = duration
                 result[work_entry.id] = duration
         return result
@@ -167,6 +167,14 @@ class HrWorkEntry(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        company_by_employee_id = {}
+        for vals in vals_list:
+            if vals.get('company_id'):
+                continue
+            if vals['employee_id'] not in company_by_employee_id:
+                employee = self.env['hr.employee'].browse(vals['employee_id'])
+                company_by_employee_id[employee.id] = employee.company_id.id
+            vals['company_id'] = company_by_employee_id[vals['employee_id']]
         work_entries = super().create(vals_list)
         work_entries._check_if_error()
         return work_entries
@@ -239,6 +247,9 @@ class HrWorkEntry(models.Model):
                 # New work entries are handled in the create method,
                 # no need to reload work entries.
                 work_entries.exists()._check_if_error()
+
+    def _search_country_id(self, operator, value):
+        return [('employee_id.company_id.partner_id.country_id', operator, value)]
 
 
 class HrWorkEntryType(models.Model):

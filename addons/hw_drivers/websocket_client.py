@@ -1,10 +1,11 @@
 import json
 import logging
-import pprint
+import ssl
 import time
 import urllib.parse
 import urllib3
 import websocket
+import certifi
 
 from threading import Thread
 
@@ -44,18 +45,20 @@ def on_message(ws, messages):
         Synchronously handle messages received by the websocket.
     """
     messages = json.loads(messages)
-    _logger.debug("websocket received a message: %s", pprint.pformat(messages))
     iot_mac = helpers.get_mac_address()
     for message in messages:
         message_type = message['message']['type']
+        _logger.info("Received message of type %s", message_type)
         if message_type == 'iot_action':
             payload = message['message']['payload']
             if iot_mac in payload['iotDevice']['iotIdentifiers']:
                 for device in payload['iotDevice']['identifiers']:
                     device_identifier = device['identifier']
                     if device_identifier in main.iot_devices:
+                        if main.iot_devices[device_identifier]._check_idempotency(**payload):
+                            return
                         start_operation_time = time.perf_counter()
-                        _logger.debug("device '%s' action started with: %s", device_identifier, pprint.pformat(payload))
+                        _logger.info("device '%s' action started", device_identifier)
                         main.iot_devices[device_identifier].action(payload)
                         _logger.info("device '%s' action finished - %.*f", device_identifier, 3, time.perf_counter() - start_operation_time)
             else:
@@ -107,9 +110,13 @@ class WebsocketClient(Thread):
         #
         #   This will also happen with the graceful quit as `reconnect` will trigger if the server
         #   is offline while attempting the new connection
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
         while True:
             try:
-                run_res = self.ws.run_forever(reconnect=10)
+                run_res = self.ws.run_forever(
+                    reconnect=10,
+                    sslopt={"context": ssl_context},
+                )
                 _logger.debug("websocket run_forever return with %s", run_res)
             except Exception:
                 _logger.exception("An unexpected exception happened when running the websocket")

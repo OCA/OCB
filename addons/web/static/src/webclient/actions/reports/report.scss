@@ -113,6 +113,7 @@ li.oe-nested {
 
     &_small {
         max-height: 4rem;
+        max-width: 11rem;
     }
 
     &_big {
@@ -157,6 +158,12 @@ div[name=comment] p, div[name=address] p {
 // which doesn't work in wkhtml and breaks the wrapping behavior.
 span[itemprop="streetAddress"] {
     white-space: normal;
+}
+
+// Force a max width on quantity column to handle long UoM
+.o_td_quantity {
+    min-width: 7rem;
+    max-width: 9rem;
 }
 
 // Override html_editor display styles as it uses 'calc' which doesn't work with wkhtmltopdf

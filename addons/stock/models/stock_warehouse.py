@@ -375,7 +375,7 @@ class Warehouse(models.Model):
 
         for picking_type, values in data.items():
             if self[picking_type]:
-                self[picking_type].sudo().sequence_id.write(sequence_data[picking_type])
+                self[picking_type].sudo().sequence_id.write({'company_id': self.company_id.id})
                 self[picking_type].write(values)
             else:
                 data[picking_type].update(create_data[picking_type])
@@ -420,7 +420,7 @@ class Warehouse(models.Model):
             if raise_if_not_found:
                 raise UserError(_('Can\'t find any generic route %s.', route_name))
             elif data_route and create:
-                route = data_route.copy({'name': data_route.name, 'company_id': company.id, 'rule_ids': False})
+                route = data_route.copy({'name': route_name, 'company_id': company.id, 'rule_ids': False})
         return route
 
     def _get_global_route_rules_values(self):

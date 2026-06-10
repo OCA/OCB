@@ -9,6 +9,8 @@ from . import test_delivery_ui
 from . import test_ecommerce_access
 from . import test_express_checkout_flows
 from . import test_fuzzy
+from . import test_main_controller
+from . import test_sale_order
 from . import test_sale_process
 from . import test_sitemap
 from . import test_website_editor
@@ -29,6 +31,7 @@ from . import test_website_sale_product_filters
 from . import test_website_sale_product_page
 from . import test_website_sale_product_template
 from . import test_website_sale_reorder_from_portal
+from . import test_website_sale_seo
 from . import test_website_sale_show_compare_list_price
 from . import test_website_sale_snippets
 from . import test_website_sale_visitor

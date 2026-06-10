@@ -25,7 +25,8 @@ class SaleOrder(models.Model):
     show_task_button = fields.Boolean(compute='_compute_show_project_and_task_button', groups='project.group_project_user', export_string_translation=False)
     closed_task_count = fields.Integer(compute='_compute_tasks_ids', export_string_translation=False)
     completed_task_percentage = fields.Float(compute="_compute_completed_task_percentage", export_string_translation=False)
-    project_id = fields.Many2one('project.project', domain=[('allow_billable', '=', True)], copy=False, help="A task will be created for the project upon sales order confirmation. The analytic distribution of this project will also serve as a reference for newly created sales order items.")
+    project_id = fields.Many2one('project.project', domain=[('allow_billable', '=', True)], copy=False, index='btree_not_null',
+                                 help="A task will be created for the project upon sales order confirmation. The analytic distribution of this project will also serve as a reference for newly created sales order items.")
     project_account_id = fields.Many2one('account.analytic.account', related='project_id.account_id')
 
     def _compute_milestone_count(self):
@@ -119,7 +120,7 @@ class SaleOrder(models.Model):
             if not is_project_manager:
                 projects = projects._filtered_access('read')
             order.project_ids = projects
-            order.project_count = len(projects)
+            order.project_count = len(projects.filtered('active'))
 
     def _action_confirm(self):
         """ On SO confirmation, some lines should generate a task or a project. """
@@ -148,7 +149,9 @@ class SaleOrder(models.Model):
             action['context'] = {}
         else:
             # Load top bar if all the tasks linked to the SO belong to the same project
-            action = self.env['ir.actions.actions'].with_context({'active_id': project_ids.id})._for_xml_id('project.act_project_project_2_project_task_all')
+            action = self.env['ir.actions.actions'].with_context(
+                active_id=project_ids.id,
+            )._for_xml_id('project.act_project_project_2_project_task_all')
             action['context'] = {
                 'active_id': project_ids.id,
                 'search_default_sale_order_id': self.id,
@@ -224,7 +227,7 @@ class SaleOrder(models.Model):
         action = {
             'type': 'ir.actions.act_window',
             'name': _('Projects'),
-            'domain': ['|', ('sale_order_id', '=', self.id), ('id', 'in', self.with_context(active_test=False).project_ids.ids), ('active', 'in', [True, False])],
+            'domain': ['|', ('sale_order_id', '=', self.id), ('id', 'in', self.project_ids.ids)],
             'res_model': 'project.project',
             'views': [(False, 'kanban'), (False, 'list'), (False, 'form')],
             'view_mode': 'kanban,list,form',
@@ -235,7 +238,7 @@ class SaleOrder(models.Model):
                 'default_allow_billable': 1,
             }
         }
-        if len(self.with_context(active_test=False).project_ids) == 1:
+        if len(self.project_ids) == 1:
             action.update({'views': [(False, 'form')], 'res_id': self.project_ids.id})
         return action
 

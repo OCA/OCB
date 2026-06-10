@@ -71,6 +71,7 @@ export class ProductScreen extends Component {
         });
 
         this.barcodeReader = useService("barcode_reader");
+        this.sound = useService("mail.sound_effects");
 
         useBarcodeReader({
             product: this._barcodeProductAction,
@@ -144,7 +145,9 @@ export class ProductScreen extends Component {
                     ? `/web/image?model=pos.category&field=image_128&id=${category.id}`
                     : undefined,
             isSelected: this.getAncestorsAndCurrent().includes(category),
-            isChildren: this.getChildCategories(this.pos.selectedCategory).includes(category),
+            isChildren: this.pos.selectedCategory
+                ? this.pos.selectedCategory.child_ids.includes(category)
+                : !category.parent_id,
         };
     }
 
@@ -223,9 +226,9 @@ export class ProductScreen extends Component {
                 "find_product_by_barcode",
                 [odoo.pos_session_id, code.base_code, this.pos.config.id]
             );
-            await this.pos.processProductAttributes();
 
             if (records && records["product.product"].length > 0) {
+                await this.pos.processProductAttributesByProducts(records["product.product"]);
                 product = records["product.product"][0];
                 await this.pos._loadMissingPricelistItems([product]);
             }
@@ -237,6 +240,7 @@ export class ProductScreen extends Component {
         const product = await this._getProductByBarcode(code);
 
         if (!product) {
+            this.sound.play("error");
             this.barcodeReader.showNotFoundNotification(code);
             return;
         }
@@ -280,6 +284,7 @@ export class ProductScreen extends Component {
     async _barcodeGS1Action(parsed_results) {
         const productBarcode = parsed_results.find((element) => element.type === "product");
         const lotBarcode = parsed_results.find((element) => element.type === "lot");
+        const qty = parsed_results.find((element) => element.type === "quantity");
         const product = await this._getProductByBarcode(productBarcode);
 
         if (!product) {
@@ -288,8 +293,21 @@ export class ProductScreen extends Component {
             );
             return;
         }
+        const vals = { product_id: product };
+        if (
+            qty &&
+            product.uom_id &&
+            qty.rule?.associated_uom_id &&
+            product.uom_id.id == qty.rule.associated_uom_id[0]
+        ) {
+            vals.qty = qty.value;
+        }
+        const packaging = this.pos.models["product.packaging"].getAllBy("barcode");
+        if (packaging[productBarcode.code]) {
+            vals.qty = (vals.qty || 1) * packaging[productBarcode.code].qty;
+        }
 
-        await this.pos.addLineToCurrentOrder({ product_id: product }, { code: lotBarcode });
+        await this.pos.addLineToCurrentOrder(vals, { code: lotBarcode });
         this.numberBuffer.reset();
     }
     displayAllControlPopup() {
@@ -349,7 +367,11 @@ export class ProductScreen extends Component {
                     productIds.add(p.id);
                 }
             }
-            return this.pos.models["product.product"].filter((p) => productIds.has(p.id));
+            return this.pos.models["product.product"].filter(
+                (p) =>
+                    productIds.has(p.id) ||
+                    this.pos.session._pos_special_display_products_ids?.includes(p.id)
+            );
         }
         return this.pos.models["product.product"].getAll();
     }
@@ -477,7 +499,9 @@ export class ProductScreen extends Component {
 
         const { limit_categories, iface_available_categ_ids } = this.pos.config;
         if (limit_categories && iface_available_categ_ids.length > 0) {
-            const categIds = iface_available_categ_ids.map((categ) => categ.id);
+            const categIds = iface_available_categ_ids.flatMap((categ) =>
+                categ.getAllChildren().map((c) => c.id)
+            );
             domain.push(["pos_categ_ids", "in", categIds]);
         }
         const product = await this.pos.data.searchRead(
@@ -491,11 +515,20 @@ export class ProductScreen extends Component {
             }
         );
 
-        await this.pos.processProductAttributes();
+        await this.pos.processProductAttributesByProducts(product);
         return product;
     }
 
     async addProductToOrder(product) {
+        if (this.searchWord && product.isConfigurable()) {
+            const barcode = this.searchWord;
+            const searchedProduct = product.variants.filter(
+                (p) => p.barcode && p.barcode.includes(barcode)
+            );
+            if (searchedProduct.length === 1) {
+                product = searchedProduct[0];
+            }
+        }
         await reactive(this.pos).addLineToCurrentOrder({ product_id: product }, {});
     }
 

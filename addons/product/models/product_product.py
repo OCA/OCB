@@ -10,6 +10,7 @@ from odoo.osv import expression
 from odoo.tools import float_compare, format_list, groupby
 from odoo.tools.image import is_image_size_above
 from odoo.tools.misc import unique
+from odoo.tools.sql import SQL
 
 
 class ProductProduct(models.Model):
@@ -23,12 +24,12 @@ class ProductProduct(models.Model):
     # price_extra: catalog extra value only, sum of variant extra attributes
     price_extra = fields.Float(
         'Variant Price Extra', compute='_compute_product_price_extra',
-        digits='Product Price',
+        min_display_digits='Product Price',
         help="This is the sum of the extra price of all attributes")
     # lst_price: catalog value + extra, context dependent (uom)
     lst_price = fields.Float(
         'Sales Price', compute='_compute_product_lst_price',
-        digits='Product Price', inverse='_set_product_lst_price',
+        min_display_digits='Product Price', inverse='_set_product_lst_price',
         help="The sale price is managed from the product template. Click on the 'Configure Variants' button to set the extra attribute prices.")
 
     default_code = fields.Char('Internal Reference', index=True)
@@ -52,7 +53,7 @@ class ProductProduct(models.Model):
 
     standard_price = fields.Float(
         'Cost', company_dependent=True,
-        digits='Product Price',
+        min_display_digits='Product Price',
         groups="base.group_user",
         help="""Value of the product (automatically computed in AVCO).
         Used to value the product when the purchase cost is not known (e.g. inventory adjustment).
@@ -149,8 +150,9 @@ class ProductProduct(models.Model):
         compute method is not subject to this restriction.  It therefore
         works as intended :-)
         """
+        now = self.env.cr.now()
         for record in self:
-            record.write_date = max(record.write_date or self.env.cr.now(), record.product_tmpl_id.write_date)
+            record.write_date = max(record.write_date or now, record.product_tmpl_id.write_date or now)
 
     def _compute_image_1920(self):
         """Get the image from the template if no image is set on the variant."""
@@ -392,7 +394,7 @@ class ProductProduct(models.Model):
 
         # Check if products still exists, in case they've been unlinked by unlinking their template
         existing_products = self.exists()
-        product_ids_by_template_id = {template.id: set(ids) for template, ids in self._read_group(
+        product_ids_by_template_id = {template.id: set(ids) for template, ids in self.with_context(active_test=False)._read_group(
             domain=[('product_tmpl_id', 'in', existing_products.product_tmpl_id.ids)],
             groupby=['product_tmpl_id'],
             aggregates=['id:array_agg'],
@@ -487,7 +489,7 @@ class ProductProduct(models.Model):
         return super()._search(domain, offset, limit, order)
 
     @api.depends('name', 'default_code', 'product_tmpl_id')
-    @api.depends_context('display_default_code', 'seller_id', 'company_id', 'partner_id')
+    @api.depends_context('display_default_code', 'seller_id', 'company_id', 'partner_id', 'lang')
     def _compute_display_name(self):
 
         def get_display_name(name, code):
@@ -550,16 +552,16 @@ class ProductProduct(models.Model):
     @api.model
     def _search_display_name(self, operator, value):
         is_positive = operator not in expression.NEGATIVE_TERM_OPERATORS
-        combine = expression.OR if is_positive else expression.AND
-        domains = [
-            [('name', operator, value)],
-            [('default_code', operator, value)],
-        ]
+        template_domains = [[('name', operator, value)]]
+        product_domains = [[('default_code', operator, value)]]
+
         if operator in ('=', 'in') or (operator.endswith('like') and is_positive):
             barcode_values = [value] if operator != 'in' else value
-            domains.append([('barcode', 'in', barcode_values)])
+            product_domains.append([('barcode', 'in', barcode_values)])
         if operator == '=' and isinstance(value, str) and (m := re.search(r'(\[(.*?)\])', value)):
-            domains.append([('default_code', '=', m.group(2))])
+            product_domains.append([('default_code', '=', m.group(2))])
+
+        supplier_domain = []
         if partner_id := self.env.context.get('partner_id'):
             supplier_domain = [
                 ('partner_id', '=', partner_id),
@@ -567,8 +569,40 @@ class ProductProduct(models.Model):
                 ('product_code', operator, value),
                 ('product_name', operator, value),
             ]
-            domains.append([('product_tmpl_id.seller_ids', 'any', supplier_domain)])
-        return combine(domains)
+
+        # AND clauses properly hit indexes so no need for custom sql in this case.
+        if operator in expression.NEGATIVE_TERM_OPERATORS:
+            domains = template_domains + product_domains
+            if supplier_domain:
+                domains.append([('product_tmpl_id.seller_ids', 'any', supplier_domain)])
+            return expression.AND(domains)
+
+        # Disable active_test to simplify subqueries
+        self_no_active_test = self.with_context(active_test=False)
+        queries = [
+            self_no_active_test._search([
+                ('product_tmpl_id', 'in', self_no_active_test.env['product.template']._search(expression.OR(template_domains)))
+            ]),
+            self_no_active_test._search(expression.OR(product_domains)),
+        ]
+        if supplier_domain:
+            queries.append(
+                self_no_active_test._search([
+                    (
+                        'product_tmpl_id',
+                        'in',
+                        self_no_active_test.env['product.supplierinfo']._search(supplier_domain).subselect('product_tmpl_id'),
+                    )
+                ])
+            )
+        query = SQL(
+            """(%s)""",
+            SQL("UNION ALL").join(
+                [SQL("(%s)", query.select()) for query in queries]
+            )
+        )
+
+        return [('id', 'in', query)]
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
@@ -591,7 +625,8 @@ class ProductProduct(models.Model):
                 products = self.search_fetch(expression.AND([domain, [('default_code', operator, name)]]), ['display_name'], limit=limit)
                 limit_rest = limit and limit - len(products)
                 if limit_rest is None or limit_rest > 0:
-                    products |= self.search_fetch(expression.AND([domain, [('id', 'not in', products.ids)], [('name', operator, name)]]), ['display_name'], limit=limit_rest)
+                    products_query = self._search(expression.AND([domain, [('default_code', operator, name)]]), limit=limit)
+                    products |= self.search_fetch(expression.AND([domain, [('id', 'not in', products_query)], [('name', operator, name)]]), ['display_name'], limit=limit_rest)
             else:
                 domain_neg = [
                     ('name', operator, name),
@@ -712,7 +747,13 @@ class ProductProduct(models.Model):
 
         def sort_function(record):
             vals = {
-                'price_discounted': record.currency_id._convert(record.price_discounted, record.env.company.currency_id, record.env.company, date or fields.Date.context_today(self))
+                'price_discounted': record.currency_id._convert(
+                    record.price_discounted,
+                    record.env.company.currency_id,
+                    record.env.company,
+                    date or fields.Date.context_today(self),
+                    round=False,
+                ),
             }
             return [vals.get(key, record[key]) for key in sort_key]
         sellers = self._get_filtered_sellers(partner_id=partner_id, quantity=quantity, date=date, uom_id=uom_id, params=params)

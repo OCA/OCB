@@ -7,6 +7,7 @@ import { Powerbox } from "./powerbox";
 import { withSequence } from "@html_editor/utils/resource";
 import { omit, pick } from "@web/core/utils/objects";
 import { baseContainerGlobalSelector } from "@html_editor/utils/base_container";
+import { closestBlock } from "@html_editor/utils/blocks";
 
 /** @typedef { import("@html_editor/core/selection_plugin").EditorSelection } EditorSelection */
 /** @typedef { import("@html_editor/core/user_command_plugin").UserCommand } UserCommand */
@@ -82,7 +83,7 @@ import { baseContainerGlobalSelector } from "@html_editor/utils/base_container";
  */
 function target(selectionData) {
     const node = selectionData.editableSelection.anchorNode;
-    const el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+    const el = closestBlock(node);
     if (
         selectionData.documentSelectionIsInEditable &&
         el.matches(baseContainerGlobalSelector) &&
@@ -110,23 +111,10 @@ export class PowerboxPlugin extends Plugin {
         "updatePowerbox",
     ];
     resources = {
-        user_commands: {
-            id: "openPowerbox",
-            run: () =>
-                this.openPowerbox({
-                    commands: this.getAvailablePowerboxCommands(),
-                    categories: this.getResource("powerbox_categories"),
-                }),
-        },
         powerbox_categories: [
             withSequence(10, { id: "structure", name: _t("Structure") }),
             withSequence(60, { id: "widget", name: _t("Widget") }),
         ],
-        power_buttons: withSequence(100, {
-            commandId: "openPowerbox",
-            title: _t("More options"),
-            icon: "fa-ellipsis-v",
-        }),
         hints: {
             text: _t('Type "/" for commands'),
             target,

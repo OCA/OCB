@@ -3,8 +3,9 @@
 
 import random
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from freezegun import freeze_time
 from unittest.mock import patch
 
 from odoo import fields
@@ -464,6 +465,26 @@ class TestLeadAssign(TestLeadAssignCommon):
         self.assertEqual(leads[5].team_id, self.sales_team_convert, 'Assigned lead should not be reassigned')
         self.assertEqual(leads[5].user_id, self.user_sales_manager, 'Assigned lead should not be reassigned')
 
+    def test_assign_team_and_salesperson_on_duplicate_lead(self):
+        """Ensure leads duplicated from an existing lead are assigned correctly."""
+        duplicate_lead = self.env['crm.lead'].create({
+            'name': 'Test Lead',
+            'type': 'opportunity',
+            'probability': 15,
+            'partner_id': self.contact_1.id,
+            'team_id': False,
+            'user_id': False,
+        }).copy()
+        self.assertFalse(duplicate_lead.date_open)
+
+        sales_team = self.sales_team_1
+        sales_team.assignment_domain = [('user_id', '=', False)]
+        with self.with_user('user_sales_manager'):
+            sales_team._action_assign_leads()
+
+        self.assertEqual(duplicate_lead.team_id, sales_team)
+        self.assertTrue(duplicate_lead.user_id)
+
     @mute_logger('odoo.models.unlink')
     def test_merge_assign_keep_master_team(self):
         """ Check existing opportunity keep its team and salesman when merged with a new lead """
@@ -533,3 +554,52 @@ class TestLeadAssign(TestLeadAssignCommon):
         members_data = sales_team_4._assign_and_convert_leads()
         self.assertFalse(members_data,
             "If team member has lead count greater than max assign,then do not assign any more")
+
+    def test_assign_fairness_member_order_bias(self):
+        """Make sure leads are distributed fairly across team members when all else is equal."""
+        random.seed(1000)
+
+        test_team = self.env['crm.team'].create({'name': 'Sales Team'})
+        senior = self.env['crm.team.member'].create({
+            'user_id': self.user_sales_leads.id,
+            'crm_team_id': test_team.id,
+            'assignment_max': 150,
+        })
+        junior = self.env['crm.team.member'].create({
+            'user_id': self.user_sales_salesman.id,
+            'crm_team_id': test_team.id,
+            'assignment_max': 150,
+        })
+        self.assertEqual(
+            (senior | junior).sorted().ids,
+            (senior | junior).ids,
+            "Senior should come before junior."
+        )
+
+        # Simulate the daily cron for 30 days. Each time there's 1 lead to be assigned.
+        base_time = datetime(2026, 1, 1, 8, 0, 0)
+        for run in range(30):
+            now = base_time + timedelta(hours=25) * run  # 25 hours to be outside of lead_day_count
+            with freeze_time(now), patch.object(self.env.cr, 'now', lambda: now):
+                self.env['crm.lead'].create({
+                    'name': f'TestLead_{run}',
+                    'type': 'lead',
+                    'user_id': False,
+                    'email_from': f'lead_{run}@example.com',
+                    'probability': 50,
+                    'team_id': test_team.id,
+                })
+                with mute_logger('odoo.addons.crm.models.crm_team'):
+                    test_team._assign_and_convert_leads()
+
+        senior_leads = self.env['crm.lead'].search_count([
+            ('user_id', '=', senior.user_id.id),
+            ('team_id', '=', test_team.id),
+        ])
+        junior_leads = self.env['crm.lead'].search_count([
+            ('user_id', '=', junior.user_id.id),
+            ('team_id', '=', test_team.id),
+        ])
+
+        self.assertEqual(senior_leads, 11)
+        self.assertEqual(junior_leads, 19)

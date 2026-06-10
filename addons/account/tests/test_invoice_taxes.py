@@ -838,3 +838,99 @@ class TestInvoiceTaxes(AccountTestInvoicingCommon):
         self.assertRecordValues(receivable_line, [
             {'amount_currency': 1410.02, 'balance': 705.02},
         ])
+
+    def test_product_account_tags(self):
+        product_tag = self.env['account.account.tag'].create({
+            'name': "Pikachu",
+            'applicability': 'products',
+        })
+        self.product_a.account_tag_ids = [Command.set(product_tag.ids)]
+
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'date': '2025-01-01',
+            'partner_id': self.partner_a.id,
+            'invoice_line_ids': [
+                Command.create({
+                    'name': 'test with product tag',
+                    'product_id': self.product_a.id,
+                    'price_unit': 1000,
+                    'tax_ids': self.percent_tax_1.ids,
+                }),
+                Command.create({
+                    'name': 'test with product tag',
+                    'product_id': self.product_b.id,
+                    'price_unit': 100,
+                    'tax_ids': self.percent_tax_1.ids,
+                }),
+                Command.create({
+                    'name': 'test without product tag',
+                    'product_id': self.product_b.id,
+                    'price_unit': 200,
+                    'tax_ids': self.percent_tax_2.ids,
+                }),
+            ]
+        })
+
+        invoice.action_post()
+
+        self.assertRecordValues(
+            invoice.line_ids,
+            [
+                {'tax_ids': self.percent_tax_1.ids, 'tax_line_id': False,                 'tax_tag_ids': product_tag.ids,  'credit': 1000, 'debit': 0},
+                {'tax_ids': self.percent_tax_1.ids, 'tax_line_id': False,                 'tax_tag_ids': [],               'credit': 100,  'debit': 0},
+                {'tax_ids': self.percent_tax_2.ids, 'tax_line_id': False,                 'tax_tag_ids': [],               'credit': 200,  'debit': 0},
+                {'tax_ids': [],                     'tax_line_id': self.percent_tax_1.id, 'tax_tag_ids': product_tag.ids,  'credit': 210,  'debit': 0},
+                {'tax_ids': [],                     'tax_line_id': self.percent_tax_1.id, 'tax_tag_ids': [],               'credit': 21,   'debit': 0},
+                {'tax_ids': [],                     'tax_line_id': self.percent_tax_2.id, 'tax_tag_ids': [],               'credit': 24,   'debit': 0},
+                {'tax_ids': [],                     'tax_line_id': False,                 'tax_tag_ids': [],               'credit': 0,    'debit': 1555},
+            ],
+        )
+
+    def test_fiscal_position_tax_mapping_with_inactive_tax(self):
+        """ Test that inactive taxes are not mapped by fiscal positions """
+        src_tax = self.company_data['default_tax_sale']
+        active_tax = self.percent_tax_1
+        inactive_tax = self.percent_tax_2.copy({'active': False})
+        fp = self.env['account.fiscal.position'].create({
+            'name': 'FP',
+            'tax_ids': [
+                Command.create({
+                    'tax_src_id': src_tax.id,
+                    'tax_dest_id': active_tax.id,
+                }),
+                Command.create({
+                    'tax_src_id': src_tax.id,
+                    'tax_dest_id': inactive_tax.id,
+                })
+            ]
+        })
+        self.partner_a.property_account_position_id = fp
+
+        move = self.init_invoice('out_invoice', self.partner_a, post=True, products=[self.product])
+        line = move.invoice_line_ids
+        self.assertEqual(line.tax_ids, active_tax, f"The tax should be {active_tax.name}, but is is currently {line.tax_ids.name}")
+
+    def test_multiple_onchange_product_and_price(self):
+        """
+        This test checks that the totals are computed correctly when an onchange is executed
+        with "price_unit" before "product_id" in the values.
+        This test covers a UI issue where the totals were not updated when the price was changed,
+        then the product and finally the price again.
+        The issue was only occuring between the change of value and the next save.
+        That's why the test is using the onchange method directly instead of using a Form.
+        """
+        invoice = self.init_invoice('out_invoice', products=self.product_a)
+        self.assertEqual(invoice.tax_totals['base_amount'], 1000.0)
+        self.assertEqual(invoice.tax_totals['total_amount'], 1150.0)
+        # The onchange is executed directly to simulate the following flow:
+        # 1) unit price is changed to any value
+        # 2) product is changed to "Product B"
+        # 3) unit price is changed to 2000.0
+        results = invoice.onchange(
+            {'invoice_line_ids': [Command.update(invoice.invoice_line_ids[0].id, {'price_unit': 2000.0, 'product_id': self.product_b.id})]},
+            ['invoice_line_ids'],
+            {"invoice_line_ids": {}, 'tax_totals': {}}
+        )
+        self.assertEqual(results['value']['tax_totals']['base_amount'], 2000.0)
+        self.assertEqual(results['value']['tax_totals']['total_amount'], 2600.0)

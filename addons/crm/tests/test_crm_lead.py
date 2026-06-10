@@ -336,6 +336,20 @@ class TestCRMLead(TestCrmCommon):
             self.assertEqual(lead.meeting_display_label, 'No Meeting')
 
     @users('user_sales_manager')
+    def test_crm_lead_meeting_display_fields_with_timezone(self):
+        self.env.user.tz = "America/Grand_Turk"
+        lead = self.env['crm.lead'].create({'name': 'Lead With Meetings'})
+        self.env['calendar.event'].create([{
+            'name': 'Meeting 1 of Lead',
+            'opportunity_id': lead.id,
+            'start': '2022-07-12 01:00:00',
+            'stop': '2022-07-12 01:30:00',
+        }])
+
+        with freeze_time('2022-07-13 11:00:00'):
+            self.assertEqual(lead.meeting_display_date, fields.Date.from_string("2022-07-11"))
+
+    @users('user_sales_manager')
     def test_crm_lead_partner_sync(self):
         lead, partner = self.lead_1.with_user(self.env.user), self.contact_2
         partner_email, partner_phone = self.contact_2.email, self.contact_2.phone
@@ -586,6 +600,41 @@ class TestCRMLead(TestCrmCommon):
         lead.action_set_won()
         self.assertEqual(lead.probability, 100.0)
         self.assertEqual(lead.stage_id, self.stage_gen_won)  # generic won stage has lower sequence than team won stage
+
+    def test_crm_lead_stages_with_multiple_possible_teams(self):
+        """ Test lead stage is properly set when switching between multiple teams. """
+        self.sales_team_2 = self.env['crm.team'].create({
+            'name': 'Test Sales Team 2',
+            'company_id': False,
+            'user_id': self.user_sales_manager.id,
+        })
+        self.sales_team_2_m1 = self.env['crm.team.member'].create({
+            'user_id': self.user_sales_leads.id,
+            'crm_team_id': self.sales_team_2.id,
+        })
+
+        user_teams = self.env['crm.team'].search([
+            ('crm_team_member_all_ids.user_id', '=', self.user_sales_leads.id),
+        ])
+        self.assertIn(self.sales_team_1, user_teams)
+        self.assertIn(self.sales_team_2, user_teams)
+
+        self.stage_team2_1 = self.env['crm.stage'].create({
+            'name': 'New (T2)',
+            'team_id': self.sales_team_2.id,
+        })
+
+        lead = self.env['crm.lead'].with_user(self.user_sales_leads).create({
+            'name': 'Test',
+            'contact_name': 'Test Contact',
+            'team_id': self.sales_team_1.id,
+        })
+        self.assertEqual(lead.team_id, self.sales_team_1)
+        self.assertEqual(lead.stage_id, self.stage_team1_1)
+
+        lead.team_id = self.sales_team_2
+        self.assertEqual(lead.team_id, self.sales_team_2)
+        self.assertEqual(lead.stage_id, self.stage_team2_1)
 
     @users('user_sales_manager')
     def test_crm_lead_unlink_calendar_event(self):
@@ -991,7 +1040,7 @@ class TestLeadFormTools(FormatAddressCase):
         self.assertAddressView('crm.lead')
 
 
-@tagged('lead_internals')
+@tagged('lead_internals', 'is_query_count')
 class TestCrmLeadMailTrackingDuration(MailTrackingDurationMixinCase):
 
     @classmethod

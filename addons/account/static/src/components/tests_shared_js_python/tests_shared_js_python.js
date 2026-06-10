@@ -21,10 +21,17 @@ export class TestsSharedJsPython extends Component {
 
     processTest(params) {
         if (params.test === "taxes_computation") {
+            let filter_tax_function = null;
+            if (params.excluded_tax_ids && params.excluded_tax_ids.length) {
+                filter_tax_function = (tax) => !params.excluded_tax_ids.includes(tax.id);
+            }
+
             const kwargs = {
                 product: params.product,
+                product_uom: params.product_uom,
                 precision_rounding: params.precision_rounding,
                 rounding_method: params.rounding_method,
+                filter_tax_function: filter_tax_function,
             };
             const results = {
                 results: accountTaxHelpers.get_tax_details(
@@ -56,7 +63,8 @@ export class TestsSharedJsPython extends Component {
                     params.price_unit,
                     params.product,
                     params.original_taxes,
-                    params.new_taxes
+                    params.new_taxes,
+                    { product_uom: params.product_uom}
                 )
             }
         }
@@ -69,6 +77,26 @@ export class TestsSharedJsPython extends Component {
                 {cash_rounding: document.cash_rounding}
             );
             return {tax_totals: taxTotals, soft_checking: params.soft_checking};
+        }
+        if (params.test === "base_lines_tax_details") {
+            const document = this.populateDocument(params.document);
+            return {
+                base_lines_tax_details: document.lines.map(line => ({
+                    total_excluded_currency: line.tax_details.total_excluded_currency,
+                    total_excluded: line.tax_details.total_excluded,
+                    total_included_currency: line.tax_details.total_included_currency,
+                    total_included: line.tax_details.total_included,
+                    delta_total_excluded_currency: line.tax_details.delta_total_excluded_currency,
+                    delta_total_excluded: line.tax_details.delta_total_excluded,
+                    taxes_data: line.tax_details.taxes_data.map(tax_data => ({
+                        tax_id: tax_data.tax.id,
+                        tax_amount_currency: tax_data.tax_amount_currency,
+                        tax_amount: tax_data.tax_amount,
+                        base_amount_currency: tax_data.base_amount_currency,
+                        base_amount: tax_data.base_amount,
+                    })),
+                })),
+            };
         }
     }
 

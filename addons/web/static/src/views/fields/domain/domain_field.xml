@@ -32,7 +32,7 @@
                             </t>
                             <t t-if="state.isValid">
                                 <button class="btn btn-sm btn-link o_domain_show_selection_button" data-tooltip="Show matching records" type="button" t-on-click.stop="onButtonClick">
-                                    <t t-esc="state.recordCount" /> record(s)
+                                    <t t-esc="state.recordCount" /><t t-if="state.hasLimitedCount">+</t> record(s)
                                 </button>
                             </t>
                         </div>
@@ -50,6 +50,7 @@
                             debugUpdate.bind="debugUpdate"
                             update.bind="update"
                             isDebugMode="!!env.debug"
+                            allowExpressions="allowExpressions(props)"
                             className="props.readonly ? 'o_read_mode' : 'o_edit_mode'"
                         />
                     </div>
@@ -61,7 +62,7 @@
                         <t t-else="">
                             <t t-if="state.isValid">
                                 <button class="btn btn-sm btn-link o_domain_show_selection_button" type="button" t-on-click.stop="onButtonClick">
-                                    <t t-esc="state.recordCount" /> record(s)
+                                    <t t-esc="state.recordCount" /><t t-if="state.hasLimitedCount">+</t> record(s)
                                 </button>
                             </t>
                             <t t-else="">

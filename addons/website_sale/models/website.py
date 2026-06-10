@@ -29,7 +29,9 @@ class Website(models.Model):
 
     enabled_portal_reorder_button = fields.Boolean(string="Re-order From Portal")
     salesperson_id = fields.Many2one(
-        string="Salesperson", comodel_name='res.users', domain="[('share', '=', False)]",
+        string="Salesperson",
+        comodel_name='res.users',
+        domain=[('share', '=', False)],
     )
     salesteam_id = fields.Many2one(
         string="Sales Team",
@@ -188,7 +190,7 @@ class Website(models.Model):
     @api.depends('all_pricelist_ids', 'pricelist_id', 'company_id')
     def _compute_currency_id(self):
         for website in self:
-            website.currency_id = website.pricelist_id.currency_id or website.company_id.currency_id
+            website.currency_id = website.pricelist_id.currency_id or website.company_id.sudo().currency_id
 
     #=== SELECTION METHODS ===#
 
@@ -363,13 +365,15 @@ class Website(models.Model):
         return pricelist
 
     def sale_product_domain(self):
-        website_domain = self.get_current_website().website_domain()
+        website = self or self.get_current_website()
+        website_domain = website.website_domain()
         if not self.env.user._is_internal():
             website_domain = expression.AND([website_domain, [
                 ('is_published', '=', True),
                 ('service_tracking', 'in', self.env['product.template']._get_saleable_tracking_types()),
             ]])
-        return expression.AND([self._product_domain(), website_domain])
+        company_domain = [('company_id', 'in', [False, website.company_id.id])]
+        return expression.AND([self._product_domain(), website_domain, company_domain])
 
     def _product_domain(self):
         return [('sale_ok', '=', True)]
@@ -459,7 +463,7 @@ class Website(models.Model):
         affiliate_id = request.session.get('affiliate_id')
         salesperson_user_sudo = self.env['res.users'].sudo().browse(affiliate_id).exists()
         if not salesperson_user_sudo:
-            salesperson_user_sudo = self.salesperson_id or partner_sudo.parent_id.user_id or partner_sudo.user_id
+            salesperson_user_sudo = self.salesperson_id or partner_sudo.user_id or partner_sudo.parent_id.user_id
 
         return {
             'company_id': self.company_id.id,
@@ -558,7 +562,11 @@ class Website(models.Model):
             (all_abandoned_carts - abandoned_carts).cart_recovery_email_sent = True
             for sale_order in abandoned_carts:
                 template = self.env.ref('website_sale.mail_template_sale_cart_recovery')
-                template.send_mail(sale_order.id, email_values={'email_to': sale_order.partner_id.email})
+                # fallback email_vals in case partner_to and email_to were emptied
+                email_vals = {} if template.email_to or template.partner_to else {
+                    'email_to': sale_order.partner_id.email_formatted
+                }
+                template.send_mail(sale_order.id, email_values=email_vals)
                 sale_order.cart_recovery_email_sent = True
 
     def _display_partner_b2b_fields(self):

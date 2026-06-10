@@ -1,6 +1,7 @@
 /** @odoo-module **/
 import convertInline from '@web_editor/js/backend/convert_inline';
 import {getGridHtml, getTableHtml, getRegularGridHtml, getRegularTableHtml, getTdHtml, removeComments} from '@web_editor/../tests/test_utils';
+import { unformat } from '@web_editor/js/editor/odoo-editor/test/utils';
 
 const TEST_WIDTH = 800;
 const TEST_HEIGHT = 600;
@@ -307,22 +308,22 @@ QUnit.module('convert_inline', {}, function () {
                 .replace(/<td[^>]*>\(0, 0\)<\/td>/,
                     `<td>` +
                         `<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" align=\"center\" ` +
-                        `role=\"presentation\" style=\"width: 100% !important; border-collapse: collapse; text-align: inherit; ` +
-                        `font-size: unset; line-height: inherit;\"><tr>` +
+                        `role=\"presentation\" style=\"width: 100% !important; border-collapse: separate; border-spacing: 0px; text-align: inherit; ` +
+                        `font-size: unset; line-height: inherit; height: 100%;\"><tr>` +
                             `<td class="card-header"><span>HEADER</span></td>` +
                         `</tr></table></td>`)
                 .replace(/<td[^>]*>\(1, 0\)<\/td>/,
                     `<td>` +
                         `<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" align=\"center\" ` +
-                        `role=\"presentation\" style=\"width: 100% !important; border-collapse: collapse; text-align: inherit; ` +
-                        `font-size: unset; line-height: inherit;\"><tr>` +
+                        `role=\"presentation\" style=\"width: 100% !important; border-collapse: separate; border-spacing: 0px; text-align: inherit; ` +
+                        `font-size: unset; line-height: inherit; height: 100%;\"><tr>` +
                             `<td class="card-body"><h2 class="card-title">TITLE</h2><small>BODY <img></small></td>` +
                         `</tr></table></td>`)
                 .replace(/<td[^>]*>\(2, 0\)<\/td>/,
                     `<td>` +
                         `<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" align=\"center\" ` +
-                        `role=\"presentation\" style=\"width: 100% !important; border-collapse: collapse; text-align: inherit; ` +
-                        `font-size: unset; line-height: inherit;\"><tr>` +
+                        `role=\"presentation\" style=\"width: 100% !important; border-collapse: separate; border-spacing: 0px; text-align: inherit; ` +
+                        `font-size: unset; line-height: inherit; height: 100%;\"><tr>` +
                             `<td class="card-footer"><a href="#" class="btn">FOOTER</a></td>` +
                         `</tr></table></td>`),
         });
@@ -629,15 +630,27 @@ QUnit.module('convert_inline', {}, function () {
     QUnit.test('convert Bootstrap classes to inline styles', async function (assert) {
         assert.expect(1);
 
+        const $styleSheet = $('<style type="text/css" title="test-stylesheet"/>');
+        document.head.appendChild($styleSheet[0])
+        const styleSheet = [...document.styleSheets].find(sheet => sheet.title === 'test-stylesheet');
+        const borderColor = `rgb(255, 0, 0)`
+
+        // border-color
+        styleSheet.insertRule(`
+            div {
+                border-color: ${borderColor} !important;
+            }
+        `, 0);
+
         const $editable = $(`<div><div class="container"><div class="row"><div class="col">Hello</div></div></div></div>`);
         $(document.body).append($editable); // editable needs to be in the DOM to compute its dynamic styles.
         convertInline.classToStyle($editable, convertInline.getCSSRules($editable[0].ownerDocument));
         // Some positional properties (eg., padding-right, margin-left) are not
         // concatenated (eg., as padding, margin) because they were defined with
         // variables (var) or calculated (calc).
-        const containerStyle = `border-radius: 0px; border-style: none; margin: 0px auto; box-sizing: border-box; border-width: 0px; max-width: 1320px; padding-left: 16px; padding-right: 16px; width: 100%;`;
-        const rowStyle = `border-radius: 0px; border-style: none; padding: 0px; box-sizing: border-box; border-width: 0px; margin-left: -16px; margin-right: -16px; margin-top: 0px;`;
-        const colStyle = `border-radius: 0px; border-style: none; box-sizing: border-box; border-width: 0px; margin-top: 0px; padding-left: 16px; padding-right: 16px; max-width: 100%; width: 100%;`;
+        const containerStyle = `border-radius: 0px; border-style: none; margin: 0px auto; box-sizing: border-box; border-width: 0px; max-width: 1320px; padding-left: 16px; padding-right: 16px; width: 100%; border-color: ${borderColor};`;
+        const rowStyle = `border-radius: 0px; border-style: none; padding: 0px; box-sizing: border-box; border-width: 0px; margin-left: -16px; margin-right: -16px; margin-top: 0px; border-color: ${borderColor};`;
+        const colStyle = `border-radius: 0px; border-style: none; box-sizing: border-box; border-width: 0px; margin-top: 0px; padding-left: 16px; padding-right: 16px; max-width: 100%; width: 100%; border-color: ${borderColor};`;
         assert.strictEqual($editable.html(),
             `<div class="container" style="${containerStyle}" width="100%">` +
             `<div class="row" style="${rowStyle}">` +
@@ -645,6 +658,7 @@ QUnit.module('convert_inline', {}, function () {
             "should have converted the classes of a simple Bootstrap grid to inline styles"
         );
         $editable.remove();
+        $styleSheet.remove();
     });
     QUnit.test('simplify border/margin/padding styles', async function (assert) {
         assert.expect(12);
@@ -1001,7 +1015,7 @@ QUnit.module('convert_inline', {}, function () {
         $iframeEditable.append(`<div class="o_layout" style="padding: 50px;"></div>`);
         convertInline.classToStyle($iframeEditable, convertInline.getCSSRules($iframeEditable[0].ownerDocument));
         assert.strictEqual($iframeEditable.html(),
-            `<div class="o_layout" style="border-radius:0px;border-style:none;margin:0px;box-sizing:border-box;border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;font-size:50px;color:white;background-color:red;padding: 50px;"></div>`,
+            `<div class="o_layout" style="border-radius:0px;border-style:none;margin:0px;box-sizing:border-box;border-left-color:rgb(255, 255, 255);border-bottom-color:rgb(255, 255, 255);border-right-color:rgb(255, 255, 255);border-top-color:rgb(255, 255, 255);border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;font-size:50px;color:white;background-color:red;padding: 50px;"></div>`,
             "should have given all styles of body to .o_layout");
         styleSheet.deleteRule(0);
 
@@ -1081,6 +1095,27 @@ QUnit.module('convert_inline', {}, function () {
             "Should remove nested mso hide condition");
     });
 
+    QUnit.test('Should properly calculate colspan', async function (assert) {
+        const editable = document.createElement("div");
+        const container = document.createElement("div");
+        editable.append(container);
+        container.classList.add("container");
+        container.append(document.createElement("div"));
+        container.firstChild.classList.add("row");
+        container.firstChild.innerHTML = `<div class="col-sm">a</div><div class="col-1">b</div><div class="col-sm">c</div>`;
+        convertInline.bootstrapToTable(editable);
+        assert.strictEqual(editable.innerHTML,
+            unformat(`<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" align=\"center\" role=\"presentation\" style=\"width: 100% !important; border-collapse: separate; border-spacing: 0px; text-align: inherit; font-size: unset; line-height: inherit;\">
+                <tr>
+                    <td colspan=\"5\" class=\"o_converted_col\" style=\"max-width: 0px;\">a</td>
+                    <td colspan=\"1\" class=\"o_converted_col\" style=\"max-width: 0px;\">b</td>
+                    <td colspan=\"5\" class=\"o_converted_col\" style=\"max-width: 0px;\">c</td>
+                    <td colspan=\"1\" class=\"o_converted_col\" style=\"max-width: 0px;\"></td>
+                </tr>
+            </table>`),
+            "Should have one row only");
+    });
+
     QUnit.test('Correct border attributes for outlook', async function (assert) {
         assert.expect(3);
 
@@ -1139,6 +1174,17 @@ QUnit.module('convert_inline', {}, function () {
         styleSheet.deleteRule(0);
         styleSheet.deleteRule(0);
         $styleSheet.remove();
+    });
+});
+QUnit.module('splitSelectors', {}, function () {
+    QUnit.test('no parentheses', async function (assert) {
+        assert.deepEqual(convertInline.splitSelectors("abc, def, ghi"), ["abc", "def", "ghi"]);
+    });
+    QUnit.test('one depth parentheses', async function (assert) {
+        assert.deepEqual(convertInline.splitSelectors("abc:has(xyz), def, ghi"), ["abc:has(xyz)", "def", "ghi"]);
+    });
+    QUnit.test('two depth parentheses', async function (assert) {
+        assert.deepEqual(convertInline.splitSelectors("abc:has(xyz:not(.ooo)), def, ghi"), ["abc:has(xyz:not(.ooo))", "def", "ghi"]);
     });
 });
 

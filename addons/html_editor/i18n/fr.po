@@ -1,27 +1,32 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* html_editor
-# 
+# * html_editor
+#
 # Translators:
 # Jolien De Paepe, 2024
 # Tiffany Chang, 2024
 # Martin Trigaux, 2024
 # Wil Odoo, 2025
 # Manon Rondou, 2025
-# 
+#
+# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Manon Rondou (ronm)" <ronm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-19 20:37+0000\n"
-"PO-Revision-Date: 2024-09-29 00:00+0000\n"
-"Last-Translator: Manon Rondou, 2025\n"
-"Language-Team: French (https://app.transifex.com/odoo/teams/41243/fr/)\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
+"PO-Revision-Date: 2026-05-27 15:24+0000\n"
+"Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-18/"
+"html_editor/fr/>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: fr\n"
-"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
+"1000000 == 0) ? 1 : 2);\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: html_editor
 #. odoo-javascript
@@ -57,7 +62,7 @@ msgstr "(Etiquette TITRE)"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
 msgid "(URL or Embed)"
-msgstr "(URL ou code incorporé)"
+msgstr "(URL ou code intégré)"
 
 #. module: html_editor
 #. odoo-javascript
@@ -125,8 +130,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/html_editor/controllers/main.py:0
 msgid ""
-"Action %s not found, link preview is not available, please check your url is"
-" correct"
+"Action %s not found, link preview is not available, please check your url is "
+"correct"
 msgstr ""
 "Action %s introuvable, l’aperçu du lien n’est pas disponible, veuillez "
 "vérifier que votre URL est correcte."
@@ -851,12 +856,6 @@ msgstr "Titre 6"
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.js:0
-msgid "Hide Dailymotion logo"
-msgstr "Masquer le logo Dailymotion"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.js:0
 msgid "Hide fullscreen button"
 msgstr "Masquer le bouton plein écran"
 
@@ -865,12 +864,6 @@ msgstr "Masquer le bouton plein écran"
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.js:0
 msgid "Hide player controls"
 msgstr "Masquer les commandes du lecteur"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.js:0
-msgid "Hide sharing button"
-msgstr "Masquer le bouton de partage"
 
 #. module: html_editor
 #. odoo-javascript
@@ -1089,6 +1082,12 @@ msgstr "Insérer votre signature"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
+msgid "Instagram"
+msgstr "Instagram"
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Label"
 msgstr "Libellé"
@@ -1128,11 +1127,10 @@ msgstr "Lien copié dans votre presse-papiers."
 #. odoo-python
 #: code:addons/html_editor/controllers/main.py:0
 msgid ""
-"Link preview is not available because %s, please check if your url is "
-"correct"
+"Link preview is not available because %s, please check if your url is correct"
 msgstr ""
-"L’aperçu du lien n’est pas disponible car %s, veuillez vérifier si votre URL"
-" est correcte."
+"L’aperçu du lien n’est pas disponible car %s, veuillez vérifier si votre URL "
+"est correcte."
 
 #. module: html_editor
 #. odoo-javascript
@@ -1193,7 +1191,7 @@ msgstr "Fichier manquant"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/powerbox/powerbox_plugin.js:0
+#: code:addons/html_editor/static/src/main/powerbox/search_powerbox_plugin.js:0
 msgid "More options"
 msgstr "Plus d'options"
 
@@ -1609,8 +1607,7 @@ msgstr "Solide"
 #: code:addons/html_editor/controllers/main.py:0
 msgid "Sorry, we could not generate a response. Please try again later."
 msgstr ""
-"Désolé, nous n'avons pas pu générer de réponse. Veuillez réessayer plus "
-"tard."
+"Désolé, nous n'avons pas pu générer de réponse. Veuillez réessayer plus tard."
 
 #. module: html_editor
 #. odoo-python
@@ -1735,8 +1732,8 @@ msgid ""
 "it, please first download it from the original source and upload it in Odoo."
 msgstr ""
 "Ce type d'image n'est pas pris en charge pour le recadrage. <br/>Si vous "
-"souhaitez le recadrer, veuillez d'abord le télécharger à partir de la source"
-" d'origine et le télécharger dans Odoo."
+"souhaitez le recadrer, veuillez d'abord le télécharger à partir de la source "
+"d'origine et le télécharger dans Odoo."
 
 #. module: html_editor
 #. odoo-javascript
@@ -1909,8 +1906,7 @@ msgstr "Vidéos"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.js:0
 msgid "Videos are muted when autoplay is enabled"
-msgstr ""
-"Le son des vidéos est coupé lorsque la lecture automatique est activée"
+msgstr "Le son des vidéos est coupé lorsque la lecture automatique est activée"
 
 #. module: html_editor
 #. odoo-javascript
@@ -1966,8 +1962,8 @@ msgstr ""
 msgid ""
 "You need to select a model before opening the dynamic placeholder selector."
 msgstr ""
-"Vous devez sélectionner un modèle avant d'ouvrir le sélecteur de placeholder"
-" dynamique."
+"Vous devez sélectionner un modèle avant d'ouvrir le sélecteur de placeholder "
+"dynamique."
 
 #. module: html_editor
 #. odoo-python
@@ -1975,12 +1971,6 @@ msgstr ""
 msgid "You need to specify either data or url to create an attachment."
 msgstr ""
 "Vous devez préciser des données ou une URL pour créer une pièce jointe."
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
-msgid "Youku"
-msgstr "Youku"
 
 #. module: html_editor
 #. odoo-javascript
@@ -2014,12 +2004,6 @@ msgstr "Réduire"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/file_selector.xml:0
-msgid "all"
-msgstr "tous"
-
-#. module: html_editor
-#. odoo-javascript
 #: code:addons/html_editor/static/src/main/chatgpt/chatgpt_alternatives_dialog.xml:0
 msgid "alternatives..."
 msgstr "alternatives..."
@@ -2029,12 +2013,6 @@ msgstr "alternatives..."
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
 msgid "and"
 msgstr "et"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/file_selector.xml:0
-msgid "database"
-msgstr "base de données"
 
 #. module: html_editor
 #. odoo-javascript
@@ -2056,12 +2034,6 @@ msgstr "ranger"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/file_selector.xml:0
-msgid "media-library"
-msgstr "médiathèque"
-
-#. module: html_editor
-#. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "or"
 msgstr "ou"
@@ -2074,18 +2046,15 @@ msgstr "vidéos"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "{{state.urlDescription}}"
-msgstr "{{state.urlDescription}}"
+#: code:addons/html_editor/static/src/main/table/table_picker.xml:0
+msgid "x"
+msgstr "x"
 
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "{{state.urlTitle}}"
-msgstr "{{state.urlTitle}}"
+#~ msgid "Hide Dailymotion logo"
+#~ msgstr "Masquer le logo Dailymotion"
 
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "{{state.url}}"
-msgstr "{{state.url}}"
+#~ msgid "Hide sharing button"
+#~ msgstr "Masquer le bouton de partage"
+
+#~ msgid "Youku"
+#~ msgstr "Youku"

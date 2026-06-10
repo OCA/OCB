@@ -17,7 +17,7 @@ import { usePopover } from "@web/core/popover/popover_hook";
 import { useService } from "@web/core/utils/hooks";
 import { rpc } from "@web/core/network/rpc";
 
-const HIDDEN_CONNECTION_STATES = new Set([undefined, "connected", "completed"]);
+const HIDDEN_CONNECTION_STATES = new Set(["connected", "completed"]);
 
 export class CallParticipantCard extends Component {
     static props = ["className", "cardData", "thread", "minimized?", "inset?"];
@@ -56,12 +56,10 @@ export class CallParticipantCard extends Component {
     }
 
     get isContextMenuAvailable() {
-        if (!this.rtcSession) {
-            return false;
-        }
         return (
-            !this.rtcSession.eq(this.rtc.selfSession) ||
-            (this.env.debug && this.rtc.state.connectionType === CONNECTION_TYPES.SERVER)
+            this.isOfActiveCall &&
+            (this.rtcSession.notEq(this.rtc.selfSession) ||
+                (this.env.debug && this.rtc.state.connectionType === CONNECTION_TYPES.SERVER))
         );
     }
 

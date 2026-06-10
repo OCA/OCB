@@ -37,11 +37,15 @@ registry.category("web_tour.tours").add("PaymentScreenTour", {
             PaymentScreen.fillPaymentLineAmountMobile("Cash", "10"),
             PaymentScreen.remainingIs("42.8"),
             PaymentScreen.validateButtonIsHighlighted(false),
-            PaymentScreen.clickNumpad("+50"),
-            PaymentScreen.fillPaymentLineAmountMobile("Cash", "60"),
-            PaymentScreen.changeIs("7.2"),
+            PaymentScreen.clickNumpad("5"),
+            PaymentScreen.fillPaymentLineAmountMobile("Cash", "105"),
+            PaymentScreen.changeIs("-52.2"),
             PaymentScreen.validateButtonIsHighlighted(true),
-            PaymentScreen.clickPaymentlineDelButton("Cash", "60.0"),
+            PaymentScreen.clickNumpad("+50"),
+            PaymentScreen.fillPaymentLineAmountMobile("Cash", "155"),
+            PaymentScreen.changeIs("-102.2"),
+            PaymentScreen.validateButtonIsHighlighted(true),
+            PaymentScreen.clickPaymentlineDelButton("Cash", "155.0"),
 
             // Multiple paymentlines
             PaymentScreen.clickPaymentMethod("Cash"),
@@ -163,7 +167,7 @@ registry.category("web_tour.tours").add("PaymentScreenRoundingHalfUp", {
             PaymentScreen.clickNumpad("2"),
             PaymentScreen.fillPaymentLineAmountMobile("Cash", "2"),
 
-            PaymentScreen.changeIs("1.0"),
+            PaymentScreen.changeIs("-1.0"),
         ].flat(),
 });
 
@@ -177,7 +181,7 @@ registry.category("web_tour.tours").add("PaymentScreenTotalDueWithOverPayment", 
             PaymentScreen.totalIs("1.98"),
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.enterPaymentLineAmount("Cash", "5", true, {
-                change: "3.05",
+                change: "-3.05",
             }),
         ].flat(),
 });
@@ -190,7 +194,7 @@ registry.category("web_tour.tours").add("InvoiceShipLaterAccessRight", {
             ProductScreen.clickHomeCategory(),
             ProductScreen.addOrderline("Whiteboard Pen", "1"),
             ProductScreen.clickPartnerButton(),
-            ProductScreen.clickCustomer("Deco Addict"),
+            ProductScreen.clickCustomer("Acme Corporation"),
             ProductScreen.clickPayButton(),
 
             PaymentScreen.clickPaymentMethod("Cash"),

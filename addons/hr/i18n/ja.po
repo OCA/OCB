@@ -1,24 +1,29 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* hr
-# 
+# * hr
+#
 # Translators:
 # Wil Odoo, 2025
 # Junko Augias, 2025
-# 
+#
+# "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
+# Ryoko Tsuda <ryoko@quartile.co>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-19 20:36+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Junko Augias, 2025\n"
-"Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
+"POT-Creation-Date: 2026-03-20 18:37+0000\n"
+"PO-Revision-Date: 2026-05-29 07:24+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-18/hr/ja/>"
+"\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_company__hr_presence_control_email_amount
@@ -98,12 +103,18 @@ msgstr "インタビューから4日後"
 msgid ""
 "<b>Congratulations!</b> May I recommend you to setup an <a "
 "href=\"%s\">onboarding plan?</a>"
-msgstr "<b>おめでとうございます!</b> 必要な<a href=\"%s\">入社手続き</a>があれば手配しましょう。"
+msgstr ""
+"<b>おめでとうございます!</b> 必要な<a href=\"%s\">入社手続き</a>があれば手配"
+"しましょう。"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_department_view_kanban
-msgid "<i class=\"fa fa-building-o\" role=\"img\" aria-label=\"Company\" title=\"Company\"/>"
-msgstr "<i class=\"fa fa-building-o\" role=\"img\" aria-label=\"Company\" title=\"Company\"/>"
+msgid ""
+"<i class=\"fa fa-building-o\" role=\"img\" aria-label=\"Company\" "
+"title=\"Company\"/>"
+msgstr ""
+"<i class=\"fa fa-building-o\" role=\"img\" aria-label=\"Company\" "
+"title=\"Company\"/>"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_kanban
@@ -144,19 +155,23 @@ msgid ""
 "<span class=\"o_form_label o_hr_form_label cursor-default\">Close "
 "Activities</span>"
 msgstr ""
-"<span class=\"o_form_label o_hr_form_label cursor-default\">活動をクローズ</span>"
+"<span class=\"o_form_label o_hr_form_label cursor-default\">活動をクローズ</"
+"span>"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
 msgid ""
-"<span class=\"o_form_label o_hr_form_label cursor-default\">Detailed "
-"Reason</span>"
-msgstr "<span class=\"o_form_label o_hr_form_label cursor-default\">詳細理由</span>"
+"<span class=\"o_form_label o_hr_form_label cursor-default\">Detailed Reason</"
+"span>"
+msgstr ""
+"<span class=\"o_form_label o_hr_form_label cursor-default\">詳細理由</span>"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
-msgid "<span class=\"o_form_label o_hr_form_label cursor-default\">HR Info</span>"
-msgstr "<span class=\"o_form_label o_hr_form_label cursor-default\">人事情報</span>"
+msgid ""
+"<span class=\"o_form_label o_hr_form_label cursor-default\">HR Info</span>"
+msgstr ""
+"<span class=\"o_form_label o_hr_form_label cursor-default\">人事情報</span>"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_profile
@@ -292,7 +307,7 @@ msgstr "リモートワークを有効化して、従業員の勤務場所を指
 #: model:ir.model.fields,field_description:hr.field_hr_job__active
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__active
 msgid "Active"
-msgstr "アクティブ"
+msgstr "有効"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__activity_ids
@@ -304,7 +319,7 @@ msgstr "活動"
 #: model:ir.model.fields,field_description:hr.field_hr_department__activity_exception_decoration
 #: model:ir.model.fields,field_description:hr.field_hr_employee__activity_exception_decoration
 msgid "Activity Exception Decoration"
-msgstr "例外活動文字装飾"
+msgstr "例外の活動を示す装飾"
 
 #. module: hr
 #: model:ir.model,name:hr.model_mail_activity_plan
@@ -322,7 +337,7 @@ msgstr "活動状態"
 #: model:ir.model.fields,field_description:hr.field_hr_department__activity_type_icon
 #: model:ir.model.fields,field_description:hr.field_hr_employee__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "活動種別アイコン"
+msgstr "活動タイプアイコン"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
@@ -340,7 +355,8 @@ msgid ""
 "Activity plans are used to assign a list of activities in just a few clicks\n"
 "                    (e.g. \"Onboarding\", \"Offboarding\", ...)"
 msgstr ""
-"活動プランは、数回クリックするだけで、活動のリストを割当てるために使用されます。\n"
+"活動プランは、数回クリックするだけで、活動のリストを割当てるために使用されま"
+"す。\n"
 "(例 \"オンボーディング\", \"オフボーディング\", ...)"
 
 #. module: hr
@@ -490,19 +506,30 @@ msgstr "アーカイブ済"
 #: model_terms:hr.job,website_description:hr.job_marketing
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid ""
-"As an employee of our company, you will <b>collaborate with each department to create and deploy\n"
-"                                disruptive products.</b> Come work at a growing company that offers great benefits with opportunities to\n"
-"                                moving forward and learn alongside accomplished leaders. We're seeking an experienced and outstanding member of staff.\n"
+"As an employee of our company, you will <b>collaborate with each department "
+"to create and deploy\n"
+"                                disruptive products.</b> Come work at a "
+"growing company that offers great benefits with opportunities to\n"
+"                                moving forward and learn alongside "
+"accomplished leaders. We're seeking an experienced and outstanding member of "
+"staff.\n"
 "                                <br><br>\n"
-"                                This position is both <b>creative and rigorous</b> by nature you need to think outside the box.\n"
-"                                We expect the candidate to be proactive and have a \"get it done\" spirit. To be successful,\n"
+"                                This position is both <b>creative and "
+"rigorous</b> by nature you need to think outside the box.\n"
+"                                We expect the candidate to be proactive and "
+"have a \"get it done\" spirit. To be successful,\n"
 "                                you will have solid solving problem skills."
 msgstr ""
-"当社の社員として、<b>各部門と協力して革新的な製品を生み出し展開していただきます。</b>\n"
-"結果を出しているリーダー達の側で学びながら前進するという機会に加え、素晴らしい給与と待遇を提供する、成長している会社で働きませんか？ 当社は経験豊富で抜きん出て優秀なスタッフを募集しています。\n"
+"当社の社員として、<b>各部門と協力して革新的な製品を生み出し展開していただきま"
+"す。</b>\n"
+"結果を出しているリーダー達の側で学びながら前進するという機会に加え、素晴らし"
+"い給与と待遇を提供する、成長している会社で働きませんか？ 当社は経験豊富で抜き"
+"ん出て優秀なスタッフを募集しています。\n"
 "                                <br><br>\n"
-"                                このポジションは、<b>創造性と厳格さ</b>の両方を兼ね備えており、枠にとらわれない発想が求められます。\n"
-"                                候補者には、積極的に行動し、「やり遂げる」精神を持っていることを期待しています。成功するためには、\n"
+"                                このポジションは、<b>創造性と厳格さ</b>の両方"
+"を兼ね備えており、枠にとらわれない発想が求められます。\n"
+"                                候補者には、積極的に行動し、「やり遂げる」精"
+"神を持っていることを期待しています。成功するためには、\n"
 "                                しっかりとした問題解決能力が必要です。"
 
 #. module: hr
@@ -686,7 +713,9 @@ msgstr "キャンセル"
 msgid ""
 "Categorize your Employees by type. This field also has an impact on "
 "contracts. Only Employees, Students and Trainee will have contract history."
-msgstr "従業員をタイプ別に分類します。このフィールドも契約に影響を与えます。従業員、学生、研修生のみが契約履歴を持つことになります。"
+msgstr ""
+"従業員をタイプ別に分類します。このフィールドも契約に影響を与えます。従業員、"
+"学生、研修生のみが契約履歴を持つことになります。"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__certificate
@@ -697,7 +726,7 @@ msgstr "学歴"
 #. module: hr
 #: model:ir.actions.act_window,name:hr.res_users_action_my
 msgid "Change my Preferences"
-msgstr "属性の変更"
+msgstr "個人設定を変更"
 
 #. module: hr
 #. odoo-javascript
@@ -813,7 +842,7 @@ msgstr "会社従業員"
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__complete_name
 msgid "Complete Name"
-msgstr "完全な名前"
+msgstr "完全名"
 
 #. module: hr
 #: model:ir.model,name:hr.model_res_config_settings
@@ -1008,7 +1037,9 @@ msgstr "デフォルトの退職理由は削除できません。"
 msgid ""
 "Define the allowed IP to be displayed as Present. In case of multiple "
 "addresses, separate them by a coma."
-msgstr "許可されたIPアドレスを出勤として表示されるよう定義します。複数のアドレスがある場合は、カンマで区切って下さい。"
+msgstr ""
+"許可されたIPアドレスを出勤として表示されるよう定義します。複数のアドレスがあ"
+"る場合は、カンマで区切って下さい。"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
@@ -1021,29 +1052,38 @@ msgstr "出勤として表示されるためのEメールの最小送信数を�
 msgid ""
 "Define the working schedule of the resource. If not set, the resource will "
 "have fully flexible working hours."
-msgstr "リソースの就業スケジュールを定義します。設定されていない場合、リソースの就業時間は完全フレックスになります。"
+msgstr ""
+"リソースの就業スケジュールを定義します。設定されていない場合、リソースの就業"
+"時間は完全フレックスになります。"
 
 #. module: hr
 #: model_terms:hr.job,description:hr.job_ceo
 msgid ""
-"Demonstration of different Odoo services for each client and convincing the client about functionality of the application.\n"
+"Demonstration of different Odoo services for each client and convincing the "
+"client about functionality of the application.\n"
 "The candidate should have excellent communication skills.\n"
 "Relationship building and influencing skills\n"
 "Expertise in New Client Acquisition (NCAs) and Relationship Management.\n"
 "Gathering market and customer information.\n"
-"Coordinating with the sales and support team for adopting different strategies\n"
-"Reviewing progress and identifying opportunities and new areas for development.\n"
-"Building strong relationships with clients / customers for business growth profitability.\n"
-"Keep regular interaction with key clients for better extraction and expansion."
+"Coordinating with the sales and support team for adopting different "
+"strategies\n"
+"Reviewing progress and identifying opportunities and new areas for "
+"development.\n"
+"Building strong relationships with clients / customers for business growth "
+"profitability.\n"
+"Keep regular interaction with key clients for better extraction and "
+"expansion."
 msgstr ""
-"顧客ごとに異なるOdooサービスのデモンストレーションを行い、アプリケーションの機能性について顧客を説得する。\n"
+"顧客ごとに異なるOdooサービスのデモンストレーションを行い、アプリケーションの"
+"機能性について顧客を説得する。\n"
 "優れたコミュニケーションスキルを持ちの方。\n"
 "人間関係の構築と影響力。\n"
 "新規顧客獲得(NCA)とリレーションシップマネジメントの専門知識。\n"
 "市場および顧客情報の収集。\n"
 "様々な戦略を採用するための営業およびサポートチームとの調整。\n"
 "進捗状況を確認し、開発の機会や新たな分野を特定する。\n"
-"ビジネス成長の収益性を高めるため、クライアント/顧客との強固な関係を構築する。\n"
+"ビジネス成長の収益性を高めるため、クライアント/顧客との強固な関係を構築す"
+"る。\n"
 "主要顧客との定期的な交流を維持し、より良い結果の獲得と拡大を図る。"
 
 #. module: hr
@@ -1174,7 +1214,9 @@ msgstr "表示名"
 msgid ""
 "Display remote work settings for each employee and dedicated reports. "
 "Presence icons will be updated with remote work location."
-msgstr "各従業員のリモートワーク設定と専用レポートを表示します。出勤アイコンがリモートワークの場所に更新されます。"
+msgstr ""
+"各従業員のリモートワーク設定と専用レポートを表示します。出勤アイコンがリモー"
+"トワークの場所に更新されます。"
 
 #. module: hr
 #. odoo-python
@@ -1202,16 +1244,21 @@ msgstr "運転免許証"
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid ""
 "Each employee has a chance to see the impact of his work.\n"
-"                            You can make a real contribution to the success of the company.\n"
+"                            You can make a real contribution to the success "
+"of the company.\n"
 "                            <br>\n"
-"                            Several activities are often organized all over the year, such as weekly\n"
-"                            sports sessions, team building events, monthly drink, and much more."
+"                            Several activities are often organized all over "
+"the year, such as weekly\n"
+"                            sports sessions, team building events, monthly "
+"drink, and much more."
 msgstr ""
 "全従業員に自分の仕事インパクトを目の当たりにするチャンスがあります。\n"
 "                            会社の成功に真に貢献することができるのです。\n"
 "                            <br>\n"
-"                            年間を通じて様々な行事があり、週1のスポーツセッション、\n"
-"                           チーム親交イベント、月1の飲み会などが開催されています。"
+"                            年間を通じて様々な行事があり、週1のスポーツセッ"
+"ション、\n"
+"                           チーム親交イベント、月1の飲み会などが開催されてい"
+"ます。"
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_ceo
@@ -1351,6 +1398,11 @@ msgid "Employee's Country"
 msgstr "従業員の国"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__employee_country_code
+msgid "Employee's Country Code"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr.hr_kanban_view_employees
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_profile
@@ -1398,6 +1450,12 @@ msgstr "従業員数"
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_category_list
 msgid "Employees Tags"
 msgstr "従業員タグ"
+
+#. module: hr
+#. odoo-python
+#: code:addons/hr/models/hr_employee.py:0
+msgid "Employees profile"
+msgstr "従業員プロフィール"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_job__contract_type_id
@@ -1472,7 +1530,7 @@ msgstr "女"
 #: model:ir.model.fields,field_description:hr.field_hr_employee__study_field
 #: model:ir.model.fields,field_description:hr.field_res_users__study_field
 msgid "Field of Study"
-msgstr "科目"
+msgstr "専門分野"
 
 #. module: hr
 #: model:hr.departure.reason,name:hr.departure_fired
@@ -1506,7 +1564,8 @@ msgid ""
 "For %(channels)s, channel_type should be 'channel' to have the department "
 "auto-subscription."
 msgstr ""
-"%(channels)sについては、 部門自動サブスクリプションを持つために、channel_type が'チャネル'である必要があります。"
+"%(channels)sについては、 部門自動サブスクリプションを持つために、"
+"channel_type が'チャネル'である必要があります。"
 
 #. module: hr
 #: model:ir.model.fields.selection,name:hr.selection__hr_employee__employee_type__freelance
@@ -1756,7 +1815,9 @@ msgstr "チェックした場合は、一部のメッセージに配信エラー
 msgid ""
 "If the active field is set to False, it will allow you to hide the resource "
 "record without removing it."
-msgstr "アクティブ項目をFalse にセットすると、リソースレコードは削除することなく非表示にできます。"
+msgstr ""
+"有効項目をFalse にセットすると、リソースレコードは削除することなく非表示にで"
+"きます。"
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__private_car_plate
@@ -1833,7 +1894,7 @@ msgstr "完全フレックス"
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__is_manager
 msgid "Is Manager"
-msgstr "管理者"
+msgstr "マネジャー"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_users__is_system
@@ -1970,7 +2031,7 @@ msgstr "全セールスサイクルの指導"
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "Legal Cohabitant"
-msgstr "既婚"
+msgstr "法的同居人"
 
 #. module: hr
 #: model_terms:ir.actions.act_window,help:hr.action_hr_job
@@ -2000,13 +2061,20 @@ msgid ""
 "Lorem Ipsum is simply dummy text of the printing and typesetting industry. "
 "Lorem Ipsum has been the industry's standard dummy text ever since the "
 "1500s, when an unknown printer took a galley of type and scrambled it to "
-"make a type specimen book. It has survived not only five centuries, but also"
-" the leap into electronic typesetting, remaining essentially unchanged. It "
+"make a type specimen book. It has survived not only five centuries, but also "
+"the leap into electronic typesetting, remaining essentially unchanged. It "
 "was popularised in the 1960s with the release of Letraset sheets containing "
 "Lorem Ipsum passages, and more recently with desktop publishing software "
 "like Aldus PageMaker including versions of Lorem Ipsum."
 msgstr ""
-"ローレム・イプサムは、印刷・組版業界のダミーテキストです。ローレム・イプサムは、1500年代に無名の印刷業者が活字見本帳を作るために活字のガレーを取り、それをスクランブルして以来、業界の標準的なダミーテキストとなりました。このダミーテキストは、5世紀という長い年月を生き延びてきただけでなく、電子組版への移行にも耐え、基本的に変わることはありませんでした。1960年代には、ローレム・イプサムの文章を含むレトラセット・シートが発売され、最近では、アルダスのページメーカーのようなデスクトップ・パブリッシング・ソフトウェアにローレム・イプサムのバージョンが含まれるようになりました。"
+"ローレム・イプサムは、印刷・組版業界のダミーテキストです。ローレム・イプサム"
+"は、1500年代に無名の印刷業者が活字見本帳を作るために活字のガレーを取り、それ"
+"をスクランブルして以来、業界の標準的なダミーテキストとなりました。このダミー"
+"テキストは、5世紀という長い年月を生き延びてきただけでなく、電子組版への移行に"
+"も耐え、基本的に変わることはありませんでした。1960年代には、ローレム・イプサ"
+"ムの文章を含むレトラセット・シートが発売され、最近では、アルダスのページメー"
+"カーのようなデスクトップ・パブリッシング・ソフトウェアにローレム・イプサムの"
+"バージョンが含まれるようになりました。"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__message_main_attachment_id
@@ -2039,7 +2107,7 @@ msgstr "マネジャー"
 #. odoo-python
 #: code:addons/hr/models/mail_activity_plan_template.py:0
 msgid "Manager of employee %s is not set."
-msgstr "従業員の%sさんのマネージャーが定められていません。"
+msgstr "従業員の%sのマネジャーが設定されていません。"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__marital
@@ -2062,7 +2130,7 @@ msgstr "既婚"
 #. module: hr
 #: model:ir.model.fields.selection,name:hr.selection__hr_employee__certificate__master
 msgid "Master"
-msgstr "マスター"
+msgstr "修士号"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__master_department_id
@@ -2120,7 +2188,7 @@ msgstr "メッセージ"
 #: model_terms:hr.job,website_description:hr.job_marketing
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "Must Have"
-msgstr "必須"
+msgstr "必須要件"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__my_activity_date_deadline
@@ -2217,7 +2285,7 @@ msgstr "次の活動タイプ"
 #: model_terms:hr.job,website_description:hr.job_marketing
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "Nice to have"
-msgstr "歓迎"
+msgstr "あると望ましい要件"
 
 #. module: hr
 #. odoo-javascript
@@ -2240,7 +2308,7 @@ msgstr "タグが見つかりません！作成しましょう。"
 #: model_terms:hr.job,website_description:hr.job_marketing
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "No dumb managers, no stupid tools to use, no rigid working hours"
-msgstr "愚かなマネージャーはいませんし、お馬鹿なツールは使いませんし、労働時間の強制拘束もありません"
+msgstr "自由でフラットな職場環境、使いやすいツール、柔軟な勤務時間"
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_ceo
@@ -2267,7 +2335,7 @@ msgstr "メモ"
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__notes
 msgid "Notes"
-msgstr "ノート"
+msgstr "メモ"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__message_needaction_counter
@@ -2280,7 +2348,7 @@ msgstr "アクション数"
 #: model:ir.model.fields,field_description:hr.field_hr_employee__children
 #: model:ir.model.fields,field_description:hr.field_res_users__children
 msgid "Number of Dependent Children"
-msgstr "扶養している子どもの人数"
+msgstr "扶養子女人数"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_tree
@@ -2335,12 +2403,14 @@ msgstr "役員: 全従業員の管理"
 #. odoo-python
 #: code:addons/hr/models/mail_activity_plan_template.py:0
 msgid ""
-"Oops! It seems there is a problem with your team structure."
-"                        We found a circular reporting loop and no one in "
-"that loop is linked to a user.                        Please double-check "
-"that everyone reports to the correct manager."
+"Oops! It seems there is a problem with your team "
+"structure.                        We found a circular reporting loop and no "
+"one in that loop is linked to a user.                        Please double-"
+"check that everyone reports to the correct manager."
 msgstr ""
-"チーム構成に問題があるようです。報告ループが循環しており、そのループ内の誰もユーザにリンクされていません。全員が正しいマネジャーに報告しているか、再度確認して下さい。"
+"チーム構成に問題があるようです。報告ループが循環しており、そのループ内の誰も"
+"ユーザにリンクされていません。全員が正しいマネジャーに報告しているか、再度確"
+"認して下さい。"
 
 #. module: hr
 #. odoo-javascript
@@ -2406,12 +2476,13 @@ msgstr "PINコード"
 #: model:ir.model.fields,help:hr.field_hr_employee__pin
 #: model:ir.model.fields,help:hr.field_res_users__pin
 msgid ""
-"PIN used to Check In/Out in the Kiosk Mode of the Attendance application (if"
-" enabled in Configuration) and to change the cashier in the Point of Sale "
+"PIN used to Check In/Out in the Kiosk Mode of the Attendance application (if "
+"enabled in Configuration) and to change the cashier in the Point of Sale "
 "application."
 msgstr ""
-"勤怠管理アプリケーションのキオスク・モードでチェックイン/アウトを行う際(設定で有効になっている場合)、およびPOSアプリケーションでレジ担当者を変更する際に使用する"
-" PIN。"
+"勤怠管理アプリケーションのキオスク・モードでチェックイン/アウトを行う際(設定"
+"で有効になっている場合)、およびPOSアプリケーションでレジ担当者を変更する際に"
+"使用する PIN。"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__parent_id
@@ -2515,7 +2586,9 @@ msgstr "計画"
 msgid ""
 "Plan %(plan_names)s cannot use a department as it is used only for some HR "
 "plans."
-msgstr "プラン%(plan_names)sは、一部の人事プランにのみ使用されるため、部署を使用することはできません。"
+msgstr ""
+"プラン%(plan_names)sは、一部の人事プランにのみ使用されるため、部署を使用する"
+"ことはできません。"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_mail_activity_schedule__plan_department_filterable
@@ -2529,7 +2602,8 @@ msgid ""
 "Plan activities %(template_names)s cannot use coach, manager or employee "
 "responsible as it is used only for employee plans."
 msgstr ""
-"活動の計画%(template_names)sは従業員計画にのみ使用されるため、コーチ、マネジャー、従業員の責任者を使用することはできません。"
+"活動の計画%(template_names)sは従業員計画にのみ使用されるため、コーチ、マネ"
+"ジャー、従業員の責任者を使用することはできません。"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_department_form
@@ -2561,12 +2635,14 @@ msgid ""
 "Policy to post a message on the document using the mailgateway.\n"
 "- everyone: everyone can post\n"
 "- partners: only authenticated partners\n"
-"- followers: only followers of the related document or members of following channels\n"
+"- followers: only followers of the related document or members of following "
+"channels\n"
 msgstr ""
 "メールゲートウェイを使用したメッセージドキュメント投稿のポリシー\n"
 "- 全員: 誰でも投稿可能\n"
 "- 取引先: 認証済みの取引先のみ\n"
-"- フォロワー: 関連ドキュメントのフォロワーか、フォローしているチャネルのメンバーのみ\n"
+"- フォロワー: 関連ドキュメントのフォロワーか、フォローしているチャネルのメン"
+"バーのみ\n"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
@@ -2689,7 +2765,7 @@ msgstr "属性"
 #. module: hr
 #: model:ir.model,name:hr.model_hr_employee_public
 msgid "Public Employee"
-msgstr "公務員"
+msgstr "公開従業員"
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_ceo
@@ -2706,9 +2782,10 @@ msgstr "顧客ニーズの審査"
 #: model_terms:ir.actions.act_window,help:hr.hr_employee_public_action
 #: model_terms:ir.actions.act_window,help:hr.open_view_employee_list_my
 msgid ""
-"Quickly find all the information you need for your employees such as contact"
-" data, job position, availability, etc."
-msgstr "連絡先、役職、勤務時間など、従業員に必要な情報を全て素早く検索できます。"
+"Quickly find all the information you need for your employees such as contact "
+"data, job position, availability, etc."
+msgstr ""
+"連絡先、役職、勤務時間など、従業員に必要な情報を全て素早く検索できます。"
 
 #. module: hr
 #: model:hr.department,name:hr.dep_rd_be
@@ -2970,7 +3047,7 @@ msgstr "従業員を表示"
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "Single"
-msgstr "独身"
+msgstr "未婚"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_config_settings__module_hr_skills
@@ -3044,7 +3121,7 @@ msgid ""
 "Planned: Future activities."
 msgstr ""
 "活動に基づくステータス\n"
-"遅延: 期限が既に過ぎています\n"
+"期限超過：期限日がすでに過ぎています\n"
 "今日: 活動日は今日です\n"
 "予定: 将来の活動。"
 
@@ -3154,10 +3231,13 @@ msgstr "バッジIDは、アクセント記号を含まない英数字で、18�
 msgid ""
 "The Badge ID must be unique, this one is already assigned to another "
 "employee."
-msgstr "バッジIDは一意でなければなりません。これは既に別の従業員に割り当てられています。"
+msgstr ""
+"バッジIDは一意でなければなりません。これは既に別の従業員に割り当てられていま"
+"す。"
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__company_country_code
+#: model:ir.model.fields,help:hr.field_res_users__employee_country_code
 msgid ""
 "The ISO country code in two chars. \n"
 "You can use this field for quick search."
@@ -3168,15 +3248,22 @@ msgstr ""
 #. module: hr
 #: model_terms:hr.job,description:hr.job_marketing
 msgid ""
-"The Marketing Manager defines the mid- to long-term marketing strategy for his covered market segments in the World.\n"
-"              He develops and monitors the annual budget in collaboration with Sales.\n"
-"              He defines the products and customers portfolio according to the marketing plan.\n"
-"              This mission requires strong collaboration with Technical Service and Sales."
+"The Marketing Manager defines the mid- to long-term marketing strategy for "
+"his covered market segments in the World.\n"
+"              He develops and monitors the annual budget in collaboration "
+"with Sales.\n"
+"              He defines the products and customers portfolio according to "
+"the marketing plan.\n"
+"              This mission requires strong collaboration with Technical "
+"Service and Sales."
 msgstr ""
-"マーケティング・マネジャーは、世界各地の担当市場セグメントに対する中長期的なマーケティング戦略を定義します。\n"
+"マーケティング・マネジャーは、世界各地の担当市場セグメントに対する中長期的な"
+"マーケティング戦略を定義します。\n"
 "営業と協力して年間予算を策定し、モニタリングします。\n"
-"マーケティングプランに基づき、プロダクトと顧客のポートフォリオを確定します。\n"
-"この職務にはテクニカルサービスおよびセールスとの強力なコラボレーションが必要です。"
+"マーケティングプランに基づき、プロダクトと顧客のポートフォリオを確定しま"
+"す。\n"
+"この職務にはテクニカルサービスおよびセールスとの強力なコラボレーションが必要"
+"です。"
 
 #. module: hr
 #. odoo-python
@@ -3206,7 +3293,9 @@ msgstr "新規従業員の予測値は正である必要があります。"
 msgid ""
 "The fields “%s”, which you are trying to read, are not available for "
 "employee public profiles."
-msgstr "読込もうとしているフィールド “%s”は、従業員の公開プロフィールでは使用できません。"
+msgstr ""
+"読込もうとしているフィールド “%s”は、従業員の公開プロフィールでは使用できませ"
+"ん。"
 
 #. module: hr
 #. odoo-python
@@ -3234,14 +3323,17 @@ msgstr "%sコーチのユーザが設定されていません。"
 #. module: hr
 #: model:res.groups,comment:hr.group_hr_user
 msgid "The user will be able to approve document created by employees."
-msgstr "ユーザーは、従業員によって作成されたドキュメントを、承認することができます。"
+msgstr ""
+"ユーザーは、従業員によって作成されたドキュメントを、承認することができます。"
 
 #. module: hr
 #: model:res.groups,comment:hr.group_hr_manager
 msgid ""
 "The user will have access to the human resources configuration as well as "
 "statistic reports."
-msgstr "ユーザーは、統計レポートと同様に、人材コンフィグレーションにアクセスすることができます。"
+msgstr ""
+"ユーザーは、統計レポートと同様に、人材コンフィグレーションにアクセスすること"
+"ができます。"
 
 #. module: hr
 #. odoo-python
@@ -3267,21 +3359,24 @@ msgstr "この従業員はユーザを既に持っています。"
 msgid ""
 "This field is used in order to define in which timezone the employee will "
 "work."
-msgstr "このフィールドは、従業員がどのタイムゾーンで働くかを定義するために使用されます。"
+msgstr ""
+"このフィールドは、従業員がどのタイムゾーンで働くかを定義するために使用されま"
+"す。"
 
 #. module: hr
 #. odoo-javascript
 #: code:addons/hr/static/src/views/hr_graph_controller.xml:0
 #: code:addons/hr/static/src/views/hr_pivot_controller.xml:0
 msgid ""
-"This report gives you an overview of your employees based on the measures of"
-" your choice."
+"This report gives you an overview of your employees based on the measures of "
+"your choice."
 msgstr "このレポートでは、選択した集計項目に基づいて従業員の概要が示されます。"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
 msgid "This setting block is utilized to manage the frontend design."
-msgstr "この設定ブロックは、フロントエンドのデザインを管理するために使用されます。"
+msgstr ""
+"この設定ブロックは、フロントエンドのデザインを管理するために使用されます。"
 
 #. module: hr
 #. odoo-python
@@ -3294,7 +3389,7 @@ msgstr "これらの責任タイプは従業員計画に限定されます。"
 #: model:ir.model.fields,field_description:hr.field_hr_employee_base__tz
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__tz
 msgid "Timezone"
-msgstr "時間帯"
+msgstr "タイムゾーン"
 
 #. module: hr
 #: model:digest.tip,name:hr.digest_tip_hr_0
@@ -3306,10 +3401,11 @@ msgstr "ヒント: Bryanはどこか？"
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid ""
-"To avoid multi company issues (losing the access to your previous contracts,"
-" leaves, ...), you should create another employee in the new company "
-"instead."
-msgstr "複数会社の問題(以前の契約へのアクセス、休暇、...)を回避するため、新しい会社で別の従業員を作成する必要があります。"
+"To avoid multi company issues (losing the access to your previous contracts, "
+"leaves, ...), you should create another employee in the new company instead."
+msgstr ""
+"マルチカンパニーの問題(以前の契約へのアクセス、休暇、...)を回避するため、新し"
+"い会社で別の従業員を作成する必要があります。"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
@@ -3342,7 +3438,7 @@ msgstr "トレーニング"
 #: model:ir.model.fields,help:hr.field_hr_department__activity_exception_decoration
 #: model:ir.model.fields,help:hr.field_hr_employee__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "記録上の例外活動の種類。"
+msgstr "レコード上の例外の活動タイプ。"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_department_view_kanban
@@ -3433,10 +3529,13 @@ msgstr "現在、そのような方をコンサルタント・チームの一員
 #: model_terms:hr.job,description:hr.job_developer
 msgid ""
 "We are currently looking for someone like that to join our Web team.\n"
-"                Someone who can snap out of coding and perform analysis or meet clients to explain the technical possibilities that can meet their needs."
+"                Someone who can snap out of coding and perform analysis or "
+"meet clients to explain the technical possibilities that can meet their "
+"needs."
 msgstr ""
 "私たちは現在、ウェブチームに加わってくれるそのような人を探しています。\n"
-"コーディングから離れ、分析を行ったり、クライアントに会ってニーズを満たす技術的な可能性を説明できる人を探しています。"
+"コーディングから離れ、分析を行ったり、クライアントに会ってニーズを満たす技術"
+"的な可能性を説明できる人を探しています。"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__website_message_ids
@@ -3472,7 +3571,7 @@ msgstr "当社からオファーするもの"
 #: model_terms:hr.job,website_description:hr.job_marketing
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "What's great in the job?"
-msgstr "この職の素晴らしい点"
+msgstr "この仕事の素晴らしい点"
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__member_of_department
@@ -3481,7 +3580,8 @@ msgstr "この職の素晴らしい点"
 msgid ""
 "Whether the employee is a member of the active user's department or one of "
 "it's child department."
-msgstr "その従業員が、アクティブユーザの所属部門またはその子部門のメンバであるかどうか。"
+msgstr ""
+"その従業員が、有効ユーザの所属部門またはその子部門のメンバであるかどうか。"
 
 #. module: hr
 #. odoo-python
@@ -3520,7 +3620,7 @@ msgstr "勤務先Eメール"
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_profile
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Work Information"
-msgstr "職場関連情報"
+msgstr "勤務情報"
 
 #. module: hr
 #. odoo-javascript
@@ -3620,18 +3720,29 @@ msgstr "勤務スケジュール"
 
 #. module: hr
 #. odoo-python
-#: code:addons/hr/models/res_users.py:0
+#: code:addons/hr/models/hr_employee.py:0
 msgid ""
-"You are not allowed to create an employee because the user does not have "
-"access rights for %s"
-msgstr "ユーザが以下のアクセス権を持っていないため、従業員を作成できません。 %s"
+"You are not allowed to access \"Employee\" (hr.employee) records.\n"
+"We can redirect you to the public employee list."
+msgstr ""
+"「従業員」(hr.employee)レコードへのアクセスは許可されていません。\n"
+"公開従業員リストへ移動できます。"
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/res_users.py:0
 msgid ""
-"You are only allowed to update your preferences. Please contact a HR officer"
-" to update other information."
+"You are not allowed to create an employee because the user does not have "
+"access rights for %s"
+msgstr ""
+"ユーザが以下のアクセス権を持っていないため、従業員を作成できません。 %s"
+
+#. module: hr
+#. odoo-python
+#: code:addons/hr/models/res_users.py:0
+msgid ""
+"You are only allowed to update your preferences. Please contact a HR officer "
+"to update other information."
 msgstr ""
 "更新の権限があるのはプリファレンス情報のみです。\n"
 "その他の情報を更新するには人事部にお問い合わせ下さい。"
@@ -3657,40 +3768,68 @@ msgstr "このドキュメントへのアクセス権がありません。"
 #. module: hr
 #: model_terms:hr.job,description:hr.job_trainee
 msgid ""
-"You participate to the update of our tutorial tools and pre-sales tools after the launch of a new version of Odoo. Indeed, any new version of the software brings significant improvements in terms of functionalities, ergonomics and configuration.\n"
-"You will have to become familiar with the existing tools (books, class supports, Odoo presentation’s slides, commercial tools),\n"
-"to participate to the update of those tools in order to make them appropriate for the new version of the software and, for sure,\n"
+"You participate to the update of our tutorial tools and pre-sales tools "
+"after the launch of a new version of Odoo. Indeed, any new version of the "
+"software brings significant improvements in terms of functionalities, "
+"ergonomics and configuration.\n"
+"You will have to become familiar with the existing tools (books, class "
+"supports, Odoo presentation’s slides, commercial tools),\n"
+"to participate to the update of those tools in order to make them "
+"appropriate for the new version of the software and, for sure,\n"
 "to suggest improvements in order to cover the new domains of the software.\n"
-"You join the Implementation Assistance department. This team of 3 people go with Odoo’s clients in the set up of the software. Your role will be\n"
-"to animate webinars in order to show the different functionalities of the software.\n"
+"You join the Implementation Assistance department. This team of 3 people go "
+"with Odoo’s clients in the set up of the software. Your role will be\n"
+"to animate webinars in order to show the different functionalities of the "
+"software.\n"
 "to be involved in the support of the customers and\n"
 "to answer to their questions.\n"
 "You help the support manager to set up new support services by\n"
 "being involved in the treatment of new cases,\n"
 "contributing to the set up of a new politic,\n"
-"being involved into satisfaction surveys in order to have a better knowledge of how the support given is seen by the customers."
+"being involved into satisfaction surveys in order to have a better knowledge "
+"of how the support given is seen by the customers."
 msgstr ""
-"Odooの新バージョンがリリースされると、チュートリアルツールやプリセールスツールのアップデートに参加して頂きます。Odooの新バージョンは、機能性、人間工学、設定面などで大きな改良が加えられています。\n"
-"既存のツール(書籍、クラスサポート、Odooプレゼンテーションスライド、商用ツール)に慣れて頂き、\n"
+"Odooの新バージョンがリリースされると、チュートリアルツールやプリセールスツー"
+"ルのアップデートに参加して頂きます。Odooの新バージョンは、機能性、人間工学、"
+"設定面などで大きな改良が加えられています。\n"
+"既存のツール(書籍、クラスサポート、Odooプレゼンテーションスライド、商用ツー"
+"ル)に慣れて頂き、\n"
 "これらのツールを新しいバージョンに対応させ、\n"
-"当然のことながら、ソフトウェアの新領域をカバーするための改善を提案するために、ツールのアップデートに参加頂く必要があります。\n"
-"あなたには導入支援部門に入って頂きます。このチームは3名で構成され、Odooのクライアントと一緒にソフトウェアのセットアップを行います。あなたの役割は\n"
-"ソフトウェアの様々な機能を紹介するためにウェビナーのアニメーションを作成し、\n"
+"当然のことながら、ソフトウェアの新領域をカバーするための改善を提案するため"
+"に、ツールのアップデートに参加頂く必要があります。\n"
+"あなたには導入支援部門に入って頂きます。このチームは3名で構成され、Odooのクラ"
+"イアントと一緒にソフトウェアのセットアップを行います。あなたの役割は\n"
+"ソフトウェアの様々な機能を紹介するためにウェビナーのアニメーションを作成"
+"し、\n"
 "お客様のサポートに携わり\n"
 "顧客の質問に答えることです。\n"
 "新しいケースの処理に携わり、\n"
 "新しいポリシーの設定に貢献し、\n"
-"満足度調査に参加し、サポートが顧客からどのように見られているかを把握することで\n"
-"サポートマネジャーが新しいサポートサービスを立ち上げるのを以下の方法でサポートします。"
+"満足度調査に参加し、サポートが顧客からどのように見られているかを把握すること"
+"で\n"
+"サポートマネジャーが新しいサポートサービスを立ち上げるのを以下の方法でサポー"
+"トします。"
 
 #. module: hr
 #: model_terms:hr.job,description:hr.job_cto
 msgid ""
-"You will take part in the consulting services we provide to our partners and customers: design, analysis, development, testing, project management, support/coaching. You will work autonomously as well as coordinate and supervise small distributed development teams for some projects. Optionally, you will deliver Odoo training sessions to partners and customers (8-10 people/session). You will report to the Head of Professional Services and work closely with all developers and consultants.\n"
+"You will take part in the consulting services we provide to our partners and "
+"customers: design, analysis, development, testing, project management, "
+"support/coaching. You will work autonomously as well as coordinate and "
+"supervise small distributed development teams for some projects. Optionally, "
+"you will deliver Odoo training sessions to partners and customers (8-10 "
+"people/session). You will report to the Head of Professional Services and "
+"work closely with all developers and consultants.\n"
 "\n"
-"The job is located in Grand-Rosière (1367), Belgium (between Louvain-La-Neuve and Namur)."
+"The job is located in Grand-Rosière (1367), Belgium (between Louvain-La-"
+"Neuve and Namur)."
 msgstr ""
-"パートナーや顧客に提供するコンサルティングサービス(設計、分析、開発、テスト、プロジェクト管理、サポート/コーチング)に参加して頂きます。プロジェクトによっては、自律的に業務を行うだけでなく、小規模な分散開発チームを調整・監督することもあります。また、Odooのトレーニングセッションをパートナーや顧客に提供することもあります(1セッション8-10名)。プロフェッショナルサービス部門の責任者に報告し、全ての開発者やコンサルタントと密接に連携します。\n"
+"パートナーや顧客に提供するコンサルティングサービス(設計、分析、開発、テスト、"
+"プロジェクト管理、サポート/コーチング)に参加して頂きます。プロジェクトによっ"
+"ては、自律的に業務を行うだけでなく、小規模な分散開発チームを調整・監督するこ"
+"ともあります。また、Odooのトレーニングセッションをパートナーや顧客に提供する"
+"こともあります(1セッション8-10名)。プロフェッショナルサービス部門の責任者に報"
+"告し、全ての開発者やコンサルタントと密接に連携します。\n"
 "\n"
 "勤務地はベルギーのGrand-Rosière (1367)(Louvain-La-NeuveとNamurの間)です。"
 

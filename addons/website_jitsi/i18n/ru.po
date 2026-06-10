@@ -1,38 +1,26 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* website_jitsi
-# 
+#
 # Translators:
 # Wil Odoo, 2024
-# 
+# Anastasiia Koroleva, 2025
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 21:56+0000\n"
+"POT-Creation-Date: 2026-04-10 18:39+0000\n"
 "PO-Revision-Date: 2024-09-25 09:42+0000\n"
-"Last-Translator: Wil Odoo, 2024\n"
+"Last-Translator: Anastasiia Koroleva, 2025\n"
 "Language-Team: Russian (https://app.transifex.com/odoo/teams/41243/ru/)\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ru\n"
-"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
-
-#. module: website_jitsi
-#: model:ir.model.fields.selection,name:website_jitsi.selection__chat_room__max_capacity__12
-msgid "12"
-msgstr "12"
-
-#. module: website_jitsi
-#: model:ir.model.fields.selection,name:website_jitsi.selection__chat_room__max_capacity__16
-msgid "16"
-msgstr "16"
-
-#. module: website_jitsi
-#: model:ir.model.fields.selection,name:website_jitsi.selection__chat_room__max_capacity__20
-msgid "20"
-msgstr "20"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
+"(n%100>=11 && n%100<=14)? 2 : 3);\n"
 
 #. module: website_jitsi
 #: model:ir.model,name:website_jitsi.model_chat_room
@@ -63,12 +51,12 @@ msgstr "Закрыть"
 #. module: website_jitsi
 #: model:ir.model.fields,field_description:website_jitsi.field_chat_room__create_uid
 msgid "Created by"
-msgstr "Создано"
+msgstr "Создано:"
 
 #. module: website_jitsi
 #: model:ir.model.fields,field_description:website_jitsi.field_chat_room__create_date
 msgid "Created on"
-msgstr "Создано"
+msgstr "Дата создания:"
 
 #. module: website_jitsi
 #: model:ir.model.fields,field_description:website_jitsi.field_chat_room__display_name
@@ -109,12 +97,12 @@ msgstr "Последняя активность"
 #. module: website_jitsi
 #: model:ir.model.fields,field_description:website_jitsi.field_chat_room__write_uid
 msgid "Last Updated by"
-msgstr "Последнее обновление"
+msgstr "Последнее обновление:"
 
 #. module: website_jitsi
 #: model:ir.model.fields,field_description:website_jitsi.field_chat_room__write_date
 msgid "Last Updated on"
-msgstr "Последнее обновление"
+msgstr "Дата последнего обновления:"
 
 #. module: website_jitsi
 #: model:ir.model.fields,field_description:website_jitsi.field_chat_room_mixin__room_last_activity
@@ -142,8 +130,7 @@ msgstr "Максимальное количество участников"
 #: model:ir.model.fields,help:website_jitsi.field_chat_room__max_participant_reached
 #: model:ir.model.fields,help:website_jitsi.field_chat_room_mixin__room_max_participant_reached
 msgid "Maximum number of participant reached in the room at the same time"
-msgstr ""
-"Максимальное количество участников, находящихся в комнате одновременно"
+msgstr "Максимальное количество участников, находящихся в комнате одновременно"
 
 #. module: website_jitsi
 #: model:ir.model.fields.selection,name:website_jitsi.selection__chat_room__max_capacity__no_limit
@@ -185,3 +172,12 @@ msgid ""
 msgstr ""
 "Домен сервера Jitsi может быть изменен через настройки, чтобы использовать "
 "другой сервер, а не стандартный \"meet.jit.si\""
+
+#~ msgid "12"
+#~ msgstr "12"
+
+#~ msgid "16"
+#~ msgstr "16"
+
+#~ msgid "20"
+#~ msgstr "20"

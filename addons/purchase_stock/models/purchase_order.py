@@ -111,7 +111,7 @@ class PurchaseOrder(models.Model):
         # Replaces the product's kanban view by the purchase specific one.
         action = super().action_add_from_catalog()
         kanban_view_id = self.env.ref('purchase_stock.product_view_kanban_catalog_purchase_only').id
-        action['views'][0] = (kanban_view_id, 'kanban')
+        action['views'] = [(kanban_view_id, view_type) if view_type == 'kanban' else (view_id, view_type) for (view_id, view_type) in action['views']]
         return action
 
     def button_approve(self, force=False):
@@ -145,8 +145,10 @@ class PurchaseOrder(models.Model):
         for order_line in order_lines:
             moves_to_cancel_ids.update(order_line.move_ids.ids)
             if order_line.move_dest_ids:
-                move_dest_ids = order_line.move_dest_ids.filtered(lambda move: move.state != 'done' and not move.scrapped
-                                                                  and move.rule_id.route_id == move.location_dest_id.warehouse_id.reception_route_id)
+                move_dest_ids = order_line.move_dest_ids.filtered(lambda move: move.state != 'done' and not move.scrapped)
+                moves_to_mts = move_dest_ids.filtered(lambda move: move.rule_id.route_id != move.location_dest_id.warehouse_id.reception_route_id)
+                move_dest_ids -= moves_to_mts
+                moves_to_recompute_ids.update(moves_to_mts.ids)
                 moves_to_unlink = move_dest_ids.filtered(lambda m: len(m.created_purchase_line_ids.ids) > 1)
                 if moves_to_unlink:
                     moves_to_unlink.created_purchase_line_ids = [Command.unlink(order_line.id)]
@@ -246,16 +248,19 @@ class PurchaseOrder(models.Model):
             if self.dest_address_id:
                 return self.dest_address_id.property_stock_customer
             return self.picking_type_id.default_location_dest_id
-        return self.picking_type_id.warehouse_id.lot_stock_id
+        wh_stock_loc = self.picking_type_id.warehouse_id.lot_stock_id
+        default_dest_loc = self.picking_type_id.default_location_dest_id
+        if default_dest_loc and (not wh_stock_loc or default_dest_loc._child_of(wh_stock_loc)):
+            return default_dest_loc
+        return wh_stock_loc
 
     @api.model
     def _get_picking_type(self, company_id):
         picking_type = self.env['stock.picking.type'].search([('code', '=', 'incoming'), ('warehouse_id.company_id', '=', company_id)])
         if not picking_type:
             picking_type = self.env['stock.picking.type'].search([('code', '=', 'incoming'), ('warehouse_id', '=', False)])
-        company_warehouse = self.env['stock.warehouse'].search([('company_id', '=', company_id)], limit=1)
-        if not company_warehouse:
-            self.env['stock.warehouse']._warehouse_redirect_warning()
+        if not picking_type:
+            picking_type = self.env['stock.picking.type'].with_context(active_test=False).search([('code', '=', 'incoming'), ('warehouse_id', '=', False)])
         return picking_type[:1]
 
     def _prepare_group_vals(self):

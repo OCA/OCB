@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* sale_management
-# 
+# * sale_management
+#
 # Translators:
 # emre oktem, 2024
 # Tiffany Chang, 2024
@@ -19,25 +19,23 @@
 # Ediz Duman <neps1192@gmail.com>, 2024
 # Murat Kaplan <muratk@projetgrup.com>, 2024
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2024
-# 
+# Deniz Guvener_Odoo <degu@odoo.com>, 2025
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-25 08:39+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2024\n"
-"Language-Team: Turkish (https://app.transifex.com/odoo/teams/41243/tr/)\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-11-25 09:48+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-18/"
+"sale_management/tr/>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-
-#. module: sale_management
-#: model_terms:ir.ui.view,arch_db:sale_management.report_saleorder_document_inherit_sale_management
-msgid "1.5"
-msgstr ""
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
@@ -47,7 +45,7 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "<span invisible=\"not require_payment\">of</span>"
-msgstr ""
+msgstr "<span invisible=\"not require_payment\">.</span>"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.report_saleorder_document_inherit_sale_management
@@ -265,6 +263,9 @@ msgid ""
 "If set, SO with this template will invoice in this journal; otherwise the "
 "sales journal with the lowest sequence is used."
 msgstr ""
+"Ayarlanırsa, bu şablona sahip Satış Emri (SO) bu yevmiye defterinde "
+"faturalandırılır; tanımlanmadığı takdirde en düşük sıralamaya sahip satış "
+"yevmiyesi esas alınır."
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__active
@@ -357,13 +358,13 @@ msgstr "Seçenekler"
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__prepayment_percent
 msgid "Prepayment percentage"
-msgstr ""
+msgstr "Ön ödeme yüzdesi"
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid "Prepayment percentage must be a valid percentage."
-msgstr ""
+msgstr "Ön ödeme yüzdesi geçerli bir yüzde olmalıdır."
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__is_present
@@ -437,7 +438,7 @@ msgstr "Teklif Şablonları"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
-msgstr ""
+msgstr "Teklif Geçerliliği"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
@@ -534,8 +535,8 @@ msgid ""
 msgstr ""
 "Karmaşık bir ürün kataloğuyla mı mücadele ediyorsunuz? Satışların bir ürünü "
 "farklı seçeneklerle yapılandırmasına yardımcı olmak için Ürün "
-"Yapılandırıcısını deneyin: renkler, boyut, kapasite, vb. Satış siparişlerini"
-" kodlamayı daha kolay ve hatasız hale getirin."
+"Yapılandırıcısını deneyin: renkler, boyut, kapasite, vb. Satış siparişlerini "
+"kodlamayı daha kolay ve hatasız hale getirin."
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -559,7 +560,7 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__prepayment_percent
 msgid "The percentage of the amount needed to be paid to confirm quotations."
-msgstr ""
+msgstr "Teklifleri onaylamak için ödenmesi gereken tutarın yüzdesi."
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__mail_template_id
@@ -618,12 +619,16 @@ msgstr "Ölçü Birimi"
 #: model_terms:ir.actions.act_window,help:sale_management.sale_order_template_action
 msgid ""
 "Use templates to create polished, professional quotes in minutes.\n"
-"                Send these quotes by email and let your customers sign online.\n"
+"                Send these quotes by email and let your customers sign "
+"online.\n"
 "                Use cross-selling and discounts to push and boost your sales."
 msgstr ""
-"Birkaç dakika içinde özenilmiş, profesyonel teklifler oluşturmak için şablonları kullanın.\n"
-"                Bu teklifleri e-postayla gönderin ve müşterilerinizin çevrimiçi olarak imzalamasına izin verin.\n"
-"                Satışlarınızı artırmak ve güçlendirmek için çapraz satış ve indirimleri kullanın."
+"Birkaç dakika içinde özenilmiş, profesyonel teklifler oluşturmak için "
+"şablonları kullanın.\n"
+"                Bu teklifleri e-postayla gönderin ve müşterilerinizin "
+"çevrimiçi olarak imzalamasına izin verin.\n"
+"                Satışlarınızı artırmak ve güçlendirmek için çapraz satış ve "
+"indirimleri kullanın."
 
 #. module: sale_management
 #. odoo-python
@@ -638,34 +643,53 @@ msgid ""
 "You cannot change the type of a sale quote line. Instead you should delete "
 "the current line and create a new line of the proper type."
 msgstr ""
-"Satış teklifi satırının türünü değiştiremezsiniz. Bunun yerine, geçerli "
-"satırı silmeli ve uygun türde yeni bir satır oluşturmalısınız."
+"Satış teklifi satırının türünü değiştiremezsiniz. Bunun yerine, mevcut "
+"satırı silip uygun türde yeni bir satır oluşturmalısınız."
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order.py:0
 msgid ""
-"Your quotation contains products from company %(product_company)s whereas your quotation belongs to company %(quote_company)s. \n"
-" Please change the company of your quotation or remove the products from other companies (%(bad_products)s)."
+"Your quotation contains products from company %(product_company)s whereas "
+"your quotation belongs to company %(quote_company)s. \n"
+" Please change the company of your quotation or remove the products from "
+"other companies (%(bad_products)s)."
 msgstr ""
-"Teklifiniz %(product_company)s şirketindeki ürünleri içerirken, teklifiniz%(quote_company)s. \n"
-"şirketine aittir. Lütfen teklifinizin şirketini değiştirin veya ürünleri diğer şirketlerden kaldırın (%(bad_products)s)."
-
-#. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Your template cannot contain products from multiple companies."
-msgstr "Şablonunuz birden fazla şirketten ürün içeremez."
+"Teklifiniz %(product_company)s şirketindeki ürünleri içerirken, teklifiniz%"
+"(quote_company)s. \n"
+"şirketine aittir. Lütfen teklifinizin şirketini değiştirin veya ürünleri "
+"diğer şirketlerden kaldırın (%(bad_products)s)."
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
-"Your template contains products from company %(product_company)s whereas your template belongs to company %(template_company)s. \n"
-" Please change the company of your template or remove the products from other companies."
+"Your template belongs to company %(template_company)s but contains products "
+"from company (%(product_company)s) that are not accessible to %"
+"(template_company)s.\n"
+"Please change the company of your template or remove the products from other "
+"companies."
 msgstr ""
-" Şablonunuz %(product_company)s şirketten ürünler içeriyor,  şablonunuz %(template_company)s şirkete aitken. \n"
-" Lütfen şablonunuzun firmasını değiştirin veya diğer firmalardan ürünleri kaldırın."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid ""
+"Your template belongs to company %(template_company)s but contains products "
+"from other companies (%(product_company)s) that are not accessible to %"
+"(template_company)s.\n"
+"Please change the company of your template or remove the products from other "
+"companies."
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid ""
+"Your template cannot contain products from specific companies if it's shared "
+"between companies. Please restrict the template access, or remove those "
+"products."
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -676,3 +700,17 @@ msgstr "gün"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "örn. Standart Danışmanlık Paketi"
+
+#~ msgid "Your template cannot contain products from multiple companies."
+#~ msgstr "Şablonunuz birden fazla şirketten ürün içeremez."
+
+#~ msgid ""
+#~ "Your template contains products from company %(product_company)s whereas "
+#~ "your template belongs to company %(template_company)s. \n"
+#~ " Please change the company of your template or remove the products from "
+#~ "other companies."
+#~ msgstr ""
+#~ " Şablonunuz %(product_company)s şirketten ürünler içeriyor,  şablonunuz %"
+#~ "(template_company)s şirkete aitken. \n"
+#~ " Lütfen şablonunuzun firmasını değiştirin veya diğer firmalardan ürünleri "
+#~ "kaldırın."

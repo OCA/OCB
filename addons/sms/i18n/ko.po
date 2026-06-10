@@ -1,25 +1,27 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* sms
-# 
+# * sms
+#
 # Translators:
 # Daye Jeong, 2025
 # Wil Odoo, 2025
 # Sarah Park, 2025
-# 
+#
+# "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-07 20:37+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Sarah Park, 2025\n"
-"Language-Team: Korean (https://app.transifex.com/odoo/teams/41243/ko/)\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
+"PO-Revision-Date: 2025-09-09 06:58+0000\n"
+"Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-18/sms/ko/>\n"
+"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -37,7 +39,9 @@ msgstr "# 유효한 수신자"
 msgid ""
 "%(count)s out of the %(total)s selected SMS Text Messages have successfully "
 "been resent."
-msgstr "선택한 %(count)s개의 SMS 문자 메시지 중 %(total)s를 성공적으로 재전송했습니다."
+msgstr ""
+"선택한 %(count)s개의 SMS 문자 메시지 중 %(total)s를 성공적으로 재전송했습니"
+"다."
 
 #. module: sms
 #. odoo-python
@@ -52,11 +56,6 @@ msgid "%s invalid recipients"
 msgstr "%s 잘못된 수신자"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
-msgid "+1 555-555-555"
-msgstr "+1 555-555-555"
-
-#. module: sms
 #. odoo-javascript
 #: code:addons/sms/static/src/components/sms_widget/fields_sms_widget.xml:0
 msgid ", fits in"
@@ -67,14 +66,18 @@ msgstr ","
 msgid ""
 "<i class=\"fa fa-warning\"/> An error occurred with your account. Please "
 "contact the support for more information..."
-msgstr "<i class=\"fa fa-warning\"/> 계정에 오류가 발생했습니다. 자세한 내용은 지원팀에 문의하세요..."
+msgstr ""
+"<i class=\"fa fa-warning\"/> 계정에 오류가 발생했습니다. 자세한 내용은 지원팀"
+"에 문의하세요..."
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.iap_account_view_form
 msgid ""
 "<i class=\"fa fa-warning\"/> You cannot send SMS while your account is not "
 "registered."
-msgstr "<i class=\"fa fa-warning\"/> 계정이 등록되지 않은 상태에서는 SMS를 보낼 수 없습니다."
+msgstr ""
+"<i class=\"fa fa-warning\"/> 계정이 등록되지 않은 상태에서는 SMS를 보낼 수 없"
+"습니다."
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.iap_account_view_form
@@ -98,10 +101,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_view_form
 msgid ""
 "<span class=\"o_stat_text\">Add</span>\n"
-"                                <span class=\"o_stat_text\">Context Action</span>"
+"                                <span class=\"o_stat_text\">Context Action</"
+"span>"
 msgstr ""
 "<span class=\"o_stat_text\">추가하기</span>\n"
-"                                <span class=\"o_stat_text\">상황별 작업</span>"
+"                                <span class=\"o_stat_text\">상황별 작업</"
+"span>"
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_view_form
@@ -112,43 +117,55 @@ msgstr "<span class=\"o_stat_text\">미리 보기</span>"
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_view_form
 msgid ""
 "<span class=\"o_stat_text\">Remove</span>\n"
-"                                <span class=\"o_stat_text\">Context Action</span>"
+"                                <span class=\"o_stat_text\">Context Action</"
+"span>"
 msgstr ""
 "<span class=\"o_stat_text\">제거하기</span>\n"
-"                                <span class=\"o_stat_text\">상황별 작업</span>"
+"                                <span class=\"o_stat_text\">상황별 작업</"
+"span>"
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "<span class=\"text-warning\" invisible=\"not no_record\">No records</span>"
-msgstr "<span class=\"text-warning\" invisible=\"not no_record\">기록 없음</span>"
+msgid ""
+"<span class=\"text-warning\" invisible=\"not no_record\">No records</span>"
+msgstr ""
+"<span class=\"text-warning\" invisible=\"not no_record\">기록 없음</span>"
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.ir_actions_server_view_form
 msgid ""
 "<span invisible=\"sms_method != 'sms'\">\n"
-"                                The message will be sent as an SMS to the recipients of the template\n"
-"                                and will not appear in the messaging history.\n"
+"                                The message will be sent as an SMS to the "
+"recipients of the template\n"
+"                                and will not appear in the messaging "
+"history.\n"
 "                            </span>\n"
 "                            <span invisible=\"sms_method != 'note'\">\n"
-"                                The SMS will not be sent, it will only be posted as an\n"
+"                                The SMS will not be sent, it will only be "
+"posted as an\n"
 "                                internal note in the messaging history.\n"
 "                            </span>\n"
 "                            <span invisible=\"sms_method != 'comment'\">\n"
-"                                The SMS will be sent as an SMS to the recipients of the\n"
-"                                template and it will also be posted as an internal note\n"
+"                                The SMS will be sent as an SMS to the "
+"recipients of the\n"
+"                                template and it will also be posted as an "
+"internal note\n"
 "                                in the messaging history.\n"
 "                            </span>"
 msgstr ""
 "<span invisible=\"sms_method != 'sms'\">\n"
-"                                메시지는 서식을 수신하는 대상에게 SMS로 전송되며\n"
+"                                메시지는 서식을 수신하는 대상에게 SMS로 전송"
+"되며\n"
 "                                메시지 이력에는 표시되지 않습니다.\n"
 "                            </span>\n"
 "                            <span invisible=\"sms_method != 'note'\">\n"
-"                                SMS는 전송되지 않고 메시지 내역에서 내부 사용자만 볼 수 있도록\n"
+"                                SMS는 전송되지 않고 메시지 내역에서 내부 사용"
+"자만 볼 수 있도록\n"
 "                                메모로 게시됩니다.\n"
 "                            </span>\n"
 "                            <span invisible=\"sms_method != 'comment'\">\n"
-"                                메시지는 서식을 수신하는 대상에게 SMS로 전송되며\n"
+"                                메시지는 서식을 수신하는 대상에게 SMS로 전송"
+"되며\n"
 "                                메시지 이력에서 내부 사용자만 볼 수 있도록\n"
 "                                메모로 게시됩니다.\n"
 "                            </span>"
@@ -189,7 +206,9 @@ msgstr "조치 필요"
 msgid ""
 "Add a contextual action on the related model to open a sms composer with "
 "this template"
-msgstr "이 서식을 사용하여 SMS 작성기를 열려면 관련 모델에 대한 상황별 작업을 추가하십시오."
+msgstr ""
+"이 서식을 사용하여 SMS 작성기를 열려면 관련 모델에 대한 상황별 작업을 추가하"
+"십시오."
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
@@ -214,7 +233,8 @@ msgstr "“%(record_name)s”으로 SMS 메시지를 보내는 중 오류가 발
 msgid ""
 "An unknown error occurred. Please contact Odoo support if this error "
 "persists."
-msgstr "알 수 없는 오류가 발생했습니다. 문제가 지속되면 Odoo 지원팀에 문의하세요."
+msgstr ""
+"알 수 없는 오류가 발생했습니다. 문제가 지속되면 Odoo 지원팀에 문의하세요."
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__model_id
@@ -227,7 +247,9 @@ msgstr "적용 대상"
 msgid ""
 "Are you sure you want to reset these sms templates to their original "
 "configuration? Changes and translations will be lost."
-msgstr "이 SMS 서식을 원래의 구성으로 초기화하시겠습니까? 변경 사항 및 번역한 내용은 저장되지 않습니다."
+msgstr ""
+"이 SMS 서식을 원래의 구성으로 초기화하시겠습니까? 변경 사항 및 번역한 내용은 "
+"저장되지 않습니다."
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_res_partner__message_attachment_count
@@ -242,17 +264,17 @@ msgstr "기준액"
 #. module: sms
 #: model:ir.model.fields.selection,name:sms.selection__sms_sms__failure_type__sms_blacklist
 msgid "Blacklisted"
-msgstr "블랙리스트"
+msgstr "수신 거부"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_res_partner__mobile_blacklisted
 msgid "Blacklisted Phone Is Mobile"
-msgstr "블랙리스트 연락처가 휴대폰입니다"
+msgstr "수신 거부 연락처가 휴대폰입니다"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_res_partner__phone_blacklisted
 msgid "Blacklisted Phone is Phone"
-msgstr "블랙리스트 연락처가 전화번호입니다"
+msgstr "수신 거부 연락처가 전화번호입니다"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_sms__body
@@ -324,6 +346,11 @@ msgstr "보낸 사람 이름 선택"
 #: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
 msgid "Close"
 msgstr "닫기"
+
+#. module: sms
+#: model:ir.model,name:sms.model_res_company
+msgid "Companies"
+msgstr "회사"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -515,13 +542,16 @@ msgstr "실패 유형"
 msgid ""
 "Field used to store sanitized phone number. Helps speeding up searches and "
 "comparisons."
-msgstr "삭제된 전화 번호를 저장하는 데 사용되는 필드입니다. 검색 및 비교 속도를 높이는 데 도움이 됩니다."
+msgstr ""
+"삭제된 전화 번호를 저장하는 데 사용되는 필드입니다. 검색 및 비교 속도를 높이"
+"는 데 도움이 됩니다."
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_template__template_fs
-msgid ""
-"File from where the template originates. Used to reset broken template."
-msgstr "서식이 만들어진 원래의 파일입니다. 서식이 손상된 경우 다시 제작하는데 사용합니다."
+msgid "File from where the template originates. Used to reset broken template."
+msgstr ""
+"서식이 만들어진 원래의 파일입니다. 서식이 손상된 경우 다시 제작하는데 사용합"
+"니다."
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_res_partner__message_follower_ids
@@ -623,11 +653,11 @@ msgstr "이 옵션을 선택하면 일부 정보가 전달 오류를 생성합�
 #. module: sms
 #: model:ir.model.fields,help:sms.field_res_partner__phone_sanitized_blacklisted
 msgid ""
-"If the sanitized phone number is on the blacklist, the contact won't receive"
-" mass mailing sms anymore, from any list"
+"If the sanitized phone number is on the blacklist, the contact won't receive "
+"mass mailing sms anymore, from any list"
 msgstr ""
-"검증한 전화번호가 블랙리스트에 있는 번호인 경우, 어느 목록에서도 해당 연락처에 대해서는 더 이상 대량 발송 SMS를 보내지 않게 "
-"됩니다. "
+"검증한 전화번호가 블랙리스트에 있는 번호인 경우, 어느 목록에서도 해당 연락처"
+"에 대해서는 더 이상 대량 발송 SMS를 보내지 않게 됩니다. "
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.mail_resend_message_view_form
@@ -646,8 +676,9 @@ msgid ""
 "distinguish which number is blacklisted             when there is both a "
 "mobile and phone field in a model."
 msgstr ""
-"해당 핸드폰 번호가 블랙리스트에 오른 번호인지 여부를 나타냅니다. 모델에 핸드폰과 유선전화 필드 양쪽이 있는 경우 블랙리스트에 올라 있는"
-" 번호를 구분하는데 사용합니다."
+"해당 핸드폰 번호가 블랙리스트에 오른 번호인지 여부를 나타냅니다. 모델에 핸드"
+"폰과 유선전화 필드 양쪽이 있는 경우 블랙리스트에 올라 있는 번호를 구분하는데 "
+"사용합니다."
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_res_partner__phone_blacklisted
@@ -656,8 +687,9 @@ msgid ""
 "distinguish which number is blacklisted             when there is both a "
 "mobile and phone field in a model."
 msgstr ""
-"해당 전화번호가 블랙리스트에 오른 번호인지 여부를 나타냅니다. 모델에 핸드폰과 유선전화 필드 양쪽이 있는 경우 블랙리스트에 올라 있는 "
-"번호를 구분하는데 사용합니다."
+"해당 전화번호가 블랙리스트에 오른 번호인지 여부를 나타냅니다. 모델에 핸드폰"
+"과 유선전화 필드 양쪽이 있는 경우 블랙리스트에 올라 있는 번호를 구분하는데 사"
+"용합니다."
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_composer__comment_single_recipient
@@ -683,8 +715,9 @@ msgid ""
 "i.e. a plus sign (+), then country code, city code, and local phone number. "
 "For example: +1 555-555-555"
 msgstr ""
-"입력한 전화번호가 잘못되었습니다. 더하기 기호(+) 다음에 국가 번호, 도시 번호, 지역 전화번호가 오는 국제 형식을 따르는지 "
-"확인하세요. 예를 들면 다음과 같습니다: +1 555-555-555."
+"입력한 전화번호가 잘못되었습니다. 더하기 기호(+) 다음에 국가 번호, 도시 번"
+"호, 지역 전화번호가 오는 국제 형식을 따르는지 확인하세요. 예를 들면 다음과 같"
+"습니다: +1 555-555-555."
 
 #. module: sms
 #. odoo-python
@@ -831,7 +864,9 @@ msgstr "메모만"
 msgid ""
 "Note that this is not required, if you don't set a sender name, your SMS "
 "will be sent from a short code."
-msgstr "발신자 이름을 지정하지 않으면 SMS가 짧은 코드로 전송되므로 반드시 필요한 사항은 아닙니다."
+msgstr ""
+"발신자 이름을 지정하지 않으면 SMS가 짧은 코드로 전송되므로 반드시 필요한 사항"
+"은 아닙니다."
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_resend_recipient__notification_id
@@ -876,9 +911,11 @@ msgstr "전송 오류가 발생한 메시지 수입니다."
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_composer__res_ids_count
 msgid ""
-"Number of recipients that will receive the SMS if sent in mass mode, without"
-" applying the Active Domain value"
-msgstr "활성화된 도메인 값을 적용하지 않고 대량 모드로 전송할 경우에 SMS를 수신할 수신자 수"
+"Number of recipients that will receive the SMS if sent in mass mode, without "
+"applying the Active Domain value"
+msgstr ""
+"활성화된 도메인 값을 적용하지 않고 대량 모드로 전송할 경우에 SMS를 수신할 수"
+"신자 수"
 
 #. module: sms
 #: model:ir.model.fields.selection,name:sms.selection__sms_sms__failure_type__sms_optout
@@ -890,11 +927,12 @@ msgstr "선택하지 않음"
 msgid ""
 "Optional translation language (ISO code) to select when sending out an "
 "email. If not set, the english version will be used. This should usually be "
-"a placeholder expression that provides the appropriate language, e.g. {{ "
-"object.partner_id.lang }}."
+"a placeholder expression that provides the appropriate language, e.g. "
+"{{ object.partner_id.lang }}."
 msgstr ""
-"이메일 전송 시 번역할 언어 (ISO code)를 선택할 수 있습니다. 설정하지 않을 경우, 영어가 기본 언어로 사용됩니다. 적절한 "
-"언어를 선택할 수 있도록 다음과 같은 예시용 메시지를 사용합니다. {{ object.partner_id.lang }}."
+"이메일 전송 시 번역할 언어 (ISO code)를 선택할 수 있습니다. 설정하지 않을 경"
+"우, 영어가 기본 언어로 사용됩니다. 적절한 언어를 선택할 수 있도록 다음과 같"
+"은 예시용 메시지를 사용합니다. {{ object.partner_id.lang }}."
 
 #. module: sms
 #: model:ir.model,name:sms.model_sms_sms
@@ -909,7 +947,7 @@ msgstr "협력사"
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_res_partner__phone_sanitized_blacklisted
 msgid "Phone Blacklisted"
-msgstr "전화번호 블랙리스트"
+msgstr "수신 거부 전화번호"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_account_phone__phone_number
@@ -1389,7 +1427,8 @@ msgstr "사이드바 동작"
 msgid ""
 "Sidebar action to make this template available on records of the related "
 "document model"
-msgstr "관련 문서 모델의 레코드에서 이 서식을 사용할 수 있도록 하는 사이드바 동작"
+msgstr ""
+"관련 문서 모델의 레코드에서 이 서식을 사용할 수 있도록 하는 사이드바 동작"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__comment_single_recipient
@@ -1453,7 +1492,8 @@ msgstr "템플릿(서식)"
 msgid ""
 "The SMS Service is currently unavailable for new users and new accounts "
 "registrations are suspended."
-msgstr "현재 신규 사용자 및 계정에 대한 신규 SMS 서비스 등록이 일시 중단되었습니다."
+msgstr ""
+"현재 신규 사용자 및 계정에 대한 신규 SMS 서비스 등록이 일시 중단되었습니다."
 
 #. module: sms
 #. odoo-python
@@ -1519,7 +1559,9 @@ msgstr "SMS 발신자로 표시되는 이름입니다."
 #: model_terms:ir.ui.view,arch_db:sms.res_partner_view_form
 msgid ""
 "This phone number is blacklisted for SMS Marketing. Click to unblacklist."
-msgstr "이 전화번호는 SMS 마케팅에서 블랙리스트에 올라있습니다. 블랙리스트를 해제하려면 클릭하세요."
+msgstr ""
+"이 전화번호는 SMS 마케팅에서 블랙리스트에 올라있습니다. 블랙리스트를 해제하려"
+"면 클릭하세요."
 
 #. module: sms
 #. odoo-python
@@ -1548,21 +1590,27 @@ msgid ""
 "- 'Update a Record': update the values of a record\n"
 "- 'Create Activity': create an activity (Discuss)\n"
 "- 'Send Email': post a message, a note or send an email (Discuss)\n"
-"- 'Send SMS': send SMS, log them on documents (SMS)- 'Add/Remove Followers': add or remove followers to a record (Discuss)\n"
+"- 'Send SMS': send SMS, log them on documents (SMS)- 'Add/Remove Followers': "
+"add or remove followers to a record (Discuss)\n"
 "- 'Create Record': create a new record with new values\n"
 "- 'Execute Code': a block of Python code that will be executed\n"
-"- 'Send Webhook Notification': send a POST request to an external system, also known as a Webhook\n"
-"- 'Execute Existing Actions': define an action that triggers several other server actions\n"
+"- 'Send Webhook Notification': send a POST request to an external system, "
+"also known as a Webhook\n"
+"- 'Execute Existing Actions': define an action that triggers several other "
+"server actions\n"
 msgstr ""
 "서버 작업 유형입니다. 다음 값을 사용할 수 있습니다:\n"
 "- '레코드 업데이트': 레코드 값을 업데이트합니다.\n"
 "- '활동 만들기': 활동을 생성합니다. (토론)\n"
 "- '이메일 보내기': 메시지, 메모를 게시하거나 이메일을 전송합니다. (토론)\n"
-"- 'SMS 보내기': SMS를 보내고, 문서에 기록합니다. (SMS)- '팔로워 추가/제거': 레코드에 팔로워를 추가하거나 제거합니다 .(토론)\n"
+"- 'SMS 보내기': SMS를 보내고, 문서에 기록합니다. (SMS)- '팔로워 추가/제거': "
+"레코드에 팔로워를 추가하거나 제거합니다 .(토론)\n"
 "- 'Create Record': create a new record with new values\n"
 "- 'Execute Code': a block of Python code that will be executed\n"
-"- 'Send Webhook Notification': send a POST request to an external system, also known as a Webhook\n"
-"- 'Execute Existing Actions': define an action that triggers several other server actions\n"
+"- 'Send Webhook Notification': send a POST request to an external system, "
+"also known as a Webhook\n"
+"- 'Execute Existing Actions': define an action that triggers several other "
+"server actions\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_sms__uuid
@@ -1593,7 +1641,7 @@ msgstr "서식 사용"
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__mass_use_blacklist
 msgid "Use blacklist"
-msgstr "블랙리스트 사용"
+msgstr "수신 거부 이용"
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_mail_mail__message_type
@@ -1604,7 +1652,8 @@ msgid ""
 "'comment': generated by user input e.g. through discuss or composer\n"
 "'email_outgoing': generated by a mailing\n"
 "'notification': generated by system e.g. tracking messages\n"
-"'auto_comment': generated by automated notification mechanism e.g. acknowledgment\n"
+"'auto_comment': generated by automated notification mechanism e.g. "
+"acknowledgment\n"
 "'user_notification': generated for a specific recipient"
 msgstr ""
 "메세지 작성을 분류하는 데 사용됩니다.\n"
@@ -1643,7 +1692,9 @@ msgstr "데이터베이스에서 귀하의 계정을 찾을 수 없습니다."
 msgid ""
 "We were not able to reach you via your phone number. If you have requested "
 "multiple codes recently, please retry later."
-msgstr "귀하의 휴대폰 번호로 연결할 수 없습니다. 최근에 여러 번 코드를 요청한 경우 나중에 다시 시도하세요."
+msgstr ""
+"귀하의 휴대폰 번호로 연결할 수 없습니다. 최근에 여러 번 코드를 요청한 경우 나"
+"중에 다시 시도하세요."
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_res_partner__website_message_ids
@@ -1721,11 +1772,14 @@ msgstr "발신자 이름은 3~11자 사이여야 하며 영숫자만 포함해�
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_account_sender_view_form
 msgid ""
-"Your sender name must be between 3 and 11 characters long and only contain alphanumeric characters.\n"
-"                        It must fit your company name, and you aren't allowed to modify it once you registered one, choose it carefully."
+"Your sender name must be between 3 and 11 characters long and only contain "
+"alphanumeric characters.\n"
+"                        It must fit your company name, and you aren't "
+"allowed to modify it once you registered one, choose it carefully."
 msgstr ""
 "발신자 이름은 3~11자 사이여야 하며 영숫자로만 구성되어야 합니다.\n"
-"                        회사명과 일치해야 하며, 한 번 등록하면 변경할 수 없으므로 신중하게 선택하세요."
+"                        회사명과 일치해야 하며, 한 번 등록하면 변경할 수 없으"
+"므로 신중하게 선택하세요."
 
 #. module: sms
 #. odoo-python
@@ -1769,9 +1823,13 @@ msgstr "다음에서"
 msgid ""
 "recipients have an invalid phone number and will not receive this text "
 "message."
-msgstr "수신자 전화번호가 잘못되었기 때문에 이 문자 메시지를 수신할 수 없습니다."
+msgstr ""
+"수신자 전화번호가 잘못되었기 때문에 이 문자 메시지를 수신할 수 없습니다."
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
 msgid "record:"
 msgstr "레코드 :"
+
+#~ msgid "+1 555-555-555"
+#~ msgstr "+1 555-555-555"

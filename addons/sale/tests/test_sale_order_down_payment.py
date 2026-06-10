@@ -363,11 +363,13 @@ class TestSaleOrderDownPayment(TestSaleCommon):
         self._assert_invoice_lines_values(invoice.line_ids, expected)
 
     def test_tax_fixed_amount_breakdown(self):
-        tax_10_fix_a = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True})
-        tax_10_fix_b = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True})
-        tax_10_fix_c = self.create_tax(10, {'amount_type': 'fixed'})
+        tax_10_fix_a = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True, 'sequence': 1})
+        tax_10_fix_b = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True, 'sequence': 3})
+        tax_10_fix_c = self.create_tax(10, {'amount_type': 'fixed', 'sequence': 5})
         tax_10_a = self.tax_10
+        tax_10_a.sequence = 2
         tax_10_b = self.create_tax(10)
+        tax_10_b.sequence = 4
         tax_group_1 = self.env['account.tax'].create({
             'name': "Tax Group",
             'amount_type': 'group',
@@ -397,15 +399,14 @@ class TestSaleOrderDownPayment(TestSaleCommon):
             # keys
             ['account_id',               'tax_ids',                 'balance',    'price_total'],
             # base lines
-            [self.revenue_account.id,    (tax_10_a + tax_10_b).ids, -110,         132          ],
-            [self.revenue_account.id,    tax_10_b.ids,              -10,          11           ],
+            [self.revenue_account.id,    (tax_10_a + tax_10_b).ids, -100,         120          ],
             [self.revenue_account.id,    tax_10_a.ids,              -200,         220          ],
-            [self.revenue_account.id,    self.env['account.tax'],   -110,         110          ],
+            [self.revenue_account.id,    self.env['account.tax'],   -100,         100          ],
             # taxes
-            [self.tax_account.id,        self.env['account.tax'],   -31,          0            ],
-            [self.tax_account.id,        self.env['account.tax'],   -12,          0            ],
+            [self.tax_account.id,        self.env['account.tax'],   -30,          0            ],
+            [self.tax_account.id,        self.env['account.tax'],   -10,          0            ],
             # receivable
-            [self.receivable_account.id, self.env['account.tax'],   473,          0            ],
+            [self.receivable_account.id, self.env['account.tax'],   440,          0            ],
         ]
         self._assert_invoice_lines_values(invoice.line_ids, expected)
 
@@ -508,11 +509,13 @@ class TestSaleOrderDownPayment(TestSaleCommon):
         analytic_plan = self.env['account.analytic.plan'].create({'name': 'Plan Test'})
         an_acc_01 = str(self.env['account.analytic.account'].create({'name': 'Account 01', 'plan_id': analytic_plan.id}).id)
         an_acc_02 = str(self.env['account.analytic.account'].create({'name': 'Account 02', 'plan_id': analytic_plan.id}).id)
-        tax_10_fix_a = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True})
-        tax_10_fix_b = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True})
-        tax_10_fix_c = self.create_tax(10, {'amount_type': 'fixed'})
+        tax_10_fix_a = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True, 'sequence': 1})
+        tax_10_fix_b = self.create_tax(10, {'amount_type': 'fixed', 'include_base_amount': True, 'sequence': 3})
+        tax_10_fix_c = self.create_tax(10, {'amount_type': 'fixed', 'sequence': 4})
         tax_10_a = self.tax_10
+        tax_10_a.sequence = 2
         tax_10_b = self.create_tax(10)
+        tax_10_b.sequence = 5
         tax_group_1 = self.env['account.tax'].create({
             'name': "Tax Group",
             'amount_type': 'group',
@@ -543,15 +546,14 @@ class TestSaleOrderDownPayment(TestSaleCommon):
             # keys
             ['account_id',               'tax_ids',                 'balance',    'price_total', 'analytic_distribution'],
             # base lines
-            [self.revenue_account.id,    (tax_10_a + tax_10_b).ids, -110,         132,            {an_acc_01: 50, an_acc_02: 50}],
-            [self.revenue_account.id,    tax_10_b.ids,              -10,          11,             {an_acc_01: 50, an_acc_02: 50}],
+            [self.revenue_account.id,    (tax_10_a + tax_10_b).ids, -100,         120,            {an_acc_01: 50, an_acc_02: 50}],
             [self.revenue_account.id,    tax_10_a.ids,              -200,         220,            False                         ],
-            [self.revenue_account.id,    self.env['account.tax'],   -110,         110,            False                         ],
+            [self.revenue_account.id,    self.env['account.tax'],   -100,         100,            False                         ],
             # taxes
-            [self.tax_account.id,        self.env['account.tax'],   -31,          0,              False                         ],
-            [self.tax_account.id,        self.env['account.tax'],   -12,          0,              False                         ],
+            [self.tax_account.id,        self.env['account.tax'],   -30,          0,              False                         ],
+            [self.tax_account.id,        self.env['account.tax'],   -10,          0,              False                         ],
             # receivable
-            [self.receivable_account.id, self.env['account.tax'],   473,          0,              False                         ],
+            [self.receivable_account.id, self.env['account.tax'],   440,          0,              False                         ],
         ]
         self._assert_invoice_lines_values(invoice.line_ids, expected)
 

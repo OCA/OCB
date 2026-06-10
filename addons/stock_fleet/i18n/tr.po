@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* stock_fleet
-# 
+# * stock_fleet
+#
 # Translators:
 # Murat Durmuş <muratd@projetgrup.com>, 2024
 # Ediz Duman <neps1192@gmail.com>, 2024
@@ -14,20 +14,23 @@
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2024
 # Martin Trigaux, 2024
 # Wil Odoo, 2025
-# 
+# Deniz Guvener_Odoo <degu@odoo.com>, 2025
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 07:49+0000\n"
-"PO-Revision-Date: 2024-09-29 00:00+0000\n"
-"Last-Translator: Wil Odoo, 2025\n"
-"Language-Team: Turkish (https://app.transifex.com/odoo/teams/41243/tr/)\n"
+"POT-Creation-Date: 2025-12-29 18:38+0000\n"
+"PO-Revision-Date: 2025-11-28 16:27+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-18/"
+"stock_fleet/tr/>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_fleet
 #. odoo-python
@@ -39,28 +42,28 @@ msgstr "%(display_name)s (%(load_capacity)s)"
 #. odoo-python
 #: code:addons/stock_fleet/models/fleet_vehicle_model.py:0
 msgid "%(volume_capacity)s %(volume_uom)s"
-msgstr ""
+msgstr "%(volume_capacity)s %(volume_uom)s"
 
 #. module: stock_fleet
 #. odoo-python
 #: code:addons/stock_fleet/models/fleet_vehicle_model.py:0
 msgid "%(weight_capacity)s %(weight_uom)s"
-msgstr ""
+msgstr "%(weight_capacity)s %(weight_uom)s"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.report_picking_batch_inherit
 msgid "<strong>Dock:</strong>"
-msgstr ""
+msgstr "<strong>Rıhtım:</strong>"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.report_picking_batch_inherit
 msgid "<strong>Vehicle Category:</strong>"
-msgstr ""
+msgstr "<strong>Araç Kategorisi:</strong>"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.report_picking_batch_inherit
 msgid "<strong>Vehicle:</strong>"
-msgstr ""
+msgstr "<strong>Araç:</strong>"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_picking_batch
@@ -71,7 +74,7 @@ msgstr "Toplu Transfer"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
 msgid "Batches by Route"
-msgstr ""
+msgstr "Rotaya Göre Partiler"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
@@ -86,13 +89,13 @@ msgstr "Modelin kategorisi"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
 msgid "Dock Dispatching"
-msgstr ""
+msgstr "Rıhtım Sevkiyatı"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__dock_id
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
 msgid "Dock Location"
-msgstr ""
+msgstr "Rıhtım Konumu"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__driver_id
@@ -122,17 +125,17 @@ msgstr ""
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
 msgid "Manage Batches"
-msgstr ""
+msgstr "Toplu İşlemleri Yönetme"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__volume_capacity
 msgid "Max Volume"
-msgstr ""
+msgstr "Azami Hacim"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_volume_capacity
 msgid "Max Volume (m³)"
-msgstr ""
+msgstr "Maksimum Hacim (m³)"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__weight_capacity
@@ -142,7 +145,7 @@ msgstr "Maksimum Ağırlık"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
 msgid "Next 7 Days"
-msgstr ""
+msgstr "Önümüzdeki 7 Gün"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
@@ -152,7 +155,7 @@ msgstr "Operasyon Türü"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
 msgid "Own Fleet"
-msgstr ""
+msgstr "Kendi Filo Yönetimi"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
@@ -167,7 +170,7 @@ msgstr "Sıralama"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
 msgid "Shipping Volume"
-msgstr ""
+msgstr "Nakliye Hacmi"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
@@ -182,12 +185,12 @@ msgstr "İstatistikler"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
 msgid "Third Party Carrier"
-msgstr ""
+msgstr "Üçüncü Taraf Taşıyıcı"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
 msgid "Third Party Provider"
-msgstr ""
+msgstr "Üçüncü Taraf Sağlayıcı "
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
@@ -202,12 +205,12 @@ msgstr "Yarın"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
 msgid "Total Shipping Volume"
-msgstr ""
+msgstr "Toplam Nakliye Hacmi"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
 msgid "Total Shipping Weight"
-msgstr ""
+msgstr "Toplam Nakliye Ağırlığı"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_picking
@@ -222,12 +225,12 @@ msgstr "Ulaşım"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
 msgid "Transport Management"
-msgstr ""
+msgstr "Nakliye Yönetimi"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_weight_capacity
 msgid "Vehcilce Payload Capacity"
-msgstr ""
+msgstr "Araç Yük Kapasitesi"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_id
@@ -239,7 +242,7 @@ msgstr "Araç"
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_category_id
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
 msgid "Vehicle Category"
-msgstr ""
+msgstr "Araç Kategorisi"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
@@ -249,7 +252,7 @@ msgstr "Hacim"
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__used_volume_percentage
 msgid "Volume %"
-msgstr ""
+msgstr "Cilt %"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__volume_capacity_uom_name
@@ -265,7 +268,7 @@ msgstr "Ağırlık"
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__used_weight_percentage
 msgid "Weight %"
-msgstr ""
+msgstr "Ağırlık %"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__weight_capacity_uom_name
@@ -281,4 +284,4 @@ msgstr "PK"
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
 msgid "semi-truck"
-msgstr ""
+msgstr "yarı kamyon"

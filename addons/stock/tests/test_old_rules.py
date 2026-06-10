@@ -2,10 +2,12 @@
 
 from datetime import timedelta
 
+from odoo.fields import Command
 from odoo.tests import Form
 from odoo.addons.stock.tests.common import TestStockCommon
 
-class TestOldRules(TestStockCommon):
+
+class TestStockOldRulesCommon(TestStockCommon):
 
     @classmethod
     def setUpClass(cls):
@@ -26,13 +28,17 @@ class TestOldRules(TestStockCommon):
         })
         delivery_route_3.rule_ids[1].write({'action': 'pull'})
         delivery_route_3.rule_ids[2].write({'action': 'pull'})
-        reception_route_3 = cls.warehouse_3_steps.reception_route_id
-        reception_route_3.rule_ids[0].write({
-            'location_src_id': reception_route_3.rule_ids[1].location_dest_id.id,
+        reception_rules_3 = cls.warehouse_3_steps.reception_route_id.rule_ids
+        reception_rules_3[-2:].write({'action': 'pull_push'})
+        if len(reception_rules_3) == 3:
+            reception_rules_3[0].write({
+                'location_dest_id': reception_rules_3[1].location_src_id.id,
+            })
+        cls.mto_route = cls.warehouse_3_steps.mto_pull_id.route_id
+        cls.mto_route.active = True
+        cls.mto_route.rule_ids.filtered(lambda r: r.picking_type_id == cls.warehouse_3_steps.pick_type_id).write({
+            'location_dest_id': delivery_route_3.rule_ids[-2].location_src_id.id,
         })
-        reception_route_3.rule_ids[1].write({'action': 'pull_push'})
-        reception_route_3.rule_ids[2].write({'action': 'pull_push'})
-
 
         # Create a warehouse with 2 steps using old rules setup.
         cls.warehouse_2_steps = cls.env['stock.warehouse'].create({
@@ -47,6 +53,12 @@ class TestOldRules(TestStockCommon):
             'name': '2S: Stock → Output',
         })
         delivery_route_2.rule_ids[1].write({'action': 'pull'})
+        cls.mto_route.rule_ids.filtered(lambda r: r.picking_type_id == cls.warehouse_2_steps.pick_type_id).write({
+            'location_dest_id': delivery_route_2.rule_ids[1].location_src_id.id,
+        })
+
+
+class TestOldRules(TestStockOldRulesCommon):
 
     def test_delay_alert_3_old(self):
         partner_demo_customer = self.partner
@@ -123,6 +135,41 @@ class TestOldRules(TestStockCommon):
         self.assertFalse(pick.delay_alert_date)
         self.assertFalse(pack.delay_alert_date)
         self.assertFalse(ship.delay_alert_date)
+
+    def test_3_steps_in_out_mto(self):
+        """
+        Check the whole chain supplier -> customer with 3 steps in/out
+        """
+        final_location = self.partner.property_stock_customer
+
+        self.productA.route_ids = [Command.link(self.mto_route.id)]
+
+        pg = self.env['procurement.group'].create({'name': 'test_3_steps_in_out_mto'})
+        self.env['procurement.group'].run([
+            pg.Procurement(
+                self.productA,
+                5.0,
+                self.productA.uom_id,
+                final_location,
+                'test_mtso_mto',
+                'test_mtso_mto',
+                self.warehouse_3_steps.company_id,
+                {
+                    'warehouse_id': self.warehouse_3_steps,
+                    'group_id': pg
+                }
+            )
+        ])
+
+        moves = self.env['stock.move'].search([('product_id', '=', self.productA.id)], order="id desc")
+        self.assertRecordValues(moves, [
+            {'location_id': self.partner.property_stock_supplier.id, 'location_dest_id': self.warehouse_3_steps.wh_input_stock_loc_id.id},
+            {'location_id': self.warehouse_3_steps.wh_input_stock_loc_id.id, 'location_dest_id': self.warehouse_3_steps.wh_qc_stock_loc_id.id},
+            {'location_id': self.warehouse_3_steps.wh_qc_stock_loc_id.id, 'location_dest_id': self.warehouse_3_steps.lot_stock_id.id},
+            {'location_id': self.warehouse_3_steps.lot_stock_id.id, 'location_dest_id': self.warehouse_3_steps.wh_pack_stock_loc_id.id},
+            {'location_id': self.warehouse_3_steps.wh_pack_stock_loc_id.id, 'location_dest_id': self.warehouse_3_steps.wh_output_stock_loc_id.id},
+            {'location_id': self.warehouse_3_steps.wh_output_stock_loc_id.id, 'location_dest_id': final_location.id},
+        ])
 
     def test_mtso(self):
         """ Run a procurement for 5 products when there are only 4 in stock then
@@ -414,10 +461,10 @@ class TestOldRules(TestStockCommon):
         self.assertEqual(picking_pick.partner_id.id, procurement_group1.partner_id.id)
         self.assertEqual(picking_pick.origin, move1.group_id.name)
 
-        # second out move, the "pick" picking should have lost its partner and origin
+        # second out move, the "pick" picking should have lost its partner and have its origin updated
         move2._action_confirm()
         self.assertEqual(picking_pick.partner_id.id, False)
-        self.assertEqual(picking_pick.origin, False)
+        self.assertEqual(picking_pick.origin, f'{move1.group_id.name},{move2.group_id.name}')
 
     def test_fixed_procurement_01(self):
         """ Run a procurement for 5 products when there are only 4 in stock then
@@ -548,8 +595,8 @@ class TestOldRules(TestStockCommon):
 
     def test_pick_ship_1(self):
         """ Enable the pick ship route, force a procurement group on the
-        pick. When a second move is added, make sure the `partner_id` and
-        `origin` fields are erased.
+        pick. When a second move is added, make sure the `partner_id` field is erased and
+        `origin` field is updated.
         """
         pick_ship_route = self.warehouse_2_steps.delivery_route_id
         # create a procurement group and set in on the pick stock rule
@@ -582,7 +629,7 @@ class TestOldRules(TestStockCommon):
             'origin': 'origin1',
         })
 
-        move2 = self.env['stock.move'].create({
+        move2, move3, move4 = self.env['stock.move'].create([{
             'name': 'second out move',
             'procure_method': 'make_to_order',
             'location_id': ship_location.id,
@@ -593,7 +640,31 @@ class TestOldRules(TestStockCommon):
             'warehouse_id': self.warehouse_2_steps.id,
             'group_id': procurement_group2.id,
             'origin': 'origin2',
-        })
+        },
+        {
+            'name': 'third out move',
+            'procure_method': 'make_to_order',
+            'location_id': ship_location.id,
+            'location_dest_id': customer_location.id,
+            'product_id': self.productB.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 1.0,
+            'warehouse_id': self.warehouse_2_steps.id,
+            'group_id': procurement_group2.id,
+            'origin': 'origin2',
+        },
+        {
+            'name': 'fourth out move',
+            'procure_method': 'make_to_order',
+            'location_id': ship_location.id,
+            'location_dest_id': customer_location.id,
+            'product_id': self.productB.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 1.0,
+            'warehouse_id': self.warehouse_2_steps.id,
+            'group_id': procurement_group1.id,
+            'origin': 'origin1',
+        }])
 
         # first out move, the "pick" picking should have a partner and an origin
         move1._action_confirm()
@@ -601,10 +672,10 @@ class TestOldRules(TestStockCommon):
         self.assertEqual(picking_pick.partner_id.id, procurement_group1.partner_id.id)
         self.assertEqual(picking_pick.origin, move1.group_id.name)
 
-        # second out move, the "pick" picking should have lost its partner and origin
-        move2._action_confirm()
+        # second out move, the "pick" picking should have lost its partner and have its origin updated
+        (move2 | move3 | move4)._action_confirm()
         self.assertEqual(picking_pick.partner_id.id, False)
-        self.assertEqual(picking_pick.origin, False)
+        self.assertEqual(picking_pick.origin, f'{move1.group_id.name},{move2.group_id.name}')
 
     def test_propagate_cancel_in_pull_setup(self):
         """
@@ -641,3 +712,37 @@ class TestOldRules(TestStockCommon):
         pick_move = move_chain.filtered(lambda m: m.picking_type_id == self.warehouse_3_steps.pick_type_id)
         pick_move.picking_id.action_cancel()
         self.assertEqual(move_chain.mapped('state'), ['cancel', 'cancel', 'cancel'])
+
+    def test_negative_move_with_take_loc_from_rule(self):
+        """
+        This test checks if t a negative move will be merged correctly when the loc_dest_id
+        is taken from the rule instead of the picking type.
+        """
+        rule = self.warehouse_1.reception_route_id.rule_ids.filtered(lambda r: r.action == 'pull')
+        new_loc = self.env['stock.location'].create({
+            'name': 'Shelf',
+            'usage': 'transit',
+            'location_id': rule.location_dest_id.id,
+        })
+        rule.write({
+            'location_dest_id': new_loc.id,
+        })
+        rule.location_dest_from_rule = True
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': rule.picking_type_id.id,
+            'location_dest_id': rule.location_dest_id.id,
+        })
+        pos_move = self.env['stock.move'].create({
+            'name': 'Positive move',
+            'product_id': self.product_1.id,
+            'product_uom_qty': 5.0,
+            'picking_id': picking.id,
+            'rule_id': rule.id,
+        })
+        pos_move._action_confirm()
+        neg_move = pos_move.copy({
+            'name': 'Negative move',
+            'product_uom_qty': -2.0,
+        })
+        neg_move._action_confirm()
+        self.assertEqual(picking.move_ids.product_uom_qty, 3.0)

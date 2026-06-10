@@ -21,6 +21,8 @@ import {
 
 import { getOrigin } from "@web/core/utils/urls";
 
+const { DateTime } = luxon;
+
 const MY_IMAGE =
     "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
 const PRODUCT_IMAGE =
@@ -31,10 +33,10 @@ function getUnique(target) {
     return new URL(src).searchParams.get("unique");
 }
 
-async function setFiles(files) {
+async function setFiles(files, name = "document") {
     await click("input[type=file]", { visible: false });
     await setInputFiles(files);
-    await waitFor(`div[name=document] img[data-src^="data:image/"]`, { timeout: 1000 });
+    await waitFor(`div[name=${name}] img[data-src^="data:image/"]`, { timeout: 1000 });
 }
 
 class Partner extends models.Model {
@@ -127,7 +129,7 @@ test("ImageField is correctly rendered", async () => {
     expect(".o_field_image .o_clear_file_button").toHaveCount(1, {
         message: "the image can be deleted",
     });
-    expect("input.o_input_file").toHaveAttribute("accept", "image/*", {
+    expect("input.o_input_file").toHaveAttribute("accept", "image/*,dummy/allowAndroidCamera", {
         message:
             'the default value for the attribute "accept" on the "image" widget must be "image/*"',
     });
@@ -158,7 +160,7 @@ test("ImageField with alt attribute", async () => {
             </form>`,
     });
 
-    expect(".o_field_widget[name='document'] img").toHaveAttribute("data-alt", "something", {
+    expect(".o_field_widget[name='document'] img").toHaveAttribute("alt", "something", {
         message: "the image should correctly set its alt attribute",
     });
 });
@@ -184,17 +186,17 @@ test("ImageField on a many2one", async () => {
         "data-src",
         `${getOrigin()}/web/image/partner/1/document?unique=1486375200000`
     );
-    expect(".o_field_widget[name='parent_id'] img").toHaveAttribute("data-alt", "first record");
+    expect(".o_field_widget[name='parent_id'] img").toHaveAttribute("alt", "first record");
 });
 
 test("url should not use the record last updated date when the field is related", async () => {
     Partner._fields.related = fields.Binary({ related: "parent_id.document" });
     Partner._fields.parent_id = fields.Many2one({ relation: "partner" });
     Partner._records[1].parent_id = 1;
-    Partner._records[0].write_date = "2017-02-04 10:00:00"; // 1486202400000
+    Partner._records[0].write_date = "2017-02-04 10:00:00";
     Partner._records[0].document = "3 kb";
 
-    mockDate("2017-02-06 10:00:00"); // 1486375200000
+    mockDate("2017-02-06 10:00:00");
 
     await mountView({
         type: "form",
@@ -202,13 +204,43 @@ test("url should not use the record last updated date when the field is related"
         resId: 2,
         arch: `
             <form>
-                <field name="related" widget="image"/>
+                <field name="foo"/>
+                <field name="related" widget="image" readonly="0"/>
             </form>`,
     });
 
-    expect(Number(getUnique(queryFirst('div[name="related"] img')))).toBeCloseTo(1486375200000, {
-        margin: 100,
-    });
+    const initialUnique = Number(getUnique(queryFirst('div[name="related"] img')));
+    expect(DateTime.fromMillis(initialUnique).hasSame(DateTime.fromISO("2017-02-06"), "days")).toBe(
+        true
+    );
+
+    await click(".o_field_widget[name='foo'] input");
+    await edit("grrr");
+    await animationFrame();
+
+    expect(Number(getUnique(queryFirst('div[name="related"] img')))).toBe(initialUnique);
+
+    mockDate("2017-02-09 10:00:00");
+
+    await click("input[type=file]", { visible: false });
+    await setFiles(
+        new File(
+            [Uint8Array.from([...atob(MY_IMAGE)].map((c) => c.charCodeAt(0)))],
+            "fake_file.png",
+            { type: "image/png" }
+        ),
+        "related"
+    );
+
+    expect("div[name=related] img").toHaveAttribute(
+        "data-src",
+        `data:image/png;base64,${MY_IMAGE}`
+    );
+
+    await clickSave();
+
+    const unique = Number(getUnique(queryFirst('div[name="related"] img')));
+    expect(DateTime.fromMillis(unique).hasSame(DateTime.fromISO("2017-02-09"), "days")).toBe(true);
 });
 
 test("url should use the record last updated date when the field is related on the same model", async () => {
@@ -292,7 +324,7 @@ test("ImageField preview is updated when an image is uploaded", async () => {
     const imageFile = new File(
         [Uint8Array.from([...atob(MY_IMAGE)].map((c) => c.charCodeAt(0)))],
         "fake_file.png",
-        { type: "png" }
+        { type: "image/png" }
     );
     await mountView({
         type: "form",
@@ -316,14 +348,7 @@ test("ImageField preview is updated when an image is uploaded", async () => {
     await click(".o_select_file_button");
     await setInputFiles(imageFile);
     // It can take some time to encode the data as a base64 url
-    await runAllTimers();
-    // Wait for a render
-    await animationFrame();
-    expect("div[name=document] img").toHaveAttribute(
-        "data-src",
-        `data:image/png;base64,${MY_IMAGE}`,
-        { message: "the image should have the new src" }
-    );
+    await waitFor(`div[name=document] img[data-src="data:image/png;base64,${MY_IMAGE}"]`);
 });
 
 test("clicking save manually after uploading new image should change the unique of the image src", async () => {
@@ -360,7 +385,7 @@ test("clicking save manually after uploading new image should change the unique 
         new File(
             [Uint8Array.from([...atob(MY_IMAGE)].map((c) => c.charCodeAt(0)))],
             "fake_file.png",
-            { type: "png" }
+            { type: "image/png" }
         )
     );
     expect("div[name=document] img").toHaveAttribute(
@@ -385,7 +410,7 @@ test("clicking save manually after uploading new image should change the unique 
         new File(
             [Uint8Array.from([...atob(PRODUCT_IMAGE)].map((c) => c.charCodeAt(0)))],
             "fake_file2.gif",
-            { type: "gif" }
+            { type: "image/gif" }
         )
     );
     expect("div[name=document] img").toHaveAttribute(
@@ -450,7 +475,7 @@ test("ImageField: option accepted_file_extensions", async () => {
         `,
     });
     // The view must be in edit mode
-    expect("input.o_input_file").toHaveAttribute("accept", ".png,.jpeg", {
+    expect("input.o_input_file").toHaveAttribute("accept", ".png,.jpeg,dummy/allowAndroidCamera", {
         message: "the input should have the correct ``accept`` attribute",
     });
 });
@@ -678,15 +703,15 @@ test("ImageField is reset when changing record", async () => {
         `,
     });
 
-    const imageFile = new File([imageData], "fake_file.png", { type: "png" });
-    expect("img[data-alt='Binary file']").toHaveAttribute(
+    const imageFile = new File([imageData], "fake_file.png", { type: "image/png" });
+    expect("img[alt='Binary file']").toHaveAttribute(
         "data-src",
         "/web/static/img/placeholder.png",
         { message: "image field should not be set" }
     );
 
     await setFiles(imageFile);
-    expect("img[data-alt='Binary file']").toHaveAttribute(
+    expect("img[alt='Binary file']").toHaveAttribute(
         "data-src",
         `data:image/png;base64,${MY_IMAGE}`,
         {
@@ -698,14 +723,14 @@ test("ImageField is reset when changing record", async () => {
     await click(".o_control_panel_main_buttons .o_form_button_create");
     await runAllTimers();
     await animationFrame();
-    expect("img[data-alt='Binary file']").toHaveAttribute(
+    expect("img[alt='Binary file']").toHaveAttribute(
         "data-src",
         "/web/static/img/placeholder.png",
         { message: "image field should be reset" }
     );
 
     await setFiles(imageFile);
-    expect("img[data-alt='Binary file']").toHaveAttribute(
+    expect("img[alt='Binary file']").toHaveAttribute(
         "data-src",
         `data:image/png;base64,${MY_IMAGE}`,
         {
@@ -837,8 +862,8 @@ test("convert image to webp", async () => {
         `,
     });
 
-    const imageFile = new File([imageData], "fake_file.jpeg", { type: "jpeg" });
-    expect("img[data-alt='Binary file']").toHaveAttribute(
+    const imageFile = new File([imageData], "fake_file.jpeg", { type: "image/jpeg" });
+    expect("img[alt='Binary file']").toHaveAttribute(
         "data-src",
         "/web/static/img/placeholder.png",
         { message: "image field should not be set" }

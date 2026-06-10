@@ -46,7 +46,7 @@ test("BinaryField is correctly rendered (readonly)", async () => {
     onRpc("/web/content", async (request) => {
         expect.step("/web/content");
 
-        const body = await request.text();
+        const body = await request.formData();
         expect(body).toBeInstanceOf(FormData);
         expect(body.get("field")).toBe("document", {
             message: "we should download the field document",
@@ -103,7 +103,7 @@ test("BinaryField is correctly rendered", async () => {
     onRpc("/web/content", async (request) => {
         expect.step("/web/content");
 
-        const body = await request.text();
+        const body = await request.formData();
         expect(body).toBeInstanceOf(FormData);
         expect(body.get("field")).toBe("document", {
             message: "we should download the field document",
@@ -428,4 +428,23 @@ test("isUploading state should be set to false after upload", async () => {
     await animationFrame();
     expect.verifyErrors([/RPC_ERROR/]);
     expect(`.o_select_file_button`).toHaveText("Upload your file");
+});
+
+test("doesn't crash if value is not a string", async () => {
+    class Dummy extends models.Model {
+        document = fields.Binary();
+        _applyComputesAndValidate() {}
+    }
+    defineModels([Dummy]);
+    Dummy._records.push({ id: 1, document: {} });
+    await mountView({
+        type: "form",
+        resModel: "dummy",
+        resId: 1,
+        arch: `
+            <form>
+                <field name="document"/>
+            </form>`,
+    });
+    expect(".o_field_binary input").toHaveValue("");
 });

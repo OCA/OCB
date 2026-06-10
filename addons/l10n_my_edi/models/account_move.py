@@ -61,7 +61,9 @@ class AccountMove(models.Model):
     )
     l10n_my_edi_custom_form_reference = fields.Char(
         string="Customs Form Reference Number",
-        help="Reference Number of Customs Form No.1, 9, etc.",
+        help="""Reference Number of Customs Forms
+Customs form No. 2 for Customer Invoices
+Customs form No. 1, 9, etc for Vendor Bills""",
     )
     # False => Not sent yet.
     l10n_my_edi_state = fields.Selection(
@@ -255,7 +257,7 @@ class AccountMove(models.Model):
 
     # API methods
 
-    def _l10n_my_edi_submit_documents(self, xml_contents):
+    def _l10n_my_edi_submit_documents(self, xml_contents, commit=True):
         """ Contact our IAP service in order to send the invoice xml to the MyInvois API. """
         proxy_user = self._l10n_my_edi_ensure_proxy_user()
 
@@ -319,7 +321,7 @@ class AccountMove(models.Model):
 
                     move.write(updated_values)
 
-            if self._can_commit():
+            if commit and self._can_commit():
                 self._cr.commit()
 
         # For successful moves, we log the sending here. Any errors will be handled by the send & print wizard.
@@ -334,7 +336,7 @@ class AccountMove(models.Model):
 
         return errors
 
-    def _l10n_my_edi_fetch_updated_statuses(self):
+    def _l10n_my_edi_fetch_updated_statuses(self, commit=True):
         """
         Contact our IAP service in order to get the status of the invoices in self.
         Statuses are fetched in batches using the l10n_my_edi_submission_uid field.
@@ -361,6 +363,11 @@ class AccountMove(models.Model):
 
             for move in move_batch:
                 status_info = statuses.get(move.l10n_my_edi_external_uuid)
+                # l10n_my_edi_state would already be in progress as its set during submission
+                if ((status_info and status_info["status"] == "in_progress") or
+                        (not status_info and move.l10n_my_edi_state == "in_progress")):
+                    any_in_progress = True
+
                 # If the status did not change, we do not need to do anything.
                 if not status_info or move.l10n_my_edi_state == status_info['status']:
                     continue
@@ -385,7 +392,7 @@ class AccountMove(models.Model):
                 elif move.l10n_my_edi_state == 'valid':
                     move._update_validation_fields(status_info)
 
-            if self._can_commit():
+            if commit and self._can_commit():
                 self._cr.commit()
 
         # We don't consider these errors per-say. From my understanding an invalid invoice is considered as cancelled,
@@ -665,7 +672,10 @@ class AccountMove(models.Model):
             'update_active_documents': _('You cannot update this invoice, has it has been referenced by a debit or credit note.\n'
                                          'If you still want to update it, you must first update the debit/credit note.'),
             'update_forbidden': _('You do not have the permission to update this invoice.'),
-            'search_date_invalid': _('The search params are invalid.'),  # Should never happen
+            'document_not_found': _('The document provided in the request does not exist.'),  # Should never happen
+            'search_date_invalid': _('The search params are invalid.'),  # Should also never happen
+            'submission_too_large': _('The submission is too large, try to send fewer invoices at once.'),
+            'action_forbidden': _('Permission to do this action has not been granted. Please ensure that Odoo has sufficient permissions on the MyInvois platform.'),
         }
 
         if error.get('target'):

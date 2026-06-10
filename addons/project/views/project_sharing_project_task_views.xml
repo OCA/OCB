@@ -29,12 +29,13 @@
                 archivable="0"
                 import="0"
                 groups_draggable="0"
+                group_edit="0"
                 default_order="priority desc, sequence, state, date_deadline asc, id desc"
             >
                 <field name="state"/>
                 <field name="allow_milestones" />
                 <field name="has_late_and_unreached_milestone"/>
-                <progressbar field="state" colors='{"1_done": "success", "03_approved": "success", "02_changes_requested": "warning", "1_canceled": "danger", "04_waiting_normal": "200", "01_in_progress": "200"}'/>
+                <progressbar field="state" colors='{"1_done": "success-done", "1_canceled": "danger", "03_approved": "success", "02_changes_requested": "warning", "04_waiting_normal": "info", "01_in_progress": "200"}'/>
                 <templates>
                 <t t-name="menu" t-if="!selection_mode">
                     <div invisible="1" role="separator" class="dropdown-divider"></div>
@@ -192,6 +193,8 @@
                                 <field name="repeat_until" invisible="not repeat_type == 'until'" required="repeat_type == 'until'"
                                        class="me-2" />
                             </div>
+                            <field name="partner_id" readonly="1" options="{'no_open': True, 'no_create': True, 'no_edit': True}" invisible="not project_id"/>
+                            <field name="date_deadline" invisible="state in ['1_done', '1_canceled']" decoration-danger="date_deadline &lt; current_date"/>
                         </group>
                     </group>
                     <notebook>

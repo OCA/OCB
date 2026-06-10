@@ -118,21 +118,7 @@ class TestMailComposer(MailCommon, TestRecipients):
         :param add_web: add web context, generally making noise especially in
           mass mail mode (active_id/ids both present in context)
         """
-        base_context = {
-            'default_model': records._name,
-            'default_res_ids': records.ids,
-        }
-        if len(records) == 1:
-            base_context['default_composition_mode'] = 'comment'
-        else:
-            base_context['default_composition_mode'] = 'mass_mail'
-        if add_web:
-            base_context['active_model'] = records._name
-            base_context['active_id'] = records[0].id
-            base_context['active_ids'] = records.ids
-        if values:
-            base_context.update(**values)
-        return base_context
+        return self._get_mail_composer_web_context(records, add_web=add_web, **values)
 
 
 @tagged('mail_composer')
@@ -288,6 +274,33 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.subject, f'TemplateSubject {self.test_record.name}')
         self.assertEqual(composer_form.subtype_id, self.env.ref('mail.mt_comment'))
         self.assertFalse(composer_form.subtype_is_log)
+
+    @users('employee')
+    def test_mail_composer_comment_wtpl_signature_only(self):
+        """Signature-only body loads user default template; otherwise keeps signature."""
+        composer_form = Form(self.env['mail.compose.message'].with_context(
+            self._get_web_context(
+                self.test_record,
+                add_web=True,
+                default_body='<p data-o-mail-quote="1">--<br data-o-mail-quote="1"/>Signature</p>',
+                body_contains_signature_only=True,
+            )
+        ))
+        self.assertEqual(composer_form.body, '<p data-o-mail-quote="1">--<br data-o-mail-quote="1"/>Signature</p>')
+
+        # Now with user default template
+        self.env['ir.default'].sudo().set(
+            'mail.compose.message', 'template_id', self.template.id
+        )
+        composer_form = Form(self.env['mail.compose.message'].with_context(
+            self._get_web_context(
+                self.test_record,
+                add_web=True,
+                default_body='<p data-o-mail-quote="1">--<br data-o-mail-quote="1"/>Signature</p>',
+                body_contains_signature_only=True,
+            )
+        ))
+        self.assertEqual(composer_form.body, f'<p>TemplateBody {self.test_record.name}</p>')
 
     @users('employee')
     def test_mail_composer_comment_wtpl_batch(self):
@@ -2698,6 +2711,9 @@ class TestComposerResultsMass(TestMailComposer):
                                   default_template_id=self.template.id)
         ))
         composer = composer_form.save()
+        composer.attachment_ids = self.env['ir.attachment'].sudo().create(
+            self._generate_attachments_data(1, res_model=composer._name, res_id=composer.id)
+        )
         self.assertFalse(composer.reply_to_force_new, 'Mail: thread-enabled models should use auto thread by default')
         with self.mock_mail_gateway(mail_unlink_sent=True):
             composer._action_send_mail()
@@ -2722,6 +2738,11 @@ class TestComposerResultsMass(TestMailComposer):
             self.assertEqual(message.subject, 'TemplateSubject %s' % record.name)
             self.assertEqual(message.body, '<p>TemplateBody %s</p>' % record.name)
             self.assertEqual(message.author_id, self.user_employee.partner_id)
+            self.assertEqual(len(message.attachment_ids), 1)
+            self.assertEqual(message.attachment_ids.res_model, record._name)
+            self.assertEqual(message.attachment_ids.res_id, record.id)
+            self.assertEqual(composer.attachment_ids.name, message.attachment_ids.name)
+            self.assertEqual(composer.attachment_ids.datas, message.attachment_ids.datas)
             # post-related fields are void
             self.assertFalse(message.subtype_id)
             self.assertFalse(message.partner_ids)

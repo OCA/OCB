@@ -90,10 +90,11 @@ class AccountMoveReversal(models.TransientModel):
     def _prepare_default_reversal(self, move):
         reverse_date = self.date
         mixed_payment_term = move.invoice_payment_term_id.id if move.invoice_payment_term_id.early_pay_discount_computation == 'mixed' else None
+        lang = move.partner_id.lang or self.env.lang
         return {
-            'ref': _('Reversal of: %(move_name)s, %(reason)s', move_name=move.name, reason=self.reason)
+            'ref': self.with_context(lang=lang).env._('Reversal of: %(move_name)s, %(reason)s', move_name=move.name, reason=self.reason)
                    if self.reason
-                   else _('Reversal of: %s', move.name),
+                   else self.with_context(lang=lang).env._('Reversal of: %s', move.name),
             'date': reverse_date,
             'invoice_date_due': reverse_date,
             'invoice_date': move.is_invoice(include_receipts=True) and (self.date or move.date) or False,
@@ -101,6 +102,7 @@ class AccountMoveReversal(models.TransientModel):
             'invoice_payment_term_id': mixed_payment_term,
             'invoice_user_id': move.invoice_user_id.id,
             'auto_post': 'at_date' if reverse_date > fields.Date.context_today(self) else 'no',
+            'invoice_origin': move.invoice_origin,
         }
 
     def reverse_moves(self, is_modify=False):
@@ -108,21 +110,10 @@ class AccountMoveReversal(models.TransientModel):
         moves = self.move_ids
 
         # Create default values.
-        partners = moves.company_id.partner_id + moves.commercial_partner_id
-
-        bank_ids = self.env['res.partner.bank'].search([
-            ('partner_id', 'in', partners.ids),
-            ('company_id', 'in', moves.company_id.ids + [False]),
-        ], order='sequence DESC')
-        partner_to_bank = {bank.partner_id: bank for bank in bank_ids}
         default_values_list = []
         for move in moves:
-            if move.is_outbound():
-                partner = move.company_id.partner_id
-            else:
-                partner = move.commercial_partner_id
             default_values_list.append({
-                'partner_bank_id': partner_to_bank.get(partner, self.env['res.partner.bank']).id,
+                'partner_bank_id': False,  # Resets the partner_bank_id as we'll force its recomputation
                 **self._prepare_default_reversal(move),
             })
 
@@ -141,6 +132,7 @@ class AccountMoveReversal(models.TransientModel):
         moves_to_redirect = self.env['account.move']
         for moves, default_values_list, is_cancel_needed in batches:
             new_moves = moves._reverse_moves(default_values_list, cancel=is_cancel_needed)
+            new_moves._compute_partner_bank_id()
             moves._message_log_batch(
                 bodies={move.id: move.env._('This entry has been %s', reverse._get_html_link(title=move.env._("reversed"))) for move, reverse in zip(moves, new_moves)}
             )
@@ -152,6 +144,7 @@ class AccountMoveReversal(models.TransientModel):
                     data['line_ids'] = [line for line in data['line_ids'] if line[2]['display_type'] in ('product', 'line_section', 'line_note')]
                     moves_vals_list.append(data)
                 new_moves = self.env['account.move'].create(moves_vals_list)
+                new_moves._compute_partner_bank_id()
 
             moves_to_redirect |= new_moves
 
@@ -186,5 +179,6 @@ class AccountMoveReversal(models.TransientModel):
 
     def _modify_default_reverse_values(self, origin_move):
         return {
-            'date': self.date
+            'date': self.date,
+            'invoice_origin': origin_move.invoice_origin,
         }

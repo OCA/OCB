@@ -12,6 +12,7 @@ registerBackendAndFrontendTour("question", {
     tooltipPosition: "left",
     content: _t("Create a new post in this forum by clicking on the button."),
     run: "click",
+    expectUnloadPage: true,
 }, {
     trigger: "input[name=post_name]",
     tooltipPosition: "top",
@@ -28,14 +29,14 @@ registerBackendAndFrontendTour("question", {
     run: "editor Test",
 },
 {
-    trigger: `.note-editable p:not(:contains(/^<br>$/))`,
+    trigger: `.note-editable p:not(:text(<br>))`,
 },
 {
     trigger: ".o_select_menu_toggler",
     content: _t("Insert tags related to your question."),
     tooltipPosition: "top",
     run: "click",
-}, 
+},
 {
     trigger: ".o_select_menu_sticky",
     run: "edit Test",
@@ -58,6 +59,7 @@ registerBackendAndFrontendTour("question", {
     content: _t("Click to post your question."),
     tooltipPosition: "bottom",
     run: "click",
+    expectUnloadPage: true,
 },
 {
     trigger: ".o_wforum_content_wrapper h3:contains(test)",
@@ -80,14 +82,15 @@ registerBackendAndFrontendTour("question", {
     run: "editor Test",
 },
 {
-    trigger: `.note-editable p:not(:contains(/^<br>$/))`,
+    trigger: `.note-editable p:not(:text(<br>))`,
 },
 {
     trigger: "button:contains(\"Post Answer\")",
     content: _t("Click to post your answer."),
     tooltipPosition: "bottom",
     run: "click",
-}, 
+    expectUnloadPage: true,
+},
 {
     trigger: ".o_wforum_content_wrapper h3:contains(test)",
 },

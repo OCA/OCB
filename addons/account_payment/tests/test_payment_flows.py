@@ -9,6 +9,7 @@ from odoo.tests import tagged, JsonRpcException
 from odoo.tools import mute_logger
 
 from odoo.addons.account_payment.controllers.payment import PaymentPortal
+from odoo.addons.account_payment.controllers.portal import PortalAccount
 from odoo.addons.account_payment.tests.common import AccountPaymentCommon
 from odoo.addons.payment.tests.http_common import PaymentHttpCommon
 from odoo.addons.portal.controllers.portal import CustomerPortal
@@ -197,6 +198,107 @@ class TestFlows(AccountPaymentCommon, PaymentHttpCommon):
 
         # Validate the transaction amount is equal to the invoice amount
         self.assertEqual(tx_sudo.amount, invoice.amount_total)
+
+        url = self._build_url('/payment/status/poll')
+        resp = self.make_jsonrpc_request(url, {})
+        self.assertTrue(tx_sudo.is_post_processed)
+
+        self.assertEqual(resp['state'], 'done')
+        self.assertTrue(invoice.payment_state == invoice._get_invoice_in_payment_state())
+
+    def test_out_invoice_get_page_view_values(self):
+        """Test the invoice-specific portal page view values of an out invoice"""
+        invoice = self.init_invoice(
+            'out_invoice', partner=self.partner, amounts=[50.0], currency=self.currency,
+        )
+
+        def mock_get_page_view_values(self, document, access_token, values, *args, **kwargs):
+            return values
+
+        with patch.object(PortalAccount, '_get_page_view_values', mock_get_page_view_values):
+            values = PortalAccount()._invoice_get_page_view_values(
+                invoice, invoice.access_token, amount=26.0, payment=True,
+            )
+
+        self.assertEqual(values['page_name'], 'invoice')
+        self.assertEqual(values['invoice'], invoice)
+        self.assertEqual(values['amount_paid'], 0.0)
+        self.assertEqual(values['amount_due'], 50.0)
+        self.assertEqual(values['next_amount_to_pay'], 26.0)
+        self.assertEqual(values['payment_state'], 'not_paid')
+        self.assertTrue(values['payment'])
+
+    def test_partially_paid_invoice_overdue_payment_flow(self):
+        """
+        Test partially paid overdue payment of an invoice is correctly processed
+        with invoice residual amount.
+        """
+        partner = self.env['res.partner'].create({'name': 'Qung'})
+        self.env['res.users'].create({
+            'login': 'TestUser',
+            'password': 'Odoo@123',
+            'groups_id': [Command.set(self.env.ref('account.group_account_manager').ids)],
+            'partner_id': partner.id
+        })
+        # Create an invoice with invoice due date must be in past with payment status to be not paid
+        invoice = self.init_invoice(
+            "out_invoice", partner, amounts=[1000.0], currency=self.currency,
+        )
+        invoice.invoice_date_due = invoice.invoice_date - timedelta(days=10)
+
+        invoice.action_post()
+        self.assertEqual(invoice.payment_state, 'not_paid')
+
+        # Create a payment to partially pay the overdue invoice
+        payment = self.env['account.payment'].create({
+            'amount': invoice.amount_residual / 2,
+            'payment_type': 'inbound',
+            'partner_id': partner.id,
+            'partner_type': 'customer',
+            'invoice_ids': [invoice.id],
+        })
+        payment.action_post()
+        (payment.move_id.line_ids + invoice.line_ids).filtered(
+                lambda line: line.account_id == payment.destination_account_id
+                and not line.reconciled
+            ).reconcile()
+
+        self.assertEqual(invoice.payment_state, 'partial')
+
+        # Must be authenticated before making an http resqest
+        self.authenticate('TestUser', 'Odoo@123')
+        overdue_url = self._build_url('/my/invoices/overdue')
+        resp = self._make_http_get_request(overdue_url, {})
+
+        # Validate the response status code
+        self.assertEqual(resp.status_code, 200)
+
+        tx_context = self._get_payment_context(resp)
+
+        # Validate the transaction context amount and payment_reference
+        self.assertEqual(tx_context.get('amount'), invoice.amount_residual)
+        self.assertEqual(tx_context['payment_reference'], invoice.payment_reference)
+
+        # Prepare the transaction route values
+        tx_route_values = {
+            'provider_id': self.provider.id,
+            'payment_method_id': self.payment_method_id,
+            'token_id': None,
+            'amount': tx_context.get('amount'),
+            'flow': 'direct',
+            'tokenization_requested': False,
+            'landing_route': tx_context['landing_route'],
+            'payment_reference': tx_context['payment_reference'],
+        }
+        with mute_logger('odoo.addons.payment.models.payment_transaction'):
+            processing_values = self._get_processing_values(
+                tx_route=tx_context['transaction_route'], **tx_route_values
+            )
+        tx_sudo = self._get_tx(processing_values['reference'])
+        tx_sudo._set_done()
+
+        # Validate the transaction amount is equal to the invoice amount
+        self.assertEqual(tx_sudo.amount, invoice.amount_residual)
 
         url = self._build_url('/payment/status/poll')
         resp = self.make_jsonrpc_request(url, {})

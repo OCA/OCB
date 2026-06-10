@@ -42,58 +42,73 @@ class PortalChatter(http.Controller):
     @http.route("/portal/chatter_init", type="json", auth="public", website=True)
     def portal_chatter_init(self, thread_model, thread_id, **kwargs):
         store = Store()
+        request.env["res.users"]._init_store_data(store)
+        if request.env.user.has_group("website.group_website_restricted_editor"):
+            store.add(request.env.user.partner_id, {"is_user_publisher": True})
         thread = request.env[thread_model]._get_thread_with_access(thread_id, **kwargs)
-        partner = request.env.user.partner_id
         if thread:
             mode = request.env[thread_model]._get_mail_message_access([thread_id], "create")
             has_react_access = request.env[thread_model]._get_thread_with_access(thread_id, mode, **kwargs)
             can_react = has_react_access
             if request.env.user._is_public():
-                portal_partner = get_portal_partner(
+                if portal_partner := get_portal_partner(
                     thread, kwargs.get("hash"), kwargs.get("pid"), kwargs.get("token")
-                )
+                ):
+                    store.add(
+                        thread,
+                        {
+                            "portal_partner": Store.one(
+                                portal_partner, fields=["active", "avatar_128", "name", "user"]
+                            )
+                        },
+                        as_thread=True,
+                    )
                 can_react = has_react_access and portal_partner
-                partner = portal_partner or partner
-            store.add(thread, {"can_react": bool(can_react)}, as_thread=True)
-        store.add({"self": Store.one(partner, fields=["active", "avatar_128", "name", "user"])})
-        if request.env.user.has_group("website.group_website_restricted_editor"):
-            store.add(partner, {"is_user_publisher": True})
+            store.add(
+                thread,
+                {
+                    "can_react": bool(can_react),
+                    "hasReadAccess": thread.sudo(False).has_access("read"),
+                },
+                as_thread=True,
+            )
         return store.get_result()
 
     @http.route('/mail/chatter_fetch', type='json', auth='public', website=True)
     def portal_message_fetch(
             self, thread_model, thread_id, limit=10, after=None, before=None, **kw
     ):
-        # Only search into website_message_ids, so apply the same domain to perform only one search
-        # extract domain from the 'website_message_ids' field
+        # Extract the domain from the `website_message_ids` field to restrict the visible messages according to the model.
         model = request.env[thread_model]
         field = model._fields['website_message_ids']
+        thread = model._get_thread_with_access(thread_id, token=kw.get("token"))
+        if not thread:
+            raise Forbidden()
+        # All users in the portal see only non-internal messages; internal users are supposed to see
+        # the portal as portal users do, so they have the same restriction.
         domain = expression.AND([
             self._setup_portal_message_fetch_extra_domain(kw),
             field.get_domain_list(model),
-            [('res_id', '=', thread_id), '|', ('body', '!=', ''), ('attachment_ids', '!=', False),
-             ("subtype_id", "=", request.env.ref("mail.mt_comment").id)]
+            self._get_non_empty_message_domain(),
+            request.env["mail.message"]._get_search_domain_share(),
+            [("res_id", "=", thread_id)],
         ])
-
-        # Check access
-        Message = request.env['mail.message']
-        if kw.get('token'):
-            access_as_sudo = request.env[thread_model]._get_thread_with_access(
-                thread_id, token=kw.get("token")
-            )
-            if not access_as_sudo:  # if token is not correct, raise Forbidden
-                raise Forbidden()
-            # Non-employee see only messages with not internal subtype (aka, no internal logs)
-            if not request.env.user._is_internal():
-                domain = expression.AND([Message._get_search_domain_share(), domain])
-            Message = request.env["mail.message"].sudo()
-        res = Message._message_fetch(domain, None, before, after, None, limit)
+        # sudo: mail.message - thread access is validated above, and domain is massively restricted to share-only messages
+        res = request.env["mail.message"].sudo()._message_fetch(
+            domain=domain,
+            before=before,
+            after=after,
+            limit=limit,
+        )
         messages = res.pop("messages")
         return {
             **res,
             "data": {"mail.message": messages.portal_message_format(options=kw)},
             "messages": Store.many_ids(messages),
         }
+
+    def _get_non_empty_message_domain(self):
+        return ["|", ("body", "!=", ""), ("attachment_ids", "!=", False)]
 
     def _setup_portal_message_fetch_extra_domain(self, data):
         return []
@@ -106,6 +121,13 @@ class PortalChatter(http.Controller):
 
 
 class MailController(mail.MailController):
+
+    @classmethod
+    def _redirect_to_generic_fallback(cls, model, res_id, access_token=None, **kwargs):
+        # Generic fallback for a share user is the customer portal
+        if request.session.uid and request.env.user.share:
+            return request.redirect('/my')
+        return super()._redirect_to_generic_fallback(model, res_id, access_token=access_token, **kwargs)
 
     @classmethod
     def _redirect_to_record(cls, model, res_id, access_token=None, **kwargs):
@@ -142,7 +164,7 @@ class MailController(mail.MailController):
                             url = urls.url_parse(url)
                             url_params = url.decode_query()
                             url_params.update([("pid", pid), ("hash", hash)])
-                            url = url.replace(query=urls.url_encode(url_params)).to_url()
+                            url = url.replace(query=urls.url_encode(url_params, sort=True)).to_url()
                         return request.redirect(url)
         return super(MailController, cls)._redirect_to_record(model, res_id, access_token=access_token, **kwargs)
 

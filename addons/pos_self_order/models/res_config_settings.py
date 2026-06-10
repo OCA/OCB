@@ -85,7 +85,7 @@ class ResConfigSettings(models.TransientModel):
             "domain": ['|', ['pos_config_ids', 'in', self.pos_config_id.id], ["pos_config_ids", "=", False]],
         }
 
-    def _generate_single_qr_code(self, url):
+    def __generate_single_qr_code(self, url):
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -95,6 +95,17 @@ class ResConfigSettings(models.TransientModel):
         qr.add_data(url)
         qr.make(fit=True)
         return qr.make_image(fill_color="black", back_color="transparent")
+
+    def get_pos_qr_stands(self):
+        """Redirect to the get the free stands with the data of QR codes for the current POS config"""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.client",
+            "tag": "pos_qr_stands",
+            "params": {
+                "data": self.pos_config_id.get_pos_qr_order_data(),
+            },
+        }
 
     def generate_qr_codes_zip(self):
         if not self.pos_self_ordering_mode in ['mobile', 'consultation']:
@@ -110,12 +121,12 @@ class ResConfigSettings(models.TransientModel):
 
             for table in table_ids:
                 qr_images.append({
-                    'image': self._generate_single_qr_code(url_unquote(self.pos_config_id._get_self_order_url(table.id))),
+                    'image': self.__generate_single_qr_code(url_unquote(self.pos_config_id._get_self_order_url(table.id))),
                     'name': f"{table.floor_id.name} - {table.table_number}",
                 })
         else:
             qr_images.append({
-                'image': self._generate_single_qr_code(url_unquote(self.pos_config_id._get_self_order_url())),
+                'image': self.__generate_single_qr_code(url_unquote(self.pos_config_id._get_self_order_url())),
                 'name': "generic",
             })
 
@@ -151,17 +162,16 @@ class ResConfigSettings(models.TransientModel):
         """
         Generate the data needed to print the QR codes page
         """
+        name = ""
+        url = url_unquote(self.pos_config_id._get_self_order_url())
         if self.pos_self_ordering_mode == 'mobile' and self.pos_module_pos_restaurant:
             table_ids = self.pos_config_id.floor_ids.table_ids
-
             if not table_ids:
                 raise ValidationError(_("In Self-Order mode, you must have at least one table to generate QR codes"))
 
-            url = url_unquote(self.pos_config_id._get_self_order_url(table_ids[0].id))
-            name = table_ids[0].table_number
-        else:
-            url = url_unquote(self.pos_config_id._get_self_order_url())
-            name = ""
+            if self.pos_self_ordering_service_mode == 'table':
+                url = url_unquote(self.pos_config_id._get_self_order_url(table_ids[0].id))
+                name = table_ids[0].table_number
 
         return self.env.ref("pos_self_order.report_self_order_qr_codes_page").report_action(
             [], data={

@@ -67,20 +67,15 @@
     </t>
 
     <t t-name="point_of_sale.PaymentScreenValidate">
-        <t t-if="ui.isSmall">
-            <button class="btn-switchpane validation-button btn btn-primary btn-lg flex-fill py-3 lh-lg"
-                t-att-class="{ secondary: !(currentOrder.is_paid() and currentOrder._isValidEmptyOrder()) }"
-                t-on-click="() => this.validateOrder()">
-                <span>Validate</span>
-            </button>
-        </t>
-        <t t-else="">
-            <button class="button next validation btn btn-primary btn-lg w-50 py-3 lh-lg"
-                t-attf-class="{{currentOrder.is_paid() and currentOrder._isValidEmptyOrder() ? 'highlight' : 'disabled'}}"
-                t-on-click="() => this.validateOrder()">
-                <span class="next_text">Validate</span>
-            </button>
-        </t>
+        <button class="validation-button next btn btn-primary btn-lg py-3 lh-lg"
+            t-on-click="() => this.validateOrder()"
+            t-attf-class="
+                {{ ui.isSmall ? 'btn-switchpane flex-fill' : 'button next w-50' }}
+                {{ currentOrder.canBeValidated() ? 'highlight' : 'disabled' }}
+            "
+        >
+            <span>Validate</span>
+        </button>
     </t>
 
     <t t-name="point_of_sale.PaymentScreenBack">
@@ -141,7 +136,7 @@
     </t>
 
     <t t-name="point_of_sale.PaymentScreenMethods">
-        <div class="paymentmethods-container mb-3" t-att-class="ui.isSmall ? 'my-2 rounded-3' : 'flex-grow-1'">
+        <div class="paymentmethods-container mb-3" t-att-class="ui.isSmall ? 'my-2 rounded-3' : 'overflow-y-auto flex-grow-1'">
             <div class="paymentmethods  gap-1 gap-lg-2" t-att-class="{ 'd-grid p-1 gap-1 overflow-y-auto rounded-3 bg-300': ui.isSmall, 'd-flex flex-column gap-lg-2': !ui.isSmall }">
                 <t t-foreach="payment_methods_from_config" t-as="paymentMethod" t-key="paymentMethod.id">
                     <div class="button paymentmethod btn btn-light btn-lg lh-lg flex-fill"

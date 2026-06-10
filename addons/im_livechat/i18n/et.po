@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* im_livechat
-# 
+# * im_livechat
+#
 # Translators:
 # Katrin Kampura, 2024
 # Egon Raamat <egon@avalah.ee>, 2024
@@ -15,20 +15,22 @@
 # Eneli Õigus <enelioigus@gmail.com>, 2024
 # Anna, 2024
 # Stevin Lilla, 2024
-# 
+# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 13:02+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Stevin Lilla, 2024\n"
-"Language-Team: Estonian (https://app.transifex.com/odoo/teams/41243/et/)\n"
+"POT-Creation-Date: 2026-04-03 18:39+0000\n"
+"PO-Revision-Date: 2026-04-04 12:29+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Estonian <https://translate.odoo.com/projects/odoo-18/"
+"im_livechat/et/>\n"
+"Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: et\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: im_livechat
 #. odoo-python
@@ -77,8 +79,7 @@ msgstr "%s (koopia)"
 #: code:addons/im_livechat/models/chatbot_script.py:0
 #: code:addons/im_livechat/models/discuss_channel.py:0
 msgid ""
-"'%(input_email)s' does not look like a valid email. Can you please try "
-"again?"
+"'%(input_email)s' does not look like a valid email. Can you please try again?"
 msgstr ""
 "'%(input_email)s' ei tundu olevat kehtiv e-post. Proovige palun uuesti."
 
@@ -86,12 +87,15 @@ msgstr ""
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_rule__action
 msgid ""
 "* 'Show' displays the chat button on the pages.\n"
-"* 'Show with notification' is 'Show' in addition to a floating text just next to the button.\n"
-"* 'Open automatically' displays the button and automatically opens the conversation pane.\n"
+"* 'Show with notification' is 'Show' in addition to a floating text just "
+"next to the button.\n"
+"* 'Open automatically' displays the button and automatically opens the "
+"conversation pane.\n"
 "* 'Hide' hides the chat button on the pages.\n"
 msgstr ""
 "* 'Näita' kuvab lehekülgedel vestlusnupu.\n"
-"* 'Näita koos teavitusega' on 'Näita' lisaks hõljuvale tekstile otse nupu kõrval.\n"
+"* 'Näita koos teavitusega' on 'Näita' lisaks hõljuvale tekstile otse nupu "
+"kõrval.\n"
 "* 'Ava automaatselt' kuvab nupu ja avab automaatselt vestluspaneeli.\n"
 "* 'Peida' peidab vestlusnupu lehekülgedel.\n"
 
@@ -147,37 +151,42 @@ msgstr "<span>Tere,</span><br/> Siin on teie koopia vestlusest"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_step_view_form
 msgid ""
-"<span>Reminder: This step will only be played if no operator is "
-"available.</span>"
+"<span>Reminder: This step will only be played if no operator is available.</"
+"span>"
 msgstr ""
-"<span>Meeldetuletus: Seda sammu mängitakse ainult siis, kui operaator ei ole"
-" saadaval.</span>"
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_view_form
-msgid ""
-"<span>Tip: At least one interaction (Question, Email, ...) is needed before the Bot can perform more complex actions (Forward to an Operator, ...). </span>\n"
-"                    <span>Use Channel Rules if you want the Bot to interact with visitors only when no operator is available.</span>"
-msgstr ""
-"<span>Vihje: Enne roboti poolseid keerulisi tegevusi (operaatorile edastamine, ...) on vajalik lihtsamad tegevused (küsimus, email, ...).</span>\n"
-"<span>Kasuta kanali reegleid kui soovite, et robot oleks aktiivne ainult siis kui ühtegi operaatorit pole saadaval.</span>"
+"<span>Meeldetuletus: Seda sammu mängitakse ainult siis, kui operaator ei ole "
+"saadaval.</span>"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_view_form
 msgid ""
 "<span>Tip: At least one interaction (Question, Email, ...) is needed before "
-"the Bot can perform more complex actions (Forward to an Operator, "
-"...).</span>"
+"the Bot can perform more complex actions (Forward to an Operator, ...). </"
+"span>\n"
+"                    <span>Use Channel Rules if you want the Bot to interact "
+"with visitors only when no operator is available.</span>"
+msgstr ""
+"<span>Vihje: Enne roboti poolseid keerulisi tegevusi (operaatorile "
+"edastamine, ...) on vajalik lihtsamad tegevused (küsimus, email, ...).</"
+"span>\n"
+"<span>Kasuta kanali reegleid kui soovite, et robot oleks aktiivne ainult "
+"siis kui ühtegi operaatorit pole saadaval.</span>"
+
+#. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_view_form
+msgid ""
+"<span>Tip: At least one interaction (Question, Email, ...) is needed before "
+"the Bot can perform more complex actions (Forward to an Operator, ...).</"
+"span>"
 msgstr ""
 "<span>1Vihje: Enne roboti poolseid keerulisi tegevusi (operaatorile "
-"edastamine, ...) on vajalik lihtsamad tegevused (küsimus, email, "
-"...).</span>"
+"edastamine, ...) on vajalik lihtsamad tegevused (küsimus, email, ...).</span>"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_step_view_form
 msgid ""
-"<span>Tip: Plan further steps for the Bot in case no operator is "
-"available.</span>"
+"<span>Tip: Plan further steps for the Bot in case no operator is available.</"
+"span>"
 msgstr ""
 "<span>Vihje: Planeeri järgnevaid tegevusi robotile kui operaatorit pole "
 "saadaval.</span>"
@@ -196,7 +205,8 @@ msgstr "mail.message saab olla ühendatud ainult ühe juturoboti sõnumiga"
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_report_channel__is_without_answer
 msgid ""
 "A session is without answer if the operator did not answer. \n"
-"                                       If the visitor is also the operator, the session will always be answered."
+"                                       If the visitor is also the operator, "
+"the session will always be answered."
 msgstr ""
 "Sessioon on vastuseta kui operaator ei vastanud.\n"
 "Kui külastaja on ka operaator, siis sessioon on alati vastatud."
@@ -400,11 +410,11 @@ msgstr "Vestluse sisendi kohatäitja"
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_discuss_channel__channel_type
 msgid ""
-"Chat is private and unique between 2 persons. Group is private among invited"
-" persons. Channel can be freely joined (depending on its configuration)."
+"Chat is private and unique between 2 persons. Group is private among invited "
+"persons. Channel can be freely joined (depending on its configuration)."
 msgstr ""
-"Vestlus on privaatne sõnumite vahetamine 2 inimese vahel. Grupp on privaatne"
-" kutsutud inimeste hulgas. Kanaliga on võimalik vabalt liituda(olenevalt "
+"Vestlus on privaatne sõnumite vahetamine 2 inimese vahel. Grupp on privaatne "
+"kutsutud inimeste hulgas. Kanaliga on võimalik vabalt liituda(olenevalt "
 "kanali seadistustest)."
 
 #. module: im_livechat
@@ -505,12 +515,6 @@ msgstr "Kontakt"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_operator__channel_id
 msgid "Conversation"
 msgstr "Vestlus"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/embed/common/chatbot/chatbot_service.js:0
-msgid "Conversation ended..."
-msgstr "Vestlus lõppes..."
 
 #. module: im_livechat
 #. odoo-python
@@ -1128,7 +1132,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_im_livechat_report_channel
 msgid "Livechat Support Channel Report"
-msgstr ""
+msgstr "Live-chati toe kanali aruanne"
 
 #. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_report_channel_action
@@ -1418,6 +1422,11 @@ msgstr "Kiri saadetud läbi"
 #: model:ir.model.fields.selection,name:im_livechat.selection__chatbot_script_step__step_type__question_selection
 msgid "Question"
 msgstr "Küsimus"
+
+#. module: im_livechat
+#: model:ir.model,name:im_livechat.model_ir_qweb
+msgid "Qweb"
+msgstr "Qweb"
 
 #. module: im_livechat
 #. odoo-python
@@ -1743,8 +1752,8 @@ msgstr "Vestlus on saadetud. "
 msgid ""
 "The rule will only be applied for these countries. Example: if you select "
 "'Belgium' and 'United States' and that you set the action to 'Hide', the "
-"chat button will be hidden on the specified URL from the visitors located in"
-" these 2 countries. This feature requires GeoIP installed on your server."
+"chat button will be hidden on the specified URL from the visitors located in "
+"these 2 countries. This feature requires GeoIP installed on your server."
 msgstr ""
 
 #. module: im_livechat
@@ -1787,6 +1796,12 @@ msgstr "See kuu"
 #: model_terms:ir.ui.view,arch_db:im_livechat.rating_rating_view_search_livechat
 msgid "This Week"
 msgstr "Sel nädalal"
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/embed/common/chatbot/chatbot_service.js:0
+msgid "This conversation has ended."
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel__default_message
@@ -1864,13 +1879,12 @@ msgstr "Hindamata"
 #. module: im_livechat
 #: model_terms:digest.tip,tip_description:im_livechat.digest_tip_im_livechat_0
 msgid ""
-"Use canned responses to define templates of messages in the livechat app. To"
-" load a canned response, start your sentence with ':' and select the "
-"template."
+"Use canned responses to define templates of messages in the livechat app. To "
+"load a canned response, start your sentence with ':' and select the template."
 msgstr ""
 "Kasutage reaalajas vestluse rakenduses sõnumimallide määratlemiseks "
-"salvestatud vastuseid. Salvestatud vastuse sisestamiseks alustage lauset "
-"\":\" ja valige soovitud mall."
+"salvestatud vastuseid. Salvestatud vastuse sisestamiseks alustage lauset \":"
+"\" ja valige soovitud mall."
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_res_users
@@ -1969,8 +1983,7 @@ msgstr "Vidin"
 #: model:chatbot.script.step,message:im_livechat.chatbot_script_welcome_step_pricing_email
 msgid ""
 "Would you mind leaving your email address so that we can reach you back?"
-msgstr ""
-"Kas jätaksite oma e-posti aadressi, et saaksime teiega ühendust võtta?"
+msgstr "Kas jätaksite oma e-posti aadressi, et saaksime teiega ühendust võtta?"
 
 #. module: im_livechat
 #. odoo-javascript
@@ -2000,7 +2013,8 @@ msgstr "Saate luua uue Chat Bot'i, et suhelda oma veebilehe külastajatega. "
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_action
 msgid ""
 "You can create channels for each website on which you want\n"
-"                to integrate the website live chat widget, allowing your website\n"
+"                to integrate the website live chat widget, allowing your "
+"website\n"
 "                visitors to talk in real time with your operators."
 msgstr ""
 
@@ -2073,3 +2087,6 @@ msgstr "sekundid"
 #: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 msgid "{{author_name}}"
 msgstr "{{author_name}}"
+
+#~ msgid "Conversation ended..."
+#~ msgstr "Vestlus lõppes..."

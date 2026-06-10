@@ -1,13 +1,14 @@
-import { tourState } from "./tour_state";
-import { config as transitionConfig } from "@web/core/transition";
-import { TourStepAutomatic } from "./tour_step_automatic";
-import { Macro } from "@web/core/macro";
+import * as hootDom from "@odoo/hoot-dom";
+import { enableEventLogs, setupEventActions } from "@web/../lib/hoot-dom/helpers/events";
 import { browser } from "@web/core/browser/browser";
-import { setupEventActions } from "@web/../lib/hoot-dom/helpers/events";
-import * as hoot from "@odoo/hoot-dom";
+import { Macro } from "@web/core/macro";
+import { config as transitionConfig } from "@web/core/transition";
+import { tourState } from "./tour_state";
+import { TourStepAutomatic } from "./tour_step_automatic";
 
 export class TourAutomatic {
     mode = "auto";
+    allowUnload = false;
     constructor(data) {
         Object.assign(this, data);
         this.steps = this.steps.map((step, index) => new TourStepAutomatic(step, this, index));
@@ -28,6 +29,7 @@ export class TourAutomatic {
 
     start() {
         setupEventActions(document.createElement("div"), { allowSubmit: true });
+        enableEventLogs(this.debugMode);
         const { delayToCheckUndeterminisms, stepDelay } = this.config;
         const macroSteps = this.steps
             .filter((step) => step.index >= this.currentIndex)
@@ -48,7 +50,7 @@ export class TourAutomatic {
                         // IMPROVEMENT: Find a way to remove this delay.
                         await new Promise((resolve) => requestAnimationFrame(resolve));
                         if (stepDelay > 0) {
-                            await hoot.delay(stepDelay);
+                            await hootDom.delay(stepDelay);
                         }
                     },
                 },
@@ -62,7 +64,17 @@ export class TourAutomatic {
                         if (delayToCheckUndeterminisms > 0) {
                             await step.checkForUndeterminisms(trigger, delayToCheckUndeterminisms);
                         }
-                        const result = await step.doAction();
+                        if (!step.skipped && step.expectUnloadPage) {
+                            this.allowUnload = true;
+                            setTimeout(() => {
+                                const message = `
+                                    The key { expectUnloadPage } is defined but page has not been unloaded within 20000 ms.
+                                    You probably don't need it.
+                                `.replace(/^\s+/gm, "");
+                                this.throwError(message);
+                            }, 20000);
+                        }
+                        await step.doAction();
                         if (this.debugMode) {
                             console.log(trigger);
                             if (step.skipped) {
@@ -76,13 +88,15 @@ export class TourAutomatic {
                             }
                         }
                         tourState.setCurrentIndex(step.index + 1);
-                        return result;
+                        if (this.allowUnload) {
+                            return "StopTheMacro!";
+                        }
                     },
                 },
             ]);
 
         const end = () => {
-            delete window.hoot;
+            delete window[hootNameSpace];
             transitionConfig.disabled = false;
             tourState.clear();
             //No need to catch error yet.
@@ -132,7 +146,8 @@ export class TourAutomatic {
             debugger;
         }
         transitionConfig.disabled = true;
-        window.hoot = hoot;
+        const hootNameSpace = hootDom.exposeHelpers(hootDom);
+        console.debug(`Hoot DOM helpers available from \`window.${hootNameSpace}\``);
         this.macro.start();
     }
 

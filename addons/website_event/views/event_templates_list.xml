@@ -304,7 +304,7 @@
     </div>
     <!-- List -->
     <div t-foreach="event_ids" t-as="event" t-attf-class=" #{opt_event_size}">
-        <a t-cache="event if not editable and event.website_published else None" t-attf-href="/event/#{ slug(event) }/#{(not event.menu_id) and 'register'}" class="text-decoration-none text-reset " t-att-data-publish="event.website_published and 'on' or 'off'">
+        <a t-cache="(event, event.is_participating) if not editable and event.website_published else None" t-attf-href="/event/#{ slug(event) }/#{(not event.menu_id) and 'register'}" class="text-decoration-none text-reset " t-att-data-publish="event.website_published and 'on' or 'off'">
             <article t-attf-class="h-100 #{opt_events_list_cards and 'card'}" itemscope="itemscope" itemtype="http://schema.org/Event">
                 <div t-attf-class="h-100 #{opt_events_list_columns and 'd-flex flex-wrap flex-column' or 'row mx-0'}">
                     <!-- Header -->
@@ -314,7 +314,7 @@
                             <t t-call="website.record_cover">
                                 <t t-set="_record" t-value="event"/>
                                 <meta itemprop="startDate" t-att-content="event.date_begin.isoformat()"/>
-                                <!-- Short date + Country Flag -->
+                                <!-- Short date + (optional) Country Flag -->
                                 <div t-if="opt_events_event_location" t-attf-class="o_wevent_date_with_flag o_wevent_event_date position-absolute shadow-sm o_not_editable #{(not opt_events_list_columns) and 'left'} ">
                                     <div class="o_wevent_event_date_text">
                                         <span t-out="event.date_begin" t-options="{'widget': 'datetime', 'tz_name': event.date_tz, 'format': 'LLL'}" class="o_wevent_event_month"/>
@@ -325,7 +325,6 @@
                                         <i t-elif="not event.country_id" class="fa fa-video-camera h-100"/>
                                     </div>
                                 </div>
-                                <!-- Short Date -->
                                 <div t-else="" t-attf-class="o_wevent_event_date position-absolute shadow-sm o_not_editable #{(not opt_events_list_columns) and 'left'} ">
                                     <span t-out="event.date_begin" t-options="{'widget': 'datetime', 'tz_name': event.date_tz, 'format': 'LLL'}" class="o_wevent_event_month"/>
                                     <span t-out="event.date_begin" t-options="{'widget': 'datetime', 'tz_name': event.date_tz, 'format': 'dd'}" class="o_wevent_event_day oe_hide_on_date_edit"/>

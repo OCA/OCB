@@ -20,10 +20,9 @@ addons/*
 # BlackList libs
 addons/web/static/lib/**/*
 
-# Whitelist Hoot (but not its libs)
+# Whitelist Hoot
 !addons/web/static/lib/hoot
 !addons/web/static/lib/hoot/**/*
-addons/web/static/lib/hoot/lib/**/*
 
 # Ignore everything in web legacy but the top level (adapters)
 addons/web/static/src/legacy/**/*
@@ -203,12 +202,21 @@ addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js
 !addons/test_discuss_full/**/*
 !addons/website_livechat
 !addons/website_livechat/**/*
+!addons/website_slides
+!addons/website_slides/**/*
 !approvals
 !approvals/**/*
 !test_discuss_full_enterprise
 !test_discuss_full_enterprise/**/*
 !whatsapp
 !whatsapp/**/*
+
+# Whitelist voip modules
+!voip*
+!voip*/**/*
+
+# BlackList voip libs
+voip/static/lib/**/*
 
 # Whitelist point_of_sale
 !addons/point_of_sale

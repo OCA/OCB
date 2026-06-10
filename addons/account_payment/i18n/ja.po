@@ -1,24 +1,28 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* account_payment
-# 
+# * account_payment
+#
 # Translators:
 # Wil Odoo, 2024
 # Junko Augias, 2025
-# 
+#
+# "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
+# Sayaka Yamada <sayaka@quartile.co>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 07:48+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Junko Augias, 2025\n"
-"Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
+"POT-Creation-Date: 2025-12-29 18:37+0000\n"
+"PO-Revision-Date: 2026-05-22 08:16+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-18/"
+"account_payment/ja/>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: account_payment
 #. odoo-python
@@ -27,8 +31,8 @@ msgid ""
 "#%(number)s - Installment of <strong>%(amount)s</strong> due on <strong "
 "class=\"text-primary\">%(date)s</strong>"
 msgstr ""
-"#%(number)s -  <strong>%(amount)s</strong>の分割払、期日: <strong class=\"text-"
-"primary\">%(date)s</strong>"
+"#%(number)s -  <strong>%(amount)s</strong>の分割払、期日: <strong "
+"class=\"text-primary\">%(date)s</strong>"
 
 #. module: account_payment
 #. odoo-javascript
@@ -47,13 +51,13 @@ msgid ""
 "<i class=\"fa fa-arrow-circle-right\"/><span class=\"d-none d-md-inline\"> "
 "Pay Now</span>"
 msgstr ""
-"<i class=\"fa fa-arrow-circle-right\"/><span class=\"d-none d-md-inline\"> "
-"今支払う</span>"
+"<i class=\"fa fa-arrow-circle-right\"/><span class=\"d-none d-md-inline\"> 今"
+"すぐ支払う</span>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_page_inherit_payment
 msgid "<i class=\"fa fa-fw fa-arrow-circle-right\"/> Pay Now"
-msgstr "<i class=\"fa fa-fw fa-arrow-circle-right\"/> 今支払う"
+msgstr "<i class=\"fa fa-fw fa-arrow-circle-right\"/> 今すぐ支払う"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
@@ -111,11 +115,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:account_payment.payment_refund_wizard_view_form
 msgid ""
 "<strong>Warning!</strong> There is a refund pending for this payment.\n"
-"                        Wait a moment for it to be processed. If the refund is still pending in a\n"
-"                        few minutes, please check your payment provider configuration."
+"                        Wait a moment for it to be processed. If the refund "
+"is still pending in a\n"
+"                        few minutes, please check your payment provider "
+"configuration."
 msgstr ""
 "<strong>警告！</strong>この支払には保留中の返金があります。 \n"
-"                        処理されるまでしばらくお待ち下さい。数分経っても返金が保留中の場合は\n"
+"                        処理されるまでしばらくお待ち下さい。数分経っても返金"
+"が保留中の場合は\n"
 "                        支払いプロバイダーの設定を確認して下さい。"
 
 #. module: account_payment
@@ -127,9 +134,10 @@ msgstr "顧客が %s以前に支払う場合、値引きが適用されます。
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 msgid ""
-"A payment has already been made on this invoice, please make sure to not pay"
-" twice."
-msgstr "この請求書はすでに支払されています。二重払いとならないようご注意下さい。"
+"A payment has already been made on this invoice, please make sure to not pay "
+"twice."
+msgstr ""
+"この請求書はすでに支払されています。二重払いとならないようご注意下さい。"
 
 #. module: account_payment
 #. odoo-python
@@ -141,7 +149,7 @@ msgstr "参照%sを伴う支払取引がすでに存在します。"
 #. odoo-python
 #: code:addons/account_payment/models/account_payment.py:0
 msgid "A token is required to create a new payment transaction."
-msgstr "新しい支払いトランザクションを作成するには、トークンが必要です。"
+msgstr "新しい支払い取引を作成するには、トークンが必要です。"
 
 #. module: account_payment
 #: model:onboarding.onboarding.step,button_text:account_payment.onboarding_onboarding_step_payment_provider
@@ -162,7 +170,7 @@ msgstr "返金可能額"
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
-msgstr "未消込額"
+msgstr "請求残高"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -175,13 +183,13 @@ msgstr "支払済金額"
 msgid ""
 "Are you sure you want to void the authorized transaction? This action can't "
 "be undone."
-msgstr "承認されたトランザクションを無効にしますか?このアクションは元に戻せません。"
+msgstr "承認された取引を無効にしますか?このアクションは元に戻せません。"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__authorized_transaction_ids
 #: model:ir.model.fields,field_description:account_payment.field_account_move__authorized_transaction_ids
 msgid "Authorized Transactions"
-msgstr "承認されたトランザクション"
+msgstr "承認された取引"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -194,11 +202,6 @@ msgstr "取引をキャプチャする"
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment_paid
 msgid "Close"
 msgstr "閉じる"
-
-#. module: account_payment
-#: model:ir.model.fields,field_description:account_payment.field_account_payment_register__payment_method_code
-msgid "Code"
-msgstr "コード"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_res_config_settings
@@ -293,7 +296,7 @@ msgstr "ID"
 msgid ""
 "Impossible to pay all the overdue invoices if they don't share the same "
 "currency."
-msgstr "全て同じ通貨でなければ、全ての滞納請求書を支払うことはできません。"
+msgstr "全て同じ通貨でなければ、全ての期限超過請求書を支払うことはできません。"
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment_method_line__payment_provider_state
@@ -301,7 +304,8 @@ msgid ""
 "In test mode, a fake payment is processed through a test payment interface.\n"
 "This mode is advised when setting up the provider."
 msgstr ""
-"テストモードでは、偽の支払いがテスト支払インターフェイスを通じて処理されます。\n"
+"テストモードでは、偽の支払いがテスト支払インターフェイスを通じて処理されま"
+"す。\n"
 "このモードは、プロバイダを設定する際に推奨されます。"
 
 #. module: account_payment
@@ -371,14 +375,18 @@ msgstr "次の分割払"
 msgid ""
 "Note that only tokens from providers allowing to capture the amount are "
 "available."
-msgstr "利用できるのは、金額を把握できるプロバイダーのトークンのみであるることに注意して下さい。"
+msgstr ""
+"利用できるのは、金額を把握できるプロバイダーのトークンのみであるることに注意"
+"して下さい。"
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment_register__payment_token_id
 msgid ""
 "Note that tokens from providers set to only authorize transactions (instead "
 "of capturing the amount) are not available."
-msgstr "（金額をキャプチャする代わりに）トランザクションの承認のみに設定されたプロバイダーのトークンは利用できないことに注意して下さい。"
+msgstr ""
+"（金額をキャプチャする代わりに）取引の承認のみに設定されたプロバイダーの"
+"トークンは利用できないことに注意して下さい。"
 
 #. module: account_payment
 #: model:onboarding.onboarding.step,step_image_alt:account_payment.onboarding_onboarding_step_payment_provider
@@ -405,19 +413,19 @@ msgstr "オンライン支払オプションが設定で無効になっていま
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
-msgstr "滞納請求書は同一の会社を共有している必要があります"
+msgstr "期限超過請求書は同一の会社を共有している必要があります"
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same currency."
-msgstr "滞納請求書では、同じ通貨を使用する必要があります。"
+msgstr "期限超過請求書では、同じ通貨を使用する必要があります。"
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same partner."
-msgstr "滞納請求書では、同じ取引先である必要があります。"
+msgstr "期限超過請求書では、同じ取引先である必要があります。"
 
 #. module: account_payment
 #: model:ir.model.fields.selection,name:account_payment.selection__payment_refund_wizard__support_refund__partial
@@ -444,17 +452,17 @@ msgstr "オンラインで請求書を支払う"
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_docs_entry
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "Pay Now"
-msgstr "今支払う"
+msgstr "今すぐ支払う"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "Pay now"
-msgstr "今支払う"
+msgstr "今すぐ支払う"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_overdue_invoice
 msgid "Pay overdue"
-msgstr "支払滞納"
+msgstr "支払期限超過"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
@@ -506,7 +514,7 @@ msgstr "支払トークン"
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__transaction_id
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
 msgid "Payment Transaction"
-msgstr "決済トランザクション"
+msgstr "支払取引"
 
 #. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_transaction_menu
@@ -522,7 +530,7 @@ msgstr "支払"
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
-msgstr "滞納請求書を支払うにはログインして下さい。"
+msgstr "期限超過請求書を支払うにはログインして下さい。"
 
 #. module: account_payment
 #. odoo-python
@@ -588,7 +596,7 @@ msgstr "ソース・ペイメント"
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment_method_line__payment_provider_state
 msgid "State"
-msgstr "都道府県・州"
+msgstr "ステータス"
 
 #. module: account_payment
 #: model:onboarding.onboarding.step,done_text:account_payment.onboarding_onboarding_step_payment_provider
@@ -682,7 +690,7 @@ msgstr "この請求書はオンラインで支払うことができません。
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
 msgid "This invoice has already been paid."
-msgstr "この請求書は既に支払済です。"
+msgstr "この請求書は既にお支払済です。"
 
 #. module: account_payment
 #. odoo-python
@@ -728,10 +736,12 @@ msgstr "無効な取引"
 #. odoo-python
 #: code:addons/account_payment/models/account_payment_method_line.py:0
 msgid ""
-"You can't delete a payment method that is linked to a provider in the enabled or test state.\n"
+"You can't delete a payment method that is linked to a provider in the "
+"enabled or test state.\n"
 "Linked providers(s): %s"
 msgstr ""
-"有効状態またはテスト状態のプロバイダーにリンクされている支払方法を削除することはできません。\n"
+"有効状態またはテスト状態のプロバイダーにリンクされている支払方法を削除するこ"
+"とはできません。\n"
 "リンクされているプロバイダー:%s"
 
 #. module: account_payment
@@ -740,7 +750,9 @@ msgstr ""
 msgid ""
 "You cannot uninstall this module as payments using this payment method "
 "already exist."
-msgstr "この支払い方法を使用した支払が既に存在するため、このモジュールをアンインストールすることはできません。"
+msgstr ""
+"この支払い方法を使用した支払が既に存在するため、このモジュールをアンインス"
+"トールすることはできません。"
 
 #. module: account_payment
 #. odoo-python
@@ -762,7 +774,7 @@ msgstr "支払期日まで %s 日"
 #. odoo-javascript
 #: code:addons/account_payment/static/src/js/portal_my_invoices_payment.js:0
 msgid "due today"
-msgstr "本日支払期限"
+msgstr "本日支払期日"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
@@ -772,4 +784,7 @@ msgstr "適用されました。"
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
-msgstr "滞納"
+msgstr "期限超過"
+
+#~ msgid "Code"
+#~ msgstr "コード"

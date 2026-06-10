@@ -107,7 +107,7 @@ async function executeImport(data, shouldWait = false) {
 
 function parsePreview(opts) {
     const fakePreviewData = [
-        ["Foo", "Deco addict", "Azure Interior", "Brandon Freeman"],
+        ["Foo", "Acme Corporation", "Azure Interior", "Brandon Freeman"],
         ["Bar", "1", "1", "0"],
         ["Display name", "Azure Interior"],
     ];
@@ -316,6 +316,7 @@ QUnit.module("Base Import Tests", (hooks) => {
 
     QUnit.test("Import view: UI before file upload", async function (assert) {
         const templateURL = "/myTemplateURL.xlsx";
+        const secondTemplateURL = "/mySecondTemplateURL.xlsx";
 
         patchWithCleanup(browser.location, {
             origin: "http://example.com",
@@ -330,6 +331,10 @@ QUnit.module("Base Import Tests", (hooks) => {
                         label: "Some Import Template",
                         template: templateURL,
                     },
+                    {
+                        label: "Another Import Template",
+                        template: secondTemplateURL,
+                    }
                 ]);
             },
             "base_import.import/create": (route, args) => {
@@ -347,13 +352,27 @@ QUnit.module("Base Import Tests", (hooks) => {
 
         assert.containsOnce(target, ".o_import_action", "import view is displayed");
         assert.strictEqual(
-            target.querySelector(".o_nocontent_help .btn-outline-primary").textContent,
+            target.querySelectorAll(".o_nocontent_help .btn-outline-primary").length,
+            2,
+            "there are two import template buttons"
+        )
+        assert.strictEqual(
+            target.querySelectorAll(".o_nocontent_help .btn-outline-primary")[0].textContent,
             " Some Import Template"
         );
         assert.strictEqual(
-            target.querySelector(".o_nocontent_help .btn-outline-primary").href,
+            target.querySelectorAll(".o_nocontent_help .btn-outline-primary")[0].href,
             window.location.origin + templateURL,
-            "button has the right download url"
+            "1st button has the right download url"
+        );
+        assert.strictEqual(
+            target.querySelectorAll(".o_nocontent_help .btn-outline-primary")[1].textContent,
+            " Another Import Template"
+        );
+        assert.strictEqual(
+            target.querySelectorAll(".o_nocontent_help .btn-outline-primary")[1].href,
+            window.location.origin + secondTemplateURL,
+            "2nd button has the right download url"
         );
         assert.verifySteps(["partner/get_import_templates", "base_import.import/create"]);
         assert.containsN(
@@ -443,13 +462,13 @@ QUnit.module("Base Import Tests", (hooks) => {
         assert.strictEqual(
             target.querySelector(".o_import_data_content tr:first-child td span:nth-child(2)")
                 .textContent,
-            "Deco addict",
+            "Acme Corporation",
             "first example is shown"
         );
         assert.strictEqual(
             target.querySelector(".o_import_data_content tr:first-child td span:nth-child(2)")
                 .dataset.tooltipInfo,
-            '{"lines":["Deco addict","Azure Interior","Brandon Freeman"]}',
+            '{"lines":["Acme Corporation","Azure Interior","Brandon Freeman"]}',
             "tooltip contains other examples"
         );
         assert.containsNone(
@@ -584,6 +603,28 @@ QUnit.module("Base Import Tests", (hooks) => {
         );
     });
 
+    QUnit.test("Import view: import a CSV file with uppercase extension", async function (assert) {
+        registerFakeHTTPService((route, params) => {
+            assert.strictEqual(route, "/base_import/set_file");
+            assert.strictEqual(
+                params.ufile[0].name,
+                "fake_file.CSV",
+                "file with uppercase .CSV extension is correctly uploaded to the server"
+            );
+        });
+        await createImportAction();
+
+        // Simulate uploading a .CSV file (uppercase extension)
+        const file = new File(["fake_file"], "fake_file.CSV", { type: "text/plain" });
+        await editInput(target, ".o_control_panel_main_buttons input[type='file'].d-none", file);
+
+        assert.containsOnce(
+            target,
+            ".o_import_data_sidepanel .o_import_formatting",
+            "formatting options are shown for uppercase extention .CSV file"
+        );
+    });
+
     QUnit.test("Import view: additional options in debug", async function (assert) {
         patchWithCleanup(odoo, { debug: true });
         registerFakeHTTPService();
@@ -609,6 +650,103 @@ QUnit.module("Base Import Tests", (hooks) => {
             ".o_import_data_sidepanel .o_import_debug_options",
             "additional options are present in the side panel in debug mode"
         );
+    });
+
+    QUnit.test("batched import doesn't exit when a failure occurs", async function (assert) {
+        serverData.actions[2] = {
+            id: 2,
+            name: "Partner List",
+            res_model: "partner",
+            type: "ir.actions.act_window",
+            domain: "[]",
+            views: [[false, "list"]],
+        };
+
+        serverData.views = {
+            "partner,false,list": `<list><field name="name"/></list>`,
+            "partner,false,search": "<search></search>",
+        };
+
+        registerFakeHTTPService();
+
+        patchWithCleanup(ImportAction.prototype, {
+            get isBatched() {
+                // make sure the UI displays the batched import options
+                return true;
+            },
+        });
+
+        const notificationMock = (message) => {
+            assert.step(message);
+            return () => {};
+        };
+        registry
+            .category("services")
+            .add("notification", makeFakeNotificationService(notificationMock), {
+                force: true,
+            });
+
+        patchWithCleanup(browser, {
+            setTimeout: (fn) => fn(),
+        });
+
+        const steps = [
+            (args) => executeImport(args, true),
+            (args) => executeFailingImport(args[1][0]),
+        ];
+
+        const webClient = await createWebClient({
+            serverData,
+            mockRPC: function (route, args) {
+                switch (route) {
+                    case "/web/dataset/call_kw/partner/get_import_templates":
+                        return Promise.resolve([]);
+
+                    case "/web/dataset/call_kw/base_import.import/parse_preview":
+                        return parsePreview(args.args[1]);
+
+                    case "/web/dataset/call_kw/base_import.import/execute_import":
+                        return steps.shift()(args.args);
+
+                    case "/web/dataset/call_kw/base_import.import/create":
+                        return Promise.resolve(11);
+
+                    case "base_import.import/get_fields":
+                        return Promise.resolve(serverData.models.partner.fields);
+
+                    case "/web/action/load":
+                        assert.step(`/web/action/load id=${args.action_id}`);
+                }
+            },
+        });
+
+        await doAction(webClient, 2);
+        await doAction(webClient, 1);
+
+        assert.verifySteps(["/web/action/load id=2", "/web/action/load id=1"]);
+
+        const file = new File(["fake_file"], "fake_file.xlsx", { type: "text/plain" });
+        await editInput(target, ".o_control_panel_main_buttons input[type='file']", file);
+        await editInput(target, "input#o_import_batch_limit", 1);
+
+        const importButton = Array.from(
+            target.querySelectorAll(".o_control_panel_main_buttons button")
+        ).find((e) => e.textContent === "Import");
+
+        await click(importButton);
+        await nextTick();
+
+        assert.strictEqual(
+            target.querySelector(".alert-danger")?.textContent,
+            "The file contains blocking errors (see below)"
+        );
+
+        assert.strictEqual(
+            target.querySelector(".o_import_report.alert-danger")?.textContent,
+            "Incorrect value"
+        );
+
+        assert.verifySteps([]); // This makes sure that we don't exit the import action
     });
 
     QUnit.test(
@@ -666,7 +804,7 @@ QUnit.module("Base Import Tests", (hooks) => {
             assert.strictEqual(
                 target.querySelector(".o_import_data_content tr:first-child td span:first-child")
                     .textContent,
-                "Foo, Deco addict, Azure Interior, Brandon Freeman",
+                "Foo, Acme Corporation, Azure Interior, Brandon Freeman",
                 "column title is shown as a list of rows elements"
             );
             assert.strictEqual(
@@ -1218,6 +1356,43 @@ QUnit.module("Base Import Tests", (hooks) => {
         );
     });
 
+    QUnit.test("Import view: test in batches then reset starting row", async function (assert) {
+        registerFakeHTTPService();
+
+        patchWithCleanup(ImportAction.prototype, {
+            get isBatched() {
+                return true;
+            },
+        });
+
+        await createImportAction({
+            "base_import.import/execute_import": (route, args) => executeImport(args, true),
+        });
+
+        const file = new File(["fake_file"], "fake_file.xls", { type: "text/plain" });
+        await editInput(target, ".o_control_panel_main_buttons input[type='file']", file);
+        await editInput(target, "input#o_import_batch_limit", 1);
+
+        // click on the test button
+        await click(target.querySelector(".o_control_panel_main_buttons button:nth-child(2)"));
+        await nextTick();
+        assert.strictEqual(target.querySelector("input#o_import_row_start").value, "2");
+        await nextTick();
+        assert.strictEqual(target.querySelector("input#o_import_row_start").value, "3");
+
+        // The import is now done
+        await nextTick();
+        assert.strictEqual(
+            target.querySelector(".o_import_data_content .alert-info").textContent,
+            "Everything seems valid."
+        );
+        assert.strictEqual(
+            target.querySelector("input#o_import_row_start").value,
+            "1",
+            "the actual import will start at line 1 after testing"
+        );
+    });
+
     QUnit.test(
         "Import view: relational fields correctly mapped on preview",
         async function (assert) {
@@ -1308,7 +1483,8 @@ QUnit.module("Base Import Tests", (hooks) => {
         registerFakeHTTPService();
 
         patchWithCleanup(ImportAction.prototype, {
-            get isBatched() { // Make sure the UI displays the batched import options
+            get isBatched() {
+                // Make sure the UI displays the batched import options
                 return true;
             },
         });

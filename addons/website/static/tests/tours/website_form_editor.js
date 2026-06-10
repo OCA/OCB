@@ -153,6 +153,39 @@ registerWebsitePreviewTour("website_form_editor_tour", {
     {
         trigger: ":iframe .s_website_form_field",
     },
+    // Check if fields in two form snippet have unique IDs
+    {
+        content: "Drop another form snippet",
+        trigger: "#oe_snippets .oe_snippet .oe_snippet_thumbnail[data-snippet='s_website_form']:not(.o_we_ongoing_insertion)",
+        run: "drag_and_drop :iframe #wrap",
+    },
+    {
+        content: "Check if there are two form snippets on the page",
+        trigger: ":iframe .s_website_form:nth-of-type(2) .s_website_form_field",
+    },
+    {
+        content: "Check that the first field of both the form snippets have different IDs",
+        trigger: ":iframe .s_website_form:nth-of-type(1) input[name='name']",
+        run: function() {
+            const firstFieldForm1El = this.anchor;
+            const firstFieldForm2El = firstFieldForm1El.ownerDocument.querySelector(
+                ".s_website_form:nth-of-type(2) input[name='name']"
+            );
+            if (firstFieldForm1El.id === firstFieldForm2El.id) {
+                console.error("The first fields of two different form snippet have the same ID");
+            }
+        },
+    },
+    {
+        content: "Click on the second form",
+        trigger: ":iframe .s_website_form:nth-of-type(2)",
+        run: "click",
+    },
+    {
+        content: "Remove the second snippet",
+        trigger: ":iframe .oe_overlay.oe_active .oe_snippet_remove",
+        run: "click",
+    },
     {
         content: "Select form by clicking on an input field",
         trigger: ':iframe section.s_website_form input',
@@ -193,6 +226,14 @@ registerWebsitePreviewTour("website_form_editor_tour", {
         content: "Form has a model name",
         trigger: ':iframe section.s_website_form form[data-model_name="mail.mail"]',
         run: "click",
+    }, {
+        content: "Set the offset and width of the Phone Number field",
+        trigger: ':iframe input[name="phone"]',
+        run: function () {
+            const fieldEl = this.anchor.closest('.s_website_form_field');
+            fieldEl.classList.add('offset-lg-3');
+            fieldEl.classList.add('col-lg-9');
+        },
     }, {
         content: 'Edit the Phone Number field',
         trigger: ':iframe input[name="phone"]',
@@ -389,13 +430,28 @@ registerWebsitePreviewTour("website_form_editor_tour", {
         trigger: 'we-list table input:eq(0)',
         run: "edit Germany",
     }, {
+        content: "Check that the label has been changed on the snippet",
+        trigger: ":iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
+            ":has(option:contains('Germany'))",
+        run: function () {},
+    }, {
         content: "Change Option 2 Label",
         trigger: 'we-list table input:eq(1)',
         run: "edit Belgium",
     }, {
+        content: "Check that the label has been changed on the snippet",
+        trigger: ":iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
+            ":has(option:contains('Belgium'))",
+        run: function () {},
+    }, {
         content: "Change first Option 3 label",
         trigger: 'we-list table input:eq(2)',
         run: "edit France",
+    }, {
+        content: "Check that the label has been changed on the snippet",
+        trigger: ":iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
+            ":has(option:contains('France'))",
+        run: function () {},
     },
     {
         // TODO: Fix code to avoid this behavior
@@ -416,13 +472,26 @@ registerWebsitePreviewTour("website_form_editor_tour", {
     },
     {
         content: "Change last Option label",
-        trigger: 'we-list table input:eq(3)',
+        trigger: "we-list table input:eq(3)[name='Item']",
         // TODO: Fix code to avoid blur event
         run: "edit Canada",
+    },
+    {
+        content: "Check that the label has been changed on the snippet",
+        trigger: ":iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
+            ":has(option:contains('Canada'))",
+        run: function () {},
     }, {
         content: "Remove Germany Option",
         trigger: '.o_we_select_remove_option:eq(0)',
         run: "click",
+    },
+    {
+        content: "Check that the Germany option was removed",
+        trigger: ":iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
+            ":has(label:contains('State'))" +
+            ":not(:has(option:contains('Germany')))",
+        run: function () {},
     },
     {
         // TODO: Fix code to avoid this behavior
@@ -436,7 +505,7 @@ registerWebsitePreviewTour("website_form_editor_tour", {
         run: "click",
     }, {
         content: "Change last option label with a number",
-        trigger: 'we-list table input:eq(3)',
+        trigger: "we-list table input:eq(3)[name='Item']",
         run: "edit 44 - UK",
     }, {
         content: "Check that the input value is the full option value",
@@ -544,6 +613,19 @@ registerWebsitePreviewTour("website_form_editor_tour", {
         content: 'Verify that phone field is still auto-fillable',
         trigger: ':iframe .s_website_form_field input[data-fill-with="phone"]:value("+1 555-555-5555")',
         run: "click",
+    },
+    {
+        content: "Check that the offset and width of the Phone Number field are still correct",
+        trigger: ':iframe .s_website_form_field input[data-fill-with="phone"]',
+        run: function () {
+            const fieldEl = this.anchor.closest('.s_website_form_field');
+            if (!fieldEl.classList.contains('offset-lg-3')) {
+                throw new Error("The offset of the Phone Number field should have been kept");
+            }
+            if (!fieldEl.classList.contains('col-lg-9')) {
+                throw new Error("The width of the Phone Number field should have been kept");
+            }
+        },
     },
     // Check that the resulting form behavior is correct.
     {
@@ -1053,7 +1135,7 @@ registerWebsitePreviewTour("website_form_editable_content", {
     },
     {
         content: "Check that the new text value was correctly set",
-        trigger: ":iframe section.s_website_form h5:contains(/^ABC$/)",
+        trigger: ":iframe section.s_website_form h5:text(ABC)",
     },
     {
         content: "Remove the dropped column",
@@ -1083,7 +1165,6 @@ registerWebsitePreviewTour("website_form_special_characters", {
         run: "click",
     },
     ...addCustomField("char", "text", `Test1"'`, false),
-    ...addCustomField("char", "text", 'Test2`\\', false),
     ...clickOnSave(),
     ...essentialFieldsForDefaultFormFillInSteps,
     {
@@ -1094,10 +1175,6 @@ registerWebsitePreviewTour("website_form_special_characters", {
         content: "Complete the first added field",
         trigger: `:iframe input[name="${CSS.escape("Test1&quot;'")}"]`,
         run: "edit test1",
-    }, {
-        content: "Complete the second added field",
-        trigger: `:iframe input[name="${CSS.escape("Test2`\\")}"]`,
-        run: "edit test2",
     }, {
         content: "Click on 'Submit'",
         trigger: ":iframe a.s_website_form_send",

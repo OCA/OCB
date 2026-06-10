@@ -55,3 +55,8 @@ class PosSession(models.Model):
             > 0
         )
         return sessions
+
+    def _get_gc_sequence_prefix(self):
+        res = super()._get_gc_sequence_prefix()
+        res.append('pos.order_')
+        return res

@@ -1,23 +1,26 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* payment_stripe
-# 
+# * payment_stripe
+#
 # Translators:
 # Wil Odoo, 2024
-# 
+#
+# "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 08:56+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Wil Odoo, 2024\n"
-"Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
+"POT-Creation-Date: 2025-12-29 18:38+0000\n"
+"PO-Revision-Date: 2026-02-07 10:35+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-18/"
+"payment_stripe/ja/>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: payment_stripe
 #. odoo-javascript
@@ -66,7 +69,7 @@ msgstr "Webhookを作成"
 #. module: payment_stripe
 #: model_terms:ir.ui.view,arch_db:payment_stripe.payment_provider_form
 msgid "Get your Secret and Publishable keys"
-msgstr "シークレットと公開可能キーを入手"
+msgstr "SecretキーとPublishableキーを取得してください"
 
 #. module: payment_stripe
 #: model:ir.model.fields,help:payment_stripe.field_payment_provider__stripe_webhook_secret
@@ -74,7 +77,8 @@ msgid ""
 "If a webhook is enabled on your Stripe account, this signing secret must be "
 "set to authenticate the messages sent from Stripe to Odoo."
 msgstr ""
-"StripeアカウントでWebhookが有効になっている場合、StripeからOdooに送信されるメッセージを認証するためにこの署名シークレットを設定する必要があります。"
+"StripeアカウントでWebhookが有効になっている場合、Odooに送信されるメッセージを"
+"認証するために、この署名用シークレットを設定する必要があります。"
 
 #. module: payment_stripe
 #. odoo-javascript
@@ -112,7 +116,7 @@ msgstr "支払トークン"
 #. module: payment_stripe
 #: model:ir.model,name:payment_stripe.model_payment_transaction
 msgid "Payment Transaction"
-msgstr "決済トランザクション"
+msgstr "支払取引"
 
 #. module: payment_stripe
 #. odoo-javascript
@@ -165,12 +169,14 @@ msgstr "Stripe"
 msgid ""
 "Stripe Connect is not available in your country, please use another payment "
 "provider."
-msgstr "Stripe Connectはお客様の国では使用できません。他の決済プロバイダーをご利用ください。"
+msgstr ""
+"Stripe Connectはお客様の国では使用できません。他の決済プロバイダーをご利用く"
+"ださい。"
 
 #. module: payment_stripe
 #: model:ir.model.fields,field_description:payment_stripe.field_payment_token__stripe_mandate
 msgid "Stripe Mandate"
-msgstr "Stripe委任状"
+msgstr "Stripe同意書"
 
 #. module: payment_stripe
 #: model:ir.model.fields,field_description:payment_stripe.field_payment_token__stripe_payment_method
@@ -225,7 +231,9 @@ msgstr "Stripeのアカウントを識別するためにのみ使用されるキ
 msgid ""
 "The refund did not go through. Please log into your Stripe Dashboard to get "
 "more information on that matter, and address any accounting discrepancies."
-msgstr "返金が行われませんでした。Stripeダッシュボードにログインして、この件に関する詳細情報を取得し、会計上の不一致に対処して下さい。"
+msgstr ""
+"返金が行われませんでした。Stripeダッシュボードにログインして、この件に関する"
+"詳細情報を取得し、会計上の不一致に対処して下さい。"
 
 #. module: payment_stripe
 #: model:ir.model.fields,help:payment_stripe.field_payment_provider__code
@@ -260,23 +268,29 @@ msgstr "Stripe Webhookが正常に設定されました！"
 #: code:addons/payment_stripe/models/payment_provider.py:0
 msgid ""
 "You cannot create a Stripe Webhook if your Stripe Secret Key is not set."
-msgstr "Stripeシークレットキーが設定されてない場合は、Stripe Webhookを作成できません。"
+msgstr ""
+"Stripeシークレットキーが設定されてない場合は、Stripe Webhookを作成できませ"
+"ん。"
 
 #. module: payment_stripe
 #. odoo-python
 #: code:addons/payment_stripe/models/payment_provider.py:0
 msgid ""
-"You cannot set the provider state to Enabled until your onboarding to Stripe"
-" is completed."
-msgstr "Stripeへのオンボーディングが完了するまで、プロバイダーの状態を有効に設定することはできません。"
+"You cannot set the provider state to Enabled until your onboarding to Stripe "
+"is completed."
+msgstr ""
+"Stripeへのオンボーディングが完了するまで、プロバイダーの状態を有効に設定する"
+"ことはできません。"
 
 #. module: payment_stripe
 #. odoo-python
 #: code:addons/payment_stripe/models/payment_provider.py:0
 msgid ""
-"You cannot set the provider to Test Mode while it is linked with your Stripe"
-" account."
-msgstr "Stripeアカウントとリンクしている間は、プロバイダーをテストモードに設定することはできません。"
+"You cannot set the provider to Test Mode while it is linked with your Stripe "
+"account."
+msgstr ""
+"Stripeアカウントとリンクしている間は、プロバイダーをテストモードに設定するこ"
+"とはできません。"
 
 #. module: payment_stripe
 #. odoo-python

@@ -96,3 +96,59 @@ test("reply shows correct author avatar", async () => {
         }/avatar_128?unique=${deserializeDateTime(partner.write_date).ts}`}`
     );
 });
+
+test("reply with only attachment shows parent message context", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "general" });
+    const originalMessageId = pyEnv["mail.message"].create({
+        body: "Original message content",
+        message_type: "comment",
+        model: "discuss.channel",
+        res_id: channelId,
+    });
+    const attachmentId = pyEnv["ir.attachment"].create({
+        name: "test_image.png",
+        mimetype: "image/png",
+    });
+    pyEnv["mail.message"].create({
+        attachment_ids: [attachmentId],
+        body: "",
+        message_type: "comment",
+        model: "discuss.channel",
+        parent_id: originalMessageId,
+        res_id: channelId,
+    });
+    await start();
+    await openDiscuss(channelId);
+    await contains(".o-mail-MessageInReply-message", {
+        text: "Original message content",
+    });
+});
+
+test("click on message in reply in inbox navigates to the parent message", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    const messageId = pyEnv["mail.message"].create({
+        body: "Parent message",
+        message_type: "comment",
+        model: "discuss.channel",
+        res_id: channelId,
+    });
+    pyEnv["mail.message"].create({
+        body: "Reply to parent message",
+        message_type: "comment",
+        model: "discuss.channel",
+        needaction: true,
+        parent_id: messageId,
+        res_id: channelId,
+    });
+    await start();
+    await openDiscuss("mail.box_inbox");
+    await click(".o-mail-MessageInReply-message", {
+        parent: [".o-mail-Message", { text: "Reply to parent message" }],
+    });
+    await contains(
+        ".o-mail-Discuss-content:has(.o-mail-Discuss-threadName[title='General']) .o-mail-Message.o-highlighted .o-mail-Message-content",
+        { text: "Parent message" }
+    );
+});

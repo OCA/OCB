@@ -18,9 +18,9 @@
                     'o-chatWindow mx-2': env.inChatWindow,
                     'mb-3': env.inChatWindow and !props.composer.message,
                     'o-discussApp': env.inDiscussApp,
-                }" t-attf-class="{{ props.className }}">
+                }" t-attf-class="{{ props.className }}" t-ref="root">
             <div class="o-mail-Composer-sidebarMain flex-shrink-0" t-if="showComposerAvatar">
-                <img class="o-mail-Composer-avatar o_avatar rounded" t-att-src="store.self.avatarUrl" alt="Avatar of user"/>
+                <img class="o-mail-Composer-avatar o_avatar rounded" t-att-src="(thread?.effectiveSelf or message.effectiveSelf).avatarUrl" alt="Avatar of user"/>
             </div>
             <div class="o-mail-Composer-coreHeader text-truncate small p-2" t-if="props.composer.thread and props.messageToReplyTo?.thread?.eq(props.composer.thread)">
                 <span class="cursor-pointer" t-on-click="() => env.messageHighlight?.highlightMessage(props.messageToReplyTo.message, props.composer.thread)">
@@ -42,7 +42,8 @@
                     <div class="position-relative flex-grow-1">
                         <t t-set="inputClasses" t-value="'o-mail-Composer-inputStyle form-control border-0 rounded-3'"/>
                         <textarea class="o-mail-Composer-input o-mail-Composer-bg shadow-none overflow-auto text-body"
-                            t-att-class="inputClasses"
+                            t-att-class="{ 'o-mobile': isMobileOS }"
+                            t-attf-class="{{ inputClasses }}"
                             t-ref="textarea"
                             t-on-keydown="onKeydown"
                             t-on-focusin="onFocusin"
@@ -60,7 +61,8 @@
                         -->
                         <textarea
                             class="o-mail-Composer-fake position-absolute overflow-hidden"
-                            t-att-class="inputClasses"
+                            t-att-class="{ 'o-mobile': isMobileOS }"
+                            t-attf-class="{{ inputClasses }}"
                             t-model="props.composer.text"
                             t-ref="fakeTextarea"
                             disabled="1"
@@ -184,10 +186,12 @@
     <t t-name="mail.Composer.suggestionPartner">
         <t t-set="partner" t-value="option.partner"/>
         <ImStatus t-if="partner" persona="partner"/>
-        <strong class="px-2 py-1 align-self-center flex-shrink-0 text-truncate">
+        <t t-set="title" t-value="partner.name"/>
+        <t t-if="partner.email" t-set="title" t-value="`${title} (${partner.email})`"/>
+        <strong class="o-mail-Composer-suggestionPartner-name px-2 py-1 align-self-center flex-shrink-0 text-truncate" t-att-class="{'o-has-email': partner.email, 'mw-100': !partner.email}" t-att-title="title">
             <t t-esc="partner.name"/>
         </strong>
-        <span t-if="partner.email" class="text-600 text-truncate align-self-center">(<t t-esc="partner.email"/>)</span>
+        <span t-if="partner.email" class="text-600 text-truncate align-self-center" t-att-title="title">(<t t-esc="partner.email"/>)</span>
     </t>
 
     <t t-name="mail.Composer.suggestionThread">

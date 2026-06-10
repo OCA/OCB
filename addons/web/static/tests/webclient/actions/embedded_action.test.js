@@ -40,7 +40,7 @@ class Partner extends models.Model {
         { id: 5, display_name: "Fifth record", foo: "zoup", m2o: 1, o2m: [] },
     ];
     _views = {
-        "form,false": `
+        form: `
             <form>
                 <header>
                     <button name="object" string="Call method" type="object"/>
@@ -70,9 +70,8 @@ class Partner extends models.Model {
                     </t>
                 </templates>
             </kanban>`,
-        "list,false": `<list><field name="foo"/></list>`,
-        "pivot,false": `<pivot/>`,
-        "search,false": `<search><field name="foo" string="Foo"/></search>`,
+        list: `<list><field name="foo"/></list>`,
+        search: `<search><field name="foo" string="Foo"/></search>`,
     };
 }
 
@@ -85,19 +84,19 @@ class Pony extends models.Model {
         { id: 9, name: "Fluttershy" },
     ];
     _views = {
-        "list,false": `<list>
+        list: `<list>
                             <field name="name"/>
                             <button name="action_test" type="object" string="Action Test" column_invisible="not context.get('display_button')"/>
                         </list>`,
-        "kanban,false": `<kanban>
+        kanban: `<kanban>
                             <templates>
                                 <t t-name="card">
                                     <field name="name"/>
                                 </t>
                             </templates>
                         </kanban>`,
-        "form,false": `<form><field name="name"/></form>`,
-        "search,false": `<search>
+        form: `<form><field name="name"/></form>`,
+        search: `<search>
                             <filter name="my_filter" string="My filter" domain="[['name', '=', 'Applejack']]"/>
                         </search>`,
     };
@@ -282,22 +281,21 @@ test("breadcrumbs are updated when clicking on embeddeds", async () => {
     ).click();
     expect(".o_control_panel .breadcrumb-item").toHaveCount(0);
     expect(".o_control_panel .o_breadcrumb .active").toHaveText("Partners Action 1");
+    expect(browser.location.href).toBe("https://www.hoot.test/odoo/action-1");
     await contains(".o_embedded_actions > button > span:contains('Embedded Action 2')").click();
     await runAllTimers();
+    expect(browser.location.href).toBe("https://www.hoot.test/odoo/action-3");
     expect(router.current.action).toBe(3, {
         message: "the current action should be the one of the embedded action previously clicked",
     });
-    expect(queryAllTexts(".breadcrumb-item, .o_breadcrumb .active")).toEqual([
-        "Partners Action 1",
-        "Favorite Ponies",
-    ]);
+    expect(queryAllTexts(".breadcrumb-item, .o_breadcrumb .active")).toEqual(["Favorite Ponies"]);
     await contains(".o_embedded_actions > button > span:contains('Embedded Action 3')").click();
     await runAllTimers();
+    expect(browser.location.href).toBe("https://www.hoot.test/odoo/action-4");
     expect(router.current.action).toBe(4, {
         message: "the current action should be the one of the embedded action previously clicked",
     });
     expect(queryAllTexts(".breadcrumb-item, .o_breadcrumb .active")).toEqual([
-        "Partners Action 1",
         "Favorite Ponies from python action",
     ]);
 });
@@ -480,7 +478,7 @@ test("User should be redirected to the first embedded action set in localStorage
 });
 
 test("execute a regular action from an embedded action", async () => {
-    Pony._views["form,false"] = `
+    Pony._views["form"] = `
         <form>
             <button type="action" name="2" string="Execute another action"/>
             <field name="name"/>

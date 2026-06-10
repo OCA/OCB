@@ -3,7 +3,7 @@
 import re
 from datetime import datetime, timedelta
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.addons.stock_account.tests.test_anglo_saxon_valuation_reconciliation_common import ValuationReconciliationTestCommon
 from odoo.exceptions import UserError
@@ -428,14 +428,19 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         self.assertEqual(len(purchase_order.picking_ids.move_line_ids), 1)
         self.assertEqual(purchase_order.picking_ids.move_line_ids.quantity_product_uom, 7)
 
-
+        # -- Decrease the quantity -- #
         purchase_order.order_line.product_qty = 4
-        # updating quantity shouldn't create a seperate stock move
+        # updating quantity shouldn't create a separate stock move
         # the new stock move (-3) should be merged with the previous
-        purchase_order.button_confirm()
         self.assertEqual(len(purchase_order.picking_ids), 1)
         self.assertEqual(len(purchase_order.picking_ids.move_line_ids), 1)
         self.assertEqual(purchase_order.picking_ids.move_line_ids.quantity_product_uom, 4)
+
+        # -- Increase the quantity -- #
+        purchase_order.order_line.product_qty = 14
+        self.assertEqual(len(purchase_order.picking_ids), 1)
+        self.assertEqual(len(purchase_order.picking_ids.move_line_ids), 1)
+        self.assertEqual(purchase_order.picking_ids.move_line_ids.quantity_product_uom, 14)
 
     def test_message_qty_already_received(self):
         self.env.user.write({'company_id': self.company_data['company'].id})
@@ -632,6 +637,8 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         self.assertEqual(quant.quantity, 5)
 
     def test_po_edit_after_receive(self):
+        # Picking types can be detached from any warehouse; ensure PO confirmation still works.
+        self.company_data['default_warehouse'].in_type_id.warehouse_id = False
         self.po = self.env['purchase.order'].create(self.po_vals)
         self.po.button_confirm()
         self.po.picking_ids.move_ids.quantity = 5
@@ -640,6 +647,16 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         self.assertEqual(self.po.picking_ids.move_ids.mapped('product_uom_qty'), [5.0, 5.0])
         self.po.with_context(import_file=True).order_line[0].product_qty = 10
         self.assertEqual(self.po.picking_ids.move_ids.mapped('product_uom_qty'), [5.0, 5.0, 5.0])
+
+    def test_po_edit_after_receive_2_steps_route(self):
+        self.company_data['default_warehouse'].reception_steps = 'two_steps'
+        self.po = self.env['purchase.order'].create(self.po_vals)
+        self.po.button_confirm()
+        self.po.picking_ids.move_ids.quantity = 1
+        Form.from_action(self.env, self.po.picking_ids.button_validate()).save().process()
+        self.assertEqual(self.po.picking_ids.move_ids.mapped('product_uom_qty'), [1.0, 1.0, 4.0, 4.0])
+        self.po.order_line[0].product_qty = 3
+        self.assertEqual(self.po.picking_ids.move_ids.mapped('product_uom_qty'), [1.0, 1.0, 2.0, 4.0])
 
     def test_receive_returned_product_without_po_update(self):
         """
@@ -678,6 +695,7 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         """
         Receive a negative quantity, the picking should be a delivery and the quantity received
         negative. """
+        self.product_id_2.type = 'consu'
         po_vals = {
             'partner_id': self.partner_a.id,
             'order_line': [Command.create({
@@ -808,3 +826,176 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         line = invoice.invoice_line_ids[0]
         self.assertEqual(line.amount_currency, 100.0)
         self.assertEqual(line.balance, 66.67)
+
+    def test_bill_on_ordered_qty_correct_converted_amount_on_bill(self):
+        """ Ensure bill line balance is correctly calculated from a purchase order line."""
+        product1, product2 = self.test_product_order, self.test_product_delivery
+        product1.write({'purchase_method': 'purchase', 'standard_price': 500})
+        euro = self.env.ref('base.EUR')
+        euro.active = True
+        self.env['res.currency.rate'].create({
+            'name': fields.Date.today(),
+            'company_rate': 1.10,
+            'currency_id': euro.id,
+            'company_id': self.env.company.id,
+        })
+        purchase_order = self.env['purchase.order'].create({
+            'partner_id': self.partner_a.id,
+            'currency_id': euro.id,
+            'order_line': [Command.create({
+                'product_id': product1.id,
+                'product_qty': 8,
+            }), Command.create({
+                'product_id': product2.id,
+                'product_qty': 8,
+            })],
+        })
+        purchase_order.button_confirm()
+        purchase_order.action_create_invoice()
+        product1_order_line_price_unit = purchase_order.order_line.filtered(
+            lambda ol: ol.product_id == product1
+        ).price_unit
+        bill1_line_balance = purchase_order.invoice_ids.invoice_line_ids.balance
+        self.assertAlmostEqual(
+            bill1_line_balance,
+            purchase_order.currency_id._convert(
+                product1_order_line_price_unit * 8,
+                self.env.company.currency_id,
+            ),
+            places=self.env.company.currency_id.decimal_places,
+        )
+
+        purchase_order.picking_ids.button_validate()
+        purchase_order.action_create_invoice()
+        product2_order_line_price_unit = purchase_order.order_line.filtered(
+            lambda ol: ol.product_id == product2
+        ).price_unit
+        bill2_line_balance = purchase_order.invoice_ids.invoice_line_ids.filtered(
+            lambda bl: bl.product_id == product2
+        ).balance
+        self.assertAlmostEqual(
+            bill2_line_balance,
+            purchase_order.currency_id._convert(
+                product2_order_line_price_unit * 8,
+                self.env.company.currency_id,
+            ),
+            places=self.env.company.currency_id.decimal_places,
+        )
+
+    def test_foreign_bill_tax_included(self):
+        """ Test the bill values with a PO having tax included in price """
+        currency = self.env['res.currency'].create({
+            'name': "Test",
+            'symbol': 'T',
+            'rounding': 0.01,
+            'rate_ids': [
+                Command.create({'name': '2025-01-01', 'rate': 1.5}),
+            ],
+        })
+        tax_price_include = self.env['account.tax'].create({
+            'name': '10% incl',
+            'type_tax_use': 'purchase',
+            'amount_type': 'percent',
+            'amount': 10,
+            'price_include_override': 'tax_included',
+            'include_base_amount': True,
+        })
+
+        po = self.env['purchase.order'].create({
+            'partner_id': self.partner_a.id,
+            'currency_id': currency.id,
+            'payment_term_id': self.pay_terms_a.id,
+            'order_line': [Command.create({
+                'product_id': self.product_id_1.id,
+                'price_unit': 100.0,
+                'product_qty': 3,
+                'taxes_id': [Command.set(tax_price_include.ids)],
+            })],
+        })
+        po.button_confirm()
+
+        picking = po.picking_ids[0]
+        picking.move_line_ids.quantity = 3.0
+        picking.move_ids.picked = True
+        picking.button_validate()
+
+        po.action_create_invoice()
+
+        self.assertRecordValues(po.invoice_ids.line_ids.sorted('tax_line_id'), [
+            {
+                'amount_currency': 272.73,
+                'credit': 0,
+                'debit': 181.82,
+            },
+            {
+                'amount_currency': -300.0,
+                'credit': 200,
+                'debit': 0,
+            },
+            {
+                'amount_currency': 27.27,
+                'credit': 0,
+                'debit': 18.18,
+            },
+        ])
+
+    def test_cogs_no_taxes(self):
+        """Taxes should not be set on COGS lines."""
+        purchase_tax = self.company_data['default_tax_purchase']
+        vendor = self.env['res.partner'].create({
+            'name': 'Test Vendor',
+            'is_company': True,
+        })
+        fifo_category = self.env['product.category'].create({
+            'name': 'FIFO Category',
+            'property_cost_method': 'fifo',
+            'property_valuation': 'real_time',
+        })
+        fifo_product = self.env['product.product'].create({
+            'name': 'FIFO Product',
+            'categ_id': fifo_category.id,
+            'supplier_taxes_id': [Command.set(purchase_tax.ids)],
+        })
+        stock_location = self.env['stock.warehouse'].search([
+            ('company_id', '=', self.env.company.id),
+        ], limit=1).lot_stock_id
+        customer_location = self.env.ref('stock.stock_location_customers')
+
+        po = self.env['purchase.order'].create({
+            'partner_id': vendor.id,
+            'order_line': [
+                Command.create({
+                    'product_id': fifo_product.id,
+                    'product_qty': 10,
+                    'price_unit': 10,
+                })
+            ],
+        })
+        po.button_confirm()
+
+        receipt = po.picking_ids[0]
+        receipt.button_validate()
+
+        move_out = self.env['stock.move'].create({
+            'name': fifo_product.name,
+            'product_id': fifo_product.id,
+            'product_uom': fifo_product.uom_id.id,
+            'product_uom_qty': 6,
+            'location_id': stock_location.id,
+            'location_dest_id': customer_location.id,
+        })
+        move_out._action_confirm()
+        move_out.quantity = 6
+        move_out.picked = True
+        move_out._action_done()
+
+        action = po.action_create_invoice()
+        bill = self.env['account.move'].browse(action['res_id'])
+        for line in bill.invoice_line_ids:
+            if line.product_id == fifo_product:
+                line.price_unit = 20
+        bill.invoice_date = fields.Date.today()
+        bill.action_post()
+
+        cogs_lines = bill.line_ids.filtered(lambda l: l.display_type == 'cogs')
+        self.assertRecordValues(cogs_lines, [{'tax_ids': []} for _ in cogs_lines])

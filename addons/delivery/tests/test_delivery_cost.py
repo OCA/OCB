@@ -299,6 +299,42 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
         shipping_weight = sale_order._get_estimated_weight()
         self.assertEqual(shipping_weight, self.product.weight, "Only positive quantity products' weights should be included in estimated weight")
 
+    def test_get_invalid_delivery_weight_lines(self):
+        """Ensure we can retrieve lines that contain physical products without a weight value."""
+        order = self.empty_order
+        weightless_product = self._create_product(weight=0.0, list_price=50.0)
+        combos = self.env['product.combo'].create([{
+                'name': "Combo A",
+                'combo_item_ids': [Command.create({'product_id': self.product.id})],
+            }, {
+                'name': "Combo B",
+                'combo_item_ids': [Command.create({'product_id': weightless_product.id})],
+            },
+        ])
+        combo_product = self._create_product(type='combo', combo_ids=combos.ids)
+        combo_line = self.env['sale.order.line'].create({
+            'order_id': order.id,
+            'product_id': combo_product.id,
+        })
+        order.order_line = [
+            *[Command.create({
+                'product_id': product.id,
+                'combo_item_id': combo.combo_item_ids.id,
+                'linked_line_id': combo_line.id,
+            }) for product, combo in zip(self.product + weightless_product, combos)],
+            Command.create({'product_id': weightless_product.id, 'product_uom_qty': 0}),
+            Command.create({'product_id': self.service_product.id}),
+            Command.create({'display_type': 'line_section', 'name': "Misc."}),
+            Command.create({'is_downpayment': True, 'price_unit': 5.0}),
+        ]
+        error_lines = order.order_line._get_invalid_delivery_weight_lines()
+        self.assertIn(
+            weightless_product, error_lines.product_id,
+            "The weightless product should be part of the erroneous lines",
+        )
+        self.assertEqual(len(error_lines), 1, "Only 1 line should have an invalid weight")
+        self.assertTrue(error_lines.combo_item_id, "The erroneous line should be part of a combo")
+
     def test_fixed_price_margins(self):
         """
          margins should be ignored for fixed price carriers
@@ -562,3 +598,51 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
         delivery_sol = so.order_line[-1]
         self.assertEqual(delivery_sol.product_id, delivery.product_id)
         self.assertEqual(delivery_sol.price_subtotal, 12.5)
+
+    def test_base_on_rule_cost_for_combo_product(self):
+        """
+        For based on rules delivery methods that use the quantity to compute the cost,
+        check that the cost is computed correctly when there is a combo product.
+        """
+        delivery = self.env["delivery.carrier"].create({
+            "name": "Delivery Charges",
+            "delivery_type": "base_on_rule",
+            "product_id": self.product_delivery_normal.id,
+            "price_rule_ids": [
+                Command.create({
+                    "variable": "quantity",
+                    "operator": ">=",
+                    "max_value": 0,
+                    "list_base_price": 0,
+                    "list_price": 5,
+                    "variable_factor": "quantity",
+                })
+            ],
+        })
+
+        combo = self.env["product.combo"].create({
+            "name": "Desks Combo",
+            "combo_item_ids": [Command.create({"product_id": self.product.id})],
+        })
+
+        product_combo = self._create_product(type="combo", combo_ids=combo.ids)
+
+        so = self.env["sale.order"].create({
+            "partner_id": self.partner_4.id,
+            "partner_invoice_id": self.partner_4.id,
+            "partner_shipping_id": self.partner_4.id,
+            "order_line": [
+                Command.create({
+                    "product_id": product_combo.id,
+                    "product_uom_qty": 5,
+                    "product_uom": self.uom_unit.id,
+                }),
+                Command.create({
+                    "product_id": self.product.id,
+                    "product_uom_qty": 5,
+                    "product_uom": self.uom_unit.id,
+                })
+            ],
+        })
+
+        self.assertEqual(delivery._get_price_available(so), 25)

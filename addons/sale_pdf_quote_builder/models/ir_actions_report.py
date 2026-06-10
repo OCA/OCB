@@ -21,6 +21,8 @@ class IrActionsReport(models.Model):
         orders = self.env['sale.order'].browse(res_ids)
 
         for order in orders:
+            if order.id not in result or 'stream' not in result[order.id]:
+                continue
             initial_stream = result[order.id]['stream']
             if initial_stream:
                 quotation_documents = order.quotation_document_ids
@@ -142,7 +144,7 @@ class IrActionsReport(models.Model):
                     formatted_value_ = format_amount(
                         self.env, value_, currency_id_ or order.currency_id
                     )
-                elif not value_:
+                elif not value_ and field_type_ not in {'integer', 'float'}:
                     formatted_value_ = ''
                 elif field_type_ == 'date':
                     formatted_value_ = format_date(self.env, value_)
@@ -206,6 +208,9 @@ class IrActionsReport(models.Model):
                 # Modifying the annots that hold every information about the form fields
                 for j in range(len(page['/Annots'])):
                     reader_annot = page['/Annots'][j].getObject()
+                    # Check parent object for '/T' if missing.
+                    if '/T' not in reader_annot and '/Parent' in reader_annot:
+                        reader_annot = reader_annot['/Parent'].getObject()
                     if reader_annot.get('/T') in field_names:
                         # Prefix all form fields in the document with the document identifier.
                         # This is necessary to know which value needs to be taken when filling the forms.

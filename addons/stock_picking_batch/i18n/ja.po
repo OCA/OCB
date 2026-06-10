@@ -1,29 +1,28 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* stock_picking_batch
-# 
+# * stock_picking_batch
+#
 # Translators:
 # Wil Odoo, 2024
 # Junko Augias, 2025
-# 
+#
+# "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-19 20:37+0000\n"
-"PO-Revision-Date: 2024-09-25 09:42+0000\n"
-"Last-Translator: Junko Augias, 2025\n"
-"Language-Team: Japanese (https://app.transifex.com/odoo/teams/41243/ja/)\n"
+"POT-Creation-Date: 2026-04-10 18:39+0000\n"
+"PO-Revision-Date: 2026-05-02 09:26+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-18/"
+"stock_picking_batch/ja/>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#. module: stock_picking_batch
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
-msgid "2023-08-20"
-msgstr "2023-08-20"
+"X-Generator: Weblate 5.17\n"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_type_kanban_batch
@@ -45,8 +44,8 @@ msgid ""
 "<span class=\"o_form_label fw-bold\" invisible=\"not auto_batch\">Batch "
 "Grouping</span>"
 msgstr ""
-"<span class=\"o_form_label fw-bold\" invisible=\"not "
-"auto_batch\">一括グループ化</span>"
+"<span class=\"o_form_label fw-bold\" invisible=\"not auto_batch\">一括グルー"
+"プ化</span>"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
@@ -86,16 +85,19 @@ msgstr "<strong>→</strong>"
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_type__batch_max_lines
 msgid ""
-"A transfer will not be automatically added to batches that will exceed this number of lines if the transfer is added to it.\n"
+"A transfer will not be automatically added to batches that will exceed this "
+"number of lines if the transfer is added to it.\n"
 "Leave this value as '0' if no line limit."
 msgstr ""
-"この明細数を超えるバッチに転送が追加されても、転送は自動的に追加されません。\n"
+"この明細数を超えるバッチに転送が追加されても、転送は自動的に追加されませ"
+"ん。\n"
 "明細数制限がない場合は、この値を '0' のままにしておきます。"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_type__batch_max_pickings
 msgid ""
-"A transfer will not be automatically added to batches that will exceed this number of transfers.\n"
+"A transfer will not be automatically added to batches that will exceed this "
+"number of transfers.\n"
 "Leave this value as '0' if no transfer limit."
 msgstr ""
 "この転送回数を超えるバッチには、転送は自動的に追加されません。\n"
@@ -114,7 +116,7 @@ msgstr "活動"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
 msgid "Activity Exception Decoration"
-msgstr "例外活動文字装飾"
+msgstr "例外の活動を示す装飾"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_state
@@ -124,7 +126,7 @@ msgstr "活動状態"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "活動種別アイコン"
+msgstr "活動タイプアイコン"
 
 #. module: stock_picking_batch
 #. odoo-python
@@ -507,7 +509,9 @@ msgstr "チェックした場合は、一部のメッセージに配信エラー
 msgid ""
 "If the Automatic Batches feature is enabled, at least one 'Group by' option "
 "must be selected."
-msgstr "自動バッチ機能が有効な場合、少なくとも1つの'グループごと'オプションを選択する必要があります。"
+msgstr ""
+"自動バッチ機能が有効な場合、少なくとも1つの'グループごと'オプションを選択する"
+"必要があります。"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
@@ -559,7 +563,9 @@ msgstr "遅れた活動"
 msgid ""
 "Launch picking orders by aisle or area and regroup at packing zone. Ideal "
 "for large warehouses."
-msgstr "通路またはエリアごとにピッキングオーダを出し、梱包ゾーンで再グループ化します。大規模な倉庫に適しています。"
+msgstr ""
+"通路またはエリアごとにピッキングオーダを出し、梱包ゾーンで再グループ化しま"
+"す。大規模な倉庫に適しています。"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_add_to_wave__line_ids
@@ -638,6 +644,12 @@ msgid "My Transfers"
 msgstr "自分の転送"
 
 #. module: stock_picking_batch
+#. odoo-python
+#: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
+msgid "New"
+msgstr "新規"
+
+#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
 msgstr "次の活動カレンダーイベント"
@@ -698,7 +710,9 @@ msgstr "梱包ID"
 msgid ""
 "Pick multiple orders in one trip and prepare orders as you pick. This "
 "reduces packing time and is ideal for small products."
-msgstr "一度に複数のオーダを選択し、ピッキングしながらオーダを準備します。梱包時間を短縮でき、小型のプロダクトに適しています。"
+msgstr ""
+"一度に複数のオーダを選択し、ピッキングしながらオーダを準備します。梱包時間を"
+"短縮でき、小型のプロダクトに適しています。"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_add_to_wave__picking_ids
@@ -713,9 +727,9 @@ msgstr "ピッキングタイプ"
 #. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
-msgid ""
-"Please add 'Done' quantities to the batch picking to create a new pack."
-msgstr "新しいパックを作成するには、バッチピッキングに'完了' の数量を追加して下さい。"
+msgid "Please add 'Done' quantities to the batch picking to create a new pack."
+msgstr ""
+"新しいパックを作成するには、バッチピッキングに'完了' の数量を追加して下さい。"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_type_kanban_batch
@@ -796,8 +810,7 @@ msgstr "評価"
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.action_picking_tree_wave
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.stock_picking_batch_action
 msgid ""
-"Regroup multiple orders into one picking and consolidate at the packing "
-"zone."
+"Regroup multiple orders into one picking and consolidate at the packing zone."
 msgstr "複数のオーダを1つのピッキングにまとめ、梱包ゾーンでまとめます。"
 
 #. module: stock_picking_batch
@@ -827,20 +840,26 @@ msgstr "SMS配信エラー"
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__scheduled_date
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
 msgid "Scheduled Date"
-msgstr "計画日"
+msgstr "予定日"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__scheduled_date
 msgid ""
 "Scheduled date for the transfers to be processed.\n"
-"              - If manually set then scheduled date for all transfers in batch will automatically update to this date.\n"
-"              - If not manually changed and transfers are added/removed/updated then this will be their earliest scheduled date\n"
-"                but this scheduled date will not be set for all transfers in batch."
+"              - If manually set then scheduled date for all transfers in "
+"batch will automatically update to this date.\n"
+"              - If not manually changed and transfers are added/removed/"
+"updated then this will be their earliest scheduled date\n"
+"                but this scheduled date will not be set for all transfers in "
+"batch."
 msgstr ""
 "処理される転送の予定日\n"
-"　　　　- 手動で設定した場合、バッチ内のすべての予定日が自動的にこの日付に更新されます。\n"
-"　　　　- 手動で変更されず、転送が追加/削除/更新された場合、この日が最も早い予定日となります。\n"
-"　　　　しかし、この予定日はバッチ内のすべての振込に設定されるわけではありません。"
+"　　　　- 手動で設定した場合、バッチ内のすべての予定日が自動的にこの日付に更"
+"新されます。\n"
+"　　　　- 手動で変更されず、転送が追加/削除/更新された場合、この日が最も早い"
+"予定日となります。\n"
+"　　　　しかし、この予定日はバッチ内のすべての振込に設定されるわけではありま"
+"せん。"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
@@ -892,20 +911,25 @@ msgstr "移動元ロケーション"
 msgid ""
 "Split transfers by defined locations, then group transfers with the same "
 "location."
-msgstr "転送を定義したロケーションで分割し、同じロケーションの転送をグループ化します。"
+msgstr ""
+"転送を定義したロケーションで分割し、同じロケーションの転送をグループ化しま"
+"す。"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_type__wave_group_by_category
 msgid ""
-"Split transfers by product category, then group transfers that have the same"
-" product category."
-msgstr "プロダクトカテゴリ別に転送を分割し、同じプロダクトカテゴリの転送をグループ化します。"
+"Split transfers by product category, then group transfers that have the same "
+"product category."
+msgstr ""
+"プロダクトカテゴリ別に転送を分割し、同じプロダクトカテゴリの転送をグループ化"
+"します。"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_type__wave_group_by_product
 msgid ""
 "Split transfers by product then group transfers that have the same product."
-msgstr "プロダクト別に転送を分割し、同じプロダクトを持つ転送をグループ化します。"
+msgstr ""
+"プロダクト別に転送を分割し、同じプロダクトを持つ転送をグループ化します。"
 
 #. module: stock_picking_batch
 #: model:mail.message.subtype,description:stock_picking_batch.mt_batch_state
@@ -917,7 +941,7 @@ msgstr "ステージ変更済"
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__state
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
 msgid "State"
-msgstr "都道府県・州"
+msgstr "状態"
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
@@ -933,7 +957,7 @@ msgid ""
 "Planned: Future activities."
 msgstr ""
 "活動に基づくステータス\n"
-"遅延: 期限が既に過ぎています\n"
+"期限超過：期限日がすでに過ぎています\n"
 "今日: 活動日は今日です\n"
 "予定: 将来の活動。"
 
@@ -972,11 +996,13 @@ msgstr "要約:"
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid ""
-"The following transfers cannot be added to batch transfer %(batch)s. Please check their states and operation types.\n"
+"The following transfers cannot be added to batch transfer %(batch)s. Please "
+"check their states and operation types.\n"
 "\n"
 "Incompatibilities: %(incompatible_transfers)s"
 msgstr ""
-"以下の運送は、一括転送 %(batch)sに追加することができません。ステータスとオペレーションタイプを確認して下さい。\n"
+"以下の運送は、一括転送 %(batch)sに追加することができません。ステータスとオペ"
+"レーションタイプを確認して下さい。\n"
 "\n"
 "非互換性: %(incompatible_transfers)s"
 
@@ -1055,7 +1081,7 @@ msgstr "処理タイプ"
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "記録上の例外活動の種類。"
+msgstr "レコード上の例外の活動タイプ。"
 
 #. module: stock_picking_batch
 #. odoo-python
@@ -1167,3 +1193,6 @@ msgstr "shipping_volume"
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__estimated_shipping_weight
 msgid "shipping_weight"
 msgstr "shipping_weight"
+
+#~ msgid "2023-08-20"
+#~ msgstr "2023-08-20"

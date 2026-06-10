@@ -67,13 +67,13 @@ class ResCompany(models.Model):
         for company in self:
             placeholder = 'N/A'
             if company.l10n_my_identification_type == 'NRIC':
-                placeholder = '830503-11-4923'
+                placeholder = '830503114923'
             elif company.l10n_my_identification_type == 'BRN':
                 placeholder = '202201234565'
             elif company.l10n_my_identification_type == 'PASSPORT':
                 placeholder = 'A00000000'
             elif company.l10n_my_identification_type == 'ARMY':
-                placeholder = '830805-13-4983'
+                placeholder = '830805134983'
             company.l10n_my_identification_number_placeholder = placeholder
 
     # ----------------
@@ -85,3 +85,7 @@ class ResCompany(models.Model):
         self.ensure_one()
         if not self.l10n_my_edi_proxy_user_id:
             self.env['account_edi_proxy_client.user']._register_proxy_user(self, 'l10n_my_edi', self.l10n_my_edi_mode)
+
+    def _l10n_my_edi_enabled(self):
+        self.ensure_one()
+        return bool(self.sudo().l10n_my_edi_proxy_user_id)

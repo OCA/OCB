@@ -1,6 +1,17 @@
-import { expect, test } from "@odoo/hoot";
-import { click, edit, press, queryAllTexts, queryOne, scroll } from "@odoo/hoot-dom";
-import { animationFrame, mockDate, mockTimeZone } from "@odoo/hoot-mock";
+import {
+    animationFrame,
+    click,
+    edit,
+    expect,
+    mockDate,
+    mockTimeZone,
+    press,
+    queryAllTexts,
+    queryOne,
+    scroll,
+    test,
+    waitFor,
+} from "@odoo/hoot";
 import {
     assertDateTimePicker,
     getPickerCell,
@@ -336,7 +347,7 @@ test("multi edition of date field in list view: clear date in input", async () =
     expect(".o_field_date input").toHaveCount(1);
     await fieldInput("date").clear();
 
-    expect(".modal").toHaveCount(1);
+    expect(await waitFor(".modal")).toHaveCount(1);
     await contains(".modal .modal-footer .btn-primary").click();
 
     expect(".o_data_row:first-child .o_data_cell").toHaveText("");
@@ -502,4 +513,43 @@ test("date field with max_precision option", async () => {
     await click(getPickerCell("12"));
     await animationFrame();
     expect(".o_field_widget[name='date'] input").toHaveValue("01/12/2017");
+});
+
+test("DateField with onchange forcing a specific date", async () => {
+    mockDate("2009-05-04 10:00:00", +1);
+
+    Partner._onChanges.date = (obj) => {
+        if (obj.char_field === "force today") {
+            obj.date = "2009-05-04";
+        }
+    };
+
+    await mountView({
+        type: "form",
+        resModel: "res.partner",
+        arch: /* xml */ `
+            <form>
+                <field name="char_field"/>
+                <field name="date"/>
+            </form>`,
+    });
+
+    expect(".o_field_date input").toHaveValue("");
+
+    // enable the onchange
+    await contains(".o_field_widget[name=char_field] input").edit("force today");
+
+    // open the picker and try to set a value different from today
+    await click(".o_field_date input");
+    await animationFrame();
+    expect(".o_datetime_picker").toHaveCount(1);
+    await contains(getPickerCell("22")).click(); // 22 May 2009
+    expect(".o_field_date input").toHaveValue("05/04/2009"); // value forced by the onchange
+
+    // do it again (the technical flow is a bit different as now the current value is already today)
+    await click(".o_field_date input");
+    await animationFrame();
+    expect(".o_datetime_picker").toHaveCount(1);
+    await contains(getPickerCell("22")).click(); // 22 May 2009
+    expect(".o_field_date input").toHaveValue("05/04/2009"); // value forced by the onchange
 });

@@ -2,7 +2,6 @@
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError, RedirectWarning
-from odoo.tools import cleanup_xml_node
 
 COUNTRY_CODE_MAP = {
     "BD": "BGD", "BE": "BEL", "BF": "BFA", "BG": "BGR", "BA": "BIH", "BB": "BRB", "WF": "WLF", "BL": "BLM", "BM": "BMU",
@@ -186,6 +185,73 @@ class AccountMove(models.Model):
                 if digits:
                     move.l10n_id_coretax_add_info_08 = f"TD.005{digits[-2:]}"
 
+    def _validate_tax_groups(self):
+        err_messages = []
+        allowed_codes = {'01', '02', '03', '04', '05', '06', '09', '10'}
+        must_be_zero_codes = {'07', '08'}
+
+        for move in self:
+            kode = move.l10n_id_kode_transaksi
+            non_luxury_group = self.env['account.chart.template'].with_company(move.company_id.id).ref("l10n_id_tax_group_non_luxury_goods", raise_if_not_found=False)
+            luxury_group = self.env['account.chart.template'].with_company(move.company_id.id).ref("l10n_id_tax_group_luxury_goods", raise_if_not_found=False)
+            zero_group = self.env['account.chart.template'].with_company(move.company_id.id).ref("l10n_id_tax_group_0", raise_if_not_found=False)
+            exempt_group = self.env['account.chart.template'].with_company(move.company_id.id).ref("l10n_id_tax_group_exempt", raise_if_not_found=False)
+            stlg_group = self.env['account.chart.template'].with_company(move.company_id.id).ref("l10n_id_tax_group_stlg", raise_if_not_found=False)
+            default_group = self.env['account.chart.template'].with_company(move.company_id.id).ref("default_tax_group", raise_if_not_found=False)
+            product_lines = move.line_ids.filtered(lambda line: line.display_type == 'product')
+            all_taxes = product_lines.mapped('tax_ids')
+            tax_groups = set(all_taxes.mapped('tax_group_id'))
+            ppn_groups = {non_luxury_group, luxury_group, zero_group, exempt_group, default_group}
+            ppn_groups.discard(False)
+            ppn_tax_groups = [g for g in tax_groups if g in ppn_groups]
+            stlg_tax_groups = [g for g in tax_groups if g == stlg_group]
+
+            # Multiple tax groups check
+            if len(ppn_tax_groups) > 1:
+                err_messages.append(_("Invoice %s: can only have one PPN tax group (excluding STLG).", move.name or ''))
+            if len(stlg_tax_groups) > 1:
+                err_messages.append(_("Invoice %s: can only have one STLG group.", move.name or ''))
+            if not (ppn_tax_groups or stlg_tax_groups):
+                err_messages.append(_("Invoice %s: need to have at least one PPN or STLG tax group.", move.name or ''))
+
+            # Allowed codes (01-06, 09, 10)
+            if kode in allowed_codes:
+                for line in product_lines:
+                    line_tax_groups = set(line.tax_ids.mapped('tax_group_id'))
+                    if luxury_group and non_luxury_group and {luxury_group, non_luxury_group}.issubset(line_tax_groups):
+                        err_messages.append(_(
+                            "Invoice %(inv)s: line '%(line)s' contains both Luxury-Goods and Non-Luxury-Goods taxes.",
+                            inv=move.name or '', line=line.product_id.display_name or '')
+                        )
+                    if non_luxury_group and stlg_group and {non_luxury_group, stlg_group}.issubset(line_tax_groups):
+                        err_messages.append(_(
+                            "Invoice %(inv)s: line '%(line)s' contains both Non-Luxury-Goods and STLG taxes.",
+                            inv=move.name or '', line=line.product_id.display_name or '')
+                        )
+                    if stlg_group and stlg_group in line_tax_groups:
+                        if not (luxury_group and luxury_group in line_tax_groups):
+                            err_messages.append(_(
+                                "Invoice %(inv)s: line '%(line)s' has STLG tax but missing the required Luxury-Goods tax.",
+                                inv=move.name or '', line=line.product_id.display_name or '')
+                            )
+                    for tax in line.tax_ids:
+                        if ((hasattr(tax, 'amount') and float(tax.amount) == 0.0) or (tax.tax_group_id in {zero_group, exempt_group})):
+                            err_messages.append(_(
+                                "Invoice %(inv)s: transaction code %(kode)s does not allow 0%% (Zero-rated or Exempt) taxes.",
+                                inv=move.name or '', kode=kode)
+                            )
+
+            # Must-be-zero codes (07-08)
+            elif kode in must_be_zero_codes:
+                for line in product_lines:
+                    for tax in line.tax_ids:
+                        if hasattr(tax, 'amount') and float(tax.amount) != 0.0:
+                            err_messages.append(_(
+                                "Invoice %(inv)s: transaction code %(kode)s must always have tax amount 0%%.",
+                                inv=move.name or '', kode=kode)
+                            )
+        return err_messages
+
     def download_efaktur(self):
         """OVERRIDE l10n_id_efaktur
 
@@ -233,8 +299,11 @@ class AccountMove(models.Model):
                 if not (record.l10n_id_coretax_add_info_08 and record.l10n_id_coretax_facility_info_08):
                     err_messages.append(_("Invoice %s doesn't contain the Additional info and Facility Stamp yet (Kode 08)", record.name))
 
+        # Check tax groups
+        err_messages.extend(self._validate_tax_groups())
+
         if err_messages:
-            err_messages = [_('Unable to download E-faktur fot he following reasons(s):')] + err_messages
+            err_messages = [_('Unable to download E-faktur for the following reason(s):')] + err_messages
             raise ValidationError('\n - '.join(err_messages))
 
         # All invoices in self have no documents; we can create a new one for them.
@@ -273,6 +342,13 @@ class AccountMove(models.Model):
         partner = self.commercial_partner_id
         trx_code = self.l10n_id_kode_transaksi
 
+        l10n_id_buyer_document_type_mapping_to_xml = {
+            'TIN': 'TIN',
+            'NIK': 'National ID',
+            'Passport': 'Passport',
+            'Other': 'Other ID'
+        }
+
         vals.update({
             "TIN": self.company_id.vat,
             "TaxInvoiceDate": self.invoice_date.strftime("%Y-%m-%d"),
@@ -284,7 +360,7 @@ class AccountMove(models.Model):
             "FacilityStamp": "",
             "RefDesc": self.name,
             "SellerIDTKU": self.company_id.vat + self.company_id.partner_id.l10n_id_tku,
-            "BuyerDocument": partner.l10n_id_buyer_document_type,
+            "BuyerDocument": l10n_id_buyer_document_type_mapping_to_xml.get(partner.l10n_id_buyer_document_type, partner.l10n_id_buyer_document_type),
             "BuyerTin": partner.vat if partner.l10n_id_buyer_document_type == "TIN" else "0000000000000000",
             "BuyerCountry": COUNTRY_CODE_MAP.get(partner.country_id.code),
             "BuyerDocumentNumber": partner.l10n_id_buyer_document_number if partner.l10n_id_buyer_document_type != "TIN" else "",

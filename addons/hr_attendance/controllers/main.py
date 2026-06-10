@@ -2,6 +2,7 @@
 
 from odoo.service.common import exp_version
 from odoo import http, _
+from odoo.exceptions import UserError
 from odoo.http import request
 from odoo.osv import expression
 from odoo.tools import float_round, py_to_js_locale, SQL
@@ -85,17 +86,20 @@ class HrAttendance(http.Controller):
         if not company:
             return request.not_found()
         else:
-            department_list = [{'id': dep["id"],
-                                 'name': dep["name"],
-                                 'count': dep["total_employee"]
-                                 } for dep in request.env['hr.department'].sudo().search_read(domain=[('company_id', '=', company.id)],
-                                                                                              fields=["id",
-                                                                                                      "name",
-                                                                                                      "total_employee"])]
+            department_list = [
+                {"id": dep["id"], "name": dep["name"], "count": dep["total_employee"]}
+                for dep in request.env["hr.department"]
+                .with_context(allowed_company_ids=[company.id])
+                .sudo()
+                .search_read(
+                    domain=[("company_id", "=", company.id)],
+                    fields=["id", "name", "total_employee"],
+                )
+            ]
             has_password = self.has_password()
             if not from_trial_mode and has_password:
                 request.session.logout(keep_db=True)
-            if (from_trial_mode or not has_password):
+            if (from_trial_mode or (not has_password and not request.env.user.is_public)):
                 kiosk_mode = "settings"
             else:
                 kiosk_mode = company.attendance_kiosk_mode
@@ -151,6 +155,16 @@ class HrAttendance(http.Controller):
 
     @http.route('/hr_attendance/employees_infos', type="json", auth="public")
     def employees_infos(self, token, limit, offset, domain):
+        for condition in domain:
+            if not isinstance(condition, (list, tuple)) or len(condition) != 3:
+                continue
+            field_name, operator, _value = condition  # Force '&' implicit syntax
+            if field_name not in ('name', 'department_id') or operator not in ('=', 'ilike'):
+                raise UserError(_(
+                    "Invalid domain, use 'name' and/or 'department_id' fields "
+                    "with '=' and/or 'ilike' operators.",
+                ))
+
         company = self._get_company(token)
         if company:
             domain = expression.AND([domain, [('company_id', '=', company.id)]])

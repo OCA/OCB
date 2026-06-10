@@ -108,7 +108,7 @@ class PricelistItem(models.Model):
              " in order to show discount to customer.",
         index=True, default='fixed', required=True)
 
-    fixed_price = fields.Float(string="Fixed Price", digits='Product Price')
+    fixed_price = fields.Float(string="Fixed Price", min_display_digits='Product Price')
     percent_price = fields.Float(
         string="Percentage Price",
         help="You can apply a mark-up by setting a negative discount.")
@@ -120,13 +120,13 @@ class PricelistItem(models.Model):
         help="You can apply a mark-up by setting a negative discount.")
     price_round = fields.Float(
         string="Price Rounding",
-        digits='Product Price',
+        min_display_digits='Product Price',
         help="Sets the price so that it is a multiple of this value.\n"
              "Rounding is applied after the discount and before the surcharge.\n"
              "To have prices that end in 9.99, round off to 10.00 and set an extra at -0.01")
     price_surcharge = fields.Float(
         string="Extra Fee",
-        digits='Product Price',
+        min_display_digits='Product Price',
         help="Specify the fixed amount to add or subtract (if negative) to the amount calculated with the discount.")
 
     price_markup = fields.Float(
@@ -139,11 +139,11 @@ class PricelistItem(models.Model):
 
     price_min_margin = fields.Float(
         string="Min. Price Margin",
-        digits='Product Price',
+        min_display_digits='Product Price',
         help="Specify the minimum amount of margin over the base price.")
     price_max_margin = fields.Float(
         string="Max. Price Margin",
-        digits='Product Price',
+        min_display_digits='Product Price',
         help="Specify the maximum amount of margin over the base price.")
 
     # functional fields used for usability purposes
@@ -173,6 +173,20 @@ class PricelistItem(models.Model):
             else:
                 item.name = _("All Products")
 
+    def _get_price_label_base_str(self):
+        """This method allows you to extend it to other modules with other
+        options in the base field to return a different text.
+        """
+        self.ensure_one()
+        base_str = ""
+        if self.base == 'pricelist' and self.base_pricelist_id:
+            base_str = self.base_pricelist_id.display_name
+        elif self.base == 'standard_price':
+            base_str = _("product cost")
+        else:
+            base_str = _("sales price")
+        return base_str
+
     @api.depends(
         'compute_price', 'fixed_price', 'pricelist_id', 'percent_price', 'price_discount',
         'price_markup', 'price_surcharge', 'base', 'base_pricelist_id',
@@ -196,13 +210,7 @@ class PricelistItem(models.Model):
                         percentage=percentage
                     )
             else:
-                base_str = ""
-                if item.base == 'pricelist' and item.base_pricelist_id:
-                    base_str = item.base_pricelist_id.display_name
-                elif item.base == 'standard_price':
-                    base_str = _("product cost")
-                else:
-                    base_str = _("sales price")
+                base_str = item._get_price_label_base_str()
 
                 extra_fee_str = ""
                 if item.price_surcharge > 0:
@@ -283,6 +291,11 @@ class PricelistItem(models.Model):
 
     #=== CONSTRAINT METHODS ===#
 
+    @api.constrains('base_pricelist_id', 'base')
+    def _check_base_pricelist_id(self):
+        if any(item.base == 'pricelist' and not item.base_pricelist_id for item in self):
+            raise ValidationError(_('A pricelist item with "Other Pricelist" as base must have a base_pricelist_id.'))
+
     @api.constrains('base_pricelist_id', 'pricelist_id', 'base')
     def _check_pricelist_recursion(self):
         if any(item.base == 'pricelist' and item.pricelist_id and item.pricelist_id == item.base_pricelist_id for item in self):
@@ -333,6 +346,7 @@ class PricelistItem(models.Model):
 
     @api.onchange('compute_price')
     def _onchange_compute_price(self):
+        self.base_pricelist_id = False
         if self.compute_price != 'fixed':
             self.fixed_price = 0.0
         if self.compute_price != 'percentage':
@@ -394,7 +408,9 @@ class PricelistItem(models.Model):
     def _onchange_rule_content(self):
         if not self.env.context.get('default_applied_on', False):
             # If we aren't coming from a specific product template/variant.
-            variants_rules = self.filtered('product_id')
+            variants_rules = self.filtered(
+                lambda r: bool(r.product_id) and bool(r.product_tmpl_id)
+            )
             template_rules = (self-variants_rules).filtered('product_tmpl_id')
             category_rules = self.filtered(lambda cat: cat.categ_id and cat.categ_id.name != 'All')
             variants_rules.update({'applied_on': '0_product_variant'})

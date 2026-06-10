@@ -100,12 +100,16 @@ class MarketingCardController(Controller):
         card = _get_card_from_url(card_id, card_slug)
 
         campaign_sudo = card.sudo().campaign_id
-        redirect_url = campaign_sudo.link_tracker_id.short_url or campaign_sudo.target_url or campaign_sudo.get_base_url()
+        # don't count clicks from preview
+        redirect_url = campaign_sudo.target_url or campaign_sudo.get_base_url()
+        if card.active:
+            redirect_url = campaign_sudo.link_tracker_id.short_url or redirect_url
 
         if _is_crawler(request):
             return request.render('marketing_card.card_campaign_crawler', {
                 'image_url': card._get_card_url(),
                 'post_text': campaign_sudo.post_suggestion,
+                'post_suggestion': campaign_sudo.post_suggestion,
                 'target_name': card.display_name or '',
             })
 

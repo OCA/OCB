@@ -57,11 +57,9 @@ class AccountMove(models.Model):
             if response_data:
                 rec.l10n_eg_uuid = response_data.get('l10n_eg_uuid')
                 rec.l10n_eg_submission_number = response_data.get('l10n_eg_submission_number')
-                rec.l10n_eg_long_id = response_data.get('l10n_eg_long_id')
             else:
                 rec.l10n_eg_uuid = False
                 rec.l10n_eg_submission_number = False
-                rec.l10n_eg_long_id = False
 
     def button_draft(self):
         self.l10n_eg_eta_json_doc_id = False
@@ -123,7 +121,11 @@ class AccountMove(models.Model):
         from_currency = self.currency_id
         to_currency = self.company_id.currency_id
         if from_currency != to_currency and self.invoice_line_ids:
-            amount_currency = self.invoice_line_ids[0].amount_currency
+            first_product_line = self.invoice_line_ids.filtered(lambda line: line.display_type == "product")[:1]
+            amount_currency = first_product_line.amount_currency
             if not float_is_zero(amount_currency, precision_rounding=from_currency.rounding):
-                return abs(self.invoice_line_ids[0].balance / amount_currency)
+                # The `balance` on an invoice line is a rounded value, calculated using the invoice_currency_rate.
+                # To avoid rounding discrepancies, the rate is recalculated from this final rounded balance instead of
+                # directly using invoice_currency_rate.
+                return abs(first_product_line.balance / amount_currency)
         return 1.0

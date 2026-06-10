@@ -49,6 +49,17 @@ class TestSaleStockMargin(TestStockValuationCommon):
         product_template.categ_id.property_cost_method = 'fifo'
         return product_template.product_variant_ids
 
+    def _setup_multicurrency(self):
+        usd = self.env.ref('base.USD')
+        self.company_currency = self.env.company.currency_id
+        self.other_currency = self.env.ref('base.EUR') if self.company_currency == usd else usd
+        date = fields.Date.today()
+        self.env['res.currency.rate'].create([
+            {'currency_id': self.company_currency.id, 'rate': 1, 'name': date},
+            {'currency_id': self.other_currency.id, 'rate': 2, 'name': date},
+        ])
+        return self.company_currency, self.other_currency
+
     #########
     # TESTS #
     #########
@@ -200,18 +211,7 @@ class TestSaleStockMargin(TestStockValuationCommon):
         self.assertEqual(order_line_2.purchase_price, 40, "Sales order line cost should be 40.00")
 
     def test_so_and_multicurrency(self):
-        ResCurrencyRate = self.env['res.currency.rate']
-        company_currency = self.env.company.currency_id
-        other_currency = self.env.ref('base.EUR') if company_currency == self.env.ref('base.USD') else self.env.ref('base.USD')
-
-        date = fields.Date.today()
-        ResCurrencyRate.create({'currency_id': company_currency.id, 'rate': 1, 'name': date})
-        other_currency_rate = ResCurrencyRate.search([('name', '=', date), ('currency_id', '=', other_currency.id)])
-        if other_currency_rate:
-            other_currency_rate.rate = 2
-        else:
-            ResCurrencyRate.create({'currency_id': other_currency.id, 'rate': 2, 'name': date})
-
+        _company_currency, other_currency = self._setup_multicurrency()
         so = self._create_sale_order()
         so.pricelist_id = self.env['product.pricelist'].create({
             'name': 'Super Pricelist',
@@ -297,6 +297,7 @@ class TestSaleStockMargin(TestStockValuationCommon):
         self.assertEqual(sol.margin, 100)
 
     def test_purchase_price_changes(self):
+        self._setup_multicurrency()
         so = self._create_sale_order()
         product = self._create_product()
         product.categ_id.property_cost_method = 'standard'
@@ -318,6 +319,13 @@ class TestSaleStockMargin(TestStockValuationCommon):
         self.assertEqual(so.order_line[0].purchase_price, 15)
         so.action_confirm()
         self.assertEqual(so.order_line[0].purchase_price, 15)
+
+        # Set SO back to draft, and trigger purchase price recompute via currency change
+        so.with_context(disable_cancel_warning=True).action_cancel()
+        so.action_draft()
+        so.currency_id = self.other_currency
+        self.assertEqual(so.order_line.move_ids.state, 'cancel')
+        self.assertEqual(so.order_line.purchase_price, 40)
 
     def test_add_product_on_delivery_price_unit_on_sale(self):
         """ Adding a product directly on a sale order's delivery should result in the new SOL
@@ -350,3 +358,119 @@ class TestSaleStockMargin(TestStockValuationCommon):
                 'margin_percent': 0.5,
             }]
         )
+
+    def test_add_standard_product_on_delivery_cost_on_sale_order(self):
+        """ test that if product with standard cost method is added in delivery, the cost is computed."""
+        self.product1.write({
+                'standard_price': 20,
+                'list_price': 25,
+                'invoice_policy': 'order',
+            })
+        product2 = self.env['product.product'].create({
+            'name': 'product2',
+            'type': 'consu',
+            'is_storable': True,
+            'categ_id': self.env.ref('product.product_category_all').id,
+            'standard_price': 10,
+            'list_price': 20,
+            'invoice_policy': 'order',
+        })
+        sale_order = self._create_sale_order()
+        self._create_sale_order_line(sale_order, self.product1, 10, self.product1.list_price)
+        sale_order.action_confirm()
+        delivery = sale_order.picking_ids[0]
+        with Form(delivery) as delivery_form:
+            with delivery_form.move_ids_without_package.new() as move:
+                move.product_id = product2
+                move.product_uom_qty = 10
+        delivery.move_ids.quantity = 10
+        delivery.button_validate()
+        self.assertEqual(sale_order.order_line.filtered(lambda sol: sol.product_id == product2).purchase_price, 10)
+
+    def test_add_avco_product_on_delivery_cost_on_sale_order(self):
+        """ test that if product with avco cost method and an order "invoice_policy" is added in delivery, the cost is computed."""
+        categ_average = self.env['product.category'].create({
+            'name': 'AVERAGE',
+            'property_cost_method': 'average'
+        })
+        self.product1.write({
+                'standard_price': 20,
+                'list_price': 25,
+                'invoice_policy': 'order',
+            })
+        product2 = self.env['product.product'].create({
+            'name': 'product2',
+            'type': 'consu',
+            'is_storable': True,
+            'categ_id': categ_average.id,
+            'standard_price': 10,
+            'list_price': 20,
+            'invoice_policy': 'order',
+        })
+        sale_order = self._create_sale_order()
+        self._create_sale_order_line(sale_order, self.product1, 10, self.product1.list_price)
+        sale_order.action_confirm()
+        delivery = sale_order.picking_ids[0]
+        with Form(delivery) as delivery_form:
+            with delivery_form.move_ids_without_package.new() as move:
+                move.product_id = product2
+                move.product_uom_qty = 10
+        delivery.move_ids.quantity = 10
+        delivery.button_validate()
+        self.assertEqual(sale_order.order_line.filtered(lambda sol: sol.product_id == product2).purchase_price, 10)
+
+    def test_avco_does_not_mix_products_on_compute_avg_price(self):
+        """
+        Ensure that when stock moves are duplicated and their product changed,
+        the sale line linkage is cleared correctly, preventing average price
+        computation from mixing valuation layers of different products.
+
+        This test verifies that:
+        - The duplicated delivery's moves lose the original sale_line_id when the product changes.
+        - A new sale order line is created for the new product, increasing the total order lines.
+        - Validations of deliveries and return pickings proceed without errors.
+        - The purchase price on the original sale line remains accurate (unchanged).
+        """
+        categ_average = self.env['product.category'].create({
+            'name': 'AVERAGE',
+            'property_cost_method': 'average'
+        })
+
+        self.product1.write({
+            'uom_id': self.env.ref('uom.product_uom_unit').id,
+            'categ_id': categ_average.id,
+            'standard_price': 20,
+        })
+        product2 = self.env['product.product'].create({
+            'name': 'product2',
+            'uom_id': self.env.ref('uom.product_uom_dozen').id,
+            'categ_id': categ_average.id,
+        })
+
+        sale_order = self._create_sale_order()
+        sale_order_line = self._create_sale_order_line(sale_order, self.product1, 1)
+        sale_order.action_confirm()
+
+        first_delivery = sale_order.picking_ids[0]
+        second_delivery = first_delivery.copy()
+        self.assertEqual(second_delivery.move_ids.sale_line_id, sale_order_line)
+        second_delivery.move_ids.product_id = product2
+        self.assertFalse(second_delivery.move_ids.sale_line_id)
+        self.assertTrue(len(sale_order.order_line), 2)
+        second_delivery.action_confirm()
+        second_delivery.move_ids.quantity = 1
+        second_delivery.button_validate()
+        self.assertEqual(second_delivery.move_ids.sale_line_id, sale_order.order_line - sale_order_line)
+        stock_picking_return = self.env['stock.return.picking'].create({
+            'picking_id': second_delivery.id,
+        })
+        stock_picking_return.product_return_moves.quantity = 1
+        return_picking = stock_picking_return._create_return()
+        return_picking.move_ids.quantity = 1
+        return_picking.button_validate()
+        self.assertEqual(return_picking.state, 'done')
+
+        first_delivery.move_ids.quantity = 1
+        first_delivery.button_validate()
+        self.assertEqual(first_delivery.state, 'done')
+        self.assertEqual(sale_order_line.purchase_price, 20)

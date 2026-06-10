@@ -2,7 +2,7 @@
 
 from odoo import api, fields, models, _
 from odoo.addons.mail.tools.discuss import Store
-from odoo.tools import email_normalize, html2plaintext, plaintext2html
+from odoo.tools import email_normalize, email_split, html2plaintext, plaintext2html
 
 from markupsafe import Markup
 
@@ -143,7 +143,7 @@ class DiscussChannel(models.Model):
             'subject': _('Conversation with %s', self.livechat_operator_id.user_livechat_username or self.livechat_operator_id.name),
             'email_from': company.catchall_formatted or company.email_formatted,
             'author_id': self.env.user.partner_id.id,
-            'email_to': email,
+            'email_to': email_split(email)[0],
             'body_html': mail_body,
         })
         mail.send()
@@ -152,9 +152,12 @@ class DiscussChannel(models.Model):
         """
         Converting message body back to plaintext for correct data formatting in HTML field.
         """
-        return Markup('').join(
-            Markup('%s: %s<br/>') % (message.author_id.name or self.anonymous_name, html2plaintext(message.body))
-            for message in self.message_ids.sorted('id')
+        # sudo - mail.message: visitors can access messages on chats they have access to
+        messages = self.sudo().chatbot_message_ids.mail_message_id or self.message_ids
+        return Markup("").join(
+            Markup("%s: %s<br/>")
+            % (m.author_id.name or self.anonymous_name, html2plaintext(m.body))
+            for m in messages.sorted("id")
         )
 
     # =======================

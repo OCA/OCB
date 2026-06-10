@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from dateutil.relativedelta import relativedelta
+from freezegun import freeze_time
 
 from odoo import Command, fields
 from odoo.exceptions import UserError
@@ -775,6 +776,29 @@ class StockMove(TransactionCase):
         self.assertEqual(len(move1.move_line_ids), 0)
         self.assertEqual(self.env['stock.quant']._get_available_quantity(self.product_serial, self.stock_location, strict=True), 1.0)
         self.assertEqual(self.env['stock.quant']._get_available_quantity(self.product_serial, self.stock_location, lot_id=lot1, strict=False), 2.0)
+
+    def test_mixed_tracking_reservation_9(self):
+        lot1 = self.env["stock.lot"].create({"name": "lot1", "product_id": self.product_serial.id})
+        lot2 = self.env["stock.lot"].create({"name": "lot2", "product_id": self.product_serial.id})
+        self.env["stock.quant"]._update_available_quantity(self.product_serial, self.stock_location, 10, lot_id=lot1)
+        self.env["stock.quant"]._update_available_quantity(self.product_serial, self.stock_location, 1)
+        self.env["stock.quant"]._update_available_quantity(self.product_serial, self.stock_location, -1)
+        move_out = self.env['stock.move'].create({
+            'name': 'test_mixed_tracking_reservation_9',
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': self.product_serial.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 1.0,
+        })
+        move_out._action_confirm()
+        move_out._action_assign()
+        move_out.move_line_ids.lot_id = lot2
+        move_out.picked = True
+        move_out._action_done()
+        quants = self.gather_relevant(self.product_serial, self.stock_location)
+        self.assertEqual(quants.filtered(lambda q: q.lot_id == lot1).quantity, 10)
+        self.assertEqual(quants.filtered(lambda q: q.lot_id == lot2).quantity, -1)
 
     def test_putaway_1(self):
         """ Receive products from a supplier. Check that putaway rules are rightly applied on
@@ -2197,6 +2221,48 @@ class StockMove(TransactionCase):
         move_partial._action_assign()
         self.assertEqual(move_partial.state, 'assigned')
 
+    def test_availability_10(self):
+        """ test the reservation is taken into account when updating the quantity on a move."""
+        # make some stock
+        shelf_1, shelf_2 = self.stock_location.child_ids
+        lot1, lot2, lot3 = self.env['stock.lot'].create([{
+            'name': 'lot%s' % str(i),
+            'product_id': self.product_lot.id,
+        } for i in range(1, 4)])
+        pack = self.env['stock.quant.package'].create({'name': 'pack'})
+        self.env['stock.quant']._update_available_quantity(self.product_lot, shelf_1, 3, lot_id=lot1)
+        self.env['stock.quant']._update_available_quantity(self.product_lot, shelf_2, 3, lot_id=lot2)
+        self.env['stock.quant']._update_available_quantity(self.product_lot, shelf_1, 1, lot_id=lot3)
+        self.env['stock.quant']._update_available_quantity(self.product_lot, shelf_2, 3, lot_id=lot2, package_id=pack)
+
+        move = self.env['stock.move'].create({
+            'name': 'test_availability_10',
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': self.product_lot.id,
+            'product_uom': self.product_lot.uom_id.id,
+            'product_uom_qty': 1.0,
+        })
+
+        move._action_confirm()
+        move._action_assign()
+        self.assertRecordValues(move.move_line_ids, [
+            {'quantity': 1.0, 'location_id': shelf_1.id, 'lot_id': lot1.id, 'package_id': False},
+        ])
+
+        move.quantity = 8.0
+        self.assertRecordValues(move.move_line_ids, [
+            {'quantity': 3.0, 'location_id': shelf_1.id, 'lot_id': lot1.id, 'package_id': False},
+            {'quantity': 3.0, 'location_id': shelf_2.id, 'lot_id': lot2.id, 'package_id': False},
+            {'quantity': 1.0, 'location_id': shelf_1.id, 'lot_id': lot3.id, 'package_id': False},
+            {'quantity': 1.0, 'location_id': shelf_2.id, 'lot_id': lot2.id, 'package_id': pack.id},
+        ])
+
+        move.quantity = 3.0
+        self.assertRecordValues(move.move_line_ids, [
+            {'quantity': 3.0, 'location_id': shelf_1.id, 'lot_id': lot1.id, 'package_id': False},
+        ])
+
     def test_past_quantity(self):
         """Test the quantity is correct when looking in the past."""
         # make some stock
@@ -2249,6 +2315,39 @@ class StockMove(TransactionCase):
 
         self.assertAlmostEqual(self.product.qty_available, 2.0)  # 14 - a dozen
         self.assertAlmostEqual(product_in_past.qty_available, 0)
+
+    def test_past_availability_in_strict_mode(self):
+        """
+        Test the quantity is correct when looking in the past in strict mode.
+        """
+        today = fields.Date.today()
+        self.env["stock.quant"]._update_available_quantity(self.product, self.stock_location, 10.0)
+        moves = self.env['stock.move'].create([
+            {
+                'name': 'A move in of 3 x product',
+                'location_id': self.customer_location.id,
+                'location_dest_id': self.stock_location.id,
+                'product_id': self.product.id,
+                'product_uom_qty': 3.0,
+            },
+            {
+                'name': 'A move out of 2 x product',
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.customer_location.id,
+                'product_id': self.product.id,
+                'product_uom_qty': 2.0,
+            },
+        ])
+        moves._action_confirm()
+        moves._action_assign()
+        moves.picked = True
+        moves._action_done()
+        moves[0].date = fields.Date.add(today, days=-7)
+        moves[1].date = fields.Date.add(today, days=-5)
+        product = self.product.with_context(strict=True, location=self.stock_location.id)
+        self.assertAlmostEqual(product.with_context(to_date=fields.Date.add(today, days=-8)).qty_available, 10.0)
+        self.assertAlmostEqual(product.with_context(to_date=fields.Date.add(today, days=-6)).qty_available, 13.0)
+        self.assertAlmostEqual(product.with_context(to_date=fields.Date.add(today, days=-4)).qty_available, 11.0)
 
     def test_product_tree_views(self):
         """Test to make sure that there are no ACLs errors in users with basic permissions."""
@@ -4815,6 +4914,46 @@ class StockMove(TransactionCase):
         internal_transfer.button_validate()
         self.assertEqual(internal_transfer.state, 'done')
 
+    def test_validate_picking_wihtout_picked_reservations(self):
+        """
+        Check that validating a picking where every picked move is unreserved
+        raises a user error for validating an an empty transfer
+        """
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': self.ref('stock.picking_type_out'),
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'move_type': 'one',
+            'move_ids_without_package': [
+                Command.create({
+                    'name': 'test_out_with_reservation',
+                    'product_id': self.product_consu.id,
+                    'product_uom': self.product_consu.uom_id.id,
+                    'product_uom_qty': 1.0,
+                    'location_id': self.stock_location.id,
+                    'location_dest_id': self.customer_location.id,
+                }),
+                Command.create({
+                    'name': 'test_out_without_reservation',
+                    'product_id': self.product.id,
+                    'product_uom': self.product.uom_id.id,
+                    'product_uom_qty': 1.0,
+                    'location_id': self.stock_location.id,
+                    'location_dest_id': self.customer_location.id,
+                }),
+            ]
+        })
+        picking.action_confirm()
+        # pick only the unreserved move
+        picking.move_ids[1].picked = True
+        self.assertRecordValues(picking.move_ids, [
+            {'quantity': 1.0, 'picked': False, 'state': 'assigned'},
+            {'quantity': 0.0, 'picked': True, 'state': 'confirmed'},
+        ])
+        # there is nothing to validate
+        with self.assertRaises(UserError):
+            picking.button_validate()
+
     def test_set_quantity_1(self):
         move1 = self.env['stock.move'].create({
             'name': 'test_set_quantity_1',
@@ -6778,6 +6917,7 @@ class StockMove(TransactionCase):
         line2.quant_id = quant
         self.assertEqual(move.move_line_ids[1].quantity, 1.0)
 
+    @freeze_time("2025-10-10")
     def test_free_reservation(self):
         """ Checks that the free_reservation uses the latest move line when the picking or date are equal.
         """
@@ -6964,3 +7104,202 @@ class StockMove(TransactionCase):
             {'quantity': 149.97, 'quantity_product_uom': 5.29},
             {'quantity': 0.03, 'quantity_product_uom': 0},
         ])
+
+    def test_tracked_move_quantity_lot_ids_combined_write(self):
+        """ Writing both `quantity` and `lot_ids` on a tracked move in the
+        same call must keep `move.quantity` in sync with the resulting
+        `move.move_line_ids`. Otherwise the picking can be validated to
+        'done' with a positive `quantity` but no move line and no serial
+        number recorded (phantom delivery, broken traceability).
+        """
+        picking_type_out = self.env.ref('stock.picking_type_out')
+        picking_type_out.use_existing_lots = True
+        picking_type_out.use_create_lots = False
+        lots = self.env['stock.lot'].create([
+            {'name': 'SN-PHANTOM-%d' % i, 'product_id': self.product_serial.id}
+            for i in range(1, 7)
+        ])
+        for lot in lots:
+            self.env['stock.quant']._update_available_quantity(
+                self.product_serial, self.stock_location, 1.0, lot_id=lot,
+            )
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': picking_type_out.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'move_ids': [Command.create({
+                'name': self.product_serial.name,
+                'product_id': self.product_serial.id,
+                'product_uom_qty': 6.0,
+                'product_uom': self.product_serial.uom_id.id,
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.customer_location.id,
+            })],
+        })
+        picking.action_confirm()
+        picking.action_assign()
+        move = picking.move_ids
+        self.assertEqual(move.state, 'assigned')
+        self.assertEqual(len(move.move_line_ids), 6)
+        self.assertEqual(move.quantity, 6.0)
+        # The exact write the form sends when the user typed "1" in the
+        # Quantity column AND cleared every lot in the Serial Numbers
+        # widget on the same form save
+        move.write({
+            'quantity': 1.0,
+            'lot_ids': [Command.set([])],
+        })
+        self.assertFalse(move.move_line_ids)
+        self.assertEqual(move.quantity, 0.0)
+
+    def test_move_is_picked_when_quantity_set_after_empty_pick(self):
+        """
+        Verify that a stock move remains marked as picked when the quantity
+        is manually set after initially picking with zero stock.
+        """
+        delivery = self.env['stock.picking'].create({
+            'picking_type_id': self.ref('stock.picking_type_out'),
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.ref('stock.stock_location_customers'),
+            'move_ids': [
+                Command.create({
+                    'name': self.product.name,
+                    'product_id': self.product.id,
+                    'product_uom_qty': 5,
+                    'product_uom': self.product.uom_id.id,
+                    'location_id': self.stock_location.id,
+                    'location_dest_id': self.ref('stock.stock_location_customers'),
+                }),
+            ],
+        })
+        delivery.action_confirm()
+        self.assertRecordValues(delivery.move_ids, [{'quantity': 0.0, 'picked': False}])
+        delivery.move_ids.picked = True
+        delivery.move_ids.quantity = 5
+        self.assertTrue(delivery.move_ids.picked)
+
+    def test_move_state_after_split(self):
+        """Test that move states are correctly recomputed after splitting a picking."""
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': self.env.ref('stock.picking_type_out').id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.supplier_location.id,
+            'move_ids': [Command.create({
+                'name': 'move_test',
+                'product_id': self.product.id,
+                'product_uom_qty': 10,
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.supplier_location.id,
+            })]
+        })
+        self.assertEqual(picking.move_ids.forecast_availability, -10)
+        self.env['stock.quant']._update_available_quantity(self.product, self.stock_location, 10)
+        self.env.invalidate_all()
+        self.assertEqual(picking.move_ids.forecast_availability, 10)
+        picking.action_confirm()
+        self.assertEqual(picking.move_ids.state, 'assigned')
+        picking.move_ids.quantity = 4
+        self.assertEqual(picking.move_ids.state, 'partially_available')
+        picking.action_split_transfer()
+        self.assertEqual(len(picking.move_ids), 1)
+        self.assertEqual(picking.move_ids.product_uom_qty, 4)
+        self.assertEqual(picking.move_ids.state, 'assigned')
+        backorder = picking.backorder_ids
+        self.assertEqual(backorder.move_ids.product_uom_qty, 6)
+        self.assertEqual(backorder.move_ids.quantity, 6)
+        self.assertEqual(backorder.move_ids.state, 'assigned')
+
+    def test_adding_tracked_product_in_ready_picking(self):
+        """ Ensure that when adding a serial-tracked product to a picking already
+        in the 'ready' state, the explicitly assigned serial number is preserved
+        and not recomputed or replaced.
+        """
+        sn_1 = self.env['stock.lot'].create({
+            'name': 'sn1',
+            'product_id': self.product_serial.id,
+        })
+        sn_2 = self.env['stock.lot'].create({
+            'name': 'sn2',
+            'product_id': self.product_serial.id,
+        })
+        self.env['stock.quant']._update_available_quantity(self.product_serial, self.stock_location, 1, lot_id=sn_1)
+        self.env['stock.quant']._update_available_quantity(self.product_serial, self.stock_location, 1, lot_id=sn_2)
+        self.env['stock.quant']._update_available_quantity(self.product, self.stock_location, 1)
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': self.env.ref('stock.picking_type_out').id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'move_ids': [Command.create({
+                'name': self.product.name,
+                'product_id': self.product.id,
+                'product_uom_qty': 1.0,
+                'product_uom': self.product.uom_id.id,
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.customer_location.id,
+            })],
+        })
+        picking.action_confirm()
+        self.assertEqual(picking.state, 'assigned')
+        picking.move_ids = [Command.create({
+            'name': self.product_serial.name,
+            'product_id': self.product_serial.id,
+            'lot_ids': [Command.set([sn_2.id])],
+            'product_uom_qty': 1.00,
+            'quantity': 2.00,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'additional': True,
+        })]
+        self.assertEqual(picking.state, 'assigned')
+        tracked_move = picking.move_ids.filtered(lambda m: m.product_id == self.product_serial)
+        self.assertEqual(tracked_move.lot_ids, sn_2)
+        self.assertEqual(tracked_move.quantity, 1.00)
+
+    def test_modifying_lots_id_in_outgoing_picking(self):
+        """ Ensure that after setting the quantity of the move to zero, manually add serial
+        number will not add unexpected serial number to the lots_id field and cause a mismatch
+        of quantity and the number of the serial number. This test also ensures that if we change
+        the quantity back to another number, the lot_ids will be autopopulated as usual with no issue.
+        """
+        lot_1 = self.env['stock.lot'].create({
+            'name': 'SN-001',
+            'product_id': self.product_serial.id,
+        })
+        lot_2 = self.env['stock.lot'].create({
+            'name': 'SN-002',
+            'product_id': self.product_serial.id,
+        })
+        lot_3 = self.env['stock.lot'].create({
+            'name': 'SN-003',
+            'product_id': self.product_serial.id,
+        })
+        self.env['stock.quant']._update_available_quantity(self.product_serial, self.stock_location, 1.0, lot_id=lot_1)
+        self.env['stock.quant']._update_available_quantity(self.product_serial, self.stock_location, 1.0, lot_id=lot_2)
+        self.env['stock.quant']._update_available_quantity(self.product_serial, self.stock_location, 1.0, lot_id=lot_3)
+
+        form = Form(self.env['stock.picking'].with_context(restricted_picking_type_code="outgoing"))
+        with form.move_ids_without_package.new() as move:
+            move.product_id = self.product_serial
+            move.product_uom_qty = 3.0
+            move.quantity = 0
+        picking = form.save()
+        self.assertEqual(len(picking.move_ids_without_package[0].lot_ids), 0)
+
+        form = Form(picking)
+        with form.move_ids_without_package.edit(0) as move:
+            move.quantity = 2
+            move.lot_ids = lot_2 | lot_3
+        picking = form.save()
+        self.assertNotIn(lot_1, picking.move_ids_without_package[0].lot_ids)
+        self.assertEqual(len(picking.move_ids_without_package[0].lot_ids), 2)
+        self.assertIn(lot_2, picking.move_ids_without_package[0].lot_ids)
+        self.assertIn(lot_3, picking.move_ids_without_package[0].lot_ids)
+
+        form = Form(picking)
+        with form.move_ids_without_package.edit(0) as move:
+            move.quantity = 3
+        picking = form.save()
+        self.assertEqual(len(picking.move_ids_without_package[0].lot_ids), 3)
+        self.assertIn(lot_1, picking.move_ids_without_package[0].lot_ids)
+        self.assertIn(lot_2, picking.move_ids_without_package[0].lot_ids)
+        self.assertIn(lot_3, picking.move_ids_without_package[0].lot_ids)

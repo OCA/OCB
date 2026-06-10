@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from lxml.etree import LIBXML_VERSION
 from markupsafe import Markup
 from unittest.mock import patch
 
-from odoo.addons.mail.tests.common import MailCommon
+from odoo.addons.mail.tests.common import MailCommon, mail_new_test_user
 from odoo.exceptions import AccessError, ValidationError, UserError
 from odoo.tests import Form, HttpCase, tagged, users
 from odoo.tools import convert_file
@@ -27,6 +28,15 @@ class TestMailTemplate(MailCommon):
             'auto_delete': True,
             'model_id': cls.env.ref('base.model_res_partner').id,
         })
+
+        cls.user_employee_2 = mail_new_test_user(
+            cls.env,
+            company_id=cls.company_admin.id,
+            email='employee_2@test.com',
+            groups='base.group_user',
+            login='employee_2',
+            name='Albertine Another Employee',
+        )
 
     @users('employee')
     def test_mail_compose_message_content_from_template(self):
@@ -245,7 +255,11 @@ class TestMailTemplate(MailCommon):
         templates = (
             # here sanitizer adds an 'equals void' after object.name as properties
             # should have values
-            ('''<p ou="<p t-out="object.name">"</p>''', '<p ou="&lt;p t-out=" object.name="">"</p>'),
+            (
+                # Note: lxml build against libxml2 2.14.0+ interprets slightly differently malformed HTMl snippets
+                """<p ou="<p t-out="object.name">"</p>""",
+                '<p ou="&lt;p t-out=" object.name"="">"</p>' if LIBXML_VERSION >= (2, 14, 0) else '<p ou="&lt;p t-out=" object.name="">"</p>',
+            ),
             ('''<p title="'<p t-out='object.name'/>">''', '''<p title="'&lt;p t-out='object.name'/&gt;"></p>'''),
         )
         o_render = self.env['mail.render.mixin']._render_template_qweb_regex
@@ -299,6 +313,90 @@ class TestMailTemplate(MailCommon):
             employee_template.with_context(lang='fr_FR').subject = '{{ object.foo }}'
 
         employee_template.with_context(lang='fr_FR').sudo().subject = '{{ object.foo }}'
+
+    def test_mail_template_copy(self):
+        (self.user_employee + self.user_employee_2).write({
+            'groups_id': [(4, self.env.ref('mail.group_mail_template_editor').id)],
+        })
+        attachment_data_list = self._generate_attachments_data(4, self.mail_template._name, self.mail_template.id)
+        self.mail_template.write({
+            'attachment_ids': [
+                (0, 0, attachment_data)
+                for attachment_data in attachment_data_list[:2]
+            ],
+        })
+        original_attachments = self.mail_template.attachment_ids
+        # users access template, can read attachments
+        for test_user in (self.user_employee, self.user_employee_2):
+            with self.subTest(user_name=test_user.name):
+                template = self.mail_template.with_user(test_user)
+                self.assertEqual(
+                    set(template.attachment_ids.mapped('name')),
+                    {'AttFileName_00.txt', 'AttFileName_01.txt'},
+                )
+        # other template for multi copy support
+        mail_template_2 = self.env['mail.template'].create({
+            'name': 'Test Template 2',
+        })
+
+        # employee make a private copy -> other template should still be readable
+        new_template, new_template_2 = (self.mail_template + mail_template_2).with_user(self.user_employee).copy()
+        new_template.user_id = self.user_employee
+        self.assertEqual(
+            set(new_template.attachment_ids.mapped('name')),
+            {'AttFileName_00.txt', 'AttFileName_01.txt'},
+        )
+        self.assertFalse(
+            new_template.attachment_ids & original_attachments,
+            'Template copy should copy attachments, not keep the same, to avoid ACLs / ownership issues',
+        )
+        self.assertFalse(new_template_2.attachment_ids, 'Should not take attachments from first template in multi copy')
+        self.assertEqual(new_template.name, f'{self.mail_template.name} (copy)', 'Default name should be the old one + copy')
+        self.assertEqual(new_template_2.name, f'{mail_template_2.name} (copy)', 'Default name should be the old one + copy')
+        # linked to their respective template
+        self.assertEqual(new_template.attachment_ids.mapped('res_id'), new_template.ids * 2)
+        self.assertEqual(original_attachments.mapped('res_id'), self.mail_template.ids * 2)
+
+        new_template_as2 = new_template.with_user(self.user_employee_2)
+        self.assertEqual(
+            set(new_template_as2.attachment_ids.mapped('name')),
+            {'AttFileName_00.txt', 'AttFileName_01.txt'},
+        )
+
+        # check default is correctly used instead of copy
+        newer_template, newer_template_2 = (self.mail_template + mail_template_2).with_user(self.user_employee).copy(default={
+            'attachment_ids': [
+                (0, 0, attachment_data_list[2]),
+                (0, 0, attachment_data_list[3]),
+            ],
+            'name': 'My Copy',
+        })
+        self.assertEqual(
+            set(newer_template.attachment_ids.mapped('name')),
+            {'AttFileName_02.txt', 'AttFileName_03.txt'},
+        )
+        self.assertEqual(
+            set(newer_template_2.attachment_ids.mapped('name')),
+            {'AttFileName_02.txt', 'AttFileName_03.txt'},
+        )
+        self.assertFalse(
+            newer_template.attachment_ids & (original_attachments & new_template.attachment_ids),
+            'Template copy should copy attachments, not keep the same, to avoid ACLs / ownership issues',
+        )
+        self.assertFalse(
+            newer_template_2.attachment_ids & newer_template.attachment_ids,
+            'Template copy should copy attachments, not keep the same, to avoid ACLs / ownership issues',
+        )
+        self.assertEqual(newer_template.name, 'My Copy', 'Copy should respect given default')
+        self.assertEqual(newer_template_2.name, 'My Copy', 'Copy should respect given default')
+        # linked to their respective template
+        self.assertEqual(newer_template.attachment_ids.mapped('res_id'), newer_template.ids * 2)
+        self.assertEqual(newer_template_2.attachment_ids.mapped('res_id'), newer_template_2.ids * 2)
+        self.assertEqual(newer_template.attachment_ids.mapped('res_model'), [newer_template._name] * 2)
+        self.assertEqual(newer_template.attachment_ids.mapped('res_id'), newer_template.ids * 2)
+        self.assertEqual(newer_template.attachment_ids.mapped('res_model'), [newer_template._name] * 2)
+        self.assertEqual(original_attachments.mapped('res_id'), self.mail_template.ids * 2)
+        self.assertEqual(original_attachments.mapped('res_model'), [self.mail_template._name] * 2)
 
     def test_mail_template_parse_partner_to(self):
         for partner_to, expected in [
@@ -443,19 +541,19 @@ class TestSearchTemplateCategory(MailCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.mail_template = cls.env['mail.template'].with_context(active_test=False)
-        cls.model_data = cls.env['ir.model.data']
+        MailTemplate = cls.env['mail.template'].with_context(active_test=False)
+        ModelData = cls.env['ir.model.data']
 
-        cls.existing = cls.mail_template.search([])
+        cls.existing = MailTemplate.search([])
 
         # Create templates
         # 2 Hidden templates
-        cls.hidden_templates = cls.mail_template.create([
+        cls.hidden_templates = MailTemplate.create([
             {'name': 'Hidden Template 1', 'active': False},
             {'name': 'Hidden Template 2', 'description': ''},
         ])
         last = cls.hidden_templates[-1]
-        cls.model_data.create({
+        ModelData.create({
             'name': f'mail_template_{last.id}',
             'module': 'test_module',
             'model': 'mail.template',
@@ -463,71 +561,73 @@ class TestSearchTemplateCategory(MailCommon):
         })
 
         # 5 Custom templates
-        cls.custom_templates = cls.mail_template.create([
+        cls.custom_templates = MailTemplate.create([
             {'name': f'Custom Template {i + 1}', 'description': f'Desc {i + 1}'}
             for i in range(4)
         ])
-        cls.custom_templates |= cls.mail_template.create({'name': 'Custom Template empty', 'description': ''})
+        cls.custom_templates |= MailTemplate.create({'name': 'Custom Template empty', 'description': ''})
 
         # 4 Base templates with XML ID
-        cls.base_templates = cls.mail_template.create([
+        cls.base_templates = MailTemplate.create([
             {'name': f'Base Template {i + 1}', 'description': f'Desc Base {i + 1}'}
             for i in range(4)
         ])
 
         for template in cls.base_templates:
-            cls.model_data.create({
+            ModelData.create({
                 'name': f'mail_template_{template.id}',
                 'module': 'test_module',
                 'model': 'mail.template',
                 'res_id': template.id
             })
 
+    @users('employee')
     def test_search_template_category(self):
+        MailTemplate = self.env['mail.template'].with_context(active_test=False)
 
         # Search by hidden templates
         hidden_domain = [('template_category', 'in', ['hidden_template'])]
-        hidden_templates = self.mail_template.search(hidden_domain) - self.existing
+        hidden_templates = MailTemplate.search(hidden_domain) - self.existing
         self.assertEqual(len(hidden_templates), len(self.hidden_templates), "Hidden templates count mismatch")
         self.assertEqual(set(hidden_templates.mapped('template_category')), {'hidden_template'}, "Computed field doesn't match 'hidden_template'")
 
         # Search by base templates
         base_domain = [('template_category', 'in', ['base_template'])]
-        base_templates = self.mail_template.search(base_domain) - self.existing
+        base_templates = MailTemplate.search(base_domain) - self.existing
         self.assertEqual(len(base_templates), len(self.base_templates), "Base templates count mismatch")
         self.assertEqual(set(base_templates.mapped('template_category')), {'base_template'}, "Computed field doesn't match 'base_template'")
 
         # Search by custom templates
         custom_domain = [('template_category', 'in', ['custom_template'])]
-        custom_templates = self.mail_template.search(custom_domain) - self.existing
+        custom_templates = MailTemplate.search(custom_domain) - self.existing
         self.assertEqual(len(custom_templates), len(self.custom_templates), "Custom templates count mismatch")
         self.assertEqual(set(custom_templates.mapped('template_category')), {'custom_template'}, "Computed field doesn't match 'custom_template'")
 
         # Combined search
         combined_domain = [('template_category', 'in', ['hidden_template', 'base_template', 'custom_template'])]
-        combined_templates = self.mail_template.search(combined_domain) - self.existing
+        combined_templates = MailTemplate.search(combined_domain) - self.existing
         total_templates = len(self.hidden_templates) + len(self.base_templates) + len(self.custom_templates)
         self.assertEqual(len(combined_templates), total_templates, "Combined templates count mismatch")
 
         # Search with '=' operator
         hidden_domain = [('template_category', '=', 'hidden_template')]
-        hidden_templates = self.mail_template.search(hidden_domain) - self.existing
+        hidden_templates = MailTemplate.search(hidden_domain) - self.existing
         self.assertEqual(len(hidden_templates), len(self.hidden_templates), "Hidden templates count mismatch")
 
         # Search with '!=' operator
         not_in_domain = [('template_category', '!=', 'hidden_template')]
-        not_in_templates = self.mail_template.search(not_in_domain) - self.existing
+        not_in_templates = MailTemplate.search(not_in_domain) - self.existing
         expected_templates = len(self.base_templates) + len(self.custom_templates)
         self.assertEqual(len(not_in_templates), expected_templates, "Not in templates count mismatch")
 
         # Search with 'not in' operator
         not_in_domain = [('template_category', 'not in', ['hidden_template'])]
-        not_in_templates = self.mail_template.search(not_in_domain) - self.existing
+        not_in_templates = MailTemplate.search(not_in_domain) - self.existing
         expected_templates = len(self.base_templates) + len(self.custom_templates)
         self.assertEqual(len(not_in_templates), expected_templates, "Not in templates count mismatch")
 
         # Search with 'not in' operator
         not_in_domain = [('template_category', 'not in', ['hidden_template', 'base_template'])]
-        not_in_templates = self.mail_template.search(not_in_domain) - self.existing
+        not_in_templates = MailTemplate.search(not_in_domain) - self.existing
         expected_templates = len(self.custom_templates)
         self.assertEqual(len(not_in_templates), expected_templates, "Not in multi templates count mismatch")

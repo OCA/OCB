@@ -75,7 +75,9 @@
                     </div>
                 </h3>
 
-                <div id="informations" class="pb-3">
+                <div
+                    id="informations" class="pb-3"
+                    t-if="o.invoice_date or (o.invoice_date_due and o.move_type == 'out_invoice' and o.state == 'posted') or o.invoice_origin or o.partner_id.ref or o.ref">
                     <div class="row" t-if="o.invoice_date" name="invoice_date">
                         <div class="col-2 offset-6">
                             <strong style="white-space:nowrap">Invoice Date:
@@ -276,11 +278,11 @@
                                     <td class="text-end">
                                         <span class="text-nowrap" t-field="line.price_unit"/>
                                     </td>
-                                    <td class="text-end">
-                                        <span t-field="line.quantity"/>
+                                    <td class="o_td_quantity text-end">
+                                        <span t-field="line.quantity" class="text-nowrap"/>
                                         <span t-field="line.product_uom_id" groups="uom.group_uom"/>
                                     </td>
-                                    <td name="account_invoice_line_name">
+                                    <td class="text-end" name="account_invoice_line_name">
                                         <t t-if="line.product_id">
                                             <t t-set="english_name" t-value="line.with_context(lang='en_US').product_id.display_name"/>
                                             <t t-set="arabic_name" t-value="line.with_context(lang=o.env['res.lang']._get_code('ar_001')).product_id.display_name"/>
@@ -350,7 +352,7 @@
                                                 >1.05</span>
                                             </td>
                                             <t t-set="arabic_tax_group_name" t-value="o_sec.tax_totals['subtotals'][subtotal_index]['tax_groups'][tax_group_index]['group_name']"/>
-                                            <t t-if="same_tax_base or tax_group['display_base_amount_currency'] is None">
+                                            <t t-if="same_tax_base or tax_group['display_base_amount_currency'] is False">
                                                 <td class="text-end">
                                                     <strong class="text-nowrap" t-out="tax_group['group_name']">Tax 15%</strong>
                                                     <strong t-if="arabic_tax_group_name != tax_group['group_name']" class="text-nowrap">/
@@ -499,10 +501,10 @@
 
                 <p t-if="o.invoice_payment_term_id" name="payment_term">
                     <div class="row">
-                        <div class="col-4 text-start">
+                        <div class="col-3 text-start">
                             <span t-out="o.invoice_payment_term_id.note"/>
                         </div>
-                        <div class="col-4 text-start">
+                        <div class="col-3 text-end">
                             <span t-if="o.invoice_payment_term_id.note != o_sec.invoice_payment_term_id.note" dir="rtl" t-out="o_sec.invoice_payment_term_id.note"/>
                         </div>
                     </div>
@@ -542,20 +544,20 @@
                 <p t-if="o.narration" name="comment">
                     <div class="row">
                         <div class="col-6 text-start">
-                            <span t-if="o.narration != o_sec.narration" t-out="o.narration"/>
+                            <span t-out="o.narration"/>
                         </div>
                         <div class="col-6 text-end">
-                            <span dir="rtl" t-out="o_sec.narration"/>
+                            <span t-if="o.narration != o_sec.narration" dir="rtl" t-out="o_sec.narration"/>
                         </div>
                     </div>
                 </p>
                 <p t-if="o.fiscal_position_id.note" name="note">
                     <div class="row">
                         <div class="col-6 text-start">
-                            <span t-if="o.fiscal_position_id.note != o_sec.fiscal_position_id.note" t-out="o.fiscal_position_id.note"/>
+                            <span t-out="o.fiscal_position_id.note"/>
                         </div>
                         <div class="col-6 text-end">
-                            <span dir="rtl" t-out="o_sec.fiscal_position_id.note"/>
+                            <span t-if="o.fiscal_position_id.note != o_sec.fiscal_position_id.note" dir="rtl" t-out="o_sec.fiscal_position_id.note"/>
                         </div>
                     </div>
                 </p>

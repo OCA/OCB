@@ -1,8 +1,7 @@
 import { test, expect } from "@odoo/hoot";
 import { setupEditor, testEditor } from "../_helpers/editor";
 import { unformat } from "../_helpers/format";
-import { strong } from "../_helpers/tags";
-import { setFontSize } from "../_helpers/user_actions";
+import { setFontSize, tripleClick } from "../_helpers/user_actions";
 import { Plugin } from "@html_editor/plugin";
 import { MAIN_PLUGINS } from "@html_editor/plugin_sets";
 import { animationFrame } from "@odoo/hoot-mock";
@@ -29,7 +28,10 @@ test("should change the font size the qweb tag", async () => {
 test("should change the font size of a whole heading after a triple click", async () => {
     await testEditor({
         contentBefore: "<h1>[ab</h1><p>]cd</p>",
-        stepFunction: setFontSize("36px"),
+        stepFunction: async (editor) => {
+            await tripleClick(editor.editable.querySelector("h1"));
+            setFontSize("36px")(editor);
+        },
         contentAfter: '<h1><span style="font-size: 36px;">[ab]</span></h1><p>cd</p>',
     });
 });
@@ -174,11 +176,9 @@ test("should apply font size in unbreakable span without class", async () => {
 
 test("should add style to a span parent of an inline", async () => {
     await testEditor({
-        contentBefore: `<p>a<span style="background-color: black;">${strong(`[bc]`)}</span>d</p>`,
+        contentBefore: `<p>a<span style="background-color: black;"><strong>[bc]</strong></span>d</p>`,
         stepFunction: setFontSize("10px"),
-        contentAfter: `<p>a<span style="background-color: black; font-size: 10px;">${strong(
-            `[bc]`
-        )}</span>d</p>`,
+        contentAfter: `<p>a<span style="background-color: black; font-size: 10px;"><strong>[bc]</strong></span>d</p>`,
     });
 });
 

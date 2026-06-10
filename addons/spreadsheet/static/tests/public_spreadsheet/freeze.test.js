@@ -13,7 +13,7 @@ import { getCell, getEvaluatedCell } from "@spreadsheet/../tests/helpers/getters
 import { THIS_YEAR_GLOBAL_FILTER } from "@spreadsheet/../tests/helpers/global_filter";
 import { createModelWithDataSource } from "@spreadsheet/../tests/helpers/model";
 import { createSpreadsheetWithPivot } from "@spreadsheet/../tests/helpers/pivot";
-import { freezeOdooData } from "@spreadsheet/helpers/model";
+import { freezeOdooData, waitForDataLoaded } from "@spreadsheet/helpers/model";
 import { OdooPivot, OdooPivotRuntimeDefinition } from "@spreadsheet/pivot/odoo_pivot";
 
 const { pivotRegistry } = registries;
@@ -224,6 +224,15 @@ test("from/to global filter without value is exported", async function () {
     expect(data.globalFilters[0].value).toBe("");
 });
 
+test("Empty ODOO.LIST result is frozen to an empty string", async function () {
+    const { model } = await createSpreadsheetWithList();
+    setCellContent(model, "A1", '=ODOO.LIST(1, 9999,"probability")'); // has no record
+    await waitForDataLoaded(model);
+    expect(getEvaluatedCell(model, "A1").value).toBe("");
+    const frozenData = await freezeOdooData(model);
+    expect(frozenData.sheets[0].cells.A1.content).toBe('=""');
+});
+
 test("odoo links are replaced with their label", async function () {
     const view = {
         name: "an odoo view",
@@ -252,9 +261,9 @@ test("odoo links are replaced with their label", async function () {
         serverData: getMenuServerData(),
     });
     const frozenData = await freezeOdooData(model);
-    expect(frozenData.sheets[0].cells.A1.content).toBe("menu_xml");
-    expect(frozenData.sheets[0].cells.A2.content).toBe("menu_id");
-    expect(frozenData.sheets[0].cells.A3.content).toBe("odoo_view");
+    expect(frozenData.sheets[0].cells.A1.content).toBe("[menu_xml](neutralized:link)");
+    expect(frozenData.sheets[0].cells.A2.content).toBe("[menu_id](neutralized:link)");
+    expect(frozenData.sheets[0].cells.A3.content).toBe("[odoo_view](neutralized:link)");
     expect(frozenData.sheets[0].cells.A4.content).toBe("[external_link](https://odoo.com)");
     expect(frozenData.sheets[0].cells.A5.content).toBe("[internal_link](o-spreadsheet://Sheet1)");
 });
@@ -273,7 +282,7 @@ test("spilled pivot table", async function () {
     const sheet = data.sheets[0];
     const cells = sheet.cells;
     expect(cells.A10.content).toBe("(#1) Partner Pivot");
-    expect(cells.A11.content).toBe("");
+    expect(cells.A11.content).toBe('=""');
     expect(cells.A12.content).toBe("Total");
     expect(cells.B10.content).toBe("Total");
     expect(cells.B11.content).toBe("Probability");
@@ -285,6 +294,15 @@ test("spilled pivot table", async function () {
         { bold: true },
         { message: "style is preserved" }
     );
+});
+
+test('empty string computed measure is exported as =""', async function () {
+    const { model } = await createSpreadsheetWithPivot();
+    setCellContent(model, "A10", "=PIVOT(1)");
+    expect(getEvaluatedCell(model, "B12").value).toBe(""); // empty value
+    const data = await freezeOdooData(model);
+    const cells = data.sheets[0].cells;
+    expect(cells.B12.content).toBe('=""');
 });
 
 test("Lists are purged from the frozen data", async function () {

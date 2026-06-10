@@ -50,7 +50,7 @@ export class AutoResizeImage extends Attachment {
 const newLocal = "img-fluid";
 export class ImageSelector extends FileSelector {
     static mediaSpecificClasses = ["img", newLocal, "o_we_custom_image"];
-    static mediaSpecificStyles = [];
+    static mediaSpecificStyles = ["transform", "width"];
     static mediaExtraClasses = [
         "rounded-circle",
         "rounded",
@@ -92,6 +92,7 @@ export class ImageSelector extends FileSelector {
         this.MIN_ROW_HEIGHT = 128;
 
         this.fileMimetypes = IMAGE_MIMETYPES.join(",");
+        this.isProcessingClick = false;
     }
 
     get canLoadMore() {
@@ -132,8 +133,13 @@ export class ImageSelector extends FileSelector {
         const domain = super.attachmentsDomain;
         domain.push(["mimetype", "in", IMAGE_MIMETYPES]);
         if (!this.props.useMediaLibrary) {
-            domain.push("|", ["url", "=", false],
-                "!", "|", ["url", "=ilike", "/html_editor/shape/%"], ["url", "=ilike", "/web_editor/shape/%"],
+            domain.push(
+                "|",
+                ["url", "=", false],
+                "!",
+                "|",
+                ["url", "=ilike", "/html_editor/shape/%"],
+                ["url", "=ilike", "/web_editor/shape/%"]
             );
         }
         domain.push("!", ["name", "=like", "%.crop"]);
@@ -295,10 +301,19 @@ export class ImageSelector extends FileSelector {
     }
 
     async onClickAttachment(attachment) {
+        if (this.isProcessingClick) {
+            return;
+        }
+        this.isProcessingClick = true;
         this.selectAttachment(attachment);
         if (!this.props.multiSelect) {
             await this.props.save();
         }
+        // The use of requestAnimationFrame is not ideal but we do it as a
+        // temporary fix as the media dialog will be refactored
+        requestAnimationFrame(() => {
+            this.isProcessingClick = false;
+        });
     }
 
     async onClickMedia(media) {
@@ -334,10 +349,11 @@ export class ImageSelector extends FileSelector {
             .concat(savedMedia)
             .map((attachment) => {
                 // Color-customize dynamic SVGs with the theme colors
-                if (attachment.image_src && (
-                    attachment.image_src.startsWith("/html_editor/shape/") ||
-                    attachment.image_src.startsWith("/web_editor/shape/")
-                )) {
+                if (
+                    attachment.image_src &&
+                    (attachment.image_src.startsWith("/html_editor/shape/") ||
+                        attachment.image_src.startsWith("/web_editor/shape/"))
+                ) {
                     const colorCustomizedURL = new URL(
                         attachment.image_src,
                         window.location.origin
@@ -371,6 +387,7 @@ export class ImageSelector extends FileSelector {
                 }
                 imageEl.src = src;
                 imageEl.alt = attachment.description || "";
+                imageEl.dataset.attachmentId = attachment.id;
                 return imageEl;
             })
         );
@@ -400,7 +417,7 @@ export class ImageSelector extends FileSelector {
         const mediaUrl = imgEl.src;
         try {
             const response = await fetch(mediaUrl);
-            if (response.headers.get("content-type") === "image/svg+xml") {
+            if (response.headers.get("content-type").startsWith("image/svg+xml")) {
                 let svg = await response.text();
                 const dynamicColors = {};
                 const combinedColorsRegex = new RegExp(

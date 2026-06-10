@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from lxml import etree
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
-from odoo.tools import cleanup_xml_node
+from odoo.tools import file_open, cleanup_xml_node
 from odoo.tests import tagged
 
 NS_MAP = {
@@ -52,6 +52,7 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
             'street': 'that other street, 3',
             'city': 'Main city',
             'phone': '+60123456786',
+            'ref': "MY-REF",
         })
         cls.partner_b.write({
             'vat': 'EI00000000020',
@@ -78,8 +79,8 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
         basic_invoice.action_post()
 
         file, errors = basic_invoice._l10n_my_edi_generate_invoice_xml()
-        self.assertEqual(errors, set())
-        self.assertTrue(file)
+        self.assertFalse(errors)
+
         # The file is working! Now we assert that the specificities needed for this EDI (what you can find in this module) are found in the file.
         root = etree.fromstring(file)
 
@@ -151,6 +152,10 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
             self.partner_a.street,
         )
 
+        with file_open('l10n_my_edi/tests/expected_xmls/invoice.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
+
     def test_02_multicurrency(self):
         """
         Simply ensure that in a multi currency environment, the rate is found in the file and is the expected one.
@@ -160,7 +165,9 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
         )
         basic_invoice.action_post()
 
-        file, _errors = basic_invoice._l10n_my_edi_generate_invoice_xml()
+        file, errors = basic_invoice._l10n_my_edi_generate_invoice_xml()
+        self.assertFalse(errors)
+
         root = etree.fromstring(file)
         # We should have a tax exchange rate set.
         # The rate is the rate from foreign currency to MYR
@@ -188,6 +195,10 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
             attributes={'currencyID': 'EUR'},
         )
 
+        with file_open('l10n_my_edi/tests/expected_xmls/invoice_multicurrency.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
+
     def test_03_optional_fields(self):
         """
         Set a few optional fields, and ensure that they appear as expecting in the file.
@@ -208,7 +219,9 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
 
         basic_invoice.action_post()
 
-        file, _errors = basic_invoice._l10n_my_edi_generate_invoice_xml()
+        file, errors = basic_invoice._l10n_my_edi_generate_invoice_xml()
+        self.assertFalse(errors)
+
         root = etree.fromstring(file)
 
         # We test a few values that are optional, yet mandatory in some cases (we leave it up to the user)
@@ -221,7 +234,7 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
         self._assert_node_values(
             root,
             'cac:AdditionalDocumentReference[descendant::*[local-name() = "DocumentType"]]/cbc:DocumentType',
-            'CustomsImportForm',
+            'K2',
         )
         self._assert_node_values(
             root,
@@ -247,6 +260,10 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
             self.partner_a.commercial_partner_id.sst_registration_number,
         )
 
+        with file_open('l10n_my_edi/tests/expected_xmls/invoice_optional_fields.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
+
     def test_04_credit_note(self):
         """
         Ensure that the type is correctly set for another move type, as well as that the original
@@ -268,7 +285,9 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
         credit_note = self.env['account.move'].browse(action['res_id'])
         credit_note.action_post()
 
-        file, _errors = credit_note._l10n_my_edi_generate_invoice_xml()
+        file, errors = credit_note._l10n_my_edi_generate_invoice_xml()
+        self.assertFalse(errors)
+
         root = etree.fromstring(file)
         # Check the invoice type to endure that it is marked as credit note.
         self._assert_node_values(
@@ -289,27 +308,53 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
             basic_invoice.l10n_my_edi_external_uuid,
         )
 
+        with file_open('l10n_my_edi/tests/expected_xmls/credit_note.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
+
     def test_05_invoice_with_so(self):
         """
         Ensure that an invoice linked to an SO will not contain this information in the xml.
         """
-        basic_invoice = self.init_invoice(
-            'out_invoice', currency=self.other_currency, products=self.product_a
-        )
-        basic_invoice.l10n_my_edi_external_uuid = '12345678912345678912345678'
-        basic_invoice.action_post()
+        if self.env.ref('base.module_sale').state != 'installed':
+            self.skipTest("This test requires the sale module to be installed.")
 
-        vals = (self.env['account.edi.xml.ubl_myinvois_my']
-                .with_context(convert_fixed_taxes=True)
-                ._export_invoice_vals(basic_invoice.with_context(lang=basic_invoice.partner_id.lang)))
-        # As we don't rely on the sale module, we'll provide the sale_order_id manually in the vals.
-        vals['vals']['sales_order_id'] = 'TEST/123'
-        xml_content = self.env['ir.qweb']._render(vals['main_template'], vals)
-        file = etree.tostring(cleanup_xml_node(xml_content), xml_declaration=True, encoding='UTF-8')
+        sale_order = self.env['sale.order'].sudo().create({
+            'partner_id': self.partner_a.id,
+            'order_line': [(0, 0, {
+                'product_id': self.product_a.id,
+                'product_uom_qty': 1,
+                'price_unit': 100,
+                'currency_id': self.other_currency.id,
+            })],
+        }).sudo(False)
+        sale_order.action_confirm()
+
+        payment = self.env['sale.advance.payment.inv'].with_context({
+            'active_model': 'sale.order',
+            'active_ids': [sale_order.id],
+            'active_id': sale_order.id,
+            'default_journal_id': self.company_data['default_journal_sale'].id,
+        }).sudo().create({
+            'advance_payment_method': 'delivered'
+        }).sudo(False)
+        payment.create_invoices()
+        invoice = sale_order.invoice_ids[0]
+        invoice.l10n_my_edi_external_uuid = '12345678912345678912345678'
+        invoice.action_post()
+
+        file, errors = invoice._l10n_my_edi_generate_invoice_xml()
+        self.assertFalse(errors)
+
         root = etree.fromstring(file)
+
         # Check the invoice type to endure that it is marked as credit note.
         node = root.xpath('cac:OrderReference', namespaces=NS_MAP)
         self.assertEqual(node, [])
+
+        with file_open('l10n_my_edi/tests/expected_xmls/invoice_with_so.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
 
     def test_06_foreigner(self):
         """
@@ -321,9 +366,8 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
         basic_invoice.action_post()
 
         file, errors = basic_invoice._l10n_my_edi_generate_invoice_xml()
-        self.assertEqual(errors, set())
-        self.assertTrue(file)
-        # The file is working! Now we assert that the foreign customer information is in there.
+        self.assertFalse(errors)
+
         root = etree.fromstring(file)
         customer_root = root.xpath('cac:AccountingCustomerParty/cac:Party', namespaces=NS_MAP)[0]
 
@@ -338,6 +382,10 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
             'cac:PartyIdentification/cbc:ID[@schemeID="BRN"]',
             self.partner_b.commercial_partner_id.l10n_my_identification_number,
         )
+
+        with file_open('l10n_my_edi/tests/expected_xmls/invoice_foreigner.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
 
     def test_07_tax_exempt(self):
         """
@@ -358,7 +406,7 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
 
         file, errors = invoice._l10n_my_edi_generate_invoice_xml()
         self.assertFalse(errors)
-        self.assertTrue(file)
+
         root = etree.fromstring(file)
         # The tax exemption info should be on the line.
         item_root = root.xpath('cac:InvoiceLine/cac:Item', namespaces=NS_MAP)[0]
@@ -383,6 +431,181 @@ class L10nMyEDITestFileGeneration(AccountTestInvoicingCommon):
             tax_subtotal_root,
             'cac:TaxCategory/cbc:TaxExemptionReason',
             invoice.l10n_my_edi_exemption_reason,
+        )
+
+        with file_open('l10n_my_edi/tests/expected_xmls/invoice_tax_exempt.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
+
+    def test_08_bill_imports_form(self):
+        """
+        Ensure that when a bill contains a customs number; it is treated as an importation and not exportation.
+        """
+        exempt_tax = self.env['account.tax'].create({
+            'name': 'Tax Exempt',
+            'type_tax_use': 'sale',
+            'amount_type': 'percent',
+            'amount': 0,
+            'l10n_my_tax_type': 'E',
+        })
+        bill = self.init_invoice(
+            'in_invoice', products=self.product_a, taxes=exempt_tax,
+        )
+        bill.write({
+            'l10n_my_edi_exemption_reason': 'Exempt Customer',
+            'l10n_my_edi_custom_form_reference': 'E12345678912',
+        })
+
+        bill.action_post()
+
+        file, errors = bill._l10n_my_edi_generate_invoice_xml()
+        self.assertFalse(errors)
+
+        root = etree.fromstring(file)
+
+        self._assert_node_values(
+            root,
+            'cac:AdditionalDocumentReference[descendant::*[local-name() = "DocumentType"]]/cbc:DocumentType',
+            'CustomsImportForm',
+        )
+
+        with file_open('l10n_my_edi/tests/expected_xmls/bill_import.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
+
+    def test_09_partner_ref_not_in_party_id(self):
+        """
+        Ensure that when an invoice contains a customs number; it is treated as an importation and not exportation.
+        """
+        invoice = self.init_invoice(
+            'out_invoice', products=self.product_a
+        )
+        invoice.action_post()
+
+        file, errors = invoice._l10n_my_edi_generate_invoice_xml()
+        self.assertFalse(errors)
+
+        root = etree.fromstring(file)
+
+        # There should not be any ID without attribute
+        customer_root = root.xpath('cac:AccountingCustomerParty/cac:Party', namespaces=NS_MAP)[0]
+        node = customer_root.xpath('cac:PartyIdentification/cbc:ID[count(@*)=0]', namespaces=NS_MAP)
+        self.assertEqual(node, [])
+
+        with file_open('l10n_my_edi/tests/expected_xmls/invoice_import.xml', 'rb') as f:
+            expected_xml = etree.fromstring(f.read())
+        self.assertXmlTreeEqual(root, expected_xml)
+
+    def test_10_prepaid_amount_present(self):
+        """
+        Ensure the prepaid amount is present in the UBL XML under <cac:PrepaidPayment>.
+        """
+        invoice = self.init_invoice('out_invoice', currency=self.other_currency, products=self.product_a)
+        invoice.action_post()
+        vals = self.env['account.edi.xml.ubl_myinvois_my'].with_context(
+            convert_fixed_taxes=True)._export_invoice_vals(invoice.with_context(lang=invoice.partner_id.lang)
+        )
+        vals['vals']['prepaid_payment_vals'].update({
+            'amount': 2200.00,
+            'currency': self.other_currency,
+            'currency_dp': self.other_currency.decimal_places,
+        })
+        xml_content = self.env['ir.qweb']._render(vals['main_template'], vals)
+        file = etree.tostring(cleanup_xml_node(xml_content), xml_declaration=True, encoding='UTF-8')
+        root = etree.fromstring(file)
+        prepaid_node = root.xpath('cac:PrepaidPayment/cbc:PaidAmount', namespaces=NS_MAP)
+        self.assertEqual(prepaid_node[0].text, '2200.00')
+
+    def test_11_original_document_id(self):
+        """
+        Ensure the original document id is present in the reversed document.
+        """
+        bill = self.init_invoice('in_invoice', products=self.product_a, post=True)
+        bill.ref = 'BILL-123'
+        action = bill.action_reverse()
+        reversal_wizard = self.env[action['res_model']].with_context(
+            active_ids=bill.ids,
+            active_model='account.move',
+            default_journal_id=bill.journal_id.id,
+        ).create({})
+        action = reversal_wizard.reverse_moves()
+        credit_note = self.env['account.move'].browse(action['res_id'])
+        credit_note.action_post()
+
+        file, _errors = credit_note._l10n_my_edi_generate_invoice_xml()
+        root = etree.fromstring(file)
+        self._assert_node_values(
+            root,
+            'cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID',
+            'BILL-123',
+        )
+
+    def test_12_original_document_id_from_xml(self):
+        """
+        Ensure the original document id is present in the reversed document even if bill reference has changed after
+        sending.
+        """
+        bill = self.init_invoice('in_invoice', products=self.product_a, post=True)
+
+        # Set reference before generating e-invoice
+        bill.ref = 'Initial Reference'
+
+        # Generate e-invoice and mock values
+        bill_file, _errors = bill._l10n_my_edi_generate_invoice_xml()
+        bill.l10n_my_edi_file_id = self.env['ir.attachment'].create({'name': 'test myinvois', 'raw': bill_file})
+        bill.ref = 'Some other reference'
+
+        # Generate credit note
+        action = bill.action_reverse()
+        reversal_wizard = self.env[action['res_model']].with_context(
+            active_ids=bill.ids,
+            active_model='account.move',
+            default_journal_id=bill.journal_id.id,
+        ).create({})
+        action = reversal_wizard.reverse_moves()
+        credit_note = self.env['account.move'].browse(action['res_id'])
+        credit_note.action_post()
+
+        credit_note_file, _errors = credit_note._l10n_my_edi_generate_invoice_xml()
+        root = etree.fromstring(credit_note_file)
+        self._assert_node_values(
+            root,
+            'cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID',
+            'Initial Reference',
+        )
+
+    def test_13_prepaid_amount_on_debit_credit_refund_notes(self):
+        """
+        Ensure that the prepaid amount is 0 and payable_amount is invoice.amount_total
+        """
+        basic_invoice = self.init_invoice('out_invoice', currency=self.other_currency, amounts=[2000],
+                                          post=True)
+
+        action = basic_invoice.action_reverse()
+        reversal_wizard = self.env[action['res_model']].with_context(
+            active_ids=basic_invoice.ids,
+            active_model='account.move',
+            default_journal_id=basic_invoice.journal_id.id,
+        ).create({})
+        action = reversal_wizard.reverse_moves()
+        credit_note = self.env['account.move'].browse(action['res_id'])
+        credit_note.action_post()
+
+        file, _errors = credit_note._l10n_my_edi_generate_invoice_xml()
+        root = etree.fromstring(file)
+
+        # Check that the prepaid amount is 0
+        self._assert_node_values(
+            root,
+            'cac:PrepaidPayment/cbc:PaidAmount',
+            '0.00',
+        )
+
+        # Check that the payable amount is the total amount of the invoice
+        self._assert_node_values(
+            root,
+            'cac:LegalMonetaryTotal/cbc:PayableAmount',
+            '2000.00',
         )
 
     def _assert_node_values(self, root, node_path, text, attributes=None):

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "@odoo/hoot";
 import { press } from "@odoo/hoot-dom";
 import { setupEditor } from "./_helpers/editor";
+import { getContent } from "./_helpers/selection";
+import { unformat } from "./_helpers/format";
 
 describe("range collapsed", () => {
     test("should ignore copying an empty selection with empty clipboardData", async () => {
@@ -42,12 +44,22 @@ describe("range not collapsed", () => {
 
     test.tags("focus required");
     test("should copy a selection as text/plain, text/html and application/vnd.odoo.odoo-editor in table", async () => {
-        await setupEditor(
+        const { el } = await setupEditor(
             `]<table><tbody><tr><td><ul><li>a[</li><li>b</li><li>c</li></ul></td><td><br></td></tr></tbody></table>`
+        );
+        expect(getContent(el)).toBe(
+            unformat(
+                `]<table class="o_selected_table"><tbody><tr>
+                    <td class="o_selected_td">
+                        <ul><li>a</li><li>b</li><li>c</li></ul>
+                    </td>
+                    <td class="o_selected_td">[<br></td>
+                </tr></tbody></table>`
+            )
         );
         const clipboardData = new DataTransfer();
         await press(["ctrl", "c"], { dataTransfer: clipboardData });
-        expect(clipboardData.getData("text/plain")).toBe("a");
+        expect(clipboardData.getData("text/plain")).toBe("a\nb\nc\n");
         expect(clipboardData.getData("text/html")).toBe(
             "<table><tbody><tr><td><ul><li>a</li><li>b</li><li>c</li></ul></td><td><br></td></tr></tbody></table>"
         );
@@ -166,6 +178,18 @@ describe("range not collapsed", () => {
         );
         expect(clipboardData.getData("application/vnd.odoo.odoo-editor")).toBe(
             `<p><img src="${window.location.origin}/nice.png"></p>`
+        );
+    });
+
+    test("should not add origin to base64 images", async () => {
+        const base64Img =
+            "data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA\n        AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO\n            9TXL0Y4OHwAAAABJRU5ErkJggg==";
+        await setupEditor(`<p>[<img src="${base64Img}">]</p>`);
+        const clipboardData = new DataTransfer();
+        await press(["ctrl", "c"], { dataTransfer: clipboardData });
+        expect(clipboardData.getData("text/html")).toBe(`<p><img src="${base64Img}"></p>`);
+        expect(clipboardData.getData("application/vnd.odoo.odoo-editor")).toBe(
+            `<p><img src="${base64Img}"></p>`
         );
     });
 });

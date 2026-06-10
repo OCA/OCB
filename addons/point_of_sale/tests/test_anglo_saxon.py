@@ -348,6 +348,50 @@ class TestAngloSaxonFlow(TestAngloSaxonCommon):
 
         self.assertTrue(all(stock_output_amls.mapped('reconciled')))
 
+    def test_no_duplicate_picking_on_repeated_invoice_action(self):
+        """Calling action_pos_order_invoice multiple times (e.g. a backend user
+        clicking 'Customer Invoice' on an already-invoiced order) must not
+        create more than one stock picking for the same POS order.
+
+        Regression test for the guard added to _create_order_picking:
+        the condition at the top of action_pos_order_invoice (anglo_saxon +
+        update_stock_at_closing + session open) would previously call
+        _create_order_picking unconditionally, producing one extra picking on
+        every repeated click.
+        """
+        self.company.point_of_sale_update_stock_quantities = 'closing'
+
+        self.pos_config.open_ui()
+        order = self.PosOrder.create({
+            'company_id': self.company.id,
+            'partner_id': self.partner.id,
+            'session_id': self.pos_config.current_session_id.id,
+            'lines': [(0, 0, {
+                'product_id': self.product.id,
+                'price_unit': 450,
+                'qty': 1.0,
+                'price_subtotal': 450,
+                'price_subtotal_incl': 450,
+            })],
+            'amount_total': 450,
+            'amount_tax': 0,
+            'amount_paid': 0,
+            'amount_return': 0,
+        })
+        context_make_payment = {'active_ids': [order.id], 'active_id': order.id}
+        self.PosMakePayment.with_context(context_make_payment).create({
+            'amount': 450.0,
+            'payment_method_id': self.cash_payment_method.id,
+        }).with_context({'active_id': order.id}).check()
+
+        # First legitimate call: invoice + picking created
+        order.action_pos_order_invoice()
+        self.assertEqual(len(order.picking_ids), 1, "First call should create exactly one picking")
+
+        # Second call: simulates a backend user clicking 'Customer Invoice' again
+        order.action_pos_order_invoice()
+        self.assertEqual(len(order.picking_ids), 1, "Repeated call must not create a duplicate picking")
+
     def test_action_pos_order_invoice_with_discount(self):
         """This test make sure that the line containing 'Discoun from' is correctly added to the invoice"""
 
@@ -401,3 +445,113 @@ class TestAngloSaxonFlow(TestAngloSaxonCommon):
         self.assertEqual(product_line.discount, 5)  # Disount is reflected
         self.assertEqual(product_line.price_subtotal, 90.25)  # Discount applies on price_unit
         self.assertEqual(product_line.price_total, 103.79)  # Taxes applied with price_total
+
+    def test_cogs_with_ship_later_with_backorder(self):
+        # This test will check that the correct journal entries are created when 2 products are sold
+        # using the ship later option and one of them is processed in a backorder
+        self.pos_config.open_ui()
+        current_session = self.pos_config.current_session_id
+        self.cash_journal.loss_account_id = self.account
+        current_session.set_opening_control(0, None)
+
+        # Create 2 product one with no cost and one with a cost of 20 EUR
+        self.product_2 = self.env['product.product'].create({
+            'name': 'New product 2',
+            'standard_price': 20,
+            'available_in_pos': True,
+            'is_storable': True,
+            'categ_id': self.category.id,
+        })
+
+        self.product_1 = self.env['product.product'].create({
+            'name': 'New product 1',
+            'standard_price': 0,
+            'available_in_pos': True,
+            'is_storable': True,
+            'categ_id': self.category.id,
+        })
+
+        # I create a PoS order with 1 unit of New product at 450 EUR
+        self.pos_order_pos0 = self.PosOrder.create({
+            'company_id': self.company.id,
+            'partner_id': self.partner.id,
+            'pricelist_id': self.company.partner_id.property_product_pricelist.id,
+            'session_id': self.pos_config.current_session_id.id,
+            'to_invoice': False,
+            'shipping_date': '2023-01-01',
+            'lines': [(0, 0, {
+                'name': "OL/0001",
+                'product_id': self.product_1.id,
+                'price_unit': 100,
+                'discount': 0.0,
+                'qty': 1.0,
+                'price_subtotal': 100,
+                'price_subtotal_incl': 100,
+            }), (0, 0, {
+                'name': "OL/0002",
+                'product_id': self.product_2.id,
+                'price_unit': 200,
+                'discount': 0.0,
+                'qty': 1.0,
+                'price_subtotal': 200,
+                'price_subtotal_incl': 200,
+            })],
+            'amount_total': 300,
+            'amount_tax': 0,
+            'amount_paid': 0,
+            'amount_return': 0,
+            'last_order_preparation_change': '{}'
+        })
+
+        # I make a payment to fully pay the order
+        context_make_payment = {"active_ids": [self.pos_order_pos0.id], "active_id": self.pos_order_pos0.id}
+        self.pos_make_payment_0 = self.PosMakePayment.with_context(context_make_payment).create({
+            'amount': 300.0,
+            'payment_method_id': self.cash_payment_method.id,
+        })
+
+        # I click on the validate button to register the payment.
+        context_payment = {'active_id': self.pos_order_pos0.id}
+        self.pos_make_payment_0.with_context(context_payment).check()
+
+        # I close the current session to generate the journal entries
+        current_session_id = self.pos_config.current_session_id
+        current_session_id.post_closing_cash_details(300.0)
+        current_session_id.close_session_from_ui()
+        self.assertEqual(current_session_id.state, 'closed', 'Check that session is closed')
+
+        current_session.picking_ids.move_ids_without_package.filtered(lambda m: m.product_id == self.product_2).write({'quantity': 1, 'picked': True})
+        res_dict = current_session.picking_ids.button_validate()
+        self.env['stock.backorder.confirmation'].with_context(res_dict['context']).process()
+
+        # I test that the generated journal entries are correct.
+        out = self.product_1.categ_id.property_stock_account_output_categ_id
+        exp = self.product_1._get_product_accounts()['expense']
+        aml = current_session._get_related_account_moves().line_ids
+        aml_output = aml.filtered(lambda l: l.account_id.id == out.id and l.journal_id == self.pos_config.journal_id)
+        aml_expense = aml.filtered(lambda l: l.account_id.id == exp.id and l.journal_id == self.pos_config.journal_id)
+
+        self.assertEqual(len(aml_expense), 1, "There should be 1 output account move lines")
+        self.assertEqual(aml_expense.debit, 20)
+        self.assertEqual(aml_expense.credit, 0)
+
+        self.assertEqual(len(aml_output), 1, "There should be 1 output account move lines")
+        self.assertEqual(aml_output.debit, 0)
+        self.assertEqual(aml_output.credit, 20)
+
+        backorder_picking = current_session.picking_ids.filtered(lambda p: p.state == 'confirmed')
+        backorder_picking.move_ids_without_package.write({'quantity': 1, 'picked': True})
+        backorder_picking.button_validate()
+
+        # As the second item has no cost, the account move line should be the same as before
+        aml = current_session._get_related_account_moves().line_ids
+        aml_output = aml.filtered(lambda l: l.account_id.id == out.id and l.journal_id == self.pos_config.journal_id)
+        aml_expense = aml.filtered(lambda l: l.account_id.id == exp.id and l.journal_id == self.pos_config.journal_id)
+
+        self.assertEqual(len(aml_expense), 1, "There should be 1 output account move lines")
+        self.assertEqual(aml_expense.debit, 20)
+        self.assertEqual(aml_expense.credit, 0)
+
+        self.assertEqual(len(aml_output), 1, "There should be 1 output account move lines")
+        self.assertEqual(aml_output.debit, 0)
+        self.assertEqual(aml_output.credit, 20)

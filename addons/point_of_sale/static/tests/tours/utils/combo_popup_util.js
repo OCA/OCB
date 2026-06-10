@@ -32,3 +32,22 @@ export function isConfirmationButtonDisabled() {
         trigger: `.modal ${confirmationButtonTrigger}[disabled]`,
     };
 }
+
+export function checkImgAndSelect(productName, checkImg = false) {
+    const productArticleSelector = productTrigger(productName);
+    const withImg = `${productArticleSelector}:has(.product-img)`;
+    const withoutImg = `${productArticleSelector}:not(:has(.product-img))`;
+    const trigger = `.modal ${checkImg ? withImg : withoutImg}`;
+    return {
+        content: `Check image & select combo item ${productName}`,
+        trigger: trigger,
+        run: "click",
+    };
+}
+
+export function isNotPresent(productName) {
+    return {
+        content: `Check that ${productName} is not present in the combo options`,
+        trigger: negate(productTrigger(productName), ".modal"),
+    };
+}

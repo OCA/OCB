@@ -3,6 +3,7 @@ import { getTemplate } from "@web/core/templates";
 import { mount, reactive, whenReady } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { hasTouch } from "@web/core/browser/feature_detection";
+import { browser } from "@web/core/browser/browser";
 import { localization } from "@web/core/l10n/localization";
 import { user } from "@web/core/user";
 import { session } from "@web/session";
@@ -13,7 +14,12 @@ const loader = reactive({ isShown: true });
 whenReady(() => {
     // Show loader as soon as the page is ready, do not wait for services to be started
     // as some services load data over RPC and this is why we want to show a loader.
-    mount(Loader, document.body, { getTemplate, translateFn: _t, props: { loader } });
+    mount(Loader, document.body, {
+        getTemplate,
+        props: { loader },
+        translatableAttributes: ["data-tooltip"],
+        translateFn: _t,
+    });
 });
 // The following is mostly a copy of startWebclient but without any of the legacy stuff
 (async function startPosApp() {
@@ -24,6 +30,15 @@ whenReady(() => {
         isEnterprise: session.server_version_info.slice(-1)[0] === "e",
     };
     await whenReady();
+    // If a deletion beacon was sent on unload for this exact session, reload once so
+    // pos_web assigns a clean session. Removing the flag before reloading prevents looping.
+    const recoverySessionId = browser.sessionStorage.getItem("pos_reload_recovery");
+    if (recoverySessionId && parseInt(recoverySessionId) === odoo.pos_session_id) {
+        browser.sessionStorage.removeItem("pos_reload_recovery");
+        window.location.reload();
+        return;
+    }
+    browser.sessionStorage.removeItem("pos_reload_recovery");
     const app = await mountComponent(Chrome, document.body, {
         name: "Odoo Point of Sale",
         props: { disableLoader: () => (loader.isShown = false) },
@@ -35,6 +50,25 @@ whenReady(() => {
             );
             event.returnValue = confirmationMessage;
             return confirmationMessage;
+        }
+        const pos = app.env.services.pos;
+        if (pos?.session?.state === "opening_control") {
+            browser.sessionStorage.setItem("pos_reload_recovery", String(pos.session.id));
+            const data = JSON.stringify({
+                jsonrpc: "2.0",
+                method: "call",
+                id: 1,
+                params: {
+                    model: "pos.session",
+                    method: "delete_opening_control_session",
+                    args: [[pos.session.id]],
+                    kwargs: {},
+                },
+            });
+            navigator.sendBeacon(
+                "/web/dataset/call_kw",
+                new Blob([data], { type: "application/json" })
+            );
         }
     });
     const classList = document.body.classList;

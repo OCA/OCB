@@ -8,6 +8,8 @@ patch(PosStore.prototype, {
             is_gcc_country: ["SA", "AE", "BH", "OM", "QA", "KW"].includes(
                 this.company.country_id?.code
             ),
+            gcc_cashier: order?.getCashierName() || this.get_cashier()?.name,
+            show_title: Boolean(order),
         };
     },
 });

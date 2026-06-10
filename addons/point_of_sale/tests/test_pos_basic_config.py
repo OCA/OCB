@@ -833,7 +833,7 @@ class TestPoSBasicConfig(TestPoSCommon):
             self.assertEqual(len(cm.output), 4)
             self.assertEqual(cm.output[0], f"INFO:odoo.addons.point_of_sale.models.pos_order:PoS synchronisation #1996 started for PoS orders references: [{order_log_str}]")
             self.assertTrue(cm.output[1].startswith(f'DEBUG:odoo.addons.point_of_sale.models.pos_order:PoS synchronisation #1996 processing order {order_log_str} order full data: '))
-            self.assertEqual(cm.output[2], f'INFO:odoo.addons.point_of_sale.models.pos_order:PoS synchronisation #1996 order {order_log_str} pos.order #{odoo_order_id}')
+            self.assertEqual(cm.output[2], f'INFO:odoo.addons.point_of_sale.models.pos_order:PoS synchronisation #1996 order {order_log_str} created pos.order #{odoo_order_id}')
             self.assertEqual(cm.output[3], 'INFO:odoo.addons.point_of_sale.models.pos_order:PoS synchronisation #1996 finished')
             
         session.post_closing_cash_details(amount_paid)
@@ -1238,3 +1238,66 @@ class TestPoSBasicConfig(TestPoSCommon):
 
         self.assertNotIn(product.id, [p['id'] for p in data['product.product']['data']])
         self.assertTrue(data['product.product']['data'])
+
+    def test_double_syncing_same_order(self):
+        """ Test that double syncing the same order doesn't create duplicates records
+        """
+        self.open_new_session()
+
+        # Create an order
+        order_data = self.create_ui_order_data([(self.product1, 1)], payments=[(self.cash_pm1, 10)], customer=self.customer, is_invoiced=True)
+        order_data['access_token'] = '0123456789'
+        res = self.env['pos.order'].sync_from_ui([order_data])
+        order_id = res['pos.order'][0]['id']
+
+        # Sync the same order again
+        res = self.env['pos.order'].sync_from_ui([order_data])
+        self.assertEqual(res['pos.order'][0]['id'], order_id, 'Syncing the same order should not create a new one')
+
+        order = self.env['pos.order'].browse(order_id)
+        self.assertEqual(order.picking_count, 1, 'Order should have one picking')
+        self.assertEqual(len(order.payment_ids), 1, 'Order should have one payment')
+        self.assertEqual(self.env['account.move'].search_count([('ref', '=', order.name)]), 1, 'Order should have one invoice')
+
+    def test_refunded_order_id(self):
+        """
+        An order containing refunded lines from two different orders is no longer allowed,
+        but some legacy records of this kind may still exist.
+        This test ensures that the refunded_order_id is correctly computed in such cases.
+        """
+        current_session = self.open_new_session()
+        orders = list(self._create_orders([
+            {'pos_order_lines_ui_args': [(self.product1, 1)]},
+            {'pos_order_lines_ui_args': [(self.product2, 1)]}
+        ]).values())
+
+        refund_order = self.env['pos.order'].create({
+            'company_id': self.env.company.id,
+            'session_id': current_session.id,
+            'lines': [
+                (0, 0, {
+                    'product_id': self.product1.id,
+                    'price_unit': -10,
+                    'qty': 1,
+                    'tax_ids': [[6, False, []]],
+                    'price_subtotal': -10,
+                    'price_subtotal_incl': -10,
+                    'refunded_orderline_id': orders[0].lines[0].id
+                }),
+                (0, 0, {
+                    'product_id': self.product2.id,
+                    'price_unit': -10,
+                    'qty': 1,
+                    'tax_ids': [[6, False, []]],
+                    'price_subtotal': -10,
+                    'price_subtotal_incl': -10,
+                    'refunded_orderline_id': orders[1].lines[0].id
+                })
+            ],
+            'amount_paid': -10,
+            'amount_total': -10,
+            'amount_tax': 0.0,
+            'amount_return': 0.0,
+        })
+
+        self.assertEqual(refund_order.refunded_order_id, orders[0])

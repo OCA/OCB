@@ -1,44 +1,24 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* hr_expense
-# 
+#
 # Translators:
 # Wil Odoo, 2024
 # Rasareeyar Lappiam, 2024
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 13:02+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
 "PO-Revision-Date: 2024-09-25 09:41+0000\n"
 "Last-Translator: Rasareeyar Lappiam, 2024\n"
 "Language-Team: Thai (https://app.transifex.com/odoo/teams/41243/th/)\n"
+"Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: th\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.report_expense_sheet
-msgid "$100.00"
-msgstr "$100.00"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.report_expense_sheet
-msgid "$120.00"
-msgstr "$120.00"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.report_expense_sheet
-msgid "$500.00"
-msgstr "$500.00"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.report_expense_sheet
-msgid "$600.00"
-msgstr "$600.00"
 
 #. module: hr_expense
 #. odoo-python
@@ -55,8 +35,7 @@ msgstr "%(employee_name)s: %(expense_name)s"
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"%(user)s confirms this expense is not a duplicate with similar expense."
+msgid "%(user)s confirms this expense is not a duplicate with similar expense."
 msgstr "%(user)s ยืนยันว่าค่าใช้จ่ายนี้ไม่ซ้ำกับค่าใช้จ่ายที่เหมือนกัน"
 
 #. module: hr_expense
@@ -96,11 +75,6 @@ msgstr "(รวม"
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "1 %(exp_cur)s = %(rate)s %(comp_cur)s"
 msgstr "1 %(exp_cur)s = %(rate)s %(comp_cur)s"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.report_expense_sheet
-msgid "2023-08-11"
-msgstr "2023-08-11"
 
 #. module: hr_expense
 #. odoo-javascript
@@ -162,8 +136,8 @@ msgid ""
 "paid expenses. Or specify one in the Journal for the %(method)s payment "
 "method."
 msgstr ""
-"บัญชีค้างชำระเริ่มต้นจะต้องกำหนดไว้ในการตั้งค่าสำหรับค่าใช้จ่ายที่บริษัทชำระ"
-" หรือระบุในสมุดรายวันสำหรับวิธีการชำระเงิน %(method)s"
+"บัญชีค้างชำระเริ่มต้นจะต้องกำหนดไว้ในการตั้งค่าสำหรับค่าใช้จ่ายที่บริษัทชำระ "
+"หรือระบุในสมุดรายวันสำหรับวิธีการชำระเงิน %(method)s"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
@@ -244,7 +218,8 @@ msgstr "การรายงานทั้งหมด"
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense_sheet.py:0
-msgid "All expenses in an expense report must have the same \"paid by\" criteria."
+msgid ""
+"All expenses in an expense report must have the same \"paid by\" criteria."
 msgstr "ค่าใช้จ่ายทั้งหมดในรายงานค่าใช้จ่ายต้องมีเกณฑ์ \"ชำระโดย\" เหมือนกัน"
 
 #. module: hr_expense
@@ -403,8 +378,7 @@ msgstr "พนักงานทั่วไป"
 msgid ""
 "Both price-included and price-excluded taxes will behave as price-included "
 "taxes for expenses."
-msgstr ""
-"ทั้งภาษีที่รวมราคาและไม่รวมราคาจะทำหน้าที่เป็นภาษีที่รวมราคาสำหรับค่าใช้จ่าย"
+msgstr "ทั้งภาษีที่รวมราคาและไม่รวมราคาจะทำหน้าที่เป็นภาษีที่รวมราคาสำหรับค่าใช้จ่าย"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.report_expense_sheet
@@ -496,8 +470,7 @@ msgid ""
 "Conversion between Units of Measure can only occur if they belong to the "
 "same category. The conversion will be made based on the ratios."
 msgstr ""
-"การแปลงระหว่างหน่วยวัดจะเกิดขึ้นได้ก็ต่อเมื่ออยู่ในหมวดหมู่เดียวกัน "
-"การแปลงจะอิงตามอัตราส่วน"
+"การแปลงระหว่างหน่วยวัดจะเกิดขึ้นได้ก็ต่อเมื่ออยู่ในหมวดหมู่เดียวกัน การแปลงจะอิงตามอัตราส่วน"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_kanban_view
@@ -523,8 +496,7 @@ msgstr "สร้างการรายงานรายจ่าย"
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid "Create a report to submit one or more expenses to your manager."
-msgstr ""
-"สร้างรายงานเพื่อส่งค่าใช้จ่ายอย่างน้อยหนึ่งรายการให้กับผู้จัดการของคุณ"
+msgstr "สร้างรายงานเพื่อส่งค่าใช้จ่ายอย่างน้อยหนึ่งรายการให้กับผู้จัดการของคุณ"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.res_config_settings_view_form
@@ -647,8 +619,8 @@ msgid ""
 "picture of your receipt and let Odoo digitalizes it for you. The OCR and "
 "Artificial Intelligence will fill the data automatically."
 msgstr ""
-"อย่าเก็บตั๋วค่าใช้จ่ายไว้ในกระเป๋าของคุณอีกต่อไป เพียงถ่ายภาพใบเสร็จและให้ "
-"Odoo แปลงเป็นดิจิทัลให้กับคุณ OCR และปัญญาประดิษฐ์จะกรอกข้อมูลโดยอัตโนมัติ"
+"อย่าเก็บตั๋วค่าใช้จ่ายไว้ในกระเป๋าของคุณอีกต่อไป เพียงถ่ายภาพใบเสร็จและให้ Odoo "
+"แปลงเป็นดิจิทัลให้กับคุณ OCR และปัญญาประดิษฐ์จะกรอกข้อมูลโดยอัตโนมัติ"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_form_inherit_expense
@@ -658,8 +630,7 @@ msgid ""
 "again."
 msgstr ""
 "คุณต้องการออกใบแจ้งหนี้บริษัทของคุณเอง? ให้ทำการลบ \"ชื่อบริษัท\" "
-"ออกจากพาร์ทเนอร์เพื่อแก้ไขการกำหนดค่า "
-"ยกเลิกใบแจ้งหนี้นี้แล้วเริ่มใหม่อีกครั้ง"
+"ออกจากพาร์ทเนอร์เพื่อแก้ไขการกำหนดค่า ยกเลิกใบแจ้งหนี้นี้แล้วเริ่มใหม่อีกครั้ง"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_analytic_applicability__business_domain
@@ -720,8 +691,7 @@ msgstr "รายจ่ายพนักงาน"
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
-"Enter a name then choose a category and configure the amount of your "
-"expense."
+"Enter a name then choose a category and configure the amount of your expense."
 msgstr "ให้ป้อนชื่อและจากนั้นเลือกหมวดหมู่และกำหนดจำนวนค่าใช้จ่ายของคุณ"
 
 #. module: hr_expense
@@ -911,8 +881,7 @@ msgstr "รายงานค่าใช้จ่ายรีเซ็ตเป
 #: model_terms:ir.actions.act_window,help:hr_expense.action_hr_expense_sheet_all
 msgid ""
 "Expense reports regroup all the expenses incurred during a specific event."
-msgstr ""
-"รายงานรายจ่ายที่จัดกลุ่มรายจ่ายทั้งหมดที่เกิดขึ้นใหม่ระหว่างอีเวนต์เฉพาะ"
+msgstr "รายงานรายจ่ายที่จัดกลุ่มรายจ่ายทั้งหมดที่เกิดขึ้นใหม่ระหว่างอีเวนต์เฉพาะ"
 
 #. module: hr_expense
 #. odoo-python
@@ -1279,9 +1248,7 @@ msgstr "ผู้จัดการ"
 msgid ""
 "Managers can approve the report here, then an accountant can post the "
 "accounting entries."
-msgstr ""
-"ผู้จัดการสามารถอนุมัติรายงานได้ที่นี่ "
-"จากนั้นนักบัญชีสามารถผ่านรายการทางบัญชีได้"
+msgstr "ผู้จัดการสามารถอนุมัติรายงานได้ที่นี่ จากนั้นนักบัญชีสามารถผ่านรายการทางบัญชีได้"
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1510,15 +1477,13 @@ msgid ""
 "Once your <b>Expense Report</b> is ready, you can submit it to your manager "
 "and wait for approval."
 msgstr ""
-"เมื่อ<b>รายงานค่าใช้จ่าย</b>ของคุณพร้อมแล้ว "
-"คุณสามารถส่งไปยังผู้จัดการของคุณและรอการอนุมัติได้"
+"เมื่อ<b>รายงานค่าใช้จ่าย</b>ของคุณพร้อมแล้ว คุณสามารถส่งไปยังผู้จัดการของคุณและรอการอนุมัติได้"
 
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense_sheet.py:0
 msgid "Only HR Officers or the concerned employee can reset to draft."
-msgstr ""
-"เฉพาะเจ้าหน้าที่ฝ่ายทรัพยากรบุคคลหรือพนักงานที่เกี่ยวข้องเท่านั้นที่สามารถรีเซ็ตเป็นร่างได้"
+msgstr "เฉพาะเจ้าหน้าที่ฝ่ายทรัพยากรบุคคลหรือพนักงานที่เกี่ยวข้องเท่านั้นที่สามารถรีเซ็ตเป็นร่างได้"
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1828,7 +1793,8 @@ msgstr "สแกนโค้ด QR นี้เพื่อดาวน์โ�
 #: model:ir.model.fields,help:hr_expense.field_res_users__expense_manager_id
 msgid ""
 "Select the user responsible for approving \"Expenses\" of this employee.\n"
-"If empty, the approval is done by an Administrator or Approver (determined in settings/users)."
+"If empty, the approval is done by an Administrator or Approver (determined "
+"in settings/users)."
 msgstr ""
 "เลือกผู้ใช้ที่รับผิดชอบในการอนุมัติ \"ค่าใช้จ่าย\" ของพนักงานคนนี้\n"
 "หากว่างเปล่า การอนุมัติจะทำโดยผู้ดูแลระบบหรือผู้อนุมัติ (กำหนดในการตั้งค่า/ผู้ใช้)"
@@ -1847,10 +1813,9 @@ msgid ""
 "category will automatically be set. Type the expense amount in the mail "
 "subject to set it on the expense too."
 msgstr ""
-"ส่งอีเมลไปยังอีเมลแทนพร้อมใบเสร็จในไฟล์แนบเพื่อสร้างค่าใช้จ่ายได้ในคลิกเดียว"
-" หากคำแรกของหัวเรื่องอีเมลมีการอ้างอิงภายในของหมวดหมู่หรือชื่อหมวดหมู่ "
-"หมวดหมู่ที่เกี่ยวข้องจะถูกตั้งค่าโดยอัตโนมัติ "
-"พิมพ์จำนวนเงินค่าใช้จ่ายในจดหมายเพื่อกำหนดค่าใช้จ่ายด้วย"
+"ส่งอีเมลไปยังอีเมลแทนพร้อมใบเสร็จในไฟล์แนบเพื่อสร้างค่าใช้จ่ายได้ในคลิกเดียว "
+"หากคำแรกของหัวเรื่องอีเมลมีการอ้างอิงภายในของหมวดหมู่หรือชื่อหมวดหมู่ "
+"หมวดหมู่ที่เกี่ยวข้องจะถูกตั้งค่าโดยอัตโนมัติ พิมพ์จำนวนเงินค่าใช้จ่ายในจดหมายเพื่อกำหนดค่าใช้จ่ายด้วย"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__module_hr_expense_extract
@@ -1880,12 +1845,6 @@ msgstr "แสดงคำเตือนสำหรับพาร์ทเน
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 msgid "Show all records which has next action date is before today"
 msgstr "แสดงระเบียนทั้งหมดที่มีวันที่ดำเนินการถัดไปคือก่อนวันนี้"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense_sheet.py:0
-msgid "Show missing work email employees"
-msgstr "แสดงอีเมลพนักงานที่ขาดหายไป"
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_expense__accounting_date
@@ -2033,10 +1992,17 @@ msgid ""
 msgstr "บัญชีที่ใช้บันทึกยอดคงค้างค่าใช้จ่ายของบริษัท"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/ir_actions_report.py:0
+msgid ""
+"The attachment (%(attachment_name)s) has not been added to the report due to "
+"the following error: '%(error)s'"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_res_company__expense_journal_id
 #: model:ir.model.fields,help:hr_expense.field_res_config_settings__expense_journal_id
-msgid ""
-"The company's default journal used when an employee expense is created."
+msgid "The company's default journal used when an employee expense is created."
 msgstr "สมุดรายวันเริ่มต้นของบริษัทที่ใช้เมื่อมีการสร้างค่าใช้จ่ายของพนักงาน"
 
 #. module: hr_expense
@@ -2048,11 +2014,10 @@ msgstr "ผู้ใช้ปัจจุบันไม่มีพนักง
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid ""
-"The first word of the email subject did not correspond to any category code."
-" You'll have to set the category manually on the expense."
+"The first word of the email subject did not correspond to any category code. "
+"You'll have to set the category manually on the expense."
 msgstr ""
-"คำแรกของหัวเรื่องอีเมลไม่ตรงกับรหัสหมวดหมู่ใดๆ "
-"คุณจะต้องตั้งค่าหมวดหมู่ด้วยตนเองเกี่ยวกับรายจ่าย"
+"คำแรกของหัวเรื่องอีเมลไม่ตรงกับรหัสหมวดหมู่ใดๆ คุณจะต้องตั้งค่าหมวดหมู่ด้วยตนเองเกี่ยวกับรายจ่าย"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
@@ -2093,22 +2058,13 @@ msgstr "ผลรวมของหลังจากปิดการแยก
 
 #. module: hr_expense
 #. odoo-python
-#: code:addons/hr_expense/models/hr_expense_sheet.py:0
-msgid ""
-"The work email of some employees is missing. Please add it on the employee "
-"form"
-msgstr "อีเมลที่ทำงานของพนักงานบางคนหายไป กรุณาเพิ่มลงในแบบฟอร์มพนักงาน"
-
-#. module: hr_expense
-#. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
 "There are unsubmitted expenses linked to this category. Updating the "
 "category cost will change expense amounts. Make sure it is what you want to "
 "do."
 msgstr ""
-"มีค่าใช้จ่ายที่ยังไม่ได้ส่งที่เชื่อมโยงกับหมวดหมู่นี้ "
-"การอัปเดตต้นทุนหมวดหมู่จะเปลี่ยนจำนวนค่าใช้จ่าย "
+"มีค่าใช้จ่ายที่ยังไม่ได้ส่งที่เชื่อมโยงกับหมวดหมู่นี้ การอัปเดตต้นทุนหมวดหมู่จะเปลี่ยนจำนวนค่าใช้จ่าย "
 "ตรวจสอบให้แน่ใจว่าเป็นสิ่งที่คุณต้องการดำเนินการ"
 
 #. module: hr_expense
@@ -2122,9 +2078,7 @@ msgstr "และนี่คือการจัดการค่าใช้
 msgid ""
 "This expense report is empty. You cannot submit or approve an empty expense "
 "report."
-msgstr ""
-"รายงานค่าใช้จ่ายนี้ว่างเปล่า "
-"คุณไม่สามารถส่งหรืออนุมัติรายงานค่าใช้จ่ายที่ว่างเปล่าได้"
+msgstr "รายงานค่าใช้จ่ายนี้ว่างเปล่า คุณไม่สามารถส่งหรืออนุมัติรายงานค่าใช้จ่ายที่ว่างเปล่าได้"
 
 #. module: hr_expense
 #: model:digest.tip,name:hr_expense.digest_tip_hr_expense_0
@@ -2305,19 +2259,18 @@ msgstr "ประวัติการสื่อสารของเว็บ
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
 msgid ""
-"When the cost of an expense product is different than 0, then the user"
-"                                             using this product won't be "
-"able to change the amount of the expense,"
-"                                             only the quantity. Use a cost "
-"different than 0 for expense categories funded by"
-"                                             the company at fixed cost like "
-"allowances for mileage, per diem, accommodation"
-"                                             or meal."
+"When the cost of an expense product is different than 0, then the "
+"user                                             using this product won't be "
+"able to change the amount of the "
+"expense,                                             only the quantity. Use "
+"a cost different than 0 for expense categories funded "
+"by                                             the company at fixed cost "
+"like allowances for mileage, per diem, "
+"accommodation                                             or meal."
 msgstr ""
 "เมื่อต้นทุนของผลิตภัณฑ์ค่าใช้จ่ายแตกต่างจาก 0 "
-"ผู้ใช้ที่ใช้ผลิตภัณฑ์นี้จะไม่สามารถเปลี่ยนจำนวนค่าใช้จ่ายได้ "
-"แต่จะสามารถเปลี่ยนเฉพาะปริมาณได้ ใช้ค่าใช้จ่ายที่แตกต่างจาก 0 "
-"สำหรับหมวดหมู่ค่าใช้จ่ายที่ได้รับทุนจากบริษัทโดยมีต้นทุนคงที่ เช่น "
+"ผู้ใช้ที่ใช้ผลิตภัณฑ์นี้จะไม่สามารถเปลี่ยนจำนวนค่าใช้จ่ายได้ แต่จะสามารถเปลี่ยนเฉพาะปริมาณได้ "
+"ใช้ค่าใช้จ่ายที่แตกต่างจาก 0 สำหรับหมวดหมู่ค่าใช้จ่ายที่ได้รับทุนจากบริษัทโดยมีต้นทุนคงที่ เช่น "
 "ค่าเบี้ยเลี้ยงระยะทาง เบี้ยเลี้ยง ที่พัก หรือมื้ออาหาร"
 
 #. module: hr_expense
@@ -2380,16 +2333,14 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense_sheet.py:0
 msgid "You cannot cancel an expense sheet linked to a posted journal entry"
-msgstr ""
-"คุณไม่สามารถยกเลิกแผ่นค่าใช้จ่ายที่เชื่อมโยงกับรายการบันทึกประจำวันที่ผ่านรายการแล้วได้"
+msgstr "คุณไม่สามารถยกเลิกแผ่นค่าใช้จ่ายที่เชื่อมโยงกับรายการบันทึกประจำวันที่ผ่านรายการแล้วได้"
 
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense_sheet.py:0
 msgid ""
 "You cannot create accounting entries for an expense report without expenses."
-msgstr ""
-"คุณไม่สามารถสร้างรายการทางบัญชีสำหรับรายงานค่าใช้จ่ายโดยไม่มีค่าใช้จ่ายได้"
+msgstr "คุณไม่สามารถสร้างรายการทางบัญชีสำหรับรายงานค่าใช้จ่ายโดยไม่มีค่าใช้จ่ายได้"
 
 #. module: hr_expense
 #. odoo-python
@@ -2413,11 +2364,10 @@ msgstr "คุณไม่สามารถลบบัญชีการวิ
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 msgid ""
-"You cannot delete only some entries linked to an expense report. All entries"
-" must be deleted at the same time."
+"You cannot delete only some entries linked to an expense report. All entries "
+"must be deleted at the same time."
 msgstr ""
-"คุณไม่สามารถลบเพียงบางรายการที่เชื่อมโยงกับรายงานค่าใช้จ่ายได้ "
-"รายการทั้งหมดจะต้องถูกลบพร้อมกัน"
+"คุณไม่สามารถลบเพียงบางรายการที่เชื่อมโยงกับรายงานค่าใช้จ่ายได้ รายการทั้งหมดจะต้องถูกลบพร้อมกัน"
 
 #. module: hr_expense
 #. odoo-python
@@ -2435,8 +2385,7 @@ msgstr ""
 msgid ""
 "You cannot do this modification since the payment is linked to an expense "
 "report."
-msgstr ""
-"คุณไม่สามารถทำการแก้ไขนี้ได้เนื่องจากการชำระเงินเชื่อมโยงกับรายงานค่าใช้จ่าย"
+msgstr "คุณไม่สามารถทำการแก้ไขนี้ได้เนื่องจากการชำระเงินเชื่อมโยงกับรายงานค่าใช้จ่าย"
 
 #. module: hr_expense
 #. odoo-python
@@ -2455,8 +2404,7 @@ msgid ""
 "You cannot remove all expenses from a submitted, approved or paid expense "
 "report."
 msgstr ""
-"คุณไม่สามารถลบค่าใช้จ่ายทั้งหมดออกจากรายงานค่าใช้จ่ายที่ส่ง "
-"ได้รับการอนุมัติหรือชำระเงินแล้ว"
+"คุณไม่สามารถลบค่าใช้จ่ายทั้งหมดออกจากรายงานค่าใช้จ่ายที่ส่ง ได้รับการอนุมัติหรือชำระเงินแล้ว"
 
 #. module: hr_expense
 #. odoo-python
@@ -2468,8 +2416,7 @@ msgstr "คุณไม่สามารถรายงานค่าใช้
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You cannot report expenses for different employees in the same report."
-msgstr ""
-"คุณไม่สามารถรายงานรายจ่ายสำหรับพนักงานที่แตกต่างกันในรายงานฉบับเดียวกันได้"
+msgstr "คุณไม่สามารถรายงานรายจ่ายสำหรับพนักงานที่แตกต่างกันในรายงานฉบับเดียวกันได้"
 
 #. module: hr_expense
 #. odoo-python
@@ -2487,10 +2434,8 @@ msgstr "คุณไม่สามารถรายงานสองครั
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid ""
-"You cannot set the expense total in currency to 0 if it's linked to a "
-"report."
-msgstr ""
-"คุณไม่สามารถตั้งค่าผลรวมค่าใช้จ่ายในสกุลเงินเป็น 0 ได้หากเชื่อมโยงกับรายงาน"
+"You cannot set the expense total in currency to 0 if it's linked to a report."
+msgstr "คุณไม่สามารถตั้งค่าผลรวมค่าใช้จ่ายในสกุลเงินเป็น 0 ได้หากเชื่อมโยงกับรายงาน"
 
 #. module: hr_expense
 #. odoo-python
@@ -2504,8 +2449,30 @@ msgstr "คุณไม่สามารถตั้งค่าผลรวม
 msgid ""
 "You do not have the rights to add or remove any expenses on an approved or "
 "paid expense report."
+msgstr "คุณไม่มีสิทธิ์ในการเพิ่มหรือลบค่าใช้จ่ายในรายงานค่าใช้จ่ายที่ได้รับอนุมัติหรือชำระแล้ว"
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid ""
+"You don't have the rights to attach a document to a submitted expense. "
+"Please reset the expense report to draft first."
 msgstr ""
-"คุณไม่มีสิทธิ์ในการเพิ่มหรือลบค่าใช้จ่ายในรายงานค่าใช้จ่ายที่ได้รับอนุมัติหรือชำระแล้ว"
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense_sheet.py:0
+msgid ""
+"You don't have the rights to bypass the validation process of this expense "
+"report."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid ""
+"You don't have the rights to bypass the validation process of this expense."
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2523,10 +2490,9 @@ msgstr "คุณต้องเพิ่มวิธีการชำระเ
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid ""
-"You need to have at least one category that can be expensed in your database"
-" to proceed!"
-msgstr ""
-"คุณต้องมีอย่างน้อยหนึ่งหมวดหมู่ที่สามารถใช้จ่ายในฐานข้อมูลของคุณเพื่อดำเนินการต่อ!"
+"You need to have at least one category that can be expensed in your database "
+"to proceed!"
+msgstr "คุณต้องมีอย่างน้อยหนึ่งหมวดหมู่ที่สามารถใช้จ่ายในฐานข้อมูลของคุณเพื่อดำเนินการต่อ!"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_refuse_reason
@@ -2620,3 +2586,18 @@ msgstr "ใช้ OCR เพื่อกรอกข้อมูลจากร�
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "with the same receipt already exists."
 msgstr "โดยมีใบเสร็จเดียวกันนี้อยู่แล้ว"
+
+#~ msgid "$100.00"
+#~ msgstr "$100.00"
+
+#~ msgid "$120.00"
+#~ msgstr "$120.00"
+
+#~ msgid "$500.00"
+#~ msgstr "$500.00"
+
+#~ msgid "$600.00"
+#~ msgstr "$600.00"
+
+#~ msgid "2023-08-11"
+#~ msgstr "2023-08-11"

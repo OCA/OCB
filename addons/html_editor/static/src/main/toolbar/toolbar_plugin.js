@@ -3,7 +3,7 @@ import { isZWS } from "@html_editor/utils/dom_info";
 import { reactive } from "@odoo/owl";
 import { isTextNode } from "@web/views/view_compiler";
 import { Toolbar } from "./toolbar";
-import { hasTouch } from "@web/core/browser/feature_detection";
+import { hasTouch, isMacOS } from "@web/core/browser/feature_detection";
 import { registry } from "@web/core/registry";
 import { ToolbarMobile } from "./mobile_toolbar";
 import { debounce } from "@web/core/utils/timing";
@@ -18,7 +18,7 @@ import { closestElement } from "@html_editor/utils/dom_traversal";
 /**
  * @typedef {Object} ToolbarNamespace
  * @property {string} id
- * @property {(traversedNodes: Node[]) => boolean} isApplied
+ * @property {(targetedNodes: Node[]) => boolean} isApplied
  *
  *
  * @typedef {Object} ToolbarGroup
@@ -182,18 +182,35 @@ export class ToolbarPlugin extends Plugin {
             // Close toolbar on keydown Arrows and prevent it from opening until
             // keyup. Opening is debounced to avoid open/close between
             // sequential keystrokes.
+            // On macOS, keyup is not triggered when Cmd is held down (e.g. Cmd+Shift+Arrow),
+            // so we use selectionchange as a fallback to re-enable the toolbar.
             this.addDomListener(this.editable, "keydown", (ev) => {
-                if (ev.key.startsWith("Arrow")) {
+                if (ev.key?.startsWith("Arrow")) {
                     this.overlay.close();
                     this.onSelectionChangeActive = false;
+                    if (isMacOS() && ev.metaKey) {
+                        this.pendingArrowKey = true;
+                    }
                 }
             });
             this.addDomListener(this.editable, "keyup", (ev) => {
-                if (ev.key.startsWith("Arrow")) {
+                if (ev.key?.startsWith("Arrow")) {
+                    this.pendingArrowKey = false;
                     this.onSelectionChangeActive = true;
                     this.debouncedUpdateToolbar();
                 }
             });
+            if (isMacOS()) {
+                this.addDomListener(this.document, "selectionchange", () => {
+                    if (this.pendingArrowKey && !this.isMouseDown) {
+                        this.pendingArrowKey = false;
+                        this.onSelectionChangeActive = true;
+                        this.debouncedUpdateToolbar();
+                    }
+                });
+                this.addDomListener(this.editable, "mousedown", () => (this.isMouseDown = true));
+                this.addDomListener(this.document, "mouseup", () => (this.isMouseDown = false));
+            }
         }
     }
 
@@ -272,10 +289,22 @@ export class ToolbarPlugin extends Plugin {
         }
     }
 
+    /**
+     * @deprecated
+     */
     getFilterTraverseNodes() {
+        return this.getFilteredTargetedNodes();
+    }
+
+    getFilteredTargetedNodes() {
         return this.dependencies.selection
-            .getTraversedNodes()
-            .filter((node) => !isTextNode(node) || (node.textContent !== "\n" && !isZWS(node)));
+            .getTargetedNodes()
+            .filter(
+                (node) =>
+                    this.dependencies.selection.isNodeEditable(node) &&
+                    (this.checkPredicates("toolbar_visibility_predicates", node) ?? true) &&
+                    (!isTextNode(node) || (node.textContent.trim().length && !isZWS(node)))
+            );
     }
 
     updateToolbarVisibility(selectionData) {
@@ -308,7 +337,7 @@ export class ToolbarPlugin extends Plugin {
         if (isCollapsed) {
             return !!closestElement(selectionData.editableSelection.anchorNode, "td.o_selected_td");
         }
-        return this.getFilterTraverseNodes().length;
+        return this.getFilteredTargetedNodes().length;
     }
 
     shouldPreventClosing(selectionData) {
@@ -319,9 +348,9 @@ export class ToolbarPlugin extends Plugin {
     }
 
     updateNamespace() {
-        const traversedNodes = this.getFilterTraverseNodes();
+        const targetedNodes = this.getFilteredTargetedNodes();
         for (const namespace of this.getResource("toolbar_namespaces")) {
-            if (namespace.isApplied(traversedNodes)) {
+            if (namespace.isApplied(targetedNodes)) {
                 this.state.namespace = namespace.id;
                 return;
             }
@@ -344,7 +373,13 @@ export class ToolbarPlugin extends Plugin {
         if (!selection) {
             return;
         }
-        const nodes = this.getFilterTraverseNodes();
+        const nodes = this.dependencies.selection
+            .getTargetedNodes()
+            .filter(
+                (node) =>
+                    this.dependencies.selection.isNodeEditable(node) &&
+                    (!isTextNode(node) || node.textContent.trim().length)
+            );
         for (const buttonGroup of this.buttonGroups) {
             if (buttonGroup.namespace === this.state.namespace) {
                 for (const button of buttonGroup.buttons) {

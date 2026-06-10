@@ -40,7 +40,7 @@ const {
  * @param {string} tagKey
  * @param {string} tagName
  */
-const checkTagSimilarity = (tagKey, tagName) => {
+function checkTagSimilarity(tagKey, tagName) {
     if (R_UNIQUE_TAG.test(tagKey)) {
         return;
     }
@@ -55,7 +55,7 @@ const checkTagSimilarity = (tagKey, tagName) => {
             similarities.push([existingTags[key], tagName]);
         }
     }
-};
+}
 
 const R_UNIQUE_TAG = /\d/;
 const SIMILARITY_PERCENTAGE = 0.1;
@@ -98,7 +98,8 @@ export function applyTags(job, tags) {
             throw new HootError(
                 `cannot apply tag ${stringify(tag.name)} on test/suite ${stringify(
                     job.name
-                )} as it explicitly excludes tags ${excluded.map(stringify).join(" & ")}`
+                )} as it explicitly excludes tags ${excluded.map(stringify).join(" & ")}`,
+                { level: "global" }
             );
         }
         job.tags.push(tag);
@@ -121,9 +122,11 @@ export function applyTags(job, tags) {
  */
 export function defineTags(...definitions) {
     return definitions.map((def) => {
-        const tagKey = def.key || normalize(def.name);
+        const tagKey = def.key || normalize(def.name.toLowerCase());
         if (existingTags[tagKey]) {
-            throw new HootError(`duplicate definition for tag "${def.name}"`);
+            throw new HootError(`duplicate definition for tag "${def.name}"`, {
+                level: "global",
+            });
         }
         checkTagSimilarity(tagKey, def.name);
 
@@ -137,9 +140,9 @@ export function defineTags(...definitions) {
  * @param {string[]} tagNames
  */
 export function getTags(tagNames) {
-    const tagKeys = tagNames.map(normalize);
-    return tagKeys.map((tagKey, i) => {
-        const tag = existingTags[tagKey] || defineTags({ key: tagKey, name: tagNames[i] })[0];
+    return tagNames.map((tagKey, i) => {
+        const nKey = normalize(tagKey.toLowerCase());
+        const tag = existingTags[nKey] || defineTags({ key: nKey, name: tagNames[i] })[0];
         return tag;
     });
 }
@@ -154,7 +157,7 @@ export function getTagSimilarities() {
  * Used in Hoot internal tests to remove tags introduced within a test.
  *
  * @private
- * @param  {Iterable<string>} tagKeys
+ * @param {Iterable<string>} tagKeys
  */
 export function undefineTags(tagKeys) {
     for (const tagKey of tagKeys) {
@@ -187,7 +190,7 @@ export class Tag {
         this.name = name;
         this.color = TAG_COLORS[stringToNumber(this.key) % TAG_COLORS.length];
         if (exclude) {
-            this.exclude = exclude.map(normalize);
+            this.exclude = exclude.map((id) => normalize(id.toLowerCase()));
         }
         if (before) {
             this.before = before;

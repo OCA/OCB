@@ -15,10 +15,10 @@ class L10nInWithholdWizard(models.TransientModel):
         result = super().default_get(fields_list)
         active_model = self._context.get('active_model')
         active_ids = self._context.get('active_ids', [])
-        if len(active_ids) > 1:
-            raise UserError(_("You can only create a withhold for only one record at a time."))
         if active_model not in ('account.move', 'account.payment') or not active_ids:
             raise UserError(_("TDS must be created from an Invoice or a Payment."))
+        if len(active_ids) > 1:
+            raise UserError(_("You can only create a withhold for only one record at a time."))
         active_record = self.env[active_model].browse(active_ids)
         result['reference'] = _("TDS of %s", active_record.name)
         if active_model == 'account.move':
@@ -113,22 +113,14 @@ class L10nInWithholdWizard(models.TransientModel):
     def _compute_l10n_in_withholding_warning(self):
         for wizard in self:
             warnings = {}
-            if wizard.l10n_in_tds_tax_type == 'purchase' and not wizard.related_move_id.commercial_partner_id.l10n_in_pan and any(
-                    line.tax_id.amount != max(line.tax_id.l10n_in_section_id.l10n_in_section_tax_ids, key=lambda t: abs(t.amount)).amount
-                    for line in wizard.withhold_line_ids
-                ):
+            if wizard.l10n_in_tds_tax_type == 'purchase' and not wizard.related_move_id.commercial_partner_id.l10n_in_pan:
                 warnings['lower_tds_tax'] = {
-                    'message': _("As the Partner's PAN missing/invalid, it's advisable to apply TDS at the higher rate.")
+                    'message': _("Please deduct TDS at higher rate if PAN is missing. Ignore if already applied.")
                     }
             precision = self.currency_id.decimal_places
             if wizard.related_move_id and float_compare(wizard.related_move_id.amount_untaxed, sum(line.base for line in wizard.withhold_line_ids), precision_digits=precision) < 0:
                 message = _("The base amount of TDS lines is greater than the amount of the %s", wizard.type_name)
                 warnings['lower_move_amount'] = {
-                    'message': message
-                }
-            elif wizard.related_payment_id and float_compare(wizard.related_payment_id.amount, sum(line.base for line in wizard.withhold_line_ids), precision_digits=precision) < 0:
-                message = _("The base amount of TDS lines is greater than the untaxed amount of the %s", wizard.type_name)
-                warnings['lower_payment_amount'] = {
                     'message': message
                 }
             wizard.l10n_in_withholding_warning = warnings

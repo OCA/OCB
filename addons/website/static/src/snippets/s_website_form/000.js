@@ -32,16 +32,6 @@ import wUtils from '@website/js/utils';
          */
         start: function () {
             if (this.editableMode) {
-                // TODO: Improve this. Since the form behavior was handled using
-                // two separate public widgets, and the "data-for" values were
-                // removed (on destroy before saving), we still need to restore
-                // them in edit mode in the case of a simple widget refresh.
-                this.dataForValues = wUtils.getParsedDataFor(this.$target[0].id, this.$target[0].ownerDocument);
-                for (const fieldEl of this._getDataForFields()) {
-                    if (!fieldEl.getAttribute("value")) {
-                        fieldEl.setAttribute("value", this.dataForValues[fieldEl.name]);
-                    }
-                }
                 // We do not initialize the datetime picker in edit mode but want the dates to be formated
                 this.el.querySelectorAll('.s_website_form_input.datetimepicker-input').forEach(el => {
                     const value = el.getAttribute('value');
@@ -56,21 +46,7 @@ import wUtils from '@website/js/utils';
             }
             return this._super(...arguments);
         },
-        /**
-         * @override
-         */
-        destroy() {
-            if (this.editableMode) {
-                // The "data-for" values are always correctly added to the form
-                // on the form widget start. But if we make any change to it in
-                // "edit" mode, we need to be sure it will not be saved with
-                // the new values.
-                for (const fieldEl of this._getDataForFields()) {
-                    fieldEl.removeAttribute("value");
-                }
-            }
-            this._super(...arguments);
-        },
+        // Todo: remove in master
         /**
          * @private
          */
@@ -160,6 +136,9 @@ import wUtils from '@website/js/utils';
                             value: defaultValue && DateTime.fromSeconds(parseInt(defaultValue)),
                         },
                     }).enable());
+                    // Disable virtual keyboard to fix popover display issues on
+                    // small screens
+                    input.setAttribute("inputmode", "none");
                 }
                 this.$allDates.addClass('s_website_form_datepicker_initialized');
             }
@@ -348,6 +327,14 @@ import wUtils from '@website/js/utils';
             }
 
             // Prepare form inputs
+            // Set a placeholder name to input fields without
+            // a label to allow FormData to function correctly
+            for (const [i, inputEl] of this.el
+                .querySelectorAll(".s_website_form_input:not([name]), [name=''].s_website_form_input")
+                .entries()) {
+                inputEl.setAttribute("name", "unknown_field_" + (i + 1));
+            };
+
             this.form_fields = this.$el.serializeArray();
             $.each(this.$el.find('input[type=file]:not([disabled])'), (outer_index, input) => {
                 $.each($(input).prop('files'), function (index, file) {

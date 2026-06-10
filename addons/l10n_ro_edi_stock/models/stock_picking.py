@@ -7,6 +7,7 @@ from odoo import api, fields, models, _
 from odoo.addons.l10n_ro_edi_stock.models.l10n_ro_edi_stock_document import DOCUMENT_STATES
 from odoo.addons.l10n_ro_edi_stock.models.etransport_api import ETransportAPI
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_round
 
 OPERATION_TYPES = [
     ('10', "Intra-community purchase"),
@@ -239,6 +240,10 @@ STATE_CODES = {
     'GR': '52',
 }
 
+_eu_country_vat = {
+    'GR': 'EL'
+}
+
 
 class Picking(models.Model):
     _inherit = 'stock.picking'
@@ -363,7 +368,7 @@ class Picking(models.Model):
     @api.depends('company_id.account_fiscal_country_id.code')
     def _compute_l10n_ro_edi_stock_enable(self):
         for picking in self:
-            picking.l10n_ro_edi_stock_enable = picking.company_id.account_fiscal_country_id.code == 'RO'
+            picking.l10n_ro_edi_stock_enable = picking.picking_type_code != 'internal' and picking.company_id.account_fiscal_country_id.code == 'RO'
 
     @api.depends('l10n_ro_edi_stock_enable', 'state', 'l10n_ro_edi_stock_state')
     def _compute_l10n_ro_edi_stock_enable_send(self):
@@ -404,7 +409,11 @@ class Picking(models.Model):
         # EXTENDS 'stock'
 
         # Validate the carrier first because it cannot be changed after the super call
-        self._l10n_ro_edi_stock_validate_carrier()
+        # validation should not be blocking demo data or unit tests of other modules
+        # an example is l10n_ro_saft_stock that creates pickings in demo data which cannot
+        # have a carrier_id because the module does not depends on stock_delivery
+        if not self.env.context.get('demo_mode', False):
+            self._l10n_ro_edi_stock_validate_carrier()
 
         return super().button_validate()
 
@@ -434,9 +443,6 @@ class Picking(models.Model):
         # carrier partner fields
         partner = data['transport_partner_id']
         missing_carrier_partner_fields = []
-
-        if partner.country_id.code != 'RO':
-            errors.append(_("The delivery carrier partner has to be located in Romania."))
 
         if not partner.vat:
             missing_carrier_partner_fields.append(_("VAT"))
@@ -498,6 +504,7 @@ class Picking(models.Model):
             return errors  # return prematurely because all the end location fields depend on this field
 
         # Location fields
+        country_ro = self.env.ref('base.ro')
         for location in ('start', 'end'):
             loc_value = data[f'l10n_ro_edi_stock_{location}_loc_type']
             loc_group = _("'Start Location'") if location == 'start' else _("'End Location'")
@@ -515,6 +522,9 @@ class Picking(models.Model):
                     case _other:
                         errors.append(_("Invalid picking type %(type_code)s", type_code=_other))
                         continue
+
+                if partner.country_id != country_ro:
+                    errors.append(_("Warehouse of %(location_group)s should be in Romania", location_group=loc_group))
 
                 missing_field_names = []
                 if not partner.state_id:
@@ -742,11 +752,18 @@ class Picking(models.Model):
                 last_validated = self._l10n_ro_edi_stock_get_last_document('stock_validated')
                 uit = last_validated.l10n_ro_edi_stock_uit
 
-            self._l10n_ro_edi_stock_create_document_stock_sent({
+            edi_document = self._l10n_ro_edi_stock_create_document_stock_sent({
                 'l10n_ro_edi_stock_load_id': content['index_incarcare'],
                 'l10n_ro_edi_stock_uit': uit,
                 'raw_xml': raw_xml,
             })
+            self._message_log(
+                body=_(
+                    "Generated eTransport XML (UIT: %(uit)s) was sent to the authority.",
+                    uit=uit,
+                ),
+                attachment_ids=edi_document.attachment_id.ids
+            )
 
     def _l10n_ro_edi_stock_fetch_document_status(self):
         session = requests.Session()
@@ -831,16 +848,16 @@ class Picking(models.Model):
                         'codScopOperatiune': data['l10n_ro_edi_stock_operation_scope'],
                         'codTarifar': (product.intrastat_code_id.code if 'intrastat_code_id' in product._fields else None) or '00000000',
                         'denumireMarfa': product.name,
-                        'cantitate': move.product_qty,
+                        'cantitate': float_round(move.product_qty, precision_digits=2),
                         'codUnitateMasura': move.product_uom._get_unece_code(),
-                        'greutateNeta': move.weight,
-                        'greutateBruta': self._l10n_ro_edi_stock_get_gross_weight(move),
-                        'valoareLeiFaraTva': product.list_price,
+                        'greutateNeta': float_round(move.weight, precision_digits=2),
+                        'greutateBruta': float_round(self._l10n_ro_edi_stock_get_gross_weight(move), precision_digits=2),
+                        'valoareLeiFaraTva': float_round(product.standard_price, precision_digits=2),
                     }
                     for move in data['stock_move_ids'] for product in move.product_id
                 ],
                 'partenerComercial': {
-                    'codTara': commercial_partner.country_code,
+                    'codTara': _eu_country_vat.get(commercial_partner.country_code, commercial_partner.country_code),
                     'denumire': commercial_partner.name,
                     'cod': commercial_partner_code,
                 },
@@ -848,7 +865,7 @@ class Picking(models.Model):
                     'nrVehicul': data['l10n_ro_edi_stock_vehicle_number'].upper(),
                     'nrRemorca1': data['l10n_ro_edi_stock_trailer_1_number'].upper() if data['l10n_ro_edi_stock_trailer_1_number'] else None,
                     'nrRemorca2': data['l10n_ro_edi_stock_trailer_2_number'].upper() if data['l10n_ro_edi_stock_trailer_2_number'] else None,
-                    'codTaraOrgTransport': transport_partner.country_code,
+                    'codTaraOrgTransport': _eu_country_vat.get(transport_partner.country_code, transport_partner.country_code),
                     'codOrgTransport': self._l10n_ro_edi_stock_get_cod(transport_partner),
                     'denumireOrgTransport': transport_partner.name,
                     'dataTransport': scheduled_date,

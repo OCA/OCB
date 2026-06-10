@@ -44,12 +44,18 @@ export class OrderlineNoteButton extends Component {
         }
         const saved_quantity = selectedOrderline.qty - quantity_with_note;
         if (saved_quantity > 0 && quantity_with_note > 0) {
-            await this.pos.addLineToCurrentOrder({
+            const newLine = await this.pos.addLineToCurrentOrder({
                 product_id: selectedOrderline.product_id,
                 qty: quantity_with_note,
                 note: payload,
             });
+            newLine.combo_line_ids.forEach((child) => {
+                child.qty = quantity_with_note;
+            });
             selectedOrderline.qty = saved_quantity;
+            selectedOrderline.combo_line_ids.forEach((child) => {
+                child.qty = saved_quantity;
+            });
         } else {
             this.props.setter(selectedOrderline, payload);
         }
@@ -60,7 +66,7 @@ export class OrderlineNoteButton extends Component {
         const selectedOrder = this.pos.get_order();
         const selectedNote = selectedOrder.general_note || "";
         const payload = await this.openTextInput(selectedNote);
-        selectedOrder.general_note = payload;
+        selectedOrder.general_note = payload || "";
         return { confirmed: typeof payload === "string", inputNote: payload };
     }
     async openTextInput(selectedNote) {

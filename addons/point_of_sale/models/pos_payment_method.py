@@ -12,10 +12,13 @@ class PosPaymentMethod(models.Model):
         return []
 
     def _get_payment_method_type(self):
-        selection = [('none', 'None required'), ('terminal', 'Terminal')]
+        selection = [('none', self.env._("None required")), ('terminal', self.env._("Terminal"))]
         if self.env['res.partner.bank'].get_available_qr_methods_in_sequence():
-            selection.append(('qr_code', 'Bank App (QR Code)'))
+            selection.append(('qr_code', self.env._("Bank App (QR Code)")))
         return selection
+
+    def _is_online_payment(self):
+        return False
 
     name = fields.Char(string="Method", required=True, translate=True, help='Defines the name of the payment method that will be displayed in the Point of Sale when the payments are selected.')
     sequence = fields.Integer(copy=False)
@@ -52,7 +55,7 @@ class PosPaymentMethod(models.Model):
     active = fields.Boolean(default=True)
     type = fields.Selection(selection=[('cash', 'Cash'), ('bank', 'Bank'), ('pay_later', 'Customer Account')], compute="_compute_type")
     image = fields.Image("Image", max_width=50, max_height=50)
-    payment_method_type = fields.Selection(selection=_get_payment_method_type, string="Integration", default='none', required=True)
+    payment_method_type = fields.Selection(selection=lambda self: self._get_payment_method_type(), string="Integration", default='none', required=True)
     default_qr = fields.Char(compute='_compute_qr')
     qr_code_method = fields.Selection(
         string='QR Code Format', copy=False,

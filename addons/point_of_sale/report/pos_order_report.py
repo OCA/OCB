@@ -47,7 +47,7 @@ class PosOrderReport(models.Model):
             WITH payment_method_by_order_line AS (
                 SELECT
                     pol.id AS pos_order_line_id,
-                    (array_agg(pm.payment_method_id))[1] AS payment_method_id
+                    (array_agg(pm.payment_method_id ORDER BY pm.id ASC))[1] AS payment_method_id
                 FROM pos_order_line pol
                 LEFT JOIN pos_order po ON (po.id = pol.order_id)
                 LEFT JOIN pos_payment pm ON (pm.pos_order_id=po.id)
@@ -89,7 +89,7 @@ class PosOrderReport(models.Model):
                 s.pricelist_id,
                 s.session_id,
                 s.account_move IS NOT NULL AS invoiced,
-                l.price_subtotal - COALESCE(l.total_cost,0) / COALESCE(NULLIF(s.currency_rate, 0), 1.0) AS margin,
+                (l.price_subtotal - COALESCE(l.total_cost,0)) / COALESCE(NULLIF(s.currency_rate, 0), 1.0) AS margin,
                 pm.payment_method_id AS payment_method_id,
                 fpc.id AS pos_categ_id
 

@@ -1,7 +1,6 @@
 import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
 
 import { fields, getKwArgs, makeKwArgs, webModels } from "@web/../tests/web_test_helpers";
-import { DEFAULT_MAIL_SEARCH_ID, DEFAULT_MAIL_VIEW_ID } from "./constants";
 
 /** @typedef {import("@web/../tests/web_test_helpers").ModelRecord} ModelRecord */
 
@@ -16,8 +15,7 @@ export class ResPartner extends webModels.ResPartner {
     });
 
     _views = {
-        [`search, ${DEFAULT_MAIL_SEARCH_ID}`]: /* xml */ `<search/>`,
-        [`form,${DEFAULT_MAIL_VIEW_ID}`]: /* xml */ `
+        form: /* xml */ `
             <form>
                 <sheet>
                     <field name="name"/>
@@ -25,6 +23,18 @@ export class ResPartner extends webModels.ResPartner {
                 <chatter/>
             </form>`,
     };
+
+    /* override */
+    _compute_display_name() {
+        super._compute_display_name();
+        for (const record of this) {
+            if (record.parent_id && !record.name) {
+                const [parent] = this.env["res.partner"].browse(record.parent_id);
+                const type = this._fields.type.selection.find((item) => item[0] === record.type);
+                record.display_name = `${parent.name}, ${type[1]}`;
+            }
+        }
+    }
 
     /**
      * @param {string} [search]
@@ -262,6 +272,7 @@ export class ResPartner extends webModels.ResPartner {
                             "display_name",
                             "isAdmin",
                             "notification_type",
+                            "signature",
                             "user",
                         ].includes(field)
                 ),
@@ -303,6 +314,9 @@ export class ResPartner extends webModels.ResPartner {
                 }
                 if (fields.includes("notification_type")) {
                     data.notification_preference = mainUser.notification_type;
+                }
+                if (fields.includes("signature")) {
+                    data.signature = mainUser.signature;
                 }
             }
             store.add(this.browse(partner.id), data);

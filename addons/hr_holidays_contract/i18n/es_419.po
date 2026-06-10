@@ -1,30 +1,36 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* hr_holidays_contract
-# 
+# * hr_holidays_contract
+#
 # Translators:
 # Fernanda Alvarez, 2024
 # Wil Odoo, 2024
-# 
+#
+# "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025.
+# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 08:55+0000\n"
-"PO-Revision-Date: 2024-09-29 00:00+0000\n"
-"Last-Translator: Wil Odoo, 2024\n"
-"Language-Team: Spanish (Latin America) (https://app.transifex.com/odoo/teams/41243/es_419/)\n"
+"POT-Creation-Date: 2025-12-29 18:37+0000\n"
+"PO-Revision-Date: 2025-11-11 17:25+0000\n"
+"Last-Translator: \"Patricia Gutiérrez (pagc)\" <pagc@odoo.com>\n"
+"Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
+"odoo-18/hr_holidays_contract/es_419/>\n"
+"Language: es_419\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: es_419\n"
-"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
+"0) ? 1 : 2);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_holidays_contract
 #. odoo-python
 #: code:addons/hr_holidays_contract/models/hr_leave.py:0
 msgid ""
-"A leave cannot be set across multiple contracts with different working schedules.\n"
+"A leave cannot be set across multiple contracts with different working "
+"schedules.\n"
 "\n"
 "Please create one time off for each contract.\n"
 "\n"
@@ -34,13 +40,14 @@ msgid ""
 "Contracts:\n"
 "%(contracts)s"
 msgstr ""
-"No se puede establecer un permiso en varios contratos con diferentes horarios de trabajo.\n"
+"No puedes asignar un permiso que abarque varios contratos con distintos "
+"horarios de trabajo.\n"
+" \n"
+"Crea un permiso por cada contrato.\n"
 "\n"
-"Cree un tiempo personal para cada contrato.\n"
-"\n"
-"Tiempo personal:\n"
+"Permiso:\n"
 "%(time_off)s\n"
-"\n"
+" \n"
 "Contratos:\n"
 "%(contracts)s"
 
@@ -61,8 +68,8 @@ msgid ""
 msgstr ""
 "Cambiar el contrato de este empleado cambiará su horario de trabajo en un "
 "periodo en el que tomó días personales. Cambiar el horario de trabajo "
-"cambiará la duración de esos días personales de manera que el empleado ya no"
-" los tendrá asignados. Revise estos días y/o estas asignaciones antes de "
+"cambiará la duración de esos días personales de manera que el empleado ya no "
+"los tendrá asignados. Revise estos días y/o estas asignaciones antes de "
 "cambiar el contrato."
 
 #. module: hr_holidays_contract
@@ -73,4 +80,4 @@ msgstr "Contrato del empleado"
 #. module: hr_holidays_contract
 #: model:ir.model,name:hr_holidays_contract.model_hr_leave
 msgid "Time Off"
-msgstr "Tiempo personal"
+msgstr "Vacaciones"

@@ -3,21 +3,25 @@ import io
 import json
 import logging
 import re
-import time
-import requests
-import werkzeug.exceptions
-import werkzeug.urls
-from PIL import Image, ImageFont, ImageDraw
-from lxml import etree
 from base64 import b64decode, b64encode
 from math import floor
 from os.path import join as opj
 
-from odoo.http import request, Response
-from odoo import http, tools, _
-from odoo.tools.misc import file_open
-from odoo.tools.image import image_data_uri, binary_to_image
+import requests
+import werkzeug.exceptions
+import werkzeug.urls
+from lxml import etree
+from PIL import Image, ImageDraw, ImageFont
 
+from odoo import http, tools
+from odoo.http import STATIC_CACHE, Response, request
+from odoo.tools.image import binary_to_image, image_data_uri, get_webp_size
+from odoo.tools.misc import file_open
+
+try:
+    from werkzeug.utils import send_file
+except ImportError:
+    from .tools._vendor.send_file import send_file
 
 logger = logging.getLogger(__name__)
 DEFAULT_LIBRARY_ENDPOINT = 'https://media-api.odoo.com'
@@ -147,16 +151,18 @@ class Web_Editor(http.Controller):
         # output image
         output = io.BytesIO()
         outimage.save(output, format="PNG")
-        response = Response()
-        response.mimetype = 'image/png'
-        response.data = output.getvalue()
-        response.headers['Cache-Control'] = 'public, max-age=604800'
+        output.seek(0)
+        response = send_file(
+            output,
+            request.httprequest.environ,
+            mimetype='image/png',
+            conditional=False,
+            etag=False,
+            max_age=STATIC_CACHE,
+            response_class=Response,
+        )
         response.headers['Access-Control-Allow-Origin'] = '*'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST'
-        response.headers['Connection'] = 'close'
-        response.headers['Date'] = time.strftime("%a, %d-%b-%Y %T GMT", time.gmtime())
-        response.headers['Expires'] = time.strftime("%a, %d-%b-%Y %T GMT", time.gmtime(time.time()+604800*60))
-
         return response
 
     #------------------------------------------------------
@@ -165,7 +171,7 @@ class Web_Editor(http.Controller):
     @http.route('/web_editor/checklist', type='json', auth='user')
     def update_checklist(self, res_model, res_id, filename, checklistId, checked, **kwargs):
         record = request.env[res_model].browse(res_id)
-        value = filename in record._fields and record[filename]
+        value = filename in record._fields and record.read([filename])[0][filename]
         htmlelem = etree.fromstring("<div>%s</div>" % value, etree.HTMLParser())
         checked = bool(checked)
 
@@ -195,7 +201,7 @@ class Web_Editor(http.Controller):
     @http.route('/web_editor/stars', type='json', auth='user')
     def update_stars(self, res_model, res_id, filename, starsId, rating):
         record = request.env[res_model].browse(res_id)
-        value = filename in record._fields and record[filename]
+        value = filename in record._fields and record.read([filename])[0][filename]
         htmlelem = etree.fromstring("<div>%s</div>" % value, etree.HTMLParser())
 
         stars_widget = htmlelem.find(".//span[@id='checkId-%s']" % starsId)
@@ -296,7 +302,7 @@ class Web_Editor(http.Controller):
             dict: views, scss, js
         """
         # Related views must be fetched if the user wants the views and/or the style
-        views = request.env["ir.ui.view"].with_context(no_primary_children=True, __views_get_original_hierarchy=[]).get_related_views(key, bundles=bundles)
+        views = request.env["ir.ui.view"].with_context(no_primary_children=True, __views_get_original_hierarchy=[], is_customization_code=False).get_related_views(key, bundles=bundles)
         views = views.read(['name', 'id', 'key', 'xml_id', 'arch', 'active', 'inherit_id'])
 
         scss_files_data_by_bundle = []
@@ -482,8 +488,11 @@ class Web_Editor(http.Controller):
             return stream.get_response()
 
         image = stream.read()
-        img = binary_to_image(image)
-        width, height = tuple(str(size) for size in img.size)
+        if record.mimetype == "image/webp":
+            width, height = tuple(str(size) for size in get_webp_size(image))
+        else:
+            img = binary_to_image(image)
+            width, height = tuple(str(size) for size in img.size)
         root = etree.fromstring(svg)
 
         if root.attrib.get("data-forced-size"):

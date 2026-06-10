@@ -3,8 +3,6 @@
 
 from odoo.addons.mail.tests.common import MailCommon
 from odoo.tests import tagged, users
-from odoo.addons.mail.tools.parser import domain_eval
-from freezegun import freeze_time
 
 
 @tagged('mail_tools', 'res_partner')
@@ -181,21 +179,26 @@ class TestMailTools(MailCommon):
             found = Partner._mail_find_partner_from_emails([self._test_email], records=record)
             self.assertEqual(found, [expected_partner], msg)
 
-    @freeze_time('2030-05-24')
-    def test_domain_eval(self):
-        success_pairs = [
-            ("list()", []),
-            ("list(range(1, 4))", [1, 2, 3]),
-            ("['|', (1, '=', 1), (1, '>', 0)]", ['|', (1, '=', 1), (1, '>', 0)]),
-            ("[(2, '=', 1 + 1)]", [(2, '=', 2)]),
-            (
-                "[('create_date', '<', datetime.datetime.combine(context_today() - relativedelta(days=100), datetime.time(1, 2, 3)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]",
-                [('create_date', '<', "2030-02-13 01:02:03")],
-            ),  # use the date utils used by front-end domains
-        ]
-        for domain_expression, domain_value in success_pairs:
-            with self.subTest(domain_expression=domain_expression, domain_value=domain_value):
-                self.assertEqual(domain_eval(domain_expression), domain_value)
+    def test_mail_find_partner_from_emails_tiebreaker(self):
+        """Test deterministic tie-breaking when two company partners share an email."""
+        Partner = self.env['res.partner']
+        self.env.company.partner_id.write({'email': self._test_email})
+        hijacker = Partner.create({
+            'name': 'AA Hijacker',
+            'email': self._test_email,
+            'company_type': 'company',
+        })
+
+        self.assertLess(self.env.company.partner_id.id, hijacker.id, "Test assumes company partner is older")
+        # Test tie-breaking with no record context - should prioritize company partner over hijacker
+        found = Partner._mail_find_partner_from_emails([self._test_email])
+        self.assertEqual(found, [self.env.company.partner_id],
+                        "Should prioritize the company partner when no record context is provided")
+
+        record = Partner.create({'name': 'Record', 'company_id': self.env.company.id})
+        found = Partner._mail_find_partner_from_emails([self._test_email], records=record)
+        self.assertEqual(found, [self.env.company.partner_id],
+                         "Should use deterministic id ordering when candidates tie on priority")
 
 
 @tagged('mail_tools', 'mail_init')

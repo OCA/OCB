@@ -17,7 +17,7 @@ class TestSelfOrderAttribute(SelfOrderCommonTest):
         })
 
         product = self.env['product.product'].search([('name', '=', 'Desk Organizer')])[0]
-        product.attribute_line_ids[0].product_template_value_ids[0].price_extra = 0.0
+        product.attribute_line_ids[0].product_template_value_ids[0].price_extra = 0.25
         product.attribute_line_ids[0].product_template_value_ids[1].price_extra = 1.0
         product.attribute_line_ids[0].product_template_value_ids[2].price_extra = 2.0
 
@@ -112,6 +112,21 @@ class TestSelfOrderAttribute(SelfOrderCommonTest):
         self.assertEqual(order.lines[0].price_unit, 10.0)
         self.assertEqual(order.lines[1].product_id.id, chair_product_tmpl.product_variant_ids[1].id)
         self.assertEqual(order.lines[1].price_unit, 15.0)
+        # test for kiosk
+        self.pos_config.self_ordering_mode = "kiosk"
+        custom_attribute = self.env['product.attribute'].create({
+            'name': 'Customization',
+            'create_variant': 'always',
+            'value_ids': [(0, 0, {'name': 'specifics', 'is_custom': True})],
+        })
+
+        chair_product_tmpl.write({
+            'attribute_line_ids': [(0, 0, {
+                'attribute_id': custom_attribute.id,
+                'value_ids': [(6, 0, custom_attribute.value_ids.ids)]
+            })]
+        })
+        self.start_tour(self_route, "selfAlwaysAttributeVariantsKiosk")
 
     def test_self_order_product_info(self):
         self.pos_config.write({

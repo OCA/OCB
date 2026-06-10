@@ -9,7 +9,7 @@ registry
     .add('website_sale_combo_configurator', {
         url: '/shop?search=Combo product',
         steps: () => [
-            ...wsTourUtils.addToCart({ productName: "Combo product", search: false }),
+            ...wsTourUtils.addToCart({ productName: "Combo product", search: false , expectUnloadPage: true}),
             // Assert that the combo configurator behaves as expected.
             comboConfiguratorTourUtils.assertFooterButtonsDisabled(),
             comboConfiguratorTourUtils.setQuantity(3),
@@ -20,11 +20,16 @@ registry
             ...productConfiguratorTourUtils.saveConfigurator(),
             comboConfiguratorTourUtils.selectComboItem("Product B2"),
             comboConfiguratorTourUtils.assertFooterButtonsEnabled(),
+            {
+                content: "Check that the tax disclaimer gets displayed",
+                trigger: '.js_main_product small:contains(Final price may vary based on selection)',
+            },
             // Assert that the cart's content is correct.
             {
                 content: "Proceed to checkout",
                 trigger: 'button:contains(Proceed to Checkout)',
                 run: 'click',
+                expectUnloadPage: true,
             },
             wsTourUtils.assertCartContains({ productName: "Combo product" }),
             wsTourUtils.assertCartContains({ productName: "3 x Product A1" }),
@@ -41,8 +46,8 @@ registry
                 ),
             },
             {
-                content: "Verify the combo product's price",
-                trigger: 'div[name="website_sale_cart_line_price"]:contains(93.00)',
+                content: "Verify the combo product's price (tax included)",
+                trigger: 'div[name="website_sale_cart_line_price"]:contains(106.95)',
             },
             {
                 content: "Verify the order's total price",
@@ -58,7 +63,7 @@ registry
             wsTourUtils.assertCartContains({ productName: "2 x Product B2" }),
             {
                 content: "Verify the combo product's price",
-                trigger: 'div[name="website_sale_cart_line_price"]:contains(62.00)',
+                trigger: 'div[name="website_sale_cart_line_price"]:contains(71.31)',
             },
         ],
    });

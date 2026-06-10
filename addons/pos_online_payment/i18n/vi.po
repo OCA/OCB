@@ -1,23 +1,23 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* pos_online_payment
-# 
+#
 # Translators:
 # Wil Odoo, 2024
-# Thi Huong Nguyen, 2024
-# 
+# Thi Huong Nguyen, 2025
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 08:55+0000\n"
+"POT-Creation-Date: 2025-12-29 18:37+0000\n"
 "PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Thi Huong Nguyen, 2024\n"
+"Last-Translator: Thi Huong Nguyen, 2025\n"
 "Language-Team: Vietnamese (https://app.transifex.com/odoo/teams/41243/vi/)\n"
+"Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. module: pos_online_payment
@@ -27,16 +27,14 @@ msgstr "<strong>Lỗi:</strong> Đơn vị tiền tệ bị thiếu hoặc khôn
 
 #. module: pos_online_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay_confirmation
-msgid ""
-"<strong>Error:</strong> There was a problem during the payment process."
+msgid "<strong>Error:</strong> There was a problem during the payment process."
 msgstr "<strong>Lỗi:</strong> Đã xảy ra sự cố trong quá trình thanh toán. "
 
 #. module: pos_online_payment
 #. odoo-python
 #: code:addons/pos_online_payment/models/pos_config.py:0
 msgid "A POS config cannot have more than one online payment method."
-msgstr ""
-"Cấu hình POS không thể có nhiều hơn một phương thức thanh toán online."
+msgstr "Cấu hình POS không thể có nhiều hơn một phương thức thanh toán online."
 
 #. module: pos_online_payment
 #. odoo-python
@@ -47,11 +45,9 @@ msgstr "Phải chỉ định một tùy chọn thanh toán."
 #. module: pos_online_payment
 #. odoo-python
 #: code:addons/pos_online_payment/controllers/payment_portal.py:0
-msgid ""
-"A validation payment cannot be used for a Point of Sale online payment."
+msgid "A validation payment cannot be used for a Point of Sale online payment."
 msgstr ""
-"Thanh toán xác thực không thể được sử dụng cho thanh toán online tại Điểm "
-"bán hàng."
+"Thanh toán xác thực không thể được sử dụng cho thanh toán online tại POS."
 
 #. module: pos_online_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pos_payment_method_view_form_inherit_pos_online_payment
@@ -67,8 +63,8 @@ msgid ""
 "set, of the POS config."
 msgstr ""
 "Tất cả nhà cung cấp thanh toán được cấu hình cho một phương thức thanh toán "
-"online phải sử dùng cùng đơn vị tiền tệ với Sổ nhật ký bán hàng, hoặc đơn vị"
-" tiền tệ công ty nếu chưa thiết lập sổ, của cấu hình POS. "
+"online phải sử dùng cùng đơn vị tiền tệ với Sổ nhật ký bán hàng, hoặc đơn vị "
+"tiền tệ công ty nếu chưa thiết lập sổ, của cấu hình POS. "
 
 #. module: pos_online_payment
 #: model:ir.model.fields,field_description:pos_online_payment.field_pos_payment_method__online_payment_provider_ids
@@ -241,22 +237,22 @@ msgstr "Thanh toán"
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_config
 msgid "Point of Sale Configuration"
-msgstr "Cấu hình điểm bán hàng"
+msgstr "Cấu hình POS"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_order
 msgid "Point of Sale Orders"
-msgstr "Đơn hàng điểm bán hàng"
+msgstr "Đơn hàng POS"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_payment_method
 msgid "Point of Sale Payment Methods"
-msgstr "Phương thức thanh toán điểm bán hàng"
+msgstr "Phương thức thanh toán POS"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_payment
 msgid "Point of Sale Payments"
-msgstr "Thanh toán điểm bán hàng"
+msgstr "Thanh toán POS"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_session
@@ -317,12 +313,12 @@ msgstr "Phiên POS không mở."
 #. module: pos_online_payment
 #: model:ir.model.fields,help:pos_online_payment.field_payment_transaction__pos_order_id
 msgid "The Point of Sale order linked to the payment transaction"
-msgstr "Đơn hàng Điểm bán hàng liên kết với giao dịch thanh toán"
+msgstr "Đơn hàng POS liên kết với giao dịch thanh toán"
 
 #. module: pos_online_payment
 #: model:ir.model.fields,help:pos_online_payment.field_account_payment__pos_order_id
 msgid "The Point of Sale order linked to this payment"
-msgstr "Đơn hàng Điểm bán hàng liên kết với thanh toán này"
+msgstr "Đơn hàng POS liên kết với thanh toán này"
 
 #. module: pos_online_payment
 #. odoo-javascript
@@ -453,8 +449,8 @@ msgstr ""
 msgid ""
 "There is no online payment method configured for this Point of Sale order."
 msgstr ""
-"Không có phương thức thanh toán online nào được cấu hình cho đơn hàng Điểm "
-"bán hàng này."
+"Không có phương thức thanh toán online nào được cấu hình cho đơn hàng POS "
+"này."
 
 #. module: pos_online_payment
 #. odoo-python

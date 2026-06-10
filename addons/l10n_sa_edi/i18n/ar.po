@@ -1,35 +1,35 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* l10n_sa_edi
+# * l10n_sa_edi
 #
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-22 15:24+0000\n"
-"PO-Revision-Date: 2024-08-27 11:08+0400\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2024\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2026-04-03 19:15+0000\n"
+"PO-Revision-Date: 2026-04-11 09:04+0000\n"
+"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-18-l10n/"
+"l10n_sa_edi/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: \n"
-"X-Generator: Poedit 3.4.4\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: l10n_sa_edi
 #. odoo-python
 #: code:addons/l10n_sa_edi/models/res_config_settings.py:0
 msgid ""
 "\n"
-"Building Number: %(building_number)s, Plot Identification: "
-"%(plot_identification)s\n"
+"Building Number: %(building_number)s, Plot Identification: %"
+"(plot_identification)s\n"
 "Neighborhood: %(neighborhood)s"
 msgstr ""
-"\n"
-"رقم المبنى: %(building_number)s, مُعرّف قطعة الأرض: %(plot_identification)s\n"
-"الحي: %(neighborhood)s "
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -71,19 +71,20 @@ msgstr ""
 #. odoo-python
 #: code:addons/l10n_sa_edi/models/account_edi_format.py:0
 msgid ""
-"- Please, make sure either the Reversed Entry or the Reversal Reason are "
-"specified when confirming a Credit/Debit note"
+"- Please set the Invoice Date to be either less than or equal to today as "
+"per the Asia/Riyadh time zone, since ZATCA does not allow future-dated "
+"invoicing."
 msgstr ""
-"- يُرجى التأكد من تحديد القيد المعكوس أو سبب العكس عند تأكيد إشعار الدائن/"
-"المدين "
 
 #. module: l10n_sa_edi
 #. odoo-python
 #: code:addons/l10n_sa_edi/models/account_edi_format.py:0
 msgid ""
-"- Please, make sure the invoice date is set to either the same as or before "
-"Today."
-msgstr "- يُرجى التأكد من ضبط تاريخ الفاتورة على نفس تاريخ اليوم أو قبله."
+"- Please, make sure either the Reversed Entry or the Reversal Reason are "
+"specified when confirming a Credit/Debit note"
+msgstr ""
+"- يُرجى التأكد من تحديد القيد المعكوس أو سبب العكس عند تأكيد إشعار الدائن/"
+"المدين "
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -134,29 +135,57 @@ msgstr ""
 "                            </b>"
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid ""
+"<br/><br/>Once the journal is onboarded, please update the company name to "
+"match the one listed on the VAT Registration Certificate."
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.res_config_settings_view_form
 msgid "<i class=\"fa fa-warning me-2\"/> Warning"
 msgstr "تحذير <i class=\"fa fa-warning me-2\"/> "
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
-msgid "<strong>Exchange Rate</strong>"
-msgstr "<strong>سعر الصرف</strong>"
+msgid "<span class=\"fw-bold\">Exchange Rate</span>"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
-msgid "<strong>Subtotal (SAR)</strong>"
-msgstr "<strong>الإجمالي الفرعي بالريال السعودي</strong>"
+msgid "<span class=\"fw-bold\">Subtotal</span>"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
-msgid "<strong>Total (SAR)</strong>"
-msgstr "<strong>الإجمالي بالريال السعودي</strong>"
+msgid "<span class=\"fw-bold\">Total</span>"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
-msgid "<strong>VAT Amount (SAR)</strong>"
-msgstr "<strong>مبلغ ضريبة القيمة المضافة بالريال السعودي</strong>"
+msgid "<span class=\"fw-bold\">VAT Amount</span>"
+msgstr ""
+
+#. module: l10n_sa_edi
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
+msgid "<strong>الإجمالي الفرعي بالريال السعودي</strong>"
+msgstr ""
+
+#. module: l10n_sa_edi
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
+msgid "<strong>الإجمالي بالريال السعودي</strong>"
+msgstr ""
+
+#. module: l10n_sa_edi
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
+msgid "<strong>سعر الصرف</strong>"
+msgstr ""
+
+#. module: l10n_sa_edi
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
+msgid "<strong>مبلغ ضريبة القيمة المضافة بالريال السعودي</strong>"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.res_config_settings_view_form
@@ -164,9 +193,19 @@ msgid "API Mode"
 msgstr "وضع الواجهة البرمجية للتطلبيق"
 
 #. module: l10n_sa_edi
+#: model:ir.model,name:l10n_sa_edi.model_account_chart_template
+msgid "Account Chart Template"
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_account_move_reversal
 msgid "Account Move Reversal"
 msgstr "عكس حركة الحساب "
+
+#. module: l10n_sa_edi
+#: model:ir.model,name:l10n_sa_edi.model_account_move_send
+msgid "Account Move Send"
+msgstr "إرسال حركة الحساب"
 
 #. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_account_debit_note
@@ -218,6 +257,11 @@ msgid "Are you sure you wish to re-onboard the Journal?"
 msgstr "هل أنت متأكد من أنك ترغب في إعادة تجهيز دفتر اليومية؟"
 
 #. module: l10n_sa_edi
+#: model:ir.model,name:l10n_sa_edi.model_ir_attachment
+msgid "Attachment"
+msgstr "مرفق"
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_res_partner__l10n_sa_edi_building_number
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_res_users__l10n_sa_edi_building_number
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.sa_partner_address_form
@@ -235,6 +279,11 @@ msgstr "رقم المبنى للمشتري مطلوب في الفواتير ال
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_journal__l10n_sa_compliance_csid_json
 msgid "CCSID JSON"
 msgstr "CCSID JSON"
+
+#. module: l10n_sa_edi
+#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_journal__l10n_sa_compliance_csid_certificate_id
+msgid "CCSID certificate"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.l10n_sa_edi_otp_wizard_view_form
@@ -261,9 +310,26 @@ msgid "Cannot set a tax to Retention if the amount is greater than or equal 0"
 msgstr "لا يمكن تعيين الضريبة للاحتفاظ إذا كان المبلغ أكبر من أو يساوي 0"
 
 #. module: l10n_sa_edi
+#: model:ir.model,name:l10n_sa_edi.model_certificate_certificate
+msgid "Certificate"
+msgstr "الشهادة"
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Certificate Template Name"
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.sa_partner_address_form
 msgid "City"
 msgstr "المدينة"
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_journal.py:0
+msgid "Clearance and reporting seem to have been mixed up. "
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_additional_identification_scheme__crn
@@ -271,9 +337,27 @@ msgid "Commercial Registration Number"
 msgstr "رقم التسجيل التجاري"
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Common Name"
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_res_company
 msgid "Companies"
 msgstr "الشركات "
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Company Name"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Company VAT"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_account_journal_form
@@ -367,6 +451,12 @@ msgid "Country"
 msgstr "الدولة"
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Country Name"
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_l10n_sa_edi_otp_wizard__create_uid
 msgid "Created by"
 msgstr "أنشئ بواسطة"
@@ -387,9 +477,14 @@ msgid "Display Name"
 msgstr "اسم العرض"
 
 #. module: l10n_sa_edi
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.sa_partner_address_form
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_company_form
+msgid "District"
+msgstr "اﺳﻢ اﻟﺤﻲ"
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_bank_statement_line__l10n_sa_uuid
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_move__l10n_sa_uuid
-#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_payment__l10n_sa_uuid
 msgid "Document UUID (SA)"
 msgstr "UUID الخاص بالمستند (المملكة العربية السعودية)"
 
@@ -397,6 +492,11 @@ msgstr "UUID الخاص بالمستند (المملكة العربية السع
 #: model:ir.model,name:l10n_sa_edi.model_account_edi_format
 msgid "EDI format"
 msgstr "صيغة EDI "
+
+#. module: l10n_sa_edi
+#: model:ir.model,name:l10n_sa_edi.model_account_tax
+msgid "ETA tax codes mixin"
+msgstr ""
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -408,6 +508,11 @@ msgstr "الأخطاء:"
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_tax__l10n_sa_exemption_reason_code
 msgid "Exemption Reason Code"
 msgstr "كود سبب الإعفاء"
+
+#. module: l10n_sa_edi
+#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_journal__l10n_sa_production_csid_validity
+msgid "Expiration date"
+msgstr "تاريخ انتهاء الصلاحية"
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -471,6 +576,12 @@ msgstr "تم إرسال الفاتورة بنجاح إلى زاتكا"
 
 #. module: l10n_sa_edi
 #. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Invoice Type"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
 #: code:addons/l10n_sa_edi/models/account_edi_format.py:0
 msgid ""
 "Invoice could not be cleared:\n"
@@ -486,13 +597,10 @@ msgid ""
 "Invoice could not be reported:\n"
 "%s"
 msgstr ""
-"تعذر الإبلاغ عن الفاتورة:\n"
-"%s"
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields,help:l10n_sa_edi.field_account_bank_statement_line__l10n_sa_chain_index
 #: model:ir.model.fields,help:l10n_sa_edi.field_account_move__l10n_sa_chain_index
-#: model:ir.model.fields,help:l10n_sa_edi.field_account_payment__l10n_sa_chain_index
 msgid ""
 "Invoice index in chain, set if and only if an in-chain XML was submitted and "
 "did not error"
@@ -552,18 +660,32 @@ msgstr "عنصر دفتر اليومية "
 
 #. module: l10n_sa_edi
 #. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Journal Serial Number"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
 #: code:addons/l10n_sa_edi/models/account_journal.py:0
 msgid "Journal could not be onboarded"
 msgstr "تعذر تجهيز دفتر اليومية"
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_account_journal_form
-msgid ""
-"Journal could not be onboarded. Please make sure the Company VAT/"
-"Identification Number are correct."
+msgid "Journal could not be onboarded."
 msgstr ""
-"تعذر تجهيز دفتر اليومية. يرجى التأكد من أن رقمي ضريبة القيمة المضافة/رقم "
-"التعريف صحيحين."
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_journal.py:0
+msgid "Journal onboarded with ZATCA successfully"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_journal.py:0
+msgid "Journal re-onboarded with ZATCA successfully"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_res_company__l10n_sa_api_mode
@@ -602,6 +724,12 @@ msgid "Latest Submission Hash"
 msgstr "تشفير آخر عملية إرسال"
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Locality Name"
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_additional_identification_scheme__mls
 msgid "MLSD License"
 msgstr "رخصة وزارة الموارد البشرية و التنمية الاجتماعية"
@@ -622,11 +750,6 @@ msgstr "غير منطبق"
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_additional_identification_scheme__nat
 msgid "National ID"
 msgstr "الهوية الوطنية"
-
-#. module: l10n_sa_edi
-#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.sa_partner_address_form
-msgid "Neighborhood"
-msgstr "الحي"
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -686,14 +809,36 @@ msgstr ""
 "وعقوبات</strong>. "
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/ir_attachment.py:0
+msgid ""
+"Oops! The invoice PDF(s) are linked to a validated EDI document and cannot "
+"be deleted according to ZATCA rules: %s"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_journal.py:0
+msgid ""
+"Oops! The journal is stuck. Please submit the pending invoices to ZATCA and "
+"try again."
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Other"
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_additional_identification_scheme__oth
 msgid "Other ID"
 msgstr "معرف آخر"
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_journal__l10n_sa_production_csid_validity
-msgid "PCSID Expiration"
-msgstr "انتهاء صلاحية PCSID"
+#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_journal__l10n_sa_production_csid_certificate_id
+msgid "PCSID Certificate"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_journal__l10n_sa_production_csid_json
@@ -713,9 +858,41 @@ msgid "PIH"
 msgstr "PIH"
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Parent Company Name"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Parent Company VAT"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "Partner Industry Name"
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_additional_identification_scheme__pas
 msgid "Passport ID"
 msgstr "معرف جواز السفر"
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/migrations/0.2/post-migrate.py:0
+msgid "Please Re-Onboard the Journal for a new serial number"
+msgstr "يرجى إعادة تجهيز دفتر اليومية للحصول على رقم تسلسلي جديد"
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid ""
+"Please make sure the following fields are shorter than %(max_length)d "
+"characters: %(error_fields_msg)s"
+msgstr ""
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -740,8 +917,8 @@ msgid ""
 "Please, make sure all the following fields have been correctly set on the "
 "Company:%(fields)s"
 msgstr ""
-"يُرجى التأكد من أن الحقول التالية قد تم إعدادها بشكل صحيح في الشركة:"
-"%(fields)s "
+"يُرجى التأكد من أن الحقول التالية قد تم إعدادها بشكل صحيح في الشركة:%"
+"(fields)s "
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -778,11 +955,6 @@ msgid ""
 msgstr ""
 "بيانات CSID للإنتاج التي تم استلامها من الواجهة البرمجية لـCSID الإنتاج "
 "بصيغة json"
-
-#. module: l10n_sa_edi
-#: model:ir.model.fields,help:l10n_sa_edi.field_account_journal__l10n_sa_production_csid_validity
-msgid "Production CSID expiration date"
-msgstr "تاريخ انتهاء CSID الإنتاج"
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -830,29 +1002,13 @@ msgstr "طلب CSID"
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_account_journal_form
-msgid ""
-"Request a Compliance Certificate (CCSID)\n"
-"                                    <i class=\"fa fa-check text-success "
-"ms-1\" invisible=\"not l10n_sa_compliance_csid_json\" groups=\"base."
-"group_system\"/>"
+msgid "Request a Compliance Certificate (CCSID)"
 msgstr ""
-"طلب شهادة امتثال (CCSID)\n"
-"                                    <i class=\"fa fa-check text-success "
-"ms-1\" invisible=\"not l10n_sa_compliance_csid_json\" groups=\"base."
-"group_system\"/> "
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_account_journal_form
-msgid ""
-"Request a Production Certificate (PCSID)\n"
-"                                    <i class=\"fa fa-check text-success "
-"ms-1\" invisible=\"not l10n_sa_production_csid_json\" groups=\"base."
-"group_system\"/>"
+msgid "Request a Production Certificate (PCSID)"
 msgstr ""
-"طلب شهادة إنتاج (PCSID)\n"
-"                                    <i class=\"fa fa-check text-success "
-"ms-1\" invisible=\"not l10n_sa_production_csid_json\" groups=\"base."
-"group_system\"/>"
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_additional_identification_scheme__sag
@@ -880,17 +1036,6 @@ msgstr "الرقم التسلسلي"
 #: code:addons/l10n_sa_edi/models/account_journal.py:0
 msgid "Server returned an unexpected error: %(error)s"
 msgstr "حدث خطأ غير متوقع في الخادم: %(error)s "
-
-#. module: l10n_sa_edi
-#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_account_journal_form
-msgid ""
-"Set a Serial Number for your device\n"
-"                                    <i class=\"fa fa-check text-success "
-"ms-1\" invisible=\"not l10n_sa_serial_number\"/>"
-msgstr ""
-"قم بتعيين رقم تسلسلي لجهازك\n"
-"                                    <i class=\"fa fa-check text-success "
-"ms-1\" invisible=\"not l10n_sa_serial_number\"/>"
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.res_config_settings_view_form
@@ -930,14 +1075,22 @@ msgid "State..."
 msgstr "المحافظة..."
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
+msgid "State/Province Name"
+msgstr ""
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/certificate.py:0
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.sa_partner_address_form
 msgid "Street"
 msgstr "الشارع"
 
 #. module: l10n_sa_edi
-#: model:ir.model,name:l10n_sa_edi.model_account_tax
-msgid "Tax"
-msgstr "الضريبة"
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_company_form
+msgid "Street 2..."
+msgstr "الشارع ..."
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields,help:l10n_sa_edi.field_account_tax__l10n_sa_exemption_reason_code
@@ -975,6 +1128,11 @@ msgid "The Production certificate is valid until"
 msgstr "شهادة الإنتاج سارية حتى"
 
 #. module: l10n_sa_edi
+#: model:ir.model.fields,help:l10n_sa_edi.field_account_journal__l10n_sa_production_csid_validity
+msgid "The date on which the certificate expires (UTC)"
+msgstr "تاريخ انتهاء صلاحية الشهادة (بالتوقيت العالمي المنسق)"
+
+#. module: l10n_sa_edi
 #. odoo-python
 #: code:addons/l10n_sa_edi/models/account_move.py:0
 msgid ""
@@ -991,14 +1149,17 @@ msgid "The invoice was rejected by ZATCA. Please, check the response below:"
 msgstr "تم رفض الفاتورة من قِبَل زاتكا. يرجى التحقق من الرد أدناه:"
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields,help:l10n_sa_edi.field_res_company__l10n_sa_private_key
+#: model:ir.model.fields,help:l10n_sa_edi.field_res_company__l10n_sa_private_key_id
 msgid "The private key used to generate the CSR and obtain certificates"
 msgstr "المفتاح الخاص المستخدَم لإنشاء CSR والحصول على الشهادات"
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields,help:l10n_sa_edi.field_account_journal__l10n_sa_serial_number
-msgid "The serial number of the Taxpayer solution unit. Provided by ZATCA"
-msgstr "الرقم التسلسلي لوحدة حل دافع الضريبة. مقدم من قِبَل زاتكا"
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_move.py:0
+msgid ""
+"This invoice was already successfully reported to ZATCA. Please, check the "
+"response below:"
+msgstr "تم الإبلاغ عن هذه الفاتورة بنجاح إلى زاتكا. يُرجى مراجعة الرد أدناه:"
 
 #. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_account_edi_xml_ubl_21_zatca
@@ -1006,16 +1167,32 @@ msgid "UBL 2.1 (ZATCA)"
 msgstr "UBL 2.1 (زاتكا)"
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_move.py:0
+msgid ""
+"Unable to retrieve response from ZATCA. Please, check the response below:"
+msgstr "تعذر استلام الرد من زاتكا. يُرجى مراجعة الرد أدناه:"
+
+#. module: l10n_sa_edi
+#: model:ir.model.fields,help:l10n_sa_edi.field_account_journal__l10n_sa_serial_number
+msgid "Unique Serial Number automatically filled when the journal is onboarded"
+msgstr "الرقم التسلسلي الفريد يتم تعبئته تلقائيًا عند إعداد دفتر اليومية"
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields,help:l10n_sa_edi.field_account_bank_statement_line__l10n_sa_uuid
 #: model:ir.model.fields,help:l10n_sa_edi.field_account_move__l10n_sa_uuid
-#: model:ir.model.fields,help:l10n_sa_edi.field_account_payment__l10n_sa_uuid
 msgid "Universally unique identifier of the Invoice"
 msgstr "المعرف الفريد عالمياً للفاتورة"
 
 #. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_journal.py:0
+msgid "Unknown response returned from ZATCA. Please check the logs."
+msgstr ""
+
+#. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_bank_statement_line__l10n_sa_invoice_signature
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_move__l10n_sa_invoice_signature
-#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_payment__l10n_sa_invoice_signature
 msgid "Unsigned XML Signature"
 msgstr "توقيع XML غير مسند"
 
@@ -1053,10 +1230,9 @@ msgstr ""
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__account_tax__l10n_sa_exemption_reason_code__vatex-sa-29-7
 msgid ""
-"VATEX-SA-29-7 Life insurance services mentioned in Article 29 of the VAT."
+"VATEX-SA-29-7 Life insurance services mentioned in Article 29 of the VAT "
+"Regulations."
 msgstr ""
-"VATEX-SA-29-7 خدمات التأمين على الحياة المذكورة في القانون 29 لضريبة القيمة "
-"المضافة."
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__account_tax__l10n_sa_exemption_reason_code__vatex-sa-30
@@ -1084,8 +1260,8 @@ msgstr "VATEX-SA-34-1 الشحن الدولي للبضائع."
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__account_tax__l10n_sa_exemption_reason_code__vatex-sa-34-2
-msgid "VATEX-SA-34-1 The international transport of Passengers."
-msgstr "VATEX-SA-34-1 المواصلات الدولية للركاب."
+msgid "VATEX-SA-34-2 The international transport of Passengers."
+msgstr "VATEX-SA-34-2 المواصلات الدولية للركاب."
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__account_tax__l10n_sa_exemption_reason_code__vatex-sa-34-3
@@ -1136,6 +1312,18 @@ msgstr "VATEX-SA-OOS غير خاضعة لضريبة القيمة المضافة.
 
 #. module: l10n_sa_edi
 #. odoo-python
+#: code:addons/l10n_sa_edi/models/account_move.py:0
+msgid "Warning: Invoice was already successfully reported to ZATCA"
+msgstr "تحذير: تم بالفعل الإبلاغ عن الفاتورة بنجاح إلى زاتكا"
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/account_move.py:0
+msgid "Warning: Unable to Retrieve a Response from ZATCA"
+msgstr "تحذير: غير قادر على استلام الرد من زاتكا"
+
+#. module: l10n_sa_edi
+#. odoo-python
 #: code:addons/l10n_sa_edi/models/account_journal.py:0
 msgid "Warnings:"
 msgstr "التحذيرات:"
@@ -1154,6 +1342,14 @@ msgstr ""
 "                            بمجرد قيامك بتحديد الواجهة البرمجية المناسبة، "
 "يمكنك بدء عملية التهيئة للعمل عن طريق الذهاب إلى دفاتر اليومية وتحديد "
 "الخيارات أسفل علامة تبويب زاتكا. "
+
+#. module: l10n_sa_edi
+#. odoo-python
+#: code:addons/l10n_sa_edi/models/ir_attachment.py:0
+msgid ""
+"You can't unlink an attachment being an EDI document refused by the "
+"government."
+msgstr ""
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -1186,7 +1382,7 @@ msgid "ZATCA E-Invoicing Settings"
 msgstr "إعدادات الفوترة الإلكترونية لدى زاتكا"
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields,field_description:l10n_sa_edi.field_res_company__l10n_sa_private_key
+#: model:ir.model.fields,field_description:l10n_sa_edi.field_res_company__l10n_sa_private_key_id
 msgid "ZATCA Private key"
 msgstr "المفتاح الخاص لزاتكا"
 
@@ -1198,7 +1394,6 @@ msgstr "تسلسل سلسلة account.move لزاتكا"
 #. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_bank_statement_line__l10n_sa_chain_index
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_move__l10n_sa_chain_index
-#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_payment__l10n_sa_chain_index
 msgid "ZATCA chain index"
 msgstr "مؤشر سلسلة زاتكا"
 
@@ -1259,3 +1454,37 @@ msgstr "فاتورة ضريبية"
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.arabic_english_invoice
 msgid "فاتورة ضريبية مبسطة"
 msgstr "فاتورة ضريبية مبسطة"
+
+#~ msgid ""
+#~ "- Please, make sure the invoice date is set to either the same as or "
+#~ "before Today."
+#~ msgstr "- يُرجى التأكد من ضبط تاريخ الفاتورة على نفس تاريخ اليوم أو قبله."
+
+#~ msgid ""
+#~ "Request a Compliance Certificate (CCSID)\n"
+#~ "                                    <i class=\"fa fa-check text-success "
+#~ "ms-1\" invisible=\"not l10n_sa_compliance_csid_json\" "
+#~ "groups=\"base.group_system\"/>"
+#~ msgstr ""
+#~ "طلب شهادة امتثال (CCSID)\n"
+#~ "                                    <i class=\"fa fa-check text-success "
+#~ "ms-1\" invisible=\"not l10n_sa_compliance_csid_json\" "
+#~ "groups=\"base.group_system\"/> "
+
+#~ msgid ""
+#~ "Request a Production Certificate (PCSID)\n"
+#~ "                                    <i class=\"fa fa-check text-success "
+#~ "ms-1\" invisible=\"not l10n_sa_production_csid_json\" "
+#~ "groups=\"base.group_system\"/>"
+#~ msgstr ""
+#~ "طلب شهادة إنتاج (PCSID)\n"
+#~ "                                    <i class=\"fa fa-check text-success "
+#~ "ms-1\" invisible=\"not l10n_sa_production_csid_json\" "
+#~ "groups=\"base.group_system\"/>"
+
+#~ msgid ""
+#~ "Journal could not be onboarded. Please make sure the Company VAT/"
+#~ "Identification Number are correct."
+#~ msgstr ""
+#~ "تعذر تجهيز دفتر اليومية. يرجى التأكد من أن رقمي ضريبة القيمة المضافة/رقم "
+#~ "التعريف صحيحين."

@@ -76,7 +76,7 @@ export function oeTab(size, contenteditable = true) {
     return (
         `<span class="oe-tabs"` +
         (contenteditable ? "" : ' contenteditable="false"') +
-        (size ? ` style="width: ${size.toFixed(1)}px;"` : "") +
+        (size ? ` style="width: ${Number(size.toFixed(1))}px;"` : "") +
         `>\u0009</span>\u200B`
     );
 }
@@ -110,7 +110,7 @@ function compare(contentEl, contentSpec, mode) {
     const { text: expectedContent, widths: expectedWidths } = extractWidth(contentSpec);
 
     expect(receivedContent).toBe(expectedContent, {
-        message: `(testEditor) ${mode} is strictly equal to %actual%`,
+        message: `(testEditor) ${mode} should be strictly equal to ${expectedContent}`,
     });
 
     const diffs = expectedWidths.map((width, i) => Math.abs(width - receivedWidths[i]));

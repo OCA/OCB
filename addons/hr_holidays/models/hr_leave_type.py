@@ -197,7 +197,6 @@ class HolidaysType(models.Model):
             if leave_type.requires_allocation == 'yes':
                 allocations = self.env['hr.leave.allocation'].search([
                     ('holiday_status_id', '=', leave_type.id),
-                    ('allocation_type', '=', 'accrual'),
                     ('employee_id', '=', employee_id),
                     ('date_from', '<=', date_from),
                     '|',
@@ -207,7 +206,7 @@ class HolidaysType(models.Model):
                 allowed_excess = leave_type.max_allowed_negative if leave_type.allows_negative else 0
                 allocations = allocations.filtered(lambda alloc:
                     alloc.allocation_type == 'accrual'
-                    or (alloc.max_leaves > 0 and alloc.virtual_remaining_leaves > -allowed_excess)
+                    or (alloc.max_leaves > 0 and (alloc.max_leaves - alloc.leaves_taken) > -allowed_excess)
                 )
                 leave_type.has_valid_allocation = bool(allocations)
             else:
@@ -288,19 +287,18 @@ class HolidaysType(models.Model):
             target_date = self._context.get('leave_date_from', None)
         data_days = self.get_allocation_data(employee, target_date)[employee]
         for holiday_status in self:
-            result = [item for item in data_days if item[0] == holiday_status.name]
+            result = [item for item in data_days if item[3] == holiday_status.id]
             leave_type_tuple = result[0] if result else ('', {})
             holiday_status.max_leaves = leave_type_tuple[1].get('max_leaves', 0)
             holiday_status.leaves_taken = leave_type_tuple[1].get('leaves_taken', 0)
             holiday_status.virtual_remaining_leaves = leave_type_tuple[1].get('virtual_remaining_leaves', 0)
 
     def _compute_allocation_count(self):
-        min_datetime = fields.Datetime.to_string(datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0))
-        max_datetime = fields.Datetime.to_string(datetime.now().replace(month=12, day=31, hour=23, minute=59, second=59))
+        today = fields.Date.to_string(date.today())
         domain = [
             ('holiday_status_id', 'in', self.ids),
-            ('date_from', '>=', min_datetime),
-            ('date_from', '<=', max_datetime),
+            ('date_from', '<=', today),
+            '|', ('date_to', '=', False), ('date_to', '>=', today),
             ('state', 'in', ('confirm', 'validate')),
         ]
 
@@ -347,14 +345,14 @@ class HolidaysType(models.Model):
         return self._context.get('holiday_status_display_name', True) and self._context.get('employee_id')
 
     @api.depends('requires_allocation', 'virtual_remaining_leaves', 'max_leaves', 'request_unit')
-    @api.depends_context('holiday_status_display_name', 'employee_id', 'from_manager_leave_form')
+    @api.depends_context('holiday_status_display_name', 'employee_id')
     def _compute_display_name(self):
         if not self.requested_display_name():
             # leave counts is based on employee_id, would be inaccurate if not based on correct employee
             return super()._compute_display_name()
         for record in self:
             name = record.name
-            if record.requires_allocation == "yes" and not self._context.get("from_manager_leave_form"):
+            if record.requires_allocation == "yes":
                 remaining_time = float_round(record.virtual_remaining_leaves, precision_digits=2) or 0.0
                 maximum = float_round(record.max_leaves, precision_digits=2) or 0.0
 
@@ -397,6 +395,7 @@ class HolidaysType(models.Model):
             ('holiday_status_id', 'in', self.ids),
         ]
         action['context'] = {
+            'employee_id': False,
             'default_holiday_status_id': self.ids[0],
             'search_default_approved_state': 1,
             'search_default_year': 1,
@@ -455,7 +454,9 @@ class HolidaysType(models.Model):
         leave_types = self.search(domain, order='id')
         employee = self.env['hr.employee']._get_contextual_employee()
         if employee:
-            return leave_types.get_allocation_data(employee, target_date)[employee]
+            allocation_data = leave_types.get_allocation_data(employee, target_date)[employee]
+            result = [data for data in allocation_data if data[1].get('max_leaves', False)]
+            return result
         return []
 
     def get_allocation_data(self, employees, target_date=None):
@@ -474,8 +475,6 @@ class HolidaysType(models.Model):
 
         for employee in employees:
             for leave_type in leave_type_requires_allocation:
-                if len(allocations_leaves_consumed[employee][leave_type]) == 0:
-                    continue
                 lt_info = (
                     leave_type.name,
                     {
@@ -582,8 +581,7 @@ class HolidaysType(models.Model):
                     'closest_allocation_duration': closest_allocation_duration,
                     'holds_changes': holds_changes,
                 })
-                if not self.env.context.get('from_dashboard', False) or lt_info[1]['max_leaves']:
-                    allocation_data[employee].append(lt_info)
+                allocation_data[employee].append(lt_info)
         for employee in allocation_data:
             for leave_type_data in allocation_data[employee]:
                 for key, value in leave_type_data[1].items():
@@ -593,8 +591,9 @@ class HolidaysType(models.Model):
 
     def _get_closest_expiring_leaves_date_and_count(self, allocations, remaining_leaves, target_date):
         # Get the expiration date and carryover date of all allocations and compute the closest expiration date
-        expiration_dates_per_allocation = defaultdict(lambda: {'expiration_date': fields.Date(), 'carryover_date': fields.Date()})
+        expiration_dates_per_allocation = defaultdict(lambda: {'expiration_date': fields.Date(), 'carryover_date': fields.Date(), 'carried_over_days_expiration_date': fields.Date()})
         expiration_dates = list()
+        carried_over_days_expiration_data = self._get_carried_over_days_expiration_data(allocations, target_date)
         for allocation in allocations:
             expiration_date = allocation.date_to
 
@@ -610,9 +609,12 @@ class HolidaysType(models.Model):
                 if carryover_date == target_date:
                     carryover_date += relativedelta(years=1)
 
-            expiration_dates.extend([expiration_date, carryover_date])
+            carried_over_days_expiration_date = carried_over_days_expiration_data[allocation]['expiration_date']
+
+            expiration_dates.extend([expiration_date, carryover_date, carried_over_days_expiration_date])
             expiration_dates_per_allocation[allocation]['expiration_date'] = expiration_date
             expiration_dates_per_allocation[allocation]['carryover_date'] = carryover_date
+            expiration_dates_per_allocation[allocation]['carried_over_days_expiration_date'] = carried_over_days_expiration_date
 
         expiration_dates = list(filter(lambda date: date is not False, expiration_dates))
         expiration_dates.sort()
@@ -622,13 +624,34 @@ class HolidaysType(models.Model):
             for allocation in allocations:
                 expiration_date = expiration_dates_per_allocation[allocation]['expiration_date']
                 carryover_date = expiration_dates_per_allocation[allocation]['carryover_date']
+                carried_over_days_expiration_date = expiration_dates_per_allocation[allocation]['carried_over_days_expiration_date']
+
                 if expiration_date and expiration_date == closest_expiration_date:
                     expiring_leaves_count += remaining_leaves[allocation]['virtual_remaining_leaves']
                 elif carryover_date and carryover_date == closest_expiration_date:
                     accrual_plan_level = allocation.sudo()._get_current_accrual_plan_level_id(target_date)[0]
                     expiring_leaves_count += max(0, remaining_leaves[allocation]['virtual_remaining_leaves'] - accrual_plan_level.postpone_max_days)
+                elif carried_over_days_expiration_date and carried_over_days_expiration_date == closest_expiration_date:
+                    expiring_leaves_count += carried_over_days_expiration_data[allocation]['no_expiring_days']
+
             if expiring_leaves_count != 0:
                 return closest_expiration_date, expiring_leaves_count
 
         # No leaves will expire
         return False, 0
+
+    def _get_carried_over_days_expiration_data(self, allocations, target_date):
+        fake_allocations = self.env['hr.leave.allocation']
+        for allocation in allocations:
+            fake_allocations |= self.env['hr.leave.allocation'].new(origin=allocation)
+        fake_allocations.sudo()._process_accrual_plans(target_date, log=False)
+        carried_over_days_expiration_data = {
+            fake_allocation._origin:
+            {
+                'expiration_date': fake_allocation.carried_over_days_expiration_date,
+                'no_expiring_days': max(0, fake_allocation.expiring_carryover_days - fake_allocation.leaves_taken)
+            }
+            for fake_allocation in fake_allocations
+        }
+        fake_allocations.invalidate_recordset()
+        return carried_over_days_expiration_data

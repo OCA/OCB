@@ -82,28 +82,27 @@ export const datetimePickerService = {
                  * Wrapper method on the "onApply" callback to only call it when the
                  * value has changed, and set other internal variables accordingly.
                  */
-                const apply = () => {
+                const apply = async () => {
                     const valueCopy = deepCopy(pickerProps.value);
-                    if (areDatesEqual(lastAppliedValue, valueCopy)) {
+                    if (areDatesEqual(lastInitialProps.value, valueCopy)) {
                         return;
                     }
 
                     inputsChanged = ensureArray(pickerProps.value).map(() => false);
 
-                    hookParams.onApply?.(pickerProps.value);
-                    lastAppliedValue = valueCopy;
+                    await hookParams.onApply?.(pickerProps.value);
+                    lastInitialProps.value = valueCopy;
                 };
 
                 const computeBasePickerProps = () => {
                     const nextInitialProps = markValuesRaw(hookParams.pickerProps);
                     const propsCopy = deepCopy(nextInitialProps);
 
-                    if (lastInitialProps && arePropsEqual(lastInitialProps, propsCopy)) {
+                    if (arePropsEqual(lastInitialProps, propsCopy)) {
                         return;
                     }
 
                     lastInitialProps = propsCopy;
-                    lastAppliedValue = propsCopy.value;
                     inputsChanged = ensureArray(lastInitialProps.value).map(() => false);
 
                     for (const [key, value] of Object.entries(nextInitialProps)) {
@@ -356,7 +355,7 @@ export const datetimePickerService = {
                     const previousValue = pickerProps.value;
                     pickerProps.value = value;
 
-                    if (areDatesEqual(previousValue, pickerProps.value)) {
+                    if (source === "input" && areDatesEqual(previousValue, pickerProps.value)) {
                         return;
                     }
 
@@ -452,10 +451,8 @@ export const datetimePickerService = {
                 let allowOnClose = true;
                 /** @type {boolean[]} */
                 let inputsChanged = [];
-                /** @type {DateTimePickerProps | null} */
-                let lastInitialProps = null;
-                /** @type {DateTimePickerProps["value"] | null}*/
-                let lastAppliedValue = null;
+                /** @type {Partial<DateTimePickerProps>} */
+                let lastInitialProps = {};
                 let lastIsRange = pickerProps.range;
                 /** @type {(() => void) | null} */
                 let restoreTargetMargin = null;

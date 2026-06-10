@@ -29,11 +29,9 @@ function isInViewWithinScrollableY(target) {
     const element = queryFirst(target);
     let container = element.parentElement;
     while (
-        container
-        && (
-            container.scrollHeight <= container.clientHeight
-            || !["auto", "scroll"].includes(getComputedStyle(container).overflowY)
-        )
+        container &&
+        (container.scrollHeight <= container.clientHeight ||
+            !["auto", "scroll"].includes(getComputedStyle(container).overflowY))
     ) {
         container = container.parentElement;
     }
@@ -636,7 +634,7 @@ test("correct sequence of blur, focus and select", async () => {
     await contains(".o-autocomplete input").edit("", { confirm: false });
     await runAllTimers();
     await contains(document.body).click();
-    expect.verifySteps(["blur", "change"]);
+    expect.verifySteps(["change", "blur"]);
     expect(".o-autocomplete .dropdown-menu").toHaveCount(0);
 });
 
@@ -733,13 +731,13 @@ test("tab and shift+tab close the dropdown", async () => {
     expect(dropdown).toBeVisible();
     await press("Tab");
     await animationFrame();
-    expect(dropdown).not.toBeVisible();
+    expect(dropdown).not.toHaveCount();
     // Shift + Tab
     await contains(input).click();
     expect(dropdown).toBeVisible();
     await press("Tab", { shiftKey: true });
     await animationFrame();
-    expect(dropdown).not.toBeVisible();
+    expect(dropdown).not.toHaveCount();
 });
 
 test("autocomplete scrolls when moving with arrows", async () => {
@@ -786,24 +784,34 @@ test("autocomplete scrolls when moving with arrows", async () => {
     expect(".o-autocomplete input").toHaveCount(1);
     // Open with arrow key.
     await contains(".o-autocomplete input").focus();
-    await contains(".o-autocomplete input").press("ArrowDown");
+    await press("ArrowDown");
+    await animationFrame();
     expect(".o-autocomplete--dropdown-item").toHaveCount(5);
     expect(isScrollable(dropdownSelector)).toBe(true, { message: "dropdown should be scrollable" });
     // First element focused and visible (dropdown is not scrolled yet).
     expect(".o-autocomplete--dropdown-item:first-child a").toHaveClass("ui-state-active");
     expect(isInViewWithinScrollableY(activeItemSelector)).toBe(true, { message: msgInView });
     // Navigate with the arrow keys. Go to the last item.
-    expect(isInViewWithinScrollableY(".o-autocomplete--dropdown-item:contains('Up')")).toBe(false, { message: "'Up' " + msgNotInView });
-    await contains(".o-autocomplete--input").press("ArrowUp");
-    await contains(".o-autocomplete--input").press("ArrowUp");
+    expect(isInViewWithinScrollableY(".o-autocomplete--dropdown-item:contains('Up')")).toBe(false, {
+        message: "'Up' " + msgNotInView,
+    });
+    await press("ArrowUp");
+    await press("ArrowUp");
+    await animationFrame();
     expect(activeItemSelector).toHaveText("Up");
     expect(isInViewWithinScrollableY(activeItemSelector)).toBe(true, { message: msgInView });
     // Navigate to an item that is not currently visible.
-    expect(isInViewWithinScrollableY(".o-autocomplete--dropdown-item:contains('Never')")).toBe(false, { message: "'Never' " + msgNotInView });
-    for (let i=0; i < 4; i++) {
-        await contains(".o-autocomplete--input").press("ArrowUp");
+    expect(isInViewWithinScrollableY(".o-autocomplete--dropdown-item:contains('Never')")).toBe(
+        false,
+        { message: "'Never' " + msgNotInView }
+    );
+    for (let i = 0; i < 4; i++) {
+        await press("ArrowUp");
     }
+    await animationFrame();
     expect(activeItemSelector).toHaveText("Never");
     expect(isInViewWithinScrollableY(activeItemSelector)).toBe(true, { message: msgInView });
-    expect(isInViewWithinScrollableY(".o-autocomplete--dropdown-item:last")).toBe(false, { message: "last " + msgNotInView });
+    expect(isInViewWithinScrollableY(".o-autocomplete--dropdown-item:last")).toBe(false, {
+        message: "last " + msgNotInView,
+    });
 });

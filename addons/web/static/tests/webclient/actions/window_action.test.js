@@ -68,7 +68,7 @@ class Partner extends models.Model {
         { id: 5, display_name: "Fifth record", foo: "zoup", m2o: 1, o2m: [] },
     ];
     _views = {
-        "form,false": `
+        "form,3": /* xml */ `
             <form>
                 <header>
                     <button name="object" string="Call method" type="object"/>
@@ -78,8 +78,9 @@ class Partner extends models.Model {
                     <field name="display_name"/>
                     <field name="foo"/>
                 </group>
-            </form>`,
-        "form,74": `
+            </form>
+        `,
+        "form,74": /* xml */ `
             <form>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -89,21 +90,30 @@ class Partner extends models.Model {
                     </div>
                     <field name="display_name"/>
                 </sheet>
-            </form>`,
-        "kanban,1": `
+            </form>
+        `,
+        "kanban,1": /* xml */ `
             <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
                     </t>
                 </templates>
-            </kanban>`,
-        list: `<list><field name="foo"/></list>`,
-        pivot: `<pivot/>`,
-        search: `<search><field name="foo" string="Foo"/></search>`,
-        "search,4": `
+            </kanban>
+        `,
+        list: /* xml */ `
+            <list>
+                <field name="foo" />
+            </list>
+        `,
+        search: /* xml */ `
             <search>
-                <filter name="m2o" help="M2O" domain="[('m2o', '=', 1)]"/>
+                <field name="foo" string="Foo" />
+            </search>
+        `,
+        "search,4": /* xml */ `
+            <search>
+                <filter name="m2o" help="M2O" domain="[('m2o', '=', 1)]" />
             </search>`,
     };
 }
@@ -119,7 +129,6 @@ class Pony extends models.Model {
     _views = {
         list: `<list><field name="name"/></list>`,
         form: `<form><field name="name"/></form>`,
-        search: `<search/>`,
     };
 }
 
@@ -222,9 +231,7 @@ test("click on a list row when there is no form in the action", async () => {
 });
 
 test("click on open form view button when there is no form in the action", async () => {
-    Pony._views[
-        "list,false"
-    ] = `<list editable="top" open_form_view="1"><field name="name"/></list>`;
+    Pony._views["list"] = `<list editable="top" open_form_view="1"><field name="name"/></list>`;
     stepAllNetworkCalls();
     await mountWithCleanup(WebClient);
     await getService("action").doAction(9);
@@ -379,7 +386,7 @@ test.tags("desktop");
 test("orderedBy in context is not propagated when executing another action", async () => {
     expect.assertions(6);
 
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
         <form>
             <header>
                 <button name="8" string="Execute action" type="action"/>
@@ -521,7 +528,7 @@ test("switch buttons are updated when switching between views", async () => {
 });
 test.tags("desktop");
 test("pager is updated when switching between views", async () => {
-    Partner._views["list,false"] = `<list limit="3"><field name="foo"/></list>`;
+    Partner._views["list"] = `<list limit="3"><field name="foo"/></list>`;
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction(4);
@@ -571,7 +578,7 @@ test("pager is updated when switching between views", async () => {
 
 test.tags("desktop");
 test("Props are updated and kept when switching/restoring views", async () => {
-    Partner._views["form,false"] = /* xml */ `
+    Partner._views["form"] = /* xml */ `
         <form>
             <group>
                 <field name="display_name" />
@@ -579,14 +586,12 @@ test("Props are updated and kept when switching/restoring views", async () => {
             </group>
         </form>`;
 
-    onRpc("get_formview_action", ({ args, model }) => {
-        return {
-            res_id: args[0][0],
-            res_model: model,
-            type: "ir.actions.act_window",
-            views: [[false, "form"]],
-        };
-    });
+    onRpc("get_formview_action", ({ args, model }) => ({
+        res_id: args[0][0],
+        res_model: model,
+        type: "ir.actions.act_window",
+        views: [[false, "form"]],
+    }));
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction(3);
@@ -877,16 +882,10 @@ test("execute_action of type object are handled", async () => {
     expect.assertions(4);
     serverState.userContext = { some_key: 2 };
 
-    onRpc("partner", "object", async function ({ args, kwargs }) {
-        expect(kwargs).toEqual(
+    onRpc("partner", "object", function ({ args, kwargs }) {
+        expect(kwargs).toMatchObject(
             {
-                context: {
-                    lang: "en",
-                    uid: 7,
-                    tz: "taht",
-                    allowed_company_ids: [1],
-                    some_key: 2,
-                },
+                context: { some_key: 2 },
             },
             { message: "should call route with correct arguments" }
         );
@@ -923,7 +922,7 @@ test("execute_action of type object are handled", async () => {
 
 test.tags("desktop");
 test("execute_action of type object: disable buttons (2)", async () => {
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
         <form>
             <header>
                 <button name="object" string="Call method" type="object"/>
@@ -977,7 +976,7 @@ test("execute_action of type object: disable buttons (2)", async () => {
 
 test.tags("desktop");
 test("view button: block ui attribute", async () => {
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
             <form>
                 <header>
                     <button name="4" string="Execute action" type="action" block-ui="1"/>
@@ -1034,7 +1033,7 @@ test("execute_action of type object raises error: re-enables buttons", async () 
 
 test("execute_action of type object raises error in modal: re-enables buttons", async () => {
     expect.errors(1);
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
             <form>
                 <field name="display_name"/>
                 <footer>
@@ -1208,15 +1207,13 @@ test("requests for execute_action of type object: disable buttons", async () => 
 
 test.tags("desktop");
 test("action with html help returned by a call_button", async () => {
-    onRpc("/web/dataset/call_button/*", () => {
-        return {
-            res_model: "partner",
-            type: "ir.actions.act_window",
-            views: [[false, "list"]],
-            help: "<p>I am not a helper</p>",
-            domain: [[0, "=", 1]],
-        };
-    });
+    onRpc("/web/dataset/call_button/*", () => ({
+        res_model: "partner",
+        type: "ir.actions.act_window",
+        views: [[false, "list"]],
+        help: "<p>I am not a helper</p>",
+        domain: [[0, "=", 1]],
+    }));
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction(3);
@@ -1281,7 +1278,6 @@ test("restore previous view state when switching back", async () => {
             ],
         },
     ]);
-    Partner._views["graph,false"] = "<graph/>";
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction(30);
@@ -1356,7 +1352,7 @@ test("view switcher is properly highlighted in pivot view", async () => {
 
 test.tags("desktop");
 test("can interact with search view", async () => {
-    Partner._views["search,false"] = `
+    Partner._views["search"] = `
         <search>
             <group>
             <filter name="foo" string="foo" context="{'group_by': 'foo'}"/>
@@ -1380,28 +1376,26 @@ test("can interact with search view", async () => {
 
 test.tags("desktop");
 test("can open a many2one external window", async () => {
-    Partner._views["search,false"] = `
+    Partner._views["search"] = `
         <search>
             <group>
                 <filter name="foo" string="foo" context="{'group_by': 'foo'}"/>
             </group>
         </search>`;
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
         <form>
             <field name="foo"/>
             <field name="m2o"/>
         </form>`;
 
     stepAllNetworkCalls();
-    onRpc("get_formview_action", () => {
-        return {
-            name: "Partner",
-            res_model: "partner",
-            type: "ir.actions.act_window",
-            res_id: 3,
-            views: [[false, "form"]],
-        };
-    });
+    onRpc("get_formview_action", () => ({
+        name: "Partner",
+        res_model: "partner",
+        type: "ir.actions.act_window",
+        res_id: 3,
+        views: [[false, "form"]],
+    }));
     await mountWithCleanup(WebClient);
     await getService("action").doAction(3);
     // open first record in form view
@@ -1550,7 +1544,7 @@ test("honor group_by specified in actions context", async () => {
             views: [[false, "list"]],
         },
     ]);
-    Partner._views["search,false"] = `
+    Partner._views["search"] = `
         <search>
             <group>
             <filter name="foo" string="Foo" context="{'group_by': 'foo'}"/>
@@ -1896,21 +1890,19 @@ test("destroy action with lazy loaded controller", async () => {
 test.tags("desktop");
 test("execute action from dirty, new record, and come back", async () => {
     Partner._fields.bar = fields.Many2one({ relation: "partner", default: 1 });
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
         <form>
             <field name="display_name"/>
             <field name="foo"/>
             <field name="bar" readonly="1"/>
         </form>`;
 
-    onRpc("get_formview_action", () => {
-        return {
-            res_id: 1,
-            res_model: "partner",
-            type: "ir.actions.act_window",
-            views: [[false, "form"]],
-        };
-    });
+    onRpc("get_formview_action", () => ({
+        res_id: 1,
+        res_model: "partner",
+        type: "ir.actions.act_window",
+        views: [[false, "form"]],
+    }));
     stepAllNetworkCalls();
 
     await mountWithCleanup(WebClient);
@@ -2006,14 +1998,12 @@ test("go back to action with form view as main view, and res_id", async () => {
     ]);
     Partner._views["form,44"] = '<form><field name="m2o"/></form>';
 
-    onRpc("get_formview_action", () => {
-        return {
-            res_id: 3,
-            res_model: "partner",
-            type: "ir.actions.act_window",
-            views: [[false, "form"]],
-        };
-    });
+    onRpc("get_formview_action", () => ({
+        res_id: 3,
+        res_model: "partner",
+        type: "ir.actions.act_window",
+        views: [[false, "form"]],
+    }));
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction(999);
@@ -2046,9 +2036,7 @@ test("action with res_id, load another res_id, do new action, restore previous",
     defineActions([action]);
 
     Partner._views["form,44"] = '<form><field name="m2o"/></form>';
-    onRpc("get_formview_action", () => {
-        return { ...action, res_id: 3 };
-    });
+    onRpc("get_formview_action", () => ({ ...action, res_id: 3 }));
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction(999, { props: { resIds: [1, 2] } });
@@ -2233,22 +2221,21 @@ test("Call twice clearUncommittedChanges in a row does not save twice", async ()
 
 test.tags("desktop");
 test("executing a window action with onchange warning does not hide it", async () => {
-    Partner._views["form,false"] = `<form><field name="foo"/></form>`;
+    Partner._views["form"] = `<form><field name="foo"/></form>`;
 
-    onRpc("onchange", () => {
-        return {
-            value: {},
-            warning: {
-                title: "Warning",
-                message: "Everything is alright",
-                type: "dialog",
-            },
-        };
-    });
+    onRpc("onchange", () => ({
+        value: {},
+        warning: {
+            title: "Warning",
+            message: "Everything is alright",
+            type: "dialog",
+        },
+    }));
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction(3);
     await clickListNew();
+    await waitFor(".modal.o_technical_modal");
     expect(".modal.o_technical_modal").toHaveCount(1, {
         message: "Warning modal should be opened",
     });
@@ -2298,7 +2285,7 @@ test("do not pushState when target=new and dialog is opened", async () => {
 
 test.tags("desktop");
 test("do not restore after action button clicked on desktop", async () => {
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
         <form>
             <header>
                 <button name="do_something" string="Call button" type="object"/>
@@ -2317,12 +2304,12 @@ test("do not restore after action button clicked on desktop", async () => {
     expect(".o_statusbar_buttons button[name=do_something]").toBeVisible();
 
     await contains(".o_statusbar_buttons button[name=do_something]").click();
-    expect(".o_form_buttons_view .o_form_button_save").not.toBeVisible();
+    expect(".o_form_buttons_view .o_form_button_save").not.toHaveCount();
 });
 
 test.tags("mobile");
 test("do not restore after action button clicked on mobile", async () => {
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
         <form>
             <header>
                 <button name="do_something" string="Call button" type="object"/>
@@ -2342,7 +2329,7 @@ test("do not restore after action button clicked on mobile", async () => {
     expect(".o-dropdown-item-unstyled-button button[name=do_something]").toBeVisible();
 
     await contains(".o-dropdown-item-unstyled-button button[name=do_something]").click();
-    expect(".o_form_buttons_view .o_form_button_save").not.toBeVisible();
+    expect(".o_form_buttons_view .o_form_button_save").not.toHaveCount();
 });
 
 test("debugManager is active for views", async () => {
@@ -2615,7 +2602,7 @@ test("pushState also changes the title of the tab", async () => {
 });
 
 test("action group_by of type string", async () => {
-    Partner._views["pivot,false"] = `<pivot/>`;
+    Partner._views["pivot,3"] = /* xml */ `<pivot />`;
     await mountWithCleanup(WebClient);
     await getService("action").doAction({
         name: "Partner",
@@ -2664,7 +2651,6 @@ test("action help given to View in props if not empty", async () => {
 test("load a tree", async () => {
     Partner._views = {
         list: `<list><field name="foo"/></list>`,
-        search: `<search/>`,
     };
 
     await mountWithCleanup(WebClient);
@@ -2694,29 +2680,26 @@ test("sample server: populate groups", async () => {
             <pivot sample="1">
                 <field name="write_date" type="row"/>
             </pivot>`,
-        search: `<search/>`,
     };
-    onRpc("web_read_group", () => {
-        return {
-            groups: [
-                {
-                    date_count: 0,
-                    "write_date:month": "December 2022",
-                    __range: {
-                        "write_date:month": {
-                            from: "2022-12-01",
-                            to: "2023-01-01",
-                        },
+    onRpc("web_read_group", () => ({
+        groups: [
+            {
+                date_count: 0,
+                "write_date:month": "December 2022",
+                __range: {
+                    "write_date:month": {
+                        from: "2022-12-01",
+                        to: "2023-01-01",
                     },
-                    __domain: [
-                        ["write_date", ">=", "2022-12-01"],
-                        ["write_date", "<", "2023-01-01"],
-                    ],
                 },
-            ],
-            length: 1,
-        };
-    });
+                __domain: [
+                    ["write_date", ">=", "2022-12-01"],
+                    ["write_date", "<", "2023-01-01"],
+                ],
+            },
+        ],
+        length: 1,
+    }));
 
     await mountWithCleanup(WebClient);
     await getService("action").doAction({
@@ -2740,7 +2723,7 @@ test("sample server: populate groups", async () => {
 test.tags("desktop");
 test("click on breadcrumb of a deleted record", async () => {
     expect.errors(1);
-    Partner._views["form,false"] = `
+    Partner._views["form"] = `
         <form>
             <button type="action" name="3" string="Open Action 3" class="my_btn"/>
         </form>`;

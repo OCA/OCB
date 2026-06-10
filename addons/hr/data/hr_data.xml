@@ -6,7 +6,7 @@
           <field name="name">Administration</field>
         </record>
 
-        <record id="employee_admin" model="hr.employee">
+        <record id="employee_admin" model="hr.employee" forcecreate="0">
             <field name="name" eval="obj(ref('base.partner_admin')).name" model="res.partner"/>
             <field name="department_id" ref="dep_administration"/>
             <field name="user_id" ref="base.user_admin"/>
@@ -18,7 +18,7 @@
         <record id="onboarding_plan" model="mail.activity.plan">
             <field name="name">Onboarding</field>
             <field name="res_model">hr.employee</field>
-            <field name="company_id" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
         </record>
 
         <record id="onboarding_setup_it_materials" model="mail.activity.plan.template">
@@ -45,7 +45,7 @@
         <record id="offboarding_plan" model="mail.activity.plan">
             <field name="name">Offboarding</field>
             <field name="res_model">hr.employee</field>
-            <field name="company_id" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
         </record>
 
         <record id="offboarding_setup_compute_out_delais" model="mail.activity.plan.template">

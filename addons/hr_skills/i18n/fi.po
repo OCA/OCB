@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* hr_skills
-# 
+# * hr_skills
+#
 # Translators:
 # Tiffany Chang, 2024
 # Miku Laitinen <miku.laitinen@gmail.com>, 2024
@@ -19,20 +19,24 @@
 # Musibau Muhammed, 2025
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2025
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2025
-# 
+# "Jessica Tuulia Sade Jäkärä (jtsj)" <jtsj@odoo.com>, 2025.
+# Saara Hakanen <sahak@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-25 08:39+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2025\n"
-"Language-Team: Finnish (https://app.transifex.com/odoo/teams/41243/fi/)\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-05-16 09:02+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-18/"
+"hr_skills/fi/>\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: fi\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: hr_skills
 #. odoo-python
@@ -44,21 +48,6 @@ msgstr "%s (kopio)"
 #: model:ir.actions.report,print_report_name:hr_skills.action_report_employee_cv
 msgid "'CV - %s' % (object.name)"
 msgstr "'CV - %s' % (object.name)"
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.report_employee_cv_sidepanel
-msgid "+1234567890"
-msgstr "+1234567890"
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.report_employee_cv_main_panel
-msgid "2022"
-msgstr "2022"
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.report_employee_cv_main_panel
-msgid "2023"
-msgstr "2023"
 
 #. module: hr_skills
 #: model_terms:hr.resume.line,description:hr_skills.employee_resume_line_admin_7
@@ -199,6 +188,11 @@ msgstr "Burns, Lester ja Cuevas"
 #: model:hr.resume.line,name:hr_skills.employee_resume_line_admin_3
 msgid "Burtho Inc."
 msgstr "Burtho Inc."
+
+#. module: hr_skills
+#: model:hr.skill,name:hr_skills.hr_skill_csharp
+msgid "C#"
+msgstr "C#"
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_c
@@ -410,12 +404,12 @@ msgstr "Päivämäärä"
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__date_end
 msgid "Date End"
-msgstr "Loppupäiväys"
+msgstr "Päättymispäivä"
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__date_start
 msgid "Date Start"
-msgstr "Aloituspäivämäärä"
+msgstr "Alkamispäivä"
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_chs_davis_plc
@@ -426,7 +420,7 @@ msgstr "Davis PLC"
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jve_davis_and_sons
 msgid "Davis and Sons"
-msgstr "Davis ja pojat"
+msgstr "Davis and Sons"
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jep_davis_sanchez_and_miller
@@ -940,28 +934,40 @@ msgstr "Korusuunnittelija"
 #: model_terms:hr.resume.line,description:hr_skills.employee_resume_line_admin_4
 msgid ""
 "Job position: Development team leader\n"
-"- Supported technical operations with investigating and correcting varied production support issues (Java, Perl, Shell scripts, SQL).\n"
-"- Led quality assurance planning for multiple concurrent projects relative to overall system architecture or trading system changes/new developments.\n"
-"- Configured and released business critical alpha and risk models using MATLAB and SQL with inputs from Portfolio Managers."
+"- Supported technical operations with investigating and correcting varied "
+"production support issues (Java, Perl, Shell scripts, SQL).\n"
+"- Led quality assurance planning for multiple concurrent projects relative "
+"to overall system architecture or trading system changes/new developments.\n"
+"- Configured and released business critical alpha and risk models using "
+"MATLAB and SQL with inputs from Portfolio Managers."
 msgstr ""
 "Työpaikka: Työntekijä: Kehitystiimin johtaja\n"
-"- Tukenut teknistä toimintaa tutkimalla ja korjaamalla erilaisia tuotantotukiongelmia (Java, Perl, Shell-skriptit, SQL).\n"
-"- Johtanut useiden rinnakkaisten hankkeiden laadunvarmistussuunnittelua suhteessa järjestelmän kokonaisarkkitehtuuriin tai kaupankäyntijärjestelmän muutoksiin/uusiin kehityshankkeisiin.\n"
-"- Konfiguroi ja julkaisi liiketoiminnan kannalta kriittisiä alfa- ja riskimalleja MATLABin ja SQL:n avulla salkunhoitajien syötteiden perusteella.\n"
+"- Tukenut teknistä toimintaa tutkimalla ja korjaamalla erilaisia "
+"tuotantotukiongelmia (Java, Perl, Shell-skriptit, SQL).\n"
+"- Johtanut useiden rinnakkaisten hankkeiden laadunvarmistussuunnittelua "
+"suhteessa järjestelmän kokonaisarkkitehtuuriin tai kaupankäyntijärjestelmän "
+"muutoksiin/uusiin kehityshankkeisiin.\n"
+"- Konfiguroi ja julkaisi liiketoiminnan kannalta kriittisiä alfa- ja "
+"riskimalleja MATLABin ja SQL:n avulla salkunhoitajien syötteiden "
+"perusteella.\n"
 "        "
 
 #. module: hr_skills
 #: model_terms:hr.resume.line,description:hr_skills.employee_resume_line_admin_3
 msgid ""
 "Job position: Product manager\n"
-"- Coordinated and managed software deployment across five system environments from development to production.\n"
+"- Coordinated and managed software deployment across five system "
+"environments from development to production.\n"
 "- Developed stored procedures to assist Java level programming efforts.\n"
-"- Developed multiple renewable energy plant architectures, both commercial installations and defense-related."
+"- Developed multiple renewable energy plant architectures, both commercial "
+"installations and defense-related."
 msgstr ""
 "Työpaikka: Tuotepäällikkö\n"
-"- Koordinoi ja hallinnoi ohjelmistojen käyttöönottoa viidessä järjestelmäympäristössä kehityksestä tuotantoon.\n"
+"- Koordinoi ja hallinnoi ohjelmistojen käyttöönottoa viidessä "
+"järjestelmäympäristössä kehityksestä tuotantoon.\n"
 "- Kehitti tallennettuja proseduureja Java-tason ohjelmointityön avuksi.\n"
-"- Kehitti useita uusiutuvan energian laitosarkkitehtuureja, sekä kaupallisia laitoksia että puolustukseen liittyviä.\n"
+"- Kehitti useita uusiutuvan energian laitosarkkitehtuureja, sekä kaupallisia "
+"laitoksia että puolustukseen liittyviä.\n"
 "        "
 
 #. module: hr_skills
@@ -1149,10 +1155,12 @@ msgstr "Martin, Stanley ja Duncan"
 #: model_terms:hr.resume.line,description:hr_skills.employee_resume_line_admin_1
 msgid ""
 "Master in Electrical engineering\n"
-"            Master thesis: Better grid management and control through machine learning"
+"            Master thesis: Better grid management and control through "
+"machine learning"
 msgstr ""
 "Sähkötekniikan maisteri\n"
-"            Maisterin tutkielma: Parempi sähköverkon hallinta ja ohjaus koneoppimisen avulla"
+"            Maisterin tutkielma: Parempi sähköverkon hallinta ja ohjaus "
+"koneoppimisen avulla"
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_matlab
@@ -1444,6 +1452,11 @@ msgid "Python"
 msgstr "Python"
 
 #. module: hr_skills
+#: model:hr.skill,name:hr_skills.hr_skill_r
+msgid "R"
+msgstr "R"
+
+#. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_sql
 msgid "RDMS"
 msgstr "RDMS"
@@ -1477,13 +1490,13 @@ msgstr "Resurssit"
 #: model_terms:ir.ui.view,arch_db:hr_skills.res_users_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
 msgid "Resume"
-msgstr "Jatka"
+msgstr "Ansioluettelo"
 
 #. module: hr_skills
 #. odoo-python
 #: code:addons/hr_skills/controllers/main.py:0
 msgid "Resume %s"
-msgstr "Jatka kohdetta %s"
+msgstr "Jatka %s"
 
 #. module: hr_skills
 #: model:ir.actions.act_window,name:hr_skills.hr_resume_type_action
@@ -2061,3 +2074,12 @@ msgstr "esim. Odoo Inc."
 #: model_terms:ir.ui.view,arch_db:hr_skills.report_employee_cv_sidepanel
 msgid "www.demo.com"
 msgstr "www.demo.com"
+
+#~ msgid "+1234567890"
+#~ msgstr "+1234567890"
+
+#~ msgid "2022"
+#~ msgstr "2022"
+
+#~ msgid "2023"
+#~ msgstr "2023"

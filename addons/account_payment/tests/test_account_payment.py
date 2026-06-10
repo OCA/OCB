@@ -128,6 +128,44 @@ class TestAccountPayment(AccountPaymentCommon):
             msg="The refunds count should only consider transactions with operation 'refund'."
         )
 
+    def test_refund_message_author_is_logged_in_user(self):
+        """Ensure that the chatter message author is the user processing the refund."""
+        self.provider.support_refund = 'full_only'
+
+        tx = self._create_transaction('redirect', state='done')
+        tx._post_process()
+
+        with patch.object(
+            self.env.registry['account.payment'], 'message_post', autospec=True
+        ) as message_post_mock:
+            tx.action_refund()
+            author_id = message_post_mock.call_args[1].get("author_id")
+
+        self.assertEqual(author_id, self.user.partner_id.id)
+
+    def test_pending_tx_does_not_cancel_payment(self):
+        """When a token charge results in a 'pending' transaction (e.g SEPA),
+        the payment must stay in draft, and be posted once the tx becomes 'done'"""
+        payment_token = self._create_token()
+        payment = self.env['account.payment'].create({
+            'payment_type': 'inbound',
+            'partner_type': 'customer',
+            'amount': 100.0,
+            'currency_id': self.currency.id,
+            'partner_id': self.partner.id,
+            'journal_id': self.provider.journal_id.id,
+            'payment_method_line_id': self.inbound_payment_method_line.id,
+            'payment_token_id': payment_token.id,
+            'write_off_line_vals': [],
+        })
+
+        with patch.object(self.env.registry['payment.transaction'], '_send_payment_request',
+                          lambda self: self._set_pending()):
+            payment.action_post()
+
+        self.assertEqual(payment.payment_transaction_id.state, 'pending')
+        self.assertEqual(payment.state, 'in_process')
+
     def test_action_post_calls_send_payment_request_only_once(self):
         payment_token = self._create_token()
         payment_without_token = self.env['account.payment'].create({
@@ -249,3 +287,181 @@ class TestAccountPayment(AccountPaymentCommon):
             'amount': None,
             'amount_max': None,
         })
+
+    def test_payment_invoice_same_receivable(self):
+        """
+        Test that when creating a payment transaction, the payment uses the same account_id as the related invoice
+        and not the partner accound_id
+        """
+        payment_term = self.env['account.payment.term'].create({
+            'name': "early_payment_term",
+            'company_id': self.company_data['company'].id,
+            'discount_percentage': 10,
+            'discount_days': 10,
+            'early_discount': True,
+        })
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'currency_id': self.currency.id,
+            'invoice_payment_term_id': payment_term.id,
+            'invoice_line_ids': [
+                Command.create({
+                    'name': 'test line',
+                    'price_unit': 100.0,
+                    'tax_ids': [Command.set(self.company_data['default_tax_sale'].ids)],
+                }),
+                Command.create({
+                    'name': 'test line 2',
+                    'price_unit': 100.0,
+                    'tax_ids': [Command.set(self.company_data['default_tax_sale'].ids)],
+                }),
+            ],
+        })
+
+        self.partner.property_account_receivable_id = self.env['account.account'].search([('name', '=', 'Account Payable')], limit=1)
+        payment = self._create_transaction(
+            reference='payment_3',
+            flow='direct',
+            state='done',
+            amount=invoice.invoice_payment_term_id._get_amount_due_after_discount(
+                total_amount=invoice.amount_residual,
+                untaxed_amount=invoice.amount_tax,
+            ),
+            invoice_ids=[invoice.id],
+            partner_id=self.partner.id,
+        )._create_payment()
+
+        self.assertNotEqual(self.partner.property_account_receivable_id, payment.destination_account_id)
+        self.assertEqual(payment.destination_account_id, invoice.line_ids[-1].account_id)
+
+    def test_vendor_payment_name_remains_same_after_repost(self):
+        """
+        Test that modifying and reposting a vendor payment does not change its name, except when the journal is changed.
+        """
+        journal = self.company_data['default_journal_bank']
+
+        payment = self.env['account.payment'].create({
+            'partner_id': self.partner.id,
+            'partner_type': 'supplier',
+            'payment_type': 'outbound',
+            'amount': 10,
+            'journal_id': journal.id,
+            'payment_method_line_id': journal.inbound_payment_method_line_ids[0].id,
+        })
+        payment.action_post()
+
+        original_name = payment.move_id.name
+
+        payment2 = self.env['account.payment'].create({
+            'partner_id': self.partner.id,
+            'partner_type': 'supplier',
+            'payment_type': 'outbound',
+            'amount': 20,
+            'journal_id': journal.id,
+            'payment_method_line_id': journal.inbound_payment_method_line_ids[0].id,
+        })
+
+        payment2.action_post()
+        payment.move_id.button_draft()
+        payment.move_id.line_ids.unlink()
+        payment.amount = 30
+        payment.move_id._compute_name()
+        payment.move_id._post()
+
+        self.assertEqual(
+            payment.move_id.name,
+            original_name,
+            "Payment name should remain the same after reposting"
+        )
+
+        # Now try to change the journal, and check if the name is now updated
+        payment.move_id.button_draft()
+        new_journal = journal.copy()
+        new_payment_method_line = new_journal.outbound_payment_method_line_ids[0]
+        new_payment_method_line.write({'payment_account_id': payment.payment_method_line_id.payment_account_id.id})
+        payment.write({
+            'journal_id': new_journal.id,
+            'payment_method_line_id': new_payment_method_line.id,
+        })
+        payment.move_id.action_post()
+        self.assertNotEqual(
+            payment.move_id.name,
+            original_name,
+            "Payment name should be updated after changing the journal"
+        )
+
+    def test_post_process_does_not_fail_on_cancelled_invoice(self):
+        """ If the payment state is 'pending' and the invoice gets cancelled, and later the payment is confirmed,
+            ensure that the _post_process() method does not raise an error.
+        """
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [
+                Command.create({
+                    'name': 'test line',
+                    'price_unit': 100.0,
+                }),
+            ],
+        })
+        tx = self._create_transaction(
+            flow='direct',
+            state='pending',
+            invoice_ids=[invoice.id],
+        )
+        invoice.button_cancel()
+        tx._set_done()
+        # _post_process() shouldn't raise an error even though the invoice is cancelled
+        tx._post_process()
+        self.assertEqual(tx.payment_id.state, 'in_process')
+
+    def test_payment_token_for_invoice_partner_is_available(self):
+        """Test that the payment token of the invoice partner is available"""
+        Wizard = self.env['account.payment.register'].with_context(active_model='account.move')
+        with self.mocked_get_payment_method_information():
+            bank_journal = self.company_data['default_journal_bank']
+            payment_method_line = bank_journal.inbound_payment_method_line_ids\
+                .filtered(lambda line: line.payment_provider_id == self.dummy_provider)
+            self.assertTrue(payment_method_line)
+
+            def payment_register_wizard(invoices):
+                return Wizard.with_context(active_ids=invoices.ids).create({
+                    'payment_method_line_id': payment_method_line.id,
+                })
+
+            child_partner, other_child = self.env['res.partner'].create([{
+                'name': name,
+                'is_company': False,
+                'parent_id': self.partner.id,
+            } for name in ("child_partner", "other_child")])
+            invoice = self.env['account.move'].create({
+                'move_type': 'out_invoice',
+                'partner_id': child_partner.id,
+                'invoice_line_ids': [
+                    Command.create({
+                        'name': 'test line',
+                        'price_unit': 100.0,
+                    }),
+                ],
+            })
+            invoice.action_post()
+            payment_token = self._create_token(partner_id=child_partner.id)
+            wizard = payment_register_wizard(invoice)
+            self.assertRecordValues(wizard, [{
+                'suitable_payment_token_ids': payment_token.ids,
+                'payment_token_id': payment_token.id,
+            }])
+
+            # Check that tokens assigned to the specific partner as well as their
+            # commercial partner can be selected.
+            parent_token = self._create_token(partner_id=self.partner.id)
+            wizard = payment_register_wizard(invoice)
+            self.assertEqual(wizard.suitable_payment_token_ids, payment_token + parent_token)
+
+            # Check that payments for multiple invoices with multiple partners
+            # only retrieve tokens assigned to a common commercial partner.
+            other_invoice = invoice.copy({'partner_id': other_child.id})
+            other_invoice.action_post()
+            wizard = payment_register_wizard(invoice + other_invoice)
+            self.assertEqual(wizard.suitable_payment_token_ids, parent_token)

@@ -22,6 +22,7 @@ import { applyTags } from "./tag";
 
 const {
     Object: { assign: $assign, entries: $entries },
+    Symbol,
 } = globalThis;
 
 //-----------------------------------------------------------------------------
@@ -31,23 +32,27 @@ const {
 /**
  * @param {JobConfig} config
  */
-const validateConfig = (config) => {
+function validateConfig(config) {
     for (const [key, value] of $entries(config)) {
         if (!isOfType(value, CONFIG_TAG_SCHEMA[key])) {
-            throw new HootError(`invalid config tag: parameter "${key}" does not exist`);
+            throw new HootError(`invalid config tag: parameter "${key}" does not exist`, {
+                level: "critical",
+            });
         }
     }
-};
+}
 
 /** @type {Record<keyof JobConfig, import("../hoot_utils").ArgumentType>} */
 const CONFIG_TAG_SCHEMA = {
     debug: "boolean",
-    multi: "integer",
+    multi: "number",
     only: "boolean",
     skip: "boolean",
     timeout: "number",
     todo: "boolean",
 };
+
+const S_MINIMIZED = Symbol("minimized");
 
 //-----------------------------------------------------------------------------
 // Exports
@@ -61,6 +66,10 @@ export class Job {
     runCount = 0;
     /** @type {Tag[]} */
     tags = [];
+
+    get isMinimized() {
+        return S_MINIMIZED in this;
+    }
 
     /**
      * @param {import("./suite").Suite | null} parent
@@ -111,6 +120,10 @@ export class Job {
 
         // Add tags
         applyTags(this, tags);
+    }
+
+    minimize() {
+        this[S_MINIMIZED] = true;
     }
 
     /**

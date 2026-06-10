@@ -3,13 +3,13 @@
 from base64 import b64encode
 
 from odoo import Command, tests
-from odoo.addons.base.tests.common import HttpCaseWithUserDemo
+from odoo.addons.base.tests.common import HttpCaseWithUserDemo, HttpCaseWithUserPortal
 from odoo.tools import mute_logger
 from odoo.tools.json import scriptsafe as json_safe
 
 
 @tests.tagged('-at_install', 'post_install')
-class TestWebEditorController(HttpCaseWithUserDemo):
+class TestWebEditorController(HttpCaseWithUserDemo, HttpCaseWithUserPortal):
 
     def test_modify_image(self):
         gif_base64 = b"R0lGODdhAQABAIAAAP///////ywAAAAAAQABAAACAkQBADs="
@@ -43,8 +43,10 @@ class TestWebEditorController(HttpCaseWithUserDemo):
             self.assertEqual(200, response.status_code, "Expect response")
             if expect_fail:
                 return json_safe.loads(response.content)
-            url = json_safe.loads(response.content).get('result')
-            self.assertTrue(url.endswith(name), "Expect name in URL")
+            content = json_safe.loads(response.content)
+            self.assertFalse(content.get('error'), "An error should not happen")
+            url = content.get('result')
+            self.assertTrue(url.partition('?unique=')[0].endswith(name), "Expect name in URL")
             response = self.url_open(url)
             self.assertEqual(200, response.status_code, "Expect response")
             self.assertTrue('image/svg+xml' in response.headers.get('Content-Type'), "Expect SVG mimetype")
@@ -87,12 +89,17 @@ class TestWebEditorController(HttpCaseWithUserDemo):
         })
         modify('demo', 'page-demo.gif')
 
+        # Website designer can modify url attachment (for e.g. unsplash)
+        attachment.url = '/page-logo-unique.gif'
+        modify('demo', 'page-logo-unique.gif')
+        attachment.url = False  # Reset previous value
+
         # Portal user cannot modify page
         with mute_logger('odoo.http'):
             json = modify('portal', 'page-portalfail.gif', True)
         self.assertEqual('odoo.exceptions.AccessError', json['error']['data']['name'], "Expect access error")
 
-        event = self.env['event.event'].search([], limit=1)
+        event = self.env['event.event'].create({'name': 'Event'})
         attachment.res_model = 'event.event'
         attachment.res_id = event.id
 

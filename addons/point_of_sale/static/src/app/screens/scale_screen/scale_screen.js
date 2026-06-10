@@ -20,11 +20,12 @@ export class ScaleScreen extends Component {
     }
 
     confirm() {
-        this.props.getPayload(this.scale.netWeight);
+        this.props.getPayload(this.scale.confirmWeight());
         this.props.close();
     }
 
     onError(message) {
+        this.props.getPayload(null);
         this.dialog.add(
             AlertDialog,
             {

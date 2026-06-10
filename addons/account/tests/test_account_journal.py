@@ -6,8 +6,10 @@ from unittest.mock import patch
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.account.models.account_payment_method import AccountPaymentMethod
 from odoo.addons.mail.tests.common import MailCommon
-from odoo.tests import Form, tagged
+from odoo.addons.test_mail.data.test_mail_data import MAIL_EML_ATTACHMENT
+from odoo.tests import Form, tagged, new_test_user
 from odoo.exceptions import UserError, ValidationError
+from odoo import Command
 
 
 @tagged('post_install', '-at_install')
@@ -43,7 +45,7 @@ class TestAccountJournal(AccountTestInvoicingCommon):
         with self.assertRaisesRegex(UserError, "entries linked to it"), self.cr.savepoint():
             self.company_data['default_journal_sale'].company_id = self.company_data_2['company']
 
-    def test_account_control_create_journal_entry(self):
+    def test_account_control_post_journal_entry(self):
         move_vals = {
             'line_ids': [
                 (0, 0, {
@@ -64,11 +66,11 @@ class TestAccountJournal(AccountTestInvoicingCommon):
         # Should fail because 'default_account_expense' is not allowed.
         self.company_data['default_journal_misc'].account_control_ids |= self.company_data['default_account_revenue']
         with self.assertRaises(UserError), self.cr.savepoint():
-            self.env['account.move'].create(move_vals)
+            self.env['account.move'].create(move_vals).action_post()
 
         # Should be allowed because both accounts are accepted.
         self.company_data['default_journal_misc'].account_control_ids |= self.company_data['default_account_expense']
-        self.env['account.move'].create(move_vals)
+        self.env['account.move'].create(move_vals).action_post()
 
     def test_account_control_existing_journal_entry(self):
         self.env['account.move'].create({
@@ -361,3 +363,124 @@ class TestAccountJournalAlias(AccountTestInvoicingCommon, MailCommon):
         })
         self.assertEqual(journal.alias_name, f'test-journal-{company_name}')
         self.assertEqual(journal2.alias_name, f'test-journal-{company_name}-b')
+
+    def test_use_default_account_from_journal(self):
+        """
+        Test that the autobalance uses the default account id of the journal
+        """
+        autobalance_account = self.env['account.account'].create({
+            'name': 'Autobalance Account',
+            'account_type': 'income',
+            'code': 'A',
+        })
+        journal = self.env['account.journal'].create({
+            'name': 'Test Journal',
+            'type': 'general',
+            'code': 'B',
+            'default_account_id': autobalance_account.id,
+        })
+
+        entry = self.env['account.move'].create({
+            'move_type': 'entry',
+            'journal_id': journal.id,
+            'line_ids': [
+                Command.create({
+                    'debit': 100.0,
+                    'credit': 0.0,
+                    'tax_ids': (self.company_data['default_tax_sale']),
+                    'account_id': self.company_data['default_account_revenue'].id
+                })
+            ]
+        })
+
+        entry.action_post()
+        self.assertRecordValues(entry.line_ids, [
+            {'balance': 100.0, 'account_id': self.company_data['default_account_revenue'].id},
+            {'balance': 15.0, 'account_id': self.company_data['default_account_tax_sale'].id},
+            {'balance': -115.0, 'account_id': autobalance_account.id},
+        ])
+
+    def test_send_email_to_alias_from_other_company(self):
+        user_company_2 = new_test_user(
+            self.env,
+            name='company 2 user',
+            login='company_2_user',
+            password='company_2_user',
+            email='company_2_user@test.com',
+            company_id=self.company_data_2['company'].id
+        )
+        self.format_and_process(
+            MAIL_EML_ATTACHMENT,
+            user_company_2.email,
+            self.company_data['default_journal_purchase'].alias_email,
+            subject='purchase test mail',
+            target_model='account.move',
+            msg_id='<test-account-move-alias-id>',
+        )
+        self.assertTrue(self.env['account.move'].search([('invoice_source_email', '=', 'company_2_user@test.com')]))
+
+    def test_alias_uniqueness_without_domain(self):
+        """Ensure alias_name is unique even if alias_domain is not defined."""
+        default_account = self.env['account.account'].search(
+            domain=[('deprecated', '=', False), ('account_type', 'in', ('income', 'income_other'))],
+            limit=1,
+        )
+        with Form(self.env['account.journal']) as journal_form:
+            journal_form.type = 'sale'
+            journal_form.code = 'A'
+            journal_form.name = 'Test Journal 1'
+            journal_form.default_account_id = default_account
+            journal_1 = journal_form.save()
+        with Form(self.env['account.journal']) as journal_form:
+            journal_form.type = 'sale'
+            journal_form.code = 'B'
+            journal_form.name = 'Test Journal 2'
+            journal_form.default_account_id = default_account
+            journal_2 = journal_form.save()
+        self.assertNotEqual(journal_1.alias_id.alias_name, journal_2.alias_id.alias_name)
+
+    def test_payment_method_line_accounts_on_recompute(self):
+        """
+        Test that outstanding payments/receipts accounts are not removed during the computation of the payment method lines
+        """
+        bank_journal = self.company_data['default_journal_bank']
+        outstanding_receipt_account = self.env['account.chart.template'].ref('account_journal_payment_debit_account_id')
+        outstanding_payment_account = self.env['account.chart.template'].ref('account_journal_payment_credit_account_id')
+
+        inbound_method_lines = bank_journal.inbound_payment_method_line_ids
+        inbound_method_lines_names = inbound_method_lines.mapped('name')
+        inbound_method_lines[0].payment_account_id = outstanding_receipt_account
+
+        outbound_method_lines = bank_journal.outbound_payment_method_line_ids
+        outbound_method_lines_names = outbound_method_lines.mapped('name')
+        outbound_method_lines[0].payment_account_id = outstanding_payment_account
+        new_outbound_payment_line = outbound_method_lines[0].copy({'payment_account_id': self.company_data['default_account_deferred_expense'].id})
+        bank_journal.outbound_payment_method_line_ids = [Command.link(new_outbound_payment_line.id)]
+
+        # Set currency_id to trigger the compute of {in,out}bound_payment_method_line_ids
+        bank_journal.currency_id = self.company_data['currency']
+
+        self.assertRecordValues(bank_journal.inbound_payment_method_line_ids, [
+            {
+                'name': name,
+                'payment_account_id': outstanding_receipt_account.id if index == 0 else False,
+            } for index, name in enumerate(inbound_method_lines_names)
+        ])
+        self.assertRecordValues(bank_journal.outbound_payment_method_line_ids, [
+            {
+                'name': name,
+                'payment_account_id': outstanding_payment_account.id if index == 0 else False,
+            } for index, name in enumerate(outbound_method_lines_names)
+        ])
+
+    def test_new_purchase_journal_gets_default_account(self):
+        journal = self.env['account.journal'].create({
+            'name': 'Test Purchase',
+            'type': 'purchase',
+            'code': 'TPUR',
+        })
+        ProductCategory = self.env['product.category'].with_company(journal.company_id)
+        self.assertEqual(
+            journal.default_account_id,
+            ProductCategory._fields['property_account_expense_categ_id'].get_company_dependent_fallback(ProductCategory),
+        )

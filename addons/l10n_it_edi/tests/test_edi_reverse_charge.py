@@ -166,8 +166,10 @@ class TestItEdiReverseCharge(TestItEdi):
             'move_type': 'in_invoice',
             'invoice_date': '2022-03-24',
             'invoice_date_due': '2022-03-24',
+            'date': '2022-04-01',
             'partner_id': self.french_partner.id,
             'partner_bank_id': self.test_bank.id,
+            'ref': 'BILL/2022/04/0001',
             'invoice_line_ids': [
                 Command.create({
                     'name': name,
@@ -186,7 +188,9 @@ class TestItEdiReverseCharge(TestItEdi):
         credit_note = self.env['account.move'].with_company(self.company).create({
             'invoice_date': '2022-03-24',
             'invoice_date_due': '2022-03-24',
+            'date': '2022-04-01',
             'move_type': 'in_refund',
+            'ref': 'BILL/2022/04/0001',
             'partner_id': self.french_partner.id,
             'invoice_line_ids': [
                 Command.create({
@@ -213,6 +217,8 @@ class TestItEdiReverseCharge(TestItEdi):
             'move_type': 'in_invoice',
             'invoice_date': '2022-03-24',
             'invoice_date_due': '2022-03-24',
+            'date': '2022-04-01',
+            'ref': 'BILL/2022/04/0001',
             'partner_id': self.french_partner.id,
             'partner_bank_id': self.test_bank.id,
             'invoice_line_ids': [
@@ -237,6 +243,7 @@ class TestItEdiReverseCharge(TestItEdi):
         bill = self.env['account.move'].with_company(self.company).create({
             'move_type': 'in_invoice',
             'invoice_date': '2022-03-24',
+            'date': '2022-04-01',
             'invoice_date_due': '2022-03-24',
             'partner_id': self.san_marino_partner.id,
             'partner_bank_id': self.test_bank.id,

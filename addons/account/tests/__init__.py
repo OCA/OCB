@@ -27,8 +27,10 @@ from . import test_company_branch
 from . import test_digest
 from . import test_download_docs
 from . import test_fiscal_position
+from . import test_kpi_provider
 from . import test_sequence_mixin
 from . import test_tax
+from . import test_taxes_base_lines_tax_details
 from . import test_taxes_computation
 from . import test_taxes_tax_totals_summary
 from . import test_invoice_taxes
@@ -42,6 +44,7 @@ from . import test_account_incoming_supplier_invoice
 from . import test_payment_term
 from . import test_account_payment_items
 from . import test_account_payment_register
+from . import test_account_report
 from . import test_tour
 from . import test_early_payment_discount
 from . import test_ir_actions_report
@@ -55,3 +58,6 @@ from . import test_mail_tracking_value
 from . import test_res_partner_merge
 from . import test_account_merge_wizard
 from . import test_account_move_attachment
+from . import test_account_move_auto_post
+from . import test_dict_to_xml
+from . import test_duplicate_res_partner_bank

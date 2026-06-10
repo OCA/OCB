@@ -125,15 +125,14 @@ class Product(models.Model):
     def _compute_quantities(self):
         products = self.with_context(prefetch_fields=False).filtered(lambda p: p.type != 'service').with_context(prefetch_fields=True)
         res = products._compute_quantities_dict(self._context.get('lot_id'), self._context.get('owner_id'), self._context.get('package_id'), self._context.get('from_date'), self._context.get('to_date'))
+        # Set qty fields to 0 for all products as services have 0 quantities. Also skips calling __setitem__ on products with 0 quantites in res.
+        self.qty_available = 0.0
+        self.incoming_qty = 0.0
+        self.outgoing_qty = 0.0
+        self.virtual_available = 0.0
+        self.free_qty = 0.0
         for product in products:
-            product.update(res[product.id])
-        # Services need to be set with 0.0 for all quantities
-        services = self - products
-        services.qty_available = 0.0
-        services.incoming_qty = 0.0
-        services.outgoing_qty = 0.0
-        services.virtual_available = 0.0
-        services.free_qty = 0.0
+            product.update({key: val for key, val in res[product.id].items() if val})
 
     def _compute_quantities_dict(self, lot_id, owner_id, package_id, from_date=False, to_date=False):
         domain_quant_loc, domain_move_in_loc, domain_move_out_loc = self._get_domain_locations()
@@ -173,17 +172,17 @@ class Product(models.Model):
         moves_in_res = {product.id: product_qty for product, product_qty in Move._read_group(domain_move_in_todo, ['product_id'], ['product_qty:sum'])}
         moves_out_res = {product.id: product_qty for product, product_qty in Move._read_group(domain_move_out_todo, ['product_id'], ['product_qty:sum'])}
         quants_res = {product.id: (quantity, reserved_quantity) for product, quantity, reserved_quantity in Quant._read_group(domain_quant, ['product_id'], ['quantity:sum', 'reserved_quantity:sum'])}
+        moves_in_res_past = defaultdict(float)
+        moves_out_res_past = defaultdict(float)
         if dates_in_the_past:
             # Calculate the moves that were done before now to calculate back in time (as most questions will be recent ones)
             domain_move_in_done = [('state', '=', 'done'), ('date', '>', to_date)] + domain_move_in_done
             domain_move_out_done = [('state', '=', 'done'), ('date', '>', to_date)] + domain_move_out_done
 
             groupby = ['product_id', 'product_uom']
-            moves_in_res_past = defaultdict(float)
             for product, uom, quantity in Move._read_group(domain_move_in_done, groupby, ['quantity:sum']):
                 moves_in_res_past[product.id] += uom._compute_quantity(quantity, product.uom_id)
 
-            moves_out_res_past = defaultdict(float)
             for product, uom, quantity in Move._read_group(domain_move_out_done, groupby, ['quantity:sum']):
                 moves_out_res_past[product.id] += uom._compute_quantity(quantity, product.uom_id)
 
@@ -191,7 +190,13 @@ class Product(models.Model):
         for product in self.with_context(prefetch_fields=False):
             origin_product_id = product._origin.id
             product_id = product.id
-            if not origin_product_id:
+            if not origin_product_id or (
+                origin_product_id not in quants_res
+                and origin_product_id not in moves_in_res
+                and origin_product_id not in moves_out_res
+                and origin_product_id not in moves_in_res_past
+                and origin_product_id not in moves_out_res_past
+            ):
                 res[product_id] = dict.fromkeys(
                     ['qty_available', 'free_qty', 'incoming_qty', 'outgoing_qty', 'virtual_available'],
                     0.0,
@@ -316,20 +321,34 @@ class Product(models.Model):
         if self.env.context.get('strict'):
             loc_domain = [('location_id', 'in', locations.ids)]
             dest_loc_domain = [('location_dest_id', 'in', locations.ids)]
+            dest_loc_domain_out = [('location_dest_id', 'not in', locations.ids)]
         elif locations:
             paths_domain = expression.OR([[('parent_path', '=like', loc.parent_path + '%')] for loc in locations])
             loc_domain = [('location_id', 'any', paths_domain)]
+            # The condition should be split for done and not-done moves as the final_dest_id only make sense
+            # for the part of the move chain that is not done yet.
+            dest_loc_domain_done = ('location_dest_id', 'any', paths_domain)
+            dest_loc_domain_in_progress = [
+                '|',
+                    '&', ('location_final_id', '!=', False), ('location_final_id', 'any', paths_domain),
+                    '&', ('location_final_id', '=', False), ('location_dest_id', 'any', paths_domain),
+            ]
             dest_loc_domain = [
                 '|',
-                '&', ('location_final_id', '!=', False), ('location_final_id', 'any', paths_domain),
-                '&', ('location_final_id', '=', False), ('location_dest_id', 'any', paths_domain),
-            ]
+                    '&', ('state', '=', 'done'), dest_loc_domain_done,
+                    '&', ('state', '!=', 'done'),
+            ] + dest_loc_domain_in_progress
+            dest_loc_domain_out = [
+                '|',
+                    '&', ('state', '=', 'done'), '!', dest_loc_domain_done,
+                    '&', ('state', '!=', 'done'),
+            ] + ['!'] + dest_loc_domain_in_progress
 
         # returns: (domain_quant_loc, domain_move_in_loc, domain_move_out_loc)
         return (
             loc_domain,
             dest_loc_domain + ['!'] + loc_domain,
-            loc_domain + ['!'] + dest_loc_domain,
+            loc_domain + dest_loc_domain_out,
         )
 
     def _search_qty_available(self, operator, value):
@@ -615,6 +634,14 @@ class Product(models.Model):
 
     def _get_dates_info(self, date, location, route_ids=False):
         rules = self._get_rules_from_location(location, route_ids=route_ids)
+        if self.env.context.get('exclude_inter_wh_rules') and any(
+            loc.warehouse_id and loc.warehouse_id.lot_stock_id.parent_path in loc.parent_path
+            for loc in rules.location_src_id
+        ):
+            return {
+                'date_planned': date,
+                'date_order': date,
+            }
         delays, _ = rules.with_context(bypass_delay_description=True)._get_lead_days(self)
         return {
             'date_planned': date - relativedelta(days=delays['security_lead_days']),
@@ -740,7 +767,7 @@ class ProductTemplate(models.Model):
 
     @api.depends('type')
     def compute_is_storable(self):
-        self.filtered(lambda t: t.type != 'consu' and t.is_storable).is_storable = False
+        self.filtered(lambda t: t.type != 'consu' and t.is_storable).write({"is_storable": False})
 
     @api.depends('is_storable')
     def _compute_show_qty_status_button(self):
@@ -1030,6 +1057,8 @@ class ProductTemplate(models.Model):
 
     def action_product_tmpl_forecast_report(self):
         self.ensure_one()
+        if not self.env.user._get_default_warehouse_id():
+            self.env['stock.warehouse']._warehouse_redirect_warning()
         action = self.env["ir.actions.actions"]._for_xml_id('stock.stock_forecasted_product_template_action')
         return action
 

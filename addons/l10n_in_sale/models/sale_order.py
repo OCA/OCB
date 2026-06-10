@@ -22,6 +22,7 @@ class SaleOrder(models.Model):
 
     @api.depends('partner_id', 'partner_shipping_id', 'l10n_in_gst_treatment')
     def _compute_fiscal_position_id(self):
+        sez_foreign_state = self.env.ref("l10n_in.state_in_oc", raise_if_not_found=False)
 
         def _get_fiscal_state(order, foreign_state):
             """
@@ -38,19 +39,19 @@ class SaleOrder(models.Model):
                 return False
             elif order.l10n_in_gst_treatment == 'special_economic_zone':
                 # Special Economic Zone
-                return foreign_state
-            
+                return sez_foreign_state or foreign_state
+
             # Computing Place of Supply for particular order
-            partner_state = (
+            partner = (
                 order.partner_id.commercial_partner_id == order.partner_shipping_id.commercial_partner_id
-                and order.partner_shipping_id.state_id
-                or order.partner_id.state_id
+                and order.partner_shipping_id
+                or order.partner_id
             )
-            if not partner_state:
-                partner_state = order.partner_id.commercial_partner_id.state_id or order.company_id.state_id
-            if partner_state.country_id.code != 'IN':
-                partner_state = foreign_state
-            return partner_state
+            if partner.country_id and partner.country_id.code != 'IN':
+                return foreign_state
+            partner_state = partner.state_id or order.partner_id.commercial_partner_id.state_id or order.company_id.state_id
+            country_code = partner_state.country_id.code or order.country_code
+            return partner_state if country_code == 'IN' else foreign_state
 
         FiscalPosition = self.env['account.fiscal.position']
         foreign_state = self.env['res.country.state'].search([('code', '!=', 'IN')], limit=1)

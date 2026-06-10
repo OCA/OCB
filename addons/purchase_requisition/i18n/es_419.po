@@ -1,55 +1,34 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* purchase_requisition
-# 
+# * purchase_requisition
+#
 # Translators:
 # Tiffany Chang, 2024
 # Wil Odoo, 2024
 # Fernanda Alvarez, 2025
-# 
+#
+# "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 08:56+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Fernanda Alvarez, 2025\n"
-"Language-Team: Spanish (Latin America) (https://app.transifex.com/odoo/teams/41243/es_419/)\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
+"PO-Revision-Date: 2025-10-08 22:21+0000\n"
+"Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
+"Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
+"odoo-18/purchase_requisition/es_419/>\n"
+"Language: es_419\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: es_419\n"
-"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
-
-#. module: purchase_requisition
-#: model_terms:ir.ui.view,arch_db:purchase_requisition.report_purchaserequisition_document
-msgid "$50"
-msgstr "$50"
-
-#. module: purchase_requisition
-#: model_terms:ir.ui.view,arch_db:purchase_requisition.report_purchaserequisition_document
-msgid "$500"
-msgstr "$500"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
+"0) ? 1 : 2);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: purchase_requisition
 #: model:ir.actions.report,print_report_name:purchase_requisition.action_report_purchase_requisitions
 msgid "'Purchase Agreement - %s' % (object.name)"
 msgstr "'Contrato de compra - %s' % (object.name)"
-
-#. module: purchase_requisition
-#: model_terms:ir.ui.view,arch_db:purchase_requisition.report_purchaserequisition_document
-msgid "02/16/2024"
-msgstr "16/02/2024"
-
-#. module: purchase_requisition
-#: model_terms:ir.ui.view,arch_db:purchase_requisition.report_purchaserequisition_document
-msgid "12/25/2024"
-msgstr "25/12/2024"
-
-#. module: purchase_requisition
-#: model_terms:ir.ui.view,arch_db:purchase_requisition.report_purchaserequisition_document
-msgid "2023-09-15"
-msgstr "15-09-2023"
 
 #. module: purchase_requisition
 #: model_terms:ir.ui.view,arch_db:purchase_requisition.view_purchase_requisition_form
@@ -232,12 +211,12 @@ msgstr "Elegir un proveedor para orden de compra alterna"
 #. module: purchase_requisition
 #: model_terms:ir.ui.view,arch_db:purchase_requisition.purchase_order_line_compare_tree
 msgid "Clear"
-msgstr "Autorizar"
+msgstr "Eliminar"
 
 #. module: purchase_requisition
 #: model_terms:ir.ui.view,arch_db:purchase_requisition.purchase_order_line_compare_tree
 msgid "Clear Selected"
-msgstr "Autorizar seleccionadas"
+msgstr "Rechazar seleccionadas"
 
 #. module: purchase_requisition
 #: model_terms:ir.ui.view,arch_db:purchase_requisition.view_purchase_requisition_form
@@ -307,8 +286,8 @@ msgid ""
 "Conversion between Units of Measure can only occur if they belong to the "
 "same category. The conversion will be made based on the ratios."
 msgstr ""
-"Las unidades de medida solo se pueden convertir si ambas unidades pertenecen"
-" a la misma categoría. La conversión se basará en las proporciones "
+"La conversión entre unidades de medida solo puede ocurrir si pertenecen a la "
+"misma categoría. La conversión se realizará según las proporciones "
 "establecidas."
 
 #. module: purchase_requisition
@@ -325,13 +304,19 @@ msgstr "Crear alternativa"
 #. module: purchase_requisition
 #: model_terms:ir.ui.view,arch_db:purchase_requisition.purchase_order_form_inherit
 msgid ""
-"Create a call for tender by adding alternative requests for quotation to different vendors.\n"
-"                            Make your choice by selecting the best combination of lead time, OTD and/or total amount.\n"
-"                            By comparing product lines you can also decide to order some products from one vendor and others from another vendor."
+"Create a call for tender by adding alternative requests for quotation to "
+"different vendors.\n"
+"                            Make your choice by selecting the best "
+"combination of lead time, OTD and/or total amount.\n"
+"                            By comparing product lines you can also decide "
+"to order some products from one vendor and others from another vendor."
 msgstr ""
-"Cree una licitación agregando solicitudes de cotización alternativas para diferentes proveedores.\n"
-"                            Para decidir, seleccione la mejor combinación de plazos de entrega, entregas cumplidas a tiempo o el importe total.\n"
-"                            Al comparar las líneas de producto también puede decidir ordenar productos de diferentes proveedores."
+"Cree una licitación agregando solicitudes de cotización alternativas para "
+"diferentes proveedores.\n"
+"                            Para decidir, seleccione la mejor combinación de "
+"plazos de entrega, entregas cumplidas a tiempo o el importe total.\n"
+"                            Al comparar las líneas de producto también puede "
+"decidir ordenar productos de diferentes proveedores."
 
 #. module: purchase_requisition
 #. odoo-python
@@ -452,11 +437,14 @@ msgstr "Icono de Font Awesome, por ejemplo, fa-tasks"
 #: model_terms:ir.actions.act_window,help:purchase_requisition.action_purchase_requisition
 msgid ""
 "For a blanket order, you can record an agreement for a specific period\n"
-"            (e.g. a year) and you order products within this agreement to benefit\n"
+"            (e.g. a year) and you order products within this agreement to "
+"benefit\n"
 "            from the negotiated prices."
 msgstr ""
-"Para una orden general puede registrar un contrato que abarque un periodo específico\n"
-"            (por ejemplo, un año). Así ordenará productos dentro del contrato para beneficiarse\n"
+"Para una orden general puede registrar un contrato que abarque un periodo "
+"específico\n"
+"            (por ejemplo, un año). Así ordenará productos dentro del "
+"contrato para beneficiarse\n"
 "            de los precios negociados."
 
 #. module: purchase_requisition
@@ -503,28 +491,27 @@ msgstr "Icono que indica una actividad de excepción."
 #. module: purchase_requisition
 #: model:ir.model.fields,help:purchase_requisition.field_purchase_requisition__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr ""
-"Si se encuentra seleccionado, hay nuevos mensajes que requieren su atención."
+msgstr "Si está seleccionado, hay nuevos mensajes que requieren tu atención."
 
 #. module: purchase_requisition
 #: model:ir.model.fields,help:purchase_requisition.field_purchase_requisition__message_has_error
 #: model:ir.model.fields,help:purchase_requisition.field_purchase_requisition__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Si se encuentra seleccionado, algunos mensajes tienen error de envío."
+msgstr "Si está seleccionado, algunos mensajes tienen error de envío."
 
 #. module: purchase_requisition
 #: model:ir.model.fields,help:purchase_requisition.field_purchase_requisition_create_alternative__creation_blocked
 msgid ""
 "If the chosen vendor or if any of the products in the original PO have a "
-"blocking warning then we prevent creation of alternative PO. This is because"
-" normally these fields are cleared w/warning message within form view, but "
-"we cannot recreate that in this case."
+"blocking warning then we prevent creation of alternative PO. This is because "
+"normally these fields are cleared w/warning message within form view, but we "
+"cannot recreate that in this case."
 msgstr ""
 "Si el proveedor elegido o cualquiera de los productos de la orden de compra "
 "original tienen una advertencia de bloqueo entonces no dejamos que cree "
 "órdenes de compra alternativas. Esto se debe a que normalmente estos campos "
-"se autorizan con un mensaje de advertencia dentro de la vista de formulario,"
-" pero no podemos recrearlo en este caso."
+"se autorizan con un mensaje de advertencia dentro de la vista de formulario, "
+"pero no podemos recrearlo en este caso."
 
 #. module: purchase_requisition
 #: model:ir.model.fields,help:purchase_requisition.field_purchase_requisition_create_alternative__copy_products
@@ -978,13 +965,13 @@ msgstr ""
 #. odoo-python
 #: code:addons/purchase_requisition/wizard/purchase_requisition_create_alternative.py:0
 msgid ""
-"The vendor you have selected or at least one of the products you are copying"
-" from the original order has a blocking warning on it and cannot be selected"
-" to create an alternative."
+"The vendor you have selected or at least one of the products you are copying "
+"from the original order has a blocking warning on it and cannot be selected "
+"to create an alternative."
 msgstr ""
 "El proveedor que tiene seleccionado, o al menos uno de los productos que "
-"está copiando de la orden original, tiene una advertencia de bloqueo y no se"
-" puede seleccionar para crear una alternativa."
+"está copiando de la orden original, tiene una advertencia de bloqueo y no se "
+"puede seleccionar para crear una alternativa."
 
 #. module: purchase_requisition
 #. odoo-python
@@ -999,8 +986,8 @@ msgid ""
 "There is already an open blanket order for this supplier. We suggest you "
 "complete this open blanket order, instead of creating a new one."
 msgstr ""
-"Ya hay una orden general abierta para este proveedor. Sugerimos que complete"
-" esta orden abierta en lugar de crear una nueva."
+"Ya hay una orden general abierta para este proveedor. Sugerimos que complete "
+"esta orden abierta en lugar de crear una nueva."
 
 #. module: purchase_requisition
 #. odoo-python
@@ -1014,9 +1001,11 @@ msgstr "¡Esta es una advertencia de bloqueo!\n"
 msgid ""
 "To close this purchase requisition, cancel related Requests for Quotation.\n"
 "\n"
-"Imagine the mess if someone confirms these duplicates: double the order, double the trouble :)"
+"Imagine the mess if someone confirms these duplicates: double the order, "
+"double the trouble :)"
 msgstr ""
-"Para cerrar esta requisición de compra, cancele las solicitudes de cotización.\n"
+"Para cerrar esta requisición de compra, cancele las solicitudes de "
+"cotización.\n"
 "\n"
 "No confirme estos duplicados y evite problemas"
 
@@ -1109,8 +1098,8 @@ msgstr "¿Qué pasa con las solicitudes de cotización alternativas?"
 #. module: purchase_requisition
 #: model:ir.model.fields,help:purchase_requisition.field_purchase_order__has_alternatives
 msgid ""
-"Whether or not this purchase order is linked to another purchase order as an"
-" alternative."
+"Whether or not this purchase order is linked to another purchase order as an "
+"alternative."
 msgstr ""
 "Si esta orden de compra está vinculada a otra orden de compra como "
 "alternativa o no."
@@ -1163,8 +1152,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/purchase_requisition/models/purchase_requisition.py:0
 msgid ""
-"You cannot confirm agreement '%(agreement)s' because it does not contain any"
-" product lines."
+"You cannot confirm agreement '%(agreement)s' because it does not contain any "
+"product lines."
 msgstr ""
 "No puede confirmar el contrato \"%(agreement)s\" porque no incluye ninguna "
 "línea de productos."
@@ -1183,3 +1172,18 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:purchase_requisition.view_purchase_requisition_form
 msgid "e.g. PO0025"
 msgstr "Por ejemplo, PO0025"
+
+#~ msgid "$50"
+#~ msgstr "$50"
+
+#~ msgid "$500"
+#~ msgstr "$500"
+
+#~ msgid "02/16/2024"
+#~ msgstr "16/02/2024"
+
+#~ msgid "12/25/2024"
+#~ msgstr "25/12/2024"
+
+#~ msgid "2023-09-15"
+#~ msgstr "15-09-2023"

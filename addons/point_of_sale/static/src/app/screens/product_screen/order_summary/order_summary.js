@@ -8,6 +8,7 @@ import { _t } from "@web/core/l10n/translation";
 import { makeAwaitable } from "@point_of_sale/app/store/make_awaitable_dialog";
 import { NumberPopup } from "@point_of_sale/app/utils/input_popups/number_popup";
 import { parseFloat } from "@web/views/fields/parsers";
+import { enhancedButtons } from "@point_of_sale/app/generic_components/numpad/numpad";
 
 export class OrderSummary extends Component {
     static template = "point_of_sale.OrderSummary";
@@ -44,6 +45,7 @@ export class OrderSummary extends Component {
     }
 
     clickLine(ev, orderline) {
+        ev.stopPropagation();
         if (ev.detail === 2) {
             clearTimeout(this.singleClick);
             return;
@@ -57,11 +59,16 @@ export class OrderSummary extends Component {
             }, 300);
         }
     }
-
-    async updateSelectedOrderline({ buffer, key }) {
-        const order = this.pos.get_order();
-        const selectedLine = order.get_selected_orderline();
-        // Handling negation of value on first input
+    handleOrderLineQuantityChange(selectedLine, buffer, currentQuantity, lastId) {
+        const parsedInput = (buffer && parseFloat(buffer)) || 0;
+        if (lastId != selectedLine.uuid || parsedInput < currentQuantity) {
+            this._showDecreaseQuantityPopup();
+        } else if (currentQuantity < parsedInput) {
+            this._setValue(buffer);
+        }
+    }
+    // Handle negation of value on first input
+    _handleNegationOnFirstInput(buffer, key, selectedLine) {
         if (buffer === "-0" && key == "-") {
             if (this.pos.numpadMode === "quantity" && !selectedLine.refunded_orderline_id) {
                 buffer = selectedLine.get_quantity() * -1;
@@ -72,6 +79,12 @@ export class OrderSummary extends Component {
             }
             this.numberBuffer.state.buffer = buffer.toString();
         }
+        return buffer;
+    }
+    async updateSelectedOrderline({ buffer, key }) {
+        const order = this.pos.get_order();
+        const selectedLine = order.get_selected_orderline();
+        buffer = this._handleNegationOnFirstInput(buffer, key, selectedLine);
         // This validation must not be affected by `disallowLineQuantityChange`
         if (selectedLine && selectedLine.isTipLine() && this.pos.numpadMode !== "price") {
             /**
@@ -106,14 +119,13 @@ export class OrderSummary extends Component {
                 });
                 return;
             }
-            const parsedInput = (buffer && parseFloat(buffer)) || 0;
-            if (lastId != selectedLine.uuid) {
-                this._showDecreaseQuantityPopup();
-            } else if (currentQuantity < parsedInput) {
-                this._setValue(buffer);
-            } else if (parsedInput < currentQuantity) {
-                this._showDecreaseQuantityPopup();
-            }
+
+            this.handleOrderLineQuantityChange(
+                selectedLine,
+                this.numberBuffer.state.buffer,
+                currentQuantity,
+                lastId
+            );
             return;
         } else if (
             selectedLine &&
@@ -187,11 +199,14 @@ export class OrderSummary extends Component {
         line.price_type = "manual";
         line.set_unit_price(price);
     }
-
+    async _getShowDecreaseQuantityPopupButtons() {
+        return enhancedButtons();
+    }
     async _showDecreaseQuantityPopup() {
         this.numberBuffer.reset();
         const inputNumber = await makeAwaitable(this.dialog, NumberPopup, {
             title: _t("Set the new quantity"),
+            buttons: await this._getShowDecreaseQuantityPopupButtons(),
         });
         if (inputNumber) {
             const newQuantity = inputNumber && inputNumber !== "" ? parseFloat(inputNumber) : null;
@@ -202,9 +217,12 @@ export class OrderSummary extends Component {
         if (newQuantity !== null) {
             const selectedLine = this.currentOrder.get_selected_orderline();
             const currentQuantity = selectedLine.get_quantity();
-            if (newQuantity >= currentQuantity) {
-                selectedLine.set_quantity(newQuantity);
-            } else if (newQuantity >= selectedLine.saved_quantity) {
+            if (Math.abs(newQuantity) >= currentQuantity) {
+                selectedLine.set_quantity(newQuantity, selectedLine.isPartOfCombo());
+                for (const line of selectedLine.combo_line_ids ?? []) {
+                    line.set_quantity(newQuantity, true);
+                }
+            } else if (Math.abs(newQuantity) >= selectedLine.saved_quantity) {
                 await this.handleDecreaseUnsavedLine(newQuantity);
             } else {
                 await this.handleDecreaseLine(newQuantity);
@@ -216,9 +234,18 @@ export class OrderSummary extends Component {
     async handleDecreaseUnsavedLine(newQuantity) {
         const selectedLine = this.currentOrder.get_selected_orderline();
         const decreaseQuantity = selectedLine.get_quantity() - newQuantity;
-        selectedLine.set_quantity(newQuantity);
+        selectedLine.set_quantity(newQuantity, selectedLine.isPartOfCombo());
+        for (const line of selectedLine.combo_line_ids ?? []) {
+            line.set_quantity(newQuantity, true);
+        }
         if (newQuantity == 0) {
+            const line_uuids_to_remove =
+                selectedLine.combo_line_ids?.map((line) => line.uuid) || [];
             selectedLine.delete();
+            for (const uuid of line_uuids_to_remove) {
+                const line = this.pos.models["pos.order.line"].getBy("uuid", uuid);
+                line.delete();
+            }
         }
         return decreaseQuantity;
     }

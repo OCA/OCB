@@ -68,7 +68,13 @@ class Attendee(models.Model):
                 values['email'] = email[0] if email else ''
                 values['common_name'] = values.get("common_name")
         attendees = super().create(vals_list)
+        attendees.event_id.check_access('write')
         attendees._subscribe_partner()
+        return attendees
+
+    def write(self, vals):
+        attendees = super().write(vals)
+        self.event_id.check_access('write')
         return attendees
 
     def unlink(self):
@@ -110,10 +116,11 @@ class Attendee(models.Model):
         """
         if force_send:
             force_send_limit = int(self.env['ir.config_parameter'].sudo().get_param('mail.mail_force_send_limit', 100))
-        notified_attendees = self
+        notified_attendees_ids = set(self.ids)
         for event, attendees in self.grouped('event_id').items():
             if event._skip_send_mail_status_update():
-                notified_attendees -= attendees
+                notified_attendees_ids -= set(attendees.ids)
+        notified_attendees = self.browse(notified_attendees_ids)
         if isinstance(mail_template, str):
             raise ValueError('Template should be a template record, not an XML ID anymore.')
         if self.env['ir.config_parameter'].sudo().get_param('calendar.block_mail') or self._context.get("no_mail_to_attendees"):
@@ -168,8 +175,11 @@ class Attendee(models.Model):
                     'subject',
                     attendee.ids,
                     compute_lang=True)[attendee.id]
+                email_from = mail_template._render_field(
+                    'email_from',
+                    attendee.ids)[attendee.id]
                 mail_messages += attendee.event_id.with_context(no_document=True).sudo().message_notify(
-                    email_from=attendee.event_id.user_id.email_formatted or self.env.user.email_formatted,
+                    email_from=email_from or None,  # use None to trigger fallback sender
                     author_id=attendee.event_id.user_id.partner_id.id or self.env.user.partner_id.id,
                     body=body,
                     subject=subject,

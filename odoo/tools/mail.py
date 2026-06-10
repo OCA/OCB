@@ -67,7 +67,11 @@ safe_attrs = defs.safe_attrs | frozenset(
      'data-class', 'data-mimetype', 'data-original-src', 'data-original-id', 'data-gl-filter', 'data-quality', 'data-resize-width',
      'data-shape', 'data-shape-colors', 'data-file-name', 'data-original-mimetype',
      'data-mimetype-before-conversion',
+     'data-bs-toggle',  # support nav-tabs
      ])
+
+defs.link_attrs |= {'xlink:href'}
+
 SANITIZE_TAGS = {
     # allow new semantic HTML5 tags
     'allow_tags': defs.tags | frozenset('article bdi section header footer hgroup nav aside figure main'.split() + [etree.Comment]),
@@ -84,7 +88,7 @@ class _Cleaner(clean.Cleaner):
     _style_whitelist = [
         'font-size', 'font-family', 'font-weight', 'font-style', 'background-color', 'color', 'text-align',
         'line-height', 'letter-spacing', 'text-transform', 'text-decoration', 'text-decoration', 'opacity',
-        'float', 'vertical-align', 'display', 'object-fit',
+        'float', 'vertical-align', 'display', 'object-fit', 'direction',
         'padding', 'padding-top', 'padding-left', 'padding-bottom', 'padding-right',
         'margin', 'margin-top', 'margin-left', 'margin-bottom', 'margin-right',
         'white-space',
@@ -303,6 +307,8 @@ def html_normalize(src, filter_callback=None, output_method="html"):
         for el in doc.iter(tag=etree.Element):
             tag_quote(el)
 
+    doc = html.fromstring(html.tostring(doc, method=output_method))
+
     if filter_callback:
         doc = filter_callback(doc)
 
@@ -518,18 +524,19 @@ def html2plaintext(html, body_id=None, encoding='utf-8', include_references=True
 
     return html.strip()
 
-def plaintext2html(text, container_tag=None):
+
+def plaintext2html(text, container_tag=None, with_paragraph=True):
     r"""Convert plaintext into html. Content of the text is escaped to manage
     html entities, using :func:`~odoo.tools.misc.html_escape`.
 
     - all ``\n``, ``\r`` are replaced by ``<br/>``
-    - enclose content into ``<p>``
     - convert url into clickable link
-    - 2 or more consecutive ``<br/>`` are considered as paragraph breaks
 
     :param str text: plaintext to convert
     :param str container_tag: container of the html; by default the content is
         embedded into a ``<div>``
+    :param with_paragraph: whether or not considering 2 or more consecutive ``<br/>``
+        as paragraph breaks and enclosing content in ``<p>``
     :rtype: markupsafe.Markup
     """
     assert isinstance(text, str)
@@ -542,13 +549,15 @@ def plaintext2html(text, container_tag=None):
     text = html_keep_url(text)
 
     # 3-4: form paragraphs
-    idx = 0
-    final = '<p>'
-    br_tags = re.compile(r'(([<]\s*[bB][rR]\s*/?[>]\s*){2,})')
-    for item in re.finditer(br_tags, text):
-        final += text[idx:item.start()] + '</p><p>'
-        idx = item.end()
-    final += text[idx:] + '</p>'
+    final = text
+    if with_paragraph:
+        idx = 0
+        final = '<p>'
+        br_tags = re.compile(r'(([<]\s*[bB][rR]\s*/?[>]\s*){2,})')
+        for item in re.finditer(br_tags, text):
+            final += text[idx:item.start()] + '</p><p>'
+            idx = item.end()
+        final += text[idx:] + '</p>'
 
     # 5. container
     if container_tag: # FIXME: validate that container_tag is just a simple tag?

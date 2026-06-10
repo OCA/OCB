@@ -1,3 +1,4 @@
+import { session } from "@web/session";
 import { _t } from "@web/core/l10n/translation";
 import { Component, useState, onMounted, useRef } from "@odoo/owl";
 import { useAutofocus, useService } from "@web/core/utils/hooks";
@@ -16,6 +17,7 @@ export class LinkPopover extends Component {
         getExternalMetaData: Function,
         getAttachmentMetadata: Function,
         isImage: Boolean,
+        LinkPopoverState: Object,
         type: String,
         recordInfo: Object,
         canEdit: { type: Boolean, optional: true },
@@ -52,7 +54,7 @@ export class LinkPopover extends Component {
         this.uploadService = useService("uploadLocalFiles");
 
         this.state = useState({
-            editing: this.props.linkEl.href ? false : true,
+            editing: this.props.LinkPopoverState.editing,
             url: this.props.linkEl.href || "",
             label: cleanZWChars(this.props.linkEl.textContent),
             previewIcon: {
@@ -76,6 +78,7 @@ export class LinkPopover extends Component {
             buttonSize: this.props.linkEl.className.match(/btn-(sm|lg)/)?.[1] || "",
             buttonStyle: this.initButtonStyle(this.props.linkEl.className),
             isImage: this.props.isImage,
+            showLabel: !this.props.linkEl.childElementCount,
         });
 
         this.editingWrapper = useRef("editing-wrapper");
@@ -107,8 +110,12 @@ export class LinkPopover extends Component {
         this.state.url = deducedUrl
             ? this.correctLink(deducedUrl)
             : this.correctLink(this.state.url);
-        this.loadAsyncLinkPreview();
-        this.props.onApply(this.state.url, this.state.label, this.state.classes);
+        this.props.onApply(
+            this.state.url,
+            this.state.label,
+            this.state.classes,
+            this.state.attachmentId
+        );
     }
     onClickEdit() {
         this.state.editing = true;
@@ -215,7 +222,10 @@ export class LinkPopover extends Component {
             if (icon) {
                 this.state.previewIcon.value = icon;
             }
-        } else if (window.location.hostname !== url.hostname) {
+        } else if (
+            window.location.hostname !== url.hostname &&
+            !new RegExp(`^https?://${session.db}\\.odoo\\.com(/.*)?$`).test(url.origin)
+        ) {
             // Preview pages from current website only. External website will
             // most of the time raise a CORS error. To avoid that error, we
             // would need to fetch the page through the server (s2s), involving
@@ -225,7 +235,12 @@ export class LinkPopover extends Component {
                 value: `https://www.google.com/s2/favicons?sz=16&domain=${encodeURIComponent(url)}`,
             };
 
-            const externalMetadata = await this.props.getExternalMetaData(this.state.url);
+            const externalMetadata = await this.props
+                .getExternalMetaData(this.state.url)
+                .catch((error) => {
+                    console.warn(`Error fetching external metadata for ${url.href}:`, error);
+                    return {};
+                });
 
             this.state.urlTitle = externalMetadata?.og_title || this.state.url;
             this.state.urlDescription = externalMetadata?.og_description || "";
@@ -241,7 +256,12 @@ export class LinkPopover extends Component {
             // Set state based on cached link meta data
             // for record missing errors, we push a warning that the url is likely invalid
             // for other errors, we log them to not block the ui
-            const internalMetadata = await this.props.getInternalMetaData(this.state.url);
+            const internalMetadata = await this.props
+                .getInternalMetaData(this.state.url)
+                .catch((error) => {
+                    console.warn(`Error fetching internal metadata for ${url.href}:`, error);
+                    return {};
+                });
             if (internalMetadata.favicon) {
                 this.state.previewIcon = {
                     type: "imgSrc",
@@ -303,6 +323,7 @@ export class LinkPopover extends Component {
         this.props.onUpload?.(attachment);
         this.state.url = getURL(attachment, { download: true, unique: true, accessToken: true });
         this.state.label ||= attachment.name;
+        this.state.attachmentId = attachment.id;
     }
 
     isAttachmentUrl() {

@@ -4,6 +4,7 @@ import { Many2XAutocomplete } from '@web/views/fields/relational_utils';
 import { Many2OneField, many2OneField } from '@web/views/fields/many2one/many2one_field';
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
 
 import { usePartnerAutocomplete } from "@partner_autocomplete/js/partner_autocomplete_core";
 import { PartnerAutoComplete } from "@partner_autocomplete/js/partner_autocomplete_component";
@@ -17,6 +18,7 @@ export class PartnerMany2XAutocomplete extends Many2XAutocomplete {
 
     setup() {
         super.setup();
+        this.orm = useService("orm");
         this.partnerAutocomplete = usePartnerAutocomplete();
     }
 
@@ -71,6 +73,7 @@ export class PartnerMany2XAutocomplete extends Many2XAutocomplete {
             if (data.logo) {
                 context.default_image_1920 = data.logo;
             }
+
             return this.openMany2X({ context });
         }
         else {

@@ -3,11 +3,11 @@ import { setupEditor, testEditor } from "../_helpers/editor";
 import { unformat } from "../_helpers/format";
 import { setSelection, setContent, getContent } from "../_helpers/selection";
 import { deleteBackward, insertText, undo } from "../_helpers/user_actions";
-import { waitFor, waitForNone } from "@odoo/hoot-dom";
 import { parseHTML } from "@html_editor/utils/html";
 import { Plugin } from "@html_editor/plugin";
 import { MAIN_PLUGINS } from "@html_editor/plugin_sets";
 import { execCommand } from "../_helpers/userCommands";
+import { expectElementCount } from "../_helpers/ui_expectations";
 
 test("should ignore protected elements children mutations (true)", async () => {
     await testEditor({
@@ -159,14 +159,26 @@ test("should handle table selection in unprotected elements", async () => {
                     </div>
                 </div>
                 `),
+        contentBeforeEdit: unformat(`
+                <div data-oe-protected="true" contenteditable="false">
+                    <div data-oe-protected="false" contenteditable="true">
+                        <p>a[bc</p>
+                        <table class="o_selected_table"><tbody><tr>
+                            <td class="o_selected_td">ab</td>
+                            <td class="o_selected_td">cd</td>
+                            <td class="o_selected_td">ef]</td>
+                        </tr></tbody></table>
+                    </div>
+                </div>
+                `),
         contentAfterEdit: unformat(`
                 <div data-oe-protected="true" contenteditable="false">
                     <div data-oe-protected="false" contenteditable="true">
                         <p>a[bc</p>
                         <table class="o_selected_table"><tbody><tr>
-                            <td class="o_selected_td">a]b</td>
+                            <td class="o_selected_td">ab</td>
                             <td class="o_selected_td">cd</td>
-                            <td class="o_selected_td">ef</td>
+                            <td class="o_selected_td">ef]</td>
                         </tr></tbody></table>
                     </div>
                 </div>
@@ -232,22 +244,19 @@ test("select a protected element shouldn't open the toolbar", async () => {
     const { el } = await setupEditor(
         `<div><p>[a]</p></div><div data-oe-protected="true"><p>b</p><div data-oe-protected="false">c</div></div>`
     );
-    await waitFor(".o-we-toolbar");
-    expect(".o-we-toolbar").toHaveCount(1);
+    await expectElementCount(".o-we-toolbar", 1);
 
     setContent(
         el,
         `<div><p>a</p></div><div data-oe-protected="true"><p>[b]</p><div data-oe-protected="false">c</div></div>`
     );
-    await waitForNone(".o-we-toolbar");
-    expect(".o-we-toolbar").toHaveCount(0);
+    await expectElementCount(".o-we-toolbar", 0);
 
     setContent(
         el,
         `<div><p>a</p></div><div data-oe-protected="true"><p>b</p><div data-oe-protected="false">[c]</div></div>`
     );
-    await waitFor(".o-we-toolbar");
-    expect(".o-we-toolbar").toHaveCount(1);
+    await expectElementCount(".o-we-toolbar", 1);
 });
 
 test("should protect disconnected nodes", async () => {

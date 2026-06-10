@@ -938,6 +938,52 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         self.assertEqual(user1.group_count, 1)
         self.assertEqual(user2.group_count, 1)
 
+    def test_18_flush_all(self):
+        """ check that env.flush_all() effectively recomputes all fields. """
+        self.env.invalidate_all()
+        self.assertFalse(self.env['test_new_api.compute.created'].search_count([('name', '=', 'foo')]))
+
+        # the computation of field 'created_id' should create a new record with
+        # a stored computed field
+        record = self.env['test_new_api.compute.creator'].create({'name': 'foo'})
+        self.assertIn(record._fields['created_id'], self.env.fields_to_compute())
+
+        # now recompute and flush all fields; make sure there is no leftover
+        self.env.flush_all()
+        self.assertFalse(self.env.fields_to_compute())
+
+        # check the computed field of the created record
+        self.env.invalidate_all()
+        self.assertEqual(record.created_id.value, 3)
+
+    def test_18_flush_precommit(self):
+        """ check that cr.flush() runs precommits as many times as needed. """
+        cr = self.env.cr
+        record = self.env['test_new_api.compute.created'].create({'name': 'foo'})
+        # The hook triggers a compute of the value (stored-computed) field
+        # which triggers the hook again, limited to 4 calls.
+        # Choosing a number < 10 (which is the max number of iterations).
+        count = 4
+
+        def hook():
+            nonlocal count
+            if count <= 0:
+                return
+            count -= 1
+            record.name = 'x'
+
+        def compute_value(self):
+            self.value = 10 + count
+            self.env.cr.precommit.add(hook)
+
+        self.patch(self.registry[record._name], '_compute_value', compute_value)
+
+        # run the pre-commit hook
+        hook()
+        cr.flush()
+        self.assertEqual(count, 0, "Precommit not ran enough times")
+        self.assertEqual(record.value, 10, "Flush not triggered correctly")
+
     def test_20_float(self):
         """ test rounding of float fields """
         record = self.env['test_new_api.mixed'].create({})
@@ -1081,6 +1127,12 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         record.name = False
         self.assertFalse(record.filtered_domain([('name', 'like', 'F')]))
         self.assertFalse(record.filtered_domain([('name', 'ilike', 'f')]))
+
+    def test_20_like_multiline(self):
+        """ test filtered_domain() on multiline fields. """
+        record = self.env['test_new_api.mixed'].create({'comment1': 'Foo\nBar'})
+        self.assertTrue(record.filtered_domain([('comment1', 'like', 'Bar')]))
+        self.assertTrue(record.filtered_domain([('comment1', 'ilike', 'bar')]))
 
     def test_21_date(self):
         """ test date fields """
@@ -3158,6 +3210,65 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
             records.mapped('harry')  # fetch all fields with prefetch='Harry Potter'
             records.mapped('rare_description')  # fetch that field only
 
+    def test_100_rename_custom_field(self):
+        model_record = self.env['ir.model']._get('res.partner')
+        FIELD_PARAMS = {
+            'boolean': {},
+            'many2many': {
+                'relation': 'res.groups',
+                'relation_table': 'test_res_partner_res_groups',
+            },
+        }
+
+        for ttype, field_values in FIELD_PARAMS.items():
+            with self.subTest(ttype):
+                old_name = f'x_{ttype}_field_1'
+                new_name = f'x_{ttype}_field_2'
+
+                field_record = self.env['ir.model.fields'].create({
+                    'field_description': f'Custom {ttype} field',
+                    'name': old_name,
+                    'model_id': model_record.id,
+                    'ttype': ttype,
+                    **field_values,
+                })
+                self.assertEqual(field_record, self.env['ir.model.fields']._get('res.partner', old_name))
+
+                # check the registry after field creation
+                self.assertIn(old_name, self.env['res.partner']._fields)
+                self.assertIn(old_name, self.env['res.users']._fields)
+
+                field_record.write({"name": new_name})
+
+                # check the registry after field renaming
+                self.assertNotIn(old_name, self.env['res.partner']._fields)
+                self.assertNotIn(old_name, self.env['res.users']._fields)
+                self.assertIn(new_name, self.env['res.partner']._fields)
+                self.assertIn(new_name, self.env['res.users']._fields)
+
+    def test_100_rename_custom_field_inherited(self):
+        manual_origin = self.env["ir.model.fields"].create({
+            "name": "x_manual_hazel",
+            "model_id": self.env["ir.model"]._get("test_new_api.related").id,
+            "ttype": "char",
+        })
+        self.assertEqual(manual_origin.state, "manual")
+        manual_inherited = self.env["ir.model.fields"]._get("test_new_api.related_inherits", "x_manual_hazel")
+        self.assertTrue(manual_inherited.exists())
+        self.assertEqual(manual_inherited.state, "base")
+
+        with self.assertRaisesRegex(UserError, r'cannot be removed'):
+            manual_inherited.unlink()
+
+        manual_origin.name = 'x_manual_hazel_2'
+        manual_inherited = self.env["ir.model.fields"]._get("test_new_api.related_inherits", 'x_manual_hazel')
+        self.assertFalse(manual_inherited)
+        manual_inherited = self.env["ir.model.fields"]._get("test_new_api.related_inherits", 'x_manual_hazel_2')
+        self.assertTrue(manual_inherited.exists())
+
+        manual_origin.unlink()
+        self.assertFalse(manual_inherited.exists())
+
     def test_cache_key_invalidation(self):
         company0 = self.env.ref('base.main_company')
         company1 = self.env['res.company'].create({'name': 'A'})
@@ -3205,6 +3316,10 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         with self.assertQueryCount(3):
             for index, record in enumerate(records):
                 record.write({'harry': index + 2})
+
+    def test_related_column_type(self):
+        related_float_field = self.env['test_new_api.related']._fields['foo_float_id']
+        self.assertEqual(related_float_field.column_type[1], 'numeric')
 
 
 class TestX2many(TransactionExpressionCase):
@@ -3827,15 +3942,15 @@ class TestHtmlField(TransactionCase):
             'comment2': '<p>comment</p>',
         })
 
-        # in a perfect world this should be 1, but at the moment the value is
-        # sanitized more than once during creation of the record
+        # the new value is sanitized upon insertion in db,
+        # but not put in cache, therefore not sanitized a second time
+        self.assertEqual(patch.call_count, 1)
+
+        # new value sanitized for insertion in cache
+        record.comment2 = '<p>comment</p>'
         self.assertEqual(patch.call_count, 2)
 
-        # new value needs to be validated, so it is sanitized once more
-        record.comment2 = '<p>comment</p>'
-        self.assertEqual(patch.call_count, 3)
-
-        # the value is already sanitized for flushing
+        # the value in cache is dirty -> sanitize for db insertion while flushing
         record.flush_recordset()
         self.assertEqual(patch.call_count, 3)
 
@@ -4212,6 +4327,7 @@ class TestSelectionOndelete(TransactionCase):
     MODEL_REQUIRED = 'test_new_api.model_selection_required'
     MODEL_NONSTORED = 'test_new_api.model_selection_non_stored'
     MODEL_WRITE_OVERRIDE = 'test_new_api.model_selection_required_for_write_override'
+    MODEL_COMPANY_DEPENDENT = 'test_new_api.model_selection_company_dependent'
 
     def setUp(self):
         super().setUp()
@@ -4360,6 +4476,39 @@ class TestSelectionOndelete(TransactionCase):
         self._unlink_option(self.MODEL_WRITE_OVERRIDE, 'divinity')
         self.assertEqual(rec.my_selection, 'foo')
 
+    def test_ondelete_company_dependent_null_implicit_with_multicompany(self):
+        Model = self.env[self.MODEL_COMPANY_DEPENDENT]
+        company_2 = self.env['res.company'].create({'name': 'Test Company'})
+
+        # create records with the extended selection option
+        records = r1, r2, r3 = Model.create([
+            {'my_selection': 'manual'},
+            {'my_selection': 'auto'},
+            {'my_selection': 'semi_auto'},
+        ])
+
+        # set different values for company_2
+        r1.with_company(company_2).write({'my_selection': 'semi_auto'})
+        r2.with_company(company_2).write({'my_selection': 'semi_auto'})
+        r3.with_company(company_2).write({'my_selection': 'manual'})
+
+        # sanity checks before unlink
+        self.assertEqual(records.mapped("my_selection"), ["manual", "auto", "semi_auto"])
+        self.assertEqual(
+            records.with_company(company_2).mapped("my_selection"),
+            ["semi_auto", "semi_auto", "manual"],
+        )
+
+        # simulates a module uninstall
+        self._unlink_option(self.MODEL_COMPANY_DEPENDENT, 'semi_auto')
+
+        # test that values are removed from all the companies
+        self.assertEqual(records.mapped("my_selection"), ["manual", "auto", False])
+        self.assertEqual(
+            records.with_company(company_2).mapped("my_selection"),
+            [False, False, "manual"],
+        )
+
 
 @tagged('selection_ondelete_advanced')
 class TestSelectionOndeleteAdvanced(TransactionCase):
@@ -4372,7 +4521,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
         # necessary cleanup for resetting changes in the registry
         for model_name in (self.MODEL_BASE, self.MODEL_REQUIRED):
             Model = self.registry[model_name]
-            self.addCleanup(setattr, Model, '_BaseModel__base_classes', Model._BaseModel__base_classes)
+            self.patch(Model, '_BaseModel__base_classes', Model._BaseModel__base_classes)
 
     def test_ondelete_unexisting_policy(self):
         class Foo(models.Model):

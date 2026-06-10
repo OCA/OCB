@@ -62,4 +62,13 @@
     .o_desktop_h100 {
         height: unset !important;
     }
+    .s_showcase div:not(:has(*)) {
+        display: none;
+    }
+}
+
+// Redeclare CSS values that use color-mix()
+// to avoid issues with mail rendering engines
+:root {
+    --o-border-color: #{o-color('300')};
 }

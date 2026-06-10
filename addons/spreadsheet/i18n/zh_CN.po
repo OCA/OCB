@@ -1,31 +1,32 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* spreadsheet
-# 
+# * spreadsheet
+#
 # Translators:
 # 敬雲 林 <chingyun@yuanchih-consult.com>, 2024
 # Tiffany Chang, 2024
 # Martin Trigaux, 2024
-# Jeffery CHEN <jeffery9@gmail.com>, 2024
 # 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2024
-# Wil Odoo, 2024
-# Raymond Yu <cl_yu@hotmail.com>, 2024
 # Chloe Wang, 2025
 # 何彬 <vnsoft.he@gmail.com>, 2025
-# 
+# Wil Odoo, 2025
+# Raymond Yu <cl_yu@hotmail.com>, 2025
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-19 20:37+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: 何彬 <vnsoft.he@gmail.com>, 2025\n"
-"Language-Team: Chinese (China) (https://app.transifex.com/odoo/teams/41243/zh_CN/)\n"
+"POT-Creation-Date: 2026-04-24 17:39+0000\n"
+"PO-Revision-Date: 2026-05-16 09:09+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
+"projects/odoo-18/spreadsheet/zh_Hans/>\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -33,7 +34,8 @@ msgstr ""
 msgid ""
 " A string, possible empty, or a reference to a valid string. If empty, the "
 "text will be simply concatenated."
-msgstr "字符串（可能为空）或对有效字符串的引用。如果为空，则文本将简单地连接起来。"
+msgstr ""
+" 字符串（可能为空）或对有效字符串的引用。如果为空，则文本将简单地连接起来。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -126,8 +128,8 @@ msgid ""
 "%(replaceable_count)s match(es) replaced. %(irreplaceable_count)s match(es) "
 "cannot be replaced as they are part of a formula."
 msgstr ""
-"已取代 %(replaceable_count)s 个相符项目。有 %(irreplaceable_count)s "
-"个相符项目不能取代，因为是算式的一部份。"
+"已取代 %(replaceable_count)s 个相符项目。有 %(irreplaceable_count)s 个相符项"
+"目不能取代，因为是算式的一部份。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -202,8 +204,7 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"%s is not a valid day of month (it should be a number between 1 and 31)"
+msgid "%s is not a valid day of month (it should be a number between 1 and 31)"
 msgstr "“%s” 不是有效的日子（应为 1 至 31 之间的数字）"
 
 #. module: spreadsheet
@@ -258,31 +259,21 @@ msgstr "在所有工作表中匹配到%s项"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"(0) Exact match. \n"
-"        (-1) Return next smaller item if no match. \n"
-"        (1) Return next greater item if no match. \n"
-"        (2) Wildcard match."
+"(0) Exact match.         (-1) Return next smaller item if no match.         "
+"(1) Return next greater item if no match.         (2) Wildcard match."
 msgstr ""
-"（0）完全匹配。\n"
-"        （-1）若无符合项目，传回下一个较小的项目。\n"
-"        （1）若无符合项目，传回下一个较大的项目。\n"
-"        （2）万用字元配对。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"(1) Search starting at first item. \n"
-"      (-1) Search starting at last item. \n"
-"      (2) Perform a binary search that relies on lookup_array being sorted in ascending order. If not sorted, invalid results will be returned. \n"
-"      (-2) Perform a binary search that relies on lookup_array being sorted in descending order. If not sorted, invalid results will be returned.\n"
-"      "
+"(1) Search starting at first item.       (-1) Search starting at last "
+"item.       (2) Perform a binary search that relies on lookup_array being "
+"sorted in ascending order. If not sorted, invalid results will be "
+"returned.       (-2) Perform a binary search that relies on lookup_array "
+"being sorted in descending order. If not sorted, invalid results will be "
+"returned.      "
 msgstr ""
-"(1) 从第一个项目开始搜索。\n"
-"      (-1) 从最后一项开始搜索。\n"
-"      (2) 执行二进制搜索，依赖于 lookup_array 按升序排序。如果未排序，将返回无效结果。\n"
-"      (-2) 执行二进制搜索，依赖于 lookup_array 按降序排序。如果未排序，将返回无效结果。\n"
-"      "
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -346,6 +337,12 @@ msgstr "2行"
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "A"
+msgstr "A"
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
 "A boolean indicating whether to use A1 style notation (TRUE) or R1C1 style "
@@ -396,8 +393,8 @@ msgstr "是否计算截距的标志。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"A flag specifying whether to return additional regression statistics or only"
-" the linear coefficients and the y-intercept"
+"A flag specifying whether to return additional regression statistics or only "
+"the linear coefficients and the y-intercept"
 msgstr "一个标志，用于指定是返回其他回归统计量，还是只返回线性系数和 y-截距"
 
 #. module: spreadsheet
@@ -418,7 +415,9 @@ msgstr "需要最小范围限制值"
 msgid ""
 "A number indicating which numbering system to use to represent weekdays. By "
 "default, counts starting with Sunday = 1."
-msgstr "一个数字，表示用于表示工作日的编号系统。默认情况下，从星期天开始计数，星期天=1。"
+msgstr ""
+"一个数字，表示用于表示工作日的编号系统。默认情况下，从星期天开始计数，星期天"
+"=1。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -483,8 +482,7 @@ msgstr "包含日期序列号的范围或数组常量，以考虑假期。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"A range or array constant containing the dates to consider as holidays."
+msgid "A range or array constant containing the dates to consider as holidays."
 msgstr "包含假期日期的范围或数组常量。"
 
 #. module: spreadsheet
@@ -544,12 +542,17 @@ msgid ""
 "of whole years between start_date and end_date), \"M\" (the number of whole "
 "months between start_date and end_date), \"D\" (the number of days between "
 "start_date and end_date), \"MD\" (the number of days between start_date and "
-"end_date after subtracting whole months), \"YM\" (the number of whole months"
-" between start_date and end_date after subtracting whole years), \"YD\" (the"
-" number of days between start_date and end_date, assuming start_date and "
+"end_date after subtracting whole months), \"YM\" (the number of whole months "
+"between start_date and end_date after subtracting whole years), \"YD\" (the "
+"number of days between start_date and end_date, assuming start_date and "
 "end_date were no more than one year apart)."
 msgstr ""
-"时间单位的文本简称。可接受的取值有：\"Y\"（start_date和end_date之间的整年数）、\"M\"（start_date和end_date之间的整月数）、\"D\"（start_date和end_date之间的天数）、\"MD\"（在整月数之后，start_date和end_date之间的天数）、\"YM\"（在整年数之后，start_date和end_date之间的整月数）、\"YD\"（在假设start_date和end_date相差不超过一年的情况下，start_date和end_date之间的天数）。"
+"时间单位的文本简称。可接受的取值有：\"Y\"（start_date和end_date之间的整年"
+"数）、\"M\"（start_date和end_date之间的整月数）、\"D\"（start_date和end_date"
+"之间的天数）、\"MD\"（在整月数之后，start_date和end_date之间的天数）、"
+"\"YM\"（在整年数之后，start_date和end_date之间的整月数）、\"YD\"（在假设"
+"start_date和end_date相差不超过一年的情况下，start_date和end_date之间的天"
+"数）。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -574,6 +577,12 @@ msgstr "绝对值"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Absolute value of a number."
 msgstr "一个数字的绝对值。"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/actions/spreadsheet_download_action.js:0
+msgid "Access Error"
+msgstr "访问错误"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -696,9 +705,10 @@ msgstr "要添加到值 1 中的附加数字或范围。"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
 "Additional ranges over which to evaluate the additional criteria. The "
-"filtered set will be the intersection of the sets produced by each "
-"criterion-range pair."
-msgstr "评估附加标准的其他范围。过滤后的集合将是每个标准-范围配对产生的集合的交集。"
+"filtered set will be the intersection of the sets produced by each criterion-"
+"range pair."
+msgstr ""
+"评估附加标准的其他范围。过滤后的集合将是每个标准-范围配对产生的集合的交集。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -835,8 +845,8 @@ msgstr "所有试算表"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"All the dates should be greater or equal to the first date in cashflow_dates"
-" (%s)."
+"All the dates should be greater or equal to the first date in cashflow_dates "
+"(%s)."
 msgstr "所有日期应大于或等于cashflow_dates（%s）中的第一个日期。"
 
 #. module: spreadsheet
@@ -884,9 +894,11 @@ msgstr "内部收益率的估算。"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
 "An expression or reference to a cell containing an expression that "
-"represents some logical value, i.e. TRUE or FALSE, or an expression that can"
-" be coerced to a logical value."
-msgstr "表达式或对包含表示逻辑值（即TRUE或FALSE）的表达式的单元格的引用，或者可以强制转换为逻辑值的表达式。"
+"represents some logical value, i.e. TRUE or FALSE, or an expression that can "
+"be coerced to a logical value."
+msgstr ""
+"表达式或对包含表示逻辑值（即TRUE或FALSE）的表达式的单元格的引用，或者可以强制"
+"转换为逻辑值的表达式。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -927,8 +939,9 @@ msgid ""
 "A$1), 3 is row relative and column absolute (e.g. $A1), and 4 is row and "
 "column relative (e.g. A1)."
 msgstr ""
-"表示引用是否为行/列绝对引用的指标。1 表示行和列绝对引用（例：$A$1），2 表示行绝对引用、列相对引用（例： A$1），3 "
-"表示行相对引用、列绝对引用（例：$A1），4 表示行和列相对引用（例：A1）。"
+"表示引用是否为行/列绝对引用的指标。1 表示行和列绝对引用（例：$A$1），2 表示行"
+"绝对引用、列相对引用（例： A$1），3 表示行相对引用、列绝对引用（例：$A1），4 "
+"表示行和列相对引用（例：A1）。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -977,18 +990,7 @@ msgstr "图像传输过程中发生意外错误"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"An unexpected error occurred while pasting content.\n"
-"          This is probably due to a spreadsheet version mismatch."
-msgstr ""
-"在粘贴内容时发生了一个意外错误。 \n"
-"          这可能是由于电子表格版本不匹配造成的。"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"An unexpected error occurred. Submit a support ticket at odoo.com/help."
+msgid "An unexpected error occurred. Submit a support ticket at odoo.com/help."
 msgstr "发生意外错误。请在 odoo.com/help 上提交技术支持请求。"
 
 #. module: spreadsheet
@@ -1512,7 +1514,8 @@ msgstr "计算基本字段中显示为运行总计的连续项目的百分比值
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
 "Calculates values as follows:\n"
-"((value in cell) x (Grand Total of Grand Totals)) / ((Grand Row Total) x (Grand Column Total))"
+"((value in cell) x (Grand Total of Grand Totals)) / ((Grand Row Total) x "
+"(Grand Column Total))"
 msgstr ""
 "计算值如下：\n"
 "((单元格中的值) x (总计的总计)) / ((总计行总计) x (总计列总计))"
@@ -1588,12 +1591,6 @@ msgstr "无法隐藏工作表的所有列。"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Cannot hide all the rows of a sheet."
 msgstr "无法隐藏工作表的所有行。"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "Cannot multiply matrices : incompatible matrices size."
-msgstr "无法进行矩阵乘法运算：矩阵大小不兼容。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -1915,6 +1912,12 @@ msgstr "比较两个数值，如果它们相等，则返回 1。"
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Compute from totals"
+msgstr "从合计值计算"
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Compute the Matthews correlation coefficient of a dataset."
 msgstr "计算数据集的马修斯相关系数。"
@@ -2052,7 +2055,7 @@ msgstr "按照指定格式将数字转换为文本。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Converts a numeric value to a different unit of measure."
-msgstr "将数值转换为其他计量单位"
+msgstr "将数值转换为其他计量单位."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -2817,6 +2820,12 @@ msgstr "基于价格的证券贴现率。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Display missing cells only"
+msgstr "仅显示缺少的单元格"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "Display style"
 msgstr "显示样式"
 
@@ -2919,7 +2928,9 @@ msgid ""
 "Displays the rank of selected values in a specific field, listing the "
 "largest item in the field as 1, and each smaller value with a higher rank "
 "value."
-msgstr "显示特定字段中所选值的等级，将字段中最大的项目列为 1，每个较小的值的等级值较高。"
+msgstr ""
+"显示特定字段中所选值的等级，将字段中最大的项目列为 1，每个较小的值的等级值较"
+"高。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -2928,14 +2939,15 @@ msgid ""
 "Displays the rank of selected values in a specific field, listing the "
 "smallest item in the field as 1, and each larger value with a higher rank "
 "value."
-msgstr "显示特定字段中所选值的等级，将字段中最小的项目列为 1，每个较大的值的等级值较高。"
+msgstr ""
+"显示特定字段中所选值的等级，将字段中最小的项目列为 1，每个较大的值的等级值较"
+"高。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Displays the value for successive items in the Base field as a running "
-"total."
+"Displays the value for successive items in the Base field as a running total."
 msgstr "将 “基数” 字段中连续项目的值显示为流水总数。"
 
 #. module: spreadsheet
@@ -2956,8 +2968,8 @@ msgstr "显示在字段中输入的值。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Displays values as a percentage of the grand total of all the values or data"
-" points in the report."
+"Displays values as a percentage of the grand total of all the values or data "
+"points in the report."
 msgstr "显示数值占报告中所有数值或数据点总和的百分比。"
 
 #. module: spreadsheet
@@ -2980,8 +2992,8 @@ msgstr "显示值为基准字段中基准项目值的差异。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Displays values as the percentage difference from the value of the Base item"
-" in the Base field."
+"Displays values as the percentage difference from the value of the Base item "
+"in the Base field."
 msgstr "显示值与基础字段中基础项值的百分比差异。"
 
 #. module: spreadsheet
@@ -3003,8 +3015,6 @@ msgid "Doughnut"
 msgstr "甜甜圈"
 
 #. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/public_readonly_app/public_readonly.js:0
 #: model_terms:ir.ui.view,arch_db:spreadsheet.public_spreadsheet_layout
 msgid "Download"
 msgstr "下载"
@@ -3121,8 +3131,7 @@ msgstr "欧拉数e（~2.718）升为幂。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"Evaluation of function [[FUNCTION_NAME]] caused a divide by zero error."
+msgid "Evaluation of function [[FUNCTION_NAME]] caused a divide by zero error."
 msgstr "函数 [[FUNCTION_NAME]]的评估导致除以零误差。"
 
 #. module: spreadsheet
@@ -3478,7 +3487,9 @@ msgstr "函数"
 msgid ""
 "Function ${name} has an argument that has been declared with more than one "
 "type whose type 'META'. The 'META' type can only be declared alone."
-msgstr "函数${name}有一个被声明的参数有多个类型，其类型为'META'。'META'类型只能单独声明。"
+msgstr ""
+"函数${name}有一个被声明的参数有多个类型，其类型为'META'。'META'类型只能单独声"
+"明。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3486,15 +3497,18 @@ msgstr "函数${name}有一个被声明的参数有多个类型，其类型为'M
 msgid ""
 "Function ${name} has at mandatory arguments declared after optional ones. "
 "All optional arguments must be after all mandatory arguments."
-msgstr "函数 ${name} 在可选参数之后声明了at强制参数。所有可选参数必须在所有必需参数之后。"
+msgstr ""
+"函数 ${name} 在可选参数之后声明了at强制参数。所有可选参数必须在所有必需参数之"
+"后。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Function ${name} has no-repeatable arguments declared after repeatable ones."
-" All repeatable arguments must be declared last."
-msgstr "函数${name}的不可重复参数在可重复参数之后声明。所有可重复的参数必须最后声明。"
+"Function ${name} has no-repeatable arguments declared after repeatable ones. "
+"All repeatable arguments must be declared last."
+msgstr ""
+"函数${name}的不可重复参数在可重复参数之后声明。所有可重复的参数必须最后声明。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3533,30 +3547,23 @@ msgstr "函数[[FUNCTION_NAME]]未找到结果。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Function [[FUNCTION_NAME]] expects criteria_range and criterion to be in "
-"pairs."
-msgstr "函数[[FUNCTION_NAME]]要求criteria_range和criteria是成对的。"
+"Function [[FUNCTION_NAME]] expects number values for %s, but got a boolean."
+msgstr "函数 [[FUNCTION_NAME]] 的参数 %s 需要数值，但得到了布尔值。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Function [[FUNCTION_NAME]] expects criteria_range to have the same dimension"
-msgstr "函数 [[FUNCTION_NAME]] 希望 criteria_range 具有相同的维度"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "Function [[FUNCTION_NAME]] expects number values for %s, but got a %s."
-msgstr "函数 [[FUNCTION_NAME]] 期望值为 %s，但得到的是 %s。"
+"Function [[FUNCTION_NAME]] expects number values for %s, but got a string."
+msgstr "函数 [[FUNCTION_NAME]] 的参数 %s 需要数值，但得到了字符串。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Function [[FUNCTION_NAME]] invert matrix error, only square matrices are "
-"invertible"
-msgstr "函数 [[FUNCTION_NAME]] 逆矩阵错误，只有正方形矩阵可逆"
+"Function [[FUNCTION_NAME]] expects number values for %s, but got an empty "
+"value."
+msgstr "函数 [[FUNCTION_NAME]] 的参数 %s 需要数值，但得到了空值。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3660,7 +3667,9 @@ msgstr "获取单元格的信息。"
 msgid ""
 "Given a general exponential form of y = b*m^x for a curve fit, calculates b "
 "if TRUE or forces b to be 1 and only calculates the m values if FALSE."
-msgstr "给定 y = b*m^x 的一般指数形式进行曲线拟合，如果为真，则计算 b；如果为假，则强制 b 为 1 并只计算 m 值。"
+msgstr ""
+"给定 y = b*m^x 的一般指数形式进行曲线拟合，如果为真，则计算 b；如果为假，则强"
+"制 b 为 1 并只计算 m 值。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3670,15 +3679,15 @@ msgid ""
 "TRUE or forces b to be 0 and only calculates the m values if FALSE, i.e. "
 "forces the curve fit to pass through the origin."
 msgstr ""
-"给定 y = m*x+b 的一般线性曲线拟合形式，如果为 TRUE，则计算 b，如果为 FALSE，则强制 b 为 0，只计算 m "
-"值，即强制曲线拟合通过原点。"
+"给定 y = m*x+b 的一般线性曲线拟合形式，如果为 TRUE，则计算 b，如果为 FALSE，"
+"则强制 b 为 0，只计算 m 值，即强制曲线拟合通过原点。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Given partial data about a linear trend, calculates various parameters about"
-" the ideal linear trend using the least-squares method."
+"Given partial data about a linear trend, calculates various parameters about "
+"the ideal linear trend using the least-squares method."
 msgstr "根据线性趋势的部分数据，使用最小二乘法，计算理想线性趋势的各种参数。"
 
 #. module: spreadsheet
@@ -3928,7 +3937,9 @@ msgstr "如果未找到有效的匹配项，则返回此值。"
 msgid ""
 "If number is negative, specifies the rounding direction. If 0 or blank, it "
 "is rounded away from zero. Otherwise, it is rounded towards zero."
-msgstr "如果数字为负，则指定舍入方向。如果为0或空，则向远离0的方向舍入。否则，向靠近0的方向舍入。"
+msgstr ""
+"如果数字为负，则指定舍入方向。如果为0或空，则向远离0的方向舍入。否则，向靠近0"
+"的方向舍入。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3936,7 +3947,9 @@ msgstr "如果数字为负，则指定舍入方向。如果为0或空，则向�
 msgid ""
 "If number is negative, specifies the rounding direction. If 0 or blank, it "
 "is rounded towards zero. Otherwise, it is rounded away from zero."
-msgstr "如果数字为负，则指定舍入方向。如果为0或空，则向靠近0的方向舍入。否则，向远离0的方向舍入。"
+msgstr ""
+"如果数字为负，则指定舍入方向。如果为0或空，则向靠近0的方向舍入。否则，向远离0"
+"的方向舍入。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3960,9 +3973,9 @@ msgstr "在[[FUNCTION_NAME]]评估中，无法在'%s'中找到'%s'。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"In [[FUNCTION_NAME]], the number of columns of the first matrix (%s) must be equal to the \n"
-"        number of rows of the second matrix (%s)."
-msgstr "在 [[FUNCTION_NAME]] 中，第一个矩阵 (%s) 的列数必须等于第二个矩阵 (%s) 的行数。"
+"In [[FUNCTION_NAME]], the number of columns of the first matrix (%s) must be "
+"equal to the         number of rows of the second matrix (%s)."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3995,7 +4008,9 @@ msgid ""
 "Indicates whether the column to be searched (the first column of the "
 "specified range) is sorted, in which case the closest match for search_key "
 "will be returned."
-msgstr "指示要搜索的列（指定范围的第一列）是否已排序，如果已排序，则返回与搜索键最接近的匹配项。"
+msgstr ""
+"指示要搜索的列（指定范围的第一列）是否已排序，如果已排序，则返回与搜索键最接"
+"近的匹配项。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4004,7 +4019,9 @@ msgid ""
 "Indicates whether the row to be searched (the first row of the specified "
 "range) is sorted, in which case the closest match for search_key will be "
 "returned."
-msgstr "指示要搜索的行（指定范围的第一行）是否已排序，如果已排序，则返回与搜索键最接近的匹配项。"
+msgstr ""
+"指示要搜索的行（指定范围的第一行）是否已排序，如果已排序，则返回与搜索键最接"
+"近的匹配项。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -5107,6 +5124,12 @@ msgstr "结算日期之后的下一优惠券日期。"
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/hooks.js:0
+msgid "No"
+msgstr "否"
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "No Color"
 msgstr "无颜色"
@@ -5244,8 +5267,7 @@ msgstr "结算日期与到期日期间的优惠券数量。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"Number of days between two dates on a 360-day year (months of 30 days)."
+msgid "Number of days between two dates on a 360-day year (months of 30 days)."
 msgstr "一年（360天）中两个日期之间的天数（每月30天）。"
 
 #. module: spreadsheet
@@ -5344,9 +5366,10 @@ msgid ""
 "returned from the last row or column in the array. If search_key is not "
 "found, a non-exact match may be returned."
 msgstr ""
-"使用该函数的一种方法是提供一个排序行或列 search_array，通过第二个参数 result_range 查找 "
-"search_key。另一种方法是将这两个参数合并为一个 "
-"search_array，搜索第一行或第一列，然后从数组的最后一行或最后一列返回一个值。如果未找到 search_key，则可能返回一个非精确匹配的值。"
+"使用该函数的一种方法是提供一个排序行或列 search_array，通过第二个参数 "
+"result_range 查找 search_key。另一种方法是将这两个参数合并为一个 "
+"search_array，搜索第一行或第一列，然后从数组的最后一行或最后一列返回一个值。"
+"如果未找到 search_key，则可能返回一个非精确匹配的值。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -5430,8 +5453,8 @@ msgstr "特殊粘贴"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Pasting from the context menu is not supported in this browser. Use keyboard"
-" shortcuts ctrl+c / ctrl+v instead."
+"Pasting from the context menu is not supported in this browser. Use keyboard "
+"shortcuts ctrl+c / ctrl+v instead."
 msgstr "此浏览器不支持从上下文菜单粘贴。可以使用键盘快捷键ctrl+c/ctrl+v。"
 
 #. module: spreadsheet
@@ -5514,7 +5537,9 @@ msgstr "数据透视表"
 msgid ""
 "Pivot updates only work with dynamic pivot tables. Use %s or re-insert the "
 "static pivot from the Data menu."
-msgstr "数据透视表更新仅适用于动态数据透视表。使用%s或从“数据” 菜单重新插入静态数据透视表。"
+msgstr ""
+"数据透视表更新仅适用于动态数据透视表。使用%s或从“数据” 菜单重新插入静态数据透"
+"视表。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6027,16 +6052,14 @@ msgstr "返回正方矩阵的矩阵行列式。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Returns the maximum value in a range of cells, filtered by a set of "
-"criteria."
+"Returns the maximum value in a range of cells, filtered by a set of criteria."
 msgstr "返回由一组条件过滤的单元格范围内的最大值。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Returns the minimum value in a range of cells, filtered by a set of "
-"criteria."
+"Returns the minimum value in a range of cells, filtered by a set of criteria."
 msgstr "返回由一组条件过滤的单元格范围内的最小值。"
 
 #. module: spreadsheet
@@ -6086,8 +6109,7 @@ msgstr "根据标准规则四舍五入数字。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Rounds a number down to the nearest integer that is less than or equal to "
-"it."
+"Rounds a number down to the nearest integer that is less than or equal to it."
 msgstr "将数字向下舍入，取整至小于或等于该数字的最接近整数。"
 
 #. module: spreadsheet
@@ -7053,8 +7075,8 @@ msgstr "包含已知因变量 (y) 值的数组或范围，用于曲线拟合理�
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The array or range containing the data to consider, structured in such a way"
-" that the first row contains the labels for each column's values."
+"The array or range containing the data to consider, structured in such a way "
+"that the first row contains the labels for each column's values."
 msgstr "包含数据的数组或范围，其结构为第一行包含每列数值的标签。"
 
 #. module: spreadsheet
@@ -7077,7 +7099,9 @@ msgstr "将 array_y 中的相应条目缩小、平方并相加的数组或数值
 msgid ""
 "The array or range of values that will be subtracted from corresponding "
 "entries in array_x, the result squared, and all such results added together."
-msgstr "将从 array_x 中的相应条目中减去的数组或数值范围，结果平方，并将所有这些结果相加。"
+msgstr ""
+"将从 array_x 中的相应条目中减去的数组或数值范围，结果平方，并将所有这些结果相"
+"加。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7099,8 +7123,8 @@ msgstr "数值的数组或范围，其平方将与 array_y 中相应条目的平
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The array or range of values whose squares will be reduced by the squares of"
-" corresponding entries in array_y and added together."
+"The array or range of values whose squares will be reduced by the squares of "
+"corresponding entries in array_y and added together."
 msgstr "数值的数组或范围，其平方将被 array_y 中相应条目的平方相减，然后相加。"
 
 #. module: spreadsheet
@@ -7175,8 +7199,7 @@ msgstr "基线值无效"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The cashflow_amounts and cashflow_dates ranges must have the same "
-"dimensions."
+"The cashflow_amounts and cashflow_dates ranges must have the same dimensions."
 msgstr "cashflow_amount和cashflow_dates的范围维度须相同。"
 
 #. module: spreadsheet
@@ -7189,8 +7212,8 @@ msgstr "现金流_金额必须包括负值和正值。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The cell whose column number will be returned. Column A corresponds to 1. By"
-" default, the function use the cell in which the formula is entered."
+"The cell whose column number will be returned. Column A corresponds to 1. By "
+"default, the function use the cell in which the formula is entered."
 msgstr "返回列号的单元格。A列对应1。默认情况下，函数使用输入公式的单元格。"
 
 #. module: spreadsheet
@@ -7263,8 +7286,7 @@ msgstr "列参数（%s）必须大于或等于数组的列数。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"The columns arguments must be between -%s and %s (got %s), excluding 0."
+msgid "The columns arguments must be between -%s and %s (got %s), excluding 0."
 msgstr "列参数必须介于 -%s和 %s 之间（有%s），不包括 0。"
 
 #. module: spreadsheet
@@ -7286,7 +7308,9 @@ msgid ""
 "The control to ignore blanks and errors. 0 (default) is to keep all values, "
 "1 is to ignore blanks, 2 is to ignore errors, and 3 is to ignore blanks and "
 "errors."
-msgstr "忽略空白和错误的控制选项。默认值为0，表示保留所有值；1 表示忽略空白，2 表示忽略错误，3 表示忽略空白和错误。"
+msgstr ""
+"忽略空白和错误的控制选项。默认值为0，表示保留所有值；1 表示忽略空白，2 表示忽"
+"略错误，3 表示忽略空白和错误。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7324,7 +7348,9 @@ msgstr "年金的当前价值。"
 msgid ""
 "The current window is too small to display this sheet properly. Consider "
 "resizing your browser window or adjusting frozen rows and columns."
-msgstr "当前窗口太小，无法正确显示此工作表。考虑调整浏览器窗口的大小或调整冻结的行和列。"
+msgstr ""
+"当前窗口太小，无法正确显示此工作表。考虑调整浏览器窗口的大小或调整冻结的行和"
+"列。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7360,7 +7386,8 @@ msgstr "按唯一条目筛选的数据。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The data you entered in %s violates the data validation rule set on the cell:\n"
+"The data you entered in %s violates the data validation rule set on the "
+"cell:\n"
 "%s"
 msgstr ""
 "您在 %s 中输入的数据违反了单元格上设置的数据验证规则：\n"
@@ -7378,7 +7405,9 @@ msgstr "该数据集是无效的"
 msgid ""
 "The date for which to determine the ISO week number. Must be a reference to "
 "a cell containing a date, a function returning a date type, or a number."
-msgstr "要确定ISO周数的日期。必须是指向包含日期的单元格、返回日期类型的函数或数字的引用。"
+msgstr ""
+"要确定ISO周数的日期。必须是指向包含日期的单元格、返回日期类型的函数或数字的引"
+"用。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7386,7 +7415,9 @@ msgstr "要确定ISO周数的日期。必须是指向包含日期的单元格、
 msgid ""
 "The date for which to determine the day of the week. Must be a reference to "
 "a cell containing a date, a function returning a date type, or a number."
-msgstr "要确定星期的日期。必须是指向包含日期的单元格、返回日期类型的函数或数字的引用。"
+msgstr ""
+"要确定星期的日期。必须是指向包含日期的单元格、返回日期类型的函数或数字的引"
+"用。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7394,7 +7425,9 @@ msgstr "要确定星期的日期。必须是指向包含日期的单元格、返
 msgid ""
 "The date for which to determine the week number. Must be a reference to a "
 "cell containing a date, a function returning a date type, or a number."
-msgstr "要确定周数的日期。必须是指向包含日期的单元格、返回日期类型的函数或数字的引用。"
+msgstr ""
+"要确定周数的日期。必须是指向包含日期的单元格、返回日期类型的函数或数字的引"
+"用。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7574,8 +7607,8 @@ msgstr "实际利率（%s）须大于0。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The end date of the period from which to calculate the number of net working"
-" days."
+"The end date of the period from which to calculate the number of net working "
+"days."
 msgstr "计算净工作日数的期间结束日期。"
 
 #. module: spreadsheet
@@ -7590,7 +7623,9 @@ msgstr "计算中要考虑的结束日期。"
 msgid ""
 "The end date to consider in the calculation. Must be a reference to a cell "
 "containing a DATE, a function returning a DATE type, or a number."
-msgstr "计算中要考虑的结束日期。必须是对包含 DATE 的单元格、返回 DATE 类型的函数或数字的引用。"
+msgstr ""
+"计算中要考虑的结束日期。必须是对包含 DATE 的单元格、返回 DATE 类型的函数或数"
+"字的引用。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7598,7 +7633,9 @@ msgstr "计算中要考虑的结束日期。必须是对包含 DATE 的单元格
 msgid ""
 "The end date to consider in the calculation. Must be a reference to a cell "
 "containing a date, a function returning a date type, or a number."
-msgstr "计算中要考虑的结束日期。必须是对包含日期的单元格、返回日期类型的函数或数字的引用。"
+msgstr ""
+"计算中要考虑的结束日期。必须是对包含日期的单元格、返回日期类型的函数或数字的"
+"引用。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7678,7 +7715,9 @@ msgstr "字段%s不存在或您没有访问该字段的权限"
 msgid ""
 "The field (%(fieldValue)s) must be one of %(dimRowDB)s or must be a number "
 "between 1 and %s inclusive."
-msgstr "字段（%(fieldValue)s）必须是%(dimRowDB)s之一，或必须是 1 至%s之间的数字（包括该两值）。"
+msgstr ""
+"字段（%(fieldValue)s）必须是%(dimRowDB)s之一，或必须是 1 至%s之间的数字（包括"
+"该两值）。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7701,6 +7740,14 @@ msgstr "第一个补充。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"The first and second arguments of [[FUNCTION_NAME]] must be non-empty "
+"matrices."
+msgstr "[[FUNCTION_NAME]] 的第一和第二个参数必须为非空矩阵。"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The first column index of the columns to be returned."
 msgstr "要返回的列的第一列索引。"
 
@@ -7710,7 +7757,9 @@ msgstr "要返回的列的第一列索引。"
 msgid ""
 "The first condition to be evaluated. This can be a boolean, a number, an "
 "array, or a reference to any of those."
-msgstr "第一个要评估的条件。可以是一个布尔值、一个数字、一个数组或对其中任何一个的引用。"
+msgstr ""
+"第一个要评估的条件。可以是一个布尔值、一个数字、一个数组或对其中任何一个的引"
+"用。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7833,8 +7882,7 @@ msgstr "计算最大值时要考虑的第一个值或范围。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"The first value or range to consider when calculating the median value."
+msgid "The first value or range to consider when calculating the median value."
 msgstr "计算中值时要考虑的第一个值或范围。"
 
 #. module: spreadsheet
@@ -7859,8 +7907,7 @@ msgstr "第一个值。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"The first_period (%s) must be smaller or equal to the last_period (%s)."
+msgid "The first_period (%s) must be smaller or equal to the last_period (%s)."
 msgstr "first_period（%s）须小于或等于（last_period (%s）。"
 
 #. module: spreadsheet
@@ -7899,7 +7946,9 @@ msgstr "链接的完整URL用引号括起来。"
 msgid ""
 "The function [[FUNCTION_NAME]] expects a boolean value, but '%s' is a text, "
 "and cannot be coerced to a boolean."
-msgstr "函数 [[FUNCTION_NAME]] 希望得到一个布尔值，但“%s”是文本，不能强制转换为布尔值。"
+msgstr ""
+"函数 [[FUNCTION_NAME]] 希望得到一个布尔值，但“%s”是文本，不能强制转换为布尔"
+"值。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7907,7 +7956,9 @@ msgstr "函数 [[FUNCTION_NAME]] 希望得到一个布尔值，但“%s”是文
 msgid ""
 "The function [[FUNCTION_NAME]] expects a number value between %s and %s "
 "inclusive, but receives %s."
-msgstr "函数[[FUNCTION_NAME]]希望得到一个介于%s和%s（包括）之间的数值，但接收到的是%s。"
+msgstr ""
+"函数[[FUNCTION_NAME]]希望得到一个介于%s和%s（包括）之间的数值，但接收到的"
+"是%s。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7921,17 +7972,20 @@ msgstr "函数[[FUNCTION_NAME]]希望接收大于或等于 1 的数值，但接�
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The function [[FUNCTION_NAME]] expects a number value, but '%s' is a string,"
-" and cannot be coerced to a number."
-msgstr "函数[[FUNCTION_NAME]]希望得到一个数字值，但'%s'是一个字符串，不能被胁迫为一个数字。"
+"The function [[FUNCTION_NAME]] expects a number value, but '%s' is a string, "
+"and cannot be coerced to a number."
+msgstr ""
+"函数[[FUNCTION_NAME]]希望得到一个数字值，但'%s'是一个字符串，不能被胁迫为一个"
+"数字。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The function [[FUNCTION_NAME]] has an argument with value '%s'. It should be"
-" one of: %s."
-msgstr "函数 [[FUNCTION_NAME]] 有一个值为 '%s' 的参数。它应该是以下参数之一：%s。"
+"The function [[FUNCTION_NAME]] has an argument with value '%s'. It should be "
+"one of: %s."
+msgstr ""
+"函数 [[FUNCTION_NAME]] 有一个值为 '%s' 的参数。它应该是以下参数之一：%s。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7964,6 +8018,12 @@ msgstr "支付最后一笔款项后剩余的未来价值。"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The future_value (%s) must be strictly positive."
 msgstr "future_value（%s）必须是严格的正数。"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The header row of a table can't be moved."
+msgstr "表格的标题行无法移动。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8011,8 +8071,7 @@ msgstr "在单元格参考范围内要返回的列的索引。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The index of the row to be returned from within the reference range of "
-"cells."
+"The index of the row to be returned from within the reference range of cells."
 msgstr "在单元格参考范围内要返回的行的索引。"
 
 #. module: spreadsheet
@@ -8042,7 +8101,9 @@ msgid ""
 "however, if occurrence_number is specified, only the indicated instance of "
 "search_for is replaced."
 msgstr ""
-"text_to_search中要替换为replace_with的search_for实例。默认情况下，将替换所有出现的search_for;但是，如果指定了occurrence_number，则仅替换指示的search_for实例。"
+"text_to_search中要替换为replace_with的search_for实例。默认情况下，将替换所有"
+"出现的search_for;但是，如果指定了occurrence_number，则仅替换指示的search_for"
+"实例。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8171,8 +8232,7 @@ msgstr "证券的到期日或终止日，即可以面值或票面价值赎回的
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The maximum (%s) and minimum (%s) must be integers when whole_number is "
-"TRUE."
+"The maximum (%s) and minimum (%s) must be integers when whole_number is TRUE."
 msgstr "当 whole_number 为 TRUE 时，最大值（%s）和最小值（%s）必须是整数。"
 
 #. module: spreadsheet
@@ -8217,7 +8277,7 @@ msgstr "最大点必须是一个数字"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/chart/odoo_menu/figure_component.js:0
+#: code:addons/spreadsheet/static/src/helpers/helpers.js:0
 msgid ""
 "The menu linked to this chart doesn't have an corresponding action. Please "
 "link the chart to another menu."
@@ -8346,8 +8406,8 @@ msgstr "受约束数组的列数。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The number of columns in the expanded array. If missing, columns will not be"
-" expanded."
+"The number of columns in the expanded array. If missing, columns will not be "
+"expanded."
 msgstr "扩展数组中的列数。如缺少，则不会展开列。"
 
 #. module: spreadsheet
@@ -8518,8 +8578,7 @@ msgstr "要返回的行数"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The number of significant digits to the right of the decimal point to "
-"retain."
+"The number of significant digits to the right of the decimal point to retain."
 msgstr "小数点右边要保留的有效位数。"
 
 #. module: spreadsheet
@@ -8691,8 +8750,7 @@ msgstr "其他范围，其条目将与其他范围中的相应条目相乘。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"The pattern by which to format the number, enclosed in quotation marks."
+msgid "The pattern by which to format the number, enclosed in quotation marks."
 msgstr "用于设置数字格式的模式，用引号引起来。"
 
 #. module: spreadsheet
@@ -8707,7 +8765,9 @@ msgstr "应用于 criteria_range 的模式或测试。"
 msgid ""
 "The pattern or test to apply to criteria_range1, such that each cell that "
 "evaluates to TRUE will be included in the filtered set."
-msgstr "要应用于 criteria_range1 的模式或测试，每个评估结果为 TRUE 的单元格都将包含在筛选集中。"
+msgstr ""
+"要应用于 criteria_range1 的模式或测试，每个评估结果为 TRUE 的单元格都将包含在"
+"筛选集中。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8730,8 +8790,7 @@ msgstr "应用于范围的模式或测试。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"The percentile whose value within data will be calculated and returned."
+msgid "The percentile whose value within data will be calculated and returned."
 msgstr "将计算并返回数据中的百分位数。"
 
 #. module: spreadsheet
@@ -8909,8 +8968,8 @@ msgid ""
 "only a single row or column and should not be used if using the "
 "search_result_array method."
 msgstr ""
-"返回结果的范围。返回值对应于 search_range 中 search_key 所在的位置。此范围必须是单行或单列，如果使用 "
-"search_result_array 方法，则不应使用此范围。"
+"返回结果的范围。返回值对应于 search_range 中 search_key 所在的位置。此范围必"
+"须是单行或单列，如果使用 search_result_array 方法，则不应使用此范围。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9003,7 +9062,8 @@ msgstr "要平均的范围。"
 msgid ""
 "The range to average. If not included, criteria_range is used for the "
 "average instead."
-msgstr "平均值的取值范围。如果不包含 criteria_range，平均值将使用 criteria_range。"
+msgstr ""
+"平均值的取值范围。如果不包含 criteria_range，平均值将使用 criteria_range。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9049,8 +9109,8 @@ msgstr "搜索时要考虑的范围。搜索范围中的第一列，搜索 searc
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The range to consider for the search. The first row in the range is searched"
-" for the key specified in search_key."
+"The range to consider for the search. The first row in the range is searched "
+"for the key specified in search_key."
 msgstr "搜索时要考虑的范围。搜索范围中的第一行，搜索 search_key 中指定的键。"
 
 #. module: spreadsheet
@@ -9231,13 +9291,14 @@ msgstr "数据集的样本协方差。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The search method. 1 (default) finds the largest value less than or equal to"
-" search_key when range is sorted in ascending order. 0 finds the exact value"
-" when range is unsorted. -1 finds the smallest value greater than or equal "
-"to search_key when range is sorted in descending order."
+"The search method. 1 (default) finds the largest value less than or equal to "
+"search_key when range is sorted in ascending order. 0 finds the exact value "
+"when range is unsorted. -1 finds the smallest value greater than or equal to "
+"search_key when range is sorted in descending order."
 msgstr ""
-"搜索方法。1（默认）在范围以升序排序时查找小于或等于 search_key 的最大值。0 在范围未排序时查找精确值。当范围以降序排序时，-1 "
-"查找大于或等于 search_key 的最小值。"
+"搜索方法。1（默认）在范围以升序排序时查找小于或等于 search_key 的最大值。0 在"
+"范围未排序时查找精确值。当范围以降序排序时，-1 查找大于或等于 search_key 的最"
+"小值。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9351,17 +9412,21 @@ msgstr "计算中要考虑的开始日期。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The start date to consider in the calculation. Must be a reference to a cell"
-" containing a DATE, a function returning a DATE type, or a number."
-msgstr "计算中要考虑的开始日期。必须是对包含 DATE 的单元格的引用、返回 DATE 类型的函数或数字。"
+"The start date to consider in the calculation. Must be a reference to a cell "
+"containing a DATE, a function returning a DATE type, or a number."
+msgstr ""
+"计算中要考虑的开始日期。必须是对包含 DATE 的单元格的引用、返回 DATE 类型的函"
+"数或数字。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The start date to consider in the calculation. Must be a reference to a cell"
-" containing a date, a function returning a date type, or a number."
-msgstr "计算中要考虑的起始日期。必须是对包含日期的单元格的引用、返回日期类型的函数或数字。"
+"The start date to consider in the calculation. Must be a reference to a cell "
+"containing a date, a function returning a date type, or a number."
+msgstr ""
+"计算中要考虑的起始日期。必须是对包含日期的单元格的引用、返回日期类型的函数或"
+"数字。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9614,8 +9679,7 @@ msgstr "换算成数值的计量单位"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"The units of the desired fraction, e.g. 8 for 1/8ths or 32 for 1/32nds."
+msgid "The units of the desired fraction, e.g. 8 for 1/8ths or 32 for 1/32nds."
 msgstr "所需分数的单位，例：1/8 中的 8 或 1 /32 中的 32。"
 
 #. module: spreadsheet
@@ -9726,8 +9790,8 @@ msgstr "计算反双曲正切值的数值。必须介于 -1 和 1 之间（不�
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"The value for which to calculate the inverse sine. Must be between -1 and 1,"
-" inclusive."
+"The value for which to calculate the inverse sine. Must be between -1 and 1, "
+"inclusive."
 msgstr "计算反正弦的值。必须介于 -1 和 1 之间（含 1）。"
 
 #. module: spreadsheet
@@ -9945,12 +10009,6 @@ msgstr "折旧结束时的资产价值。"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The value or values to be appended using delimiter."
 msgstr "要使用分隔符追加的一个或多个值。"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "The value should be a scalar or a 1x1 matrix"
-msgstr "值应该是标量或 1x1 矩阵"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10295,7 +10353,9 @@ msgstr "该公式具有超过100个部分。 无法正确处理，请考虑将�
 msgid ""
 "This function takes in two currency codes as arguments, and returns the "
 "exchange rate from the first currency to the second as float."
-msgstr "此函数采用两个币别代码作为参数，并将从第一种币别到第二种币别的汇率作为浮点数返回。"
+msgstr ""
+"此函数采用两个币别代码作为参数，并将从第一种币别到第二种币别的汇率作为浮点数"
+"返回。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10316,6 +10376,12 @@ msgid ""
 "This operation is not possible due to a merge. Please remove the merges "
 "first than try again."
 msgstr "由于合并，该操作无法实现。请先删除合并，然后再试一次。"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "This pivot has no cell missing on this sheet"
+msgstr "此工作表中的数据透视器没有丢失单元格"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10647,10 +10713,8 @@ msgstr "键值的值变化"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"Value for parameter %d is missing, while the function [[FUNCTION_NAME]] "
-"expect a number or a range."
-msgstr "缺少参数 %d 的值，而函数 [[FUNCTION_NAME]] 期望值是一个数字或范围。"
+msgid "Value for parameter %s is missing in [[FUNCTION_NAME]]."
+msgstr "[[FUNCTION_NAME]] 中缺少参数 %s 的值。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10739,8 +10803,7 @@ msgstr "值不等于 %s"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"Value nearest to a specific quartile of a dataset exclusive of 0 and 4."
+msgid "Value nearest to a specific quartile of a dataset exclusive of 0 and 4."
 msgstr "最接近数据集中不包括0和4的特定四分之一的值。"
 
 #. module: spreadsheet
@@ -10894,7 +10957,9 @@ msgstr "瀑布图设计"
 msgid ""
 "We found data next to your selection. Since this data was not selected, it "
 "will not be sorted. Do you want to extend your selection?"
-msgstr "我们在您的选择旁边找到了数据。由于这个数据没有被选中，所以它不会被排序。您想扩展您的选择吗？"
+msgstr ""
+"我们在您的选择旁边找到了数据。由于这个数据没有被选中，所以它不会被排序。您想"
+"扩展您的选择吗？"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11009,11 +11074,10 @@ msgstr "是否在分隔符包含的每个字符周围分割文本。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Whether or not to remove empty text messages from the split results. The default behavior is to treat \n"
-"        consecutive delimiters as one (if TRUE). If FALSE, empty cells values are added between consecutive delimiters."
+"Whether or not to remove empty text messages from the split results. The "
+"default behavior is to treat         consecutive delimiters as one (if "
+"TRUE). If FALSE, empty cells values are added between consecutive delimiters."
 msgstr ""
-"是否删除分割结果中的空文本信息。默认行为是将\n"
-"        连续分隔符视为一个（如果为 TRUE）。如果为 FALSE，则会在连续分隔符之间添加空单元格值。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11026,11 +11090,9 @@ msgstr "是否在每期期末（0）或期初（1）付款。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Whether the array should be scanned by column. True scans the array by column and false (default) \n"
-"      scans the array by row."
+"Whether the array should be scanned by column. True scans the array by "
+"column and false (default)       scans the array by row."
 msgstr ""
-"数组是否应按列进行扫描。True表示按列扫描数组，False（默认）表示\n"
-"      按行扫描数组。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11119,7 +11181,8 @@ msgstr "自动换行"
 msgid ""
 "Wraps the provided row or column of cells by columns after a specified "
 "number of elements to form a new array."
-msgstr "在指定的元素数量之后，通过列将提供的行或列单元格包裹起来，形成一个新的数组。"
+msgstr ""
+"在指定的元素数量之后，通过列将提供的行或列单元格包裹起来，形成一个新的数组。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11127,7 +11190,8 @@ msgstr "在指定的元素数量之后，通过列将提供的行或列单元格
 msgid ""
 "Wraps the provided row or column of cells by rows after a specified number "
 "of elements to form a new array."
-msgstr "在指定的元素数量之后，通过行将提供的行或列单元格包裹起来，形成一个新的数组。"
+msgstr ""
+"在指定的元素数量之后，通过行将提供的行或列单元格包裹起来，形成一个新的数组。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11151,8 +11215,8 @@ msgstr "%s的大小错误。预期范围大小为 1x%s。得到的是 %sx%s。"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
-"Wrong value of 'display_ties_mode'. Expected a positive number between 0 and"
-" 3. Got %s."
+"Wrong value of 'display_ties_mode'. Expected a positive number between 0 and "
+"3. Got %s."
 msgstr "display_ties_mode' 的值有误。期望值为 0 至 3 之间的正数。结果为 %s。"
 
 #. module: spreadsheet
@@ -11181,6 +11245,12 @@ msgstr "本年至今"
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/hooks.js:0
+msgid "Yes"
+msgstr "是"
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "You can't merge cells inside of an existing filter."
 msgstr "您无法合并现有筛选器内的单元格。"
@@ -11190,6 +11260,21 @@ msgstr "您无法合并现有筛选器内的单元格。"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "You cannot create overlapping tables."
 msgstr "您不能创建重叠的表格。"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"You copied content from a different version of the application. Only text "
+"content will be pasted."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/actions/spreadsheet_download_action.js:0
+msgid ""
+"You don't have the rights to export data. Please contact an Administrator."
+msgstr "您没有导出数据的权限。请联系管理员。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11212,14 +11297,16 @@ msgstr "[[FUNCTION_NAME]]评估为一个超出范围的行值%s。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "[[FUNCTION_NAME]] expects non-empty ranges for both parameters."
-msgstr "[[FUNCTION_NAME]]希望两个参数的范围都不是空的。"
+msgid "[[FUNCTION_NAME]] expects number values."
+msgstr "[[FUNCTION_NAME]] 希望得到数字值。"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "[[FUNCTION_NAME]] expects number values."
-msgstr "[[FUNCTION_NAME]] 希望得到数字值。"
+msgid ""
+"[[FUNCTION_NAME]] expects the provided values of %(argName)s to be a non-"
+"empty matrix."
+msgstr "[[FUNCTION_NAME]] 期望 %(argName)s 的值为非空矩阵。"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11236,8 +11323,7 @@ msgstr "[[FUNCTION_NAME]]有不匹配的参数计数%s与%s。"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid ""
-"[[FUNCTION_NAME]] has mismatched dimensions for argument %s (%s vs %s)."
+msgid "[[FUNCTION_NAME]] has mismatched dimensions for argument %s (%s vs %s)."
 msgstr "[[FUNCTION_NAME]]参数 %s 的尺寸不匹配（%s vs %s）。"
 
 #. module: spreadsheet
@@ -11254,39 +11340,9 @@ msgstr "[[FUNCTION_NAME]] 没有有效的输入数据。"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "[[FUNCTION_NAME]] needs at least two values for both parameters."
-msgstr "[[FUNCTION_NAME]] 的两个参数至少需要两个值。"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "activeSheet"
-msgstr "activeSheet"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "allSheets"
-msgstr "allSheets"
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "and"
 msgstr "and"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "arrow"
-msgstr "箭头"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "asc"
-msgstr "递增"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11303,12 +11359,6 @@ msgstr "小于或等于"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "bottom"
-msgstr "下边"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "code"
 msgstr "代码"
 
@@ -11317,18 +11367,6 @@ msgstr "代码"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "default:"
 msgstr "默认："
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "desc"
-msgstr "递减"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "difference"
-msgstr "差异"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11362,45 +11400,9 @@ msgstr "例如：A1:A2"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/filter_date_value/filter_date_value.xml:0
-msgid "empty"
-msgstr "空白"
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "exact date"
 msgstr "确切日期"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "exponential"
-msgstr "指数"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "false"
-msgstr "假"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "formula"
-msgstr "公式"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "ge"
-msgstr "大于或等于"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "gt"
-msgstr "大于"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11419,24 +11421,6 @@ msgstr "过去一周"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "in the past year"
 msgstr "过去一年"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "left"
-msgstr "左"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "linear"
-msgstr "线性折扣"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "logarithmic"
-msgstr "对数"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11461,18 +11445,6 @@ msgstr "底部更多行"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "negative"
 msgstr "负数"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "none"
-msgstr "无"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "number"
-msgstr "数字"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11506,39 +11478,9 @@ msgstr "1 年前"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "percentage"
-msgstr "百分比"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "percentile"
-msgstr "百分位数"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "plainText"
-msgstr "plainText"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "polynomial"
-msgstr "多项式"
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "positive"
 msgstr "正数"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "progress"
-msgstr "进度"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11554,21 +11496,9 @@ msgstr "return_range应该与lookup_range具有相同的维度。"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "right"
-msgstr "右"
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "search_mode should be a value in [-1, 1, -2, 2]."
 msgstr "search_mode 应该是 [-1，1，-2，2] 其中一个值。"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "specificRange"
-msgstr "specificRange"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11581,12 +11511,6 @@ msgstr "start_date （%s） 应在 end_date （%s）之前。"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "symbol"
 msgstr "符号"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "text"
-msgstr "文本"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11622,21 +11546,9 @@ msgstr "明天"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "top"
-msgstr "顶部"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "true"
-msgstr "真"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-msgid "value"
-msgstr "值"
+#: code:addons/spreadsheet/static/src/public_readonly_app/public_readonly.xml:0
+msgid "x"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11649,3 +11561,102 @@ msgstr "昨天"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "zero"
 msgstr "零"
+
+#~ msgid ""
+#~ "(0) Exact match. \n"
+#~ "        (-1) Return next smaller item if no match. \n"
+#~ "        (1) Return next greater item if no match. \n"
+#~ "        (2) Wildcard match."
+#~ msgstr ""
+#~ "（0）完全匹配。\n"
+#~ "        （-1）若无符合项目，传回下一个较小的项目。\n"
+#~ "        （1）若无符合项目，传回下一个较大的项目。\n"
+#~ "        （2）万用字元配对。"
+
+#~ msgid ""
+#~ "(1) Search starting at first item. \n"
+#~ "      (-1) Search starting at last item. \n"
+#~ "      (2) Perform a binary search that relies on lookup_array being "
+#~ "sorted in ascending order. If not sorted, invalid results will be "
+#~ "returned. \n"
+#~ "      (-2) Perform a binary search that relies on lookup_array being "
+#~ "sorted in descending order. If not sorted, invalid results will be "
+#~ "returned.\n"
+#~ "      "
+#~ msgstr ""
+#~ "(1) 从第一个项目开始搜索。\n"
+#~ "      (-1) 从最后一项开始搜索。\n"
+#~ "      (2) 执行二进制搜索，依赖于 lookup_array 按升序排序。如果未排序，将返"
+#~ "回无效结果。\n"
+#~ "      (-2) 执行二进制搜索，依赖于 lookup_array 按降序排序。如果未排序，将"
+#~ "返回无效结果。\n"
+#~ "      "
+
+#~ msgid ""
+#~ "An unexpected error occurred while pasting content.\n"
+#~ "          This is probably due to a spreadsheet version mismatch."
+#~ msgstr ""
+#~ "在粘贴内容时发生了一个意外错误。 \n"
+#~ "          这可能是由于电子表格版本不匹配造成的。"
+
+#~ msgid ""
+#~ "Function [[FUNCTION_NAME]] expects criteria_range and criterion to be in "
+#~ "pairs."
+#~ msgstr "函数[[FUNCTION_NAME]]要求criteria_range和criteria是成对的。"
+
+#~ msgid ""
+#~ "Function [[FUNCTION_NAME]] expects criteria_range to have the same "
+#~ "dimension"
+#~ msgstr "函数 [[FUNCTION_NAME]] 希望 criteria_range 具有相同的维度"
+
+#~ msgid ""
+#~ "In [[FUNCTION_NAME]], the number of columns of the first matrix (%s) must "
+#~ "be equal to the \n"
+#~ "        number of rows of the second matrix (%s)."
+#~ msgstr ""
+#~ "在 [[FUNCTION_NAME]] 中，第一个矩阵 (%s) 的列数必须等于第二个矩阵 (%s) 的"
+#~ "行数。"
+
+#~ msgid ""
+#~ "Whether or not to remove empty text messages from the split results. The "
+#~ "default behavior is to treat \n"
+#~ "        consecutive delimiters as one (if TRUE). If FALSE, empty cells "
+#~ "values are added between consecutive delimiters."
+#~ msgstr ""
+#~ "是否删除分割结果中的空文本信息。默认行为是将\n"
+#~ "        连续分隔符视为一个（如果为 TRUE）。如果为 FALSE，则会在连续分隔符"
+#~ "之间添加空单元格值。"
+
+#~ msgid ""
+#~ "Whether the array should be scanned by column. True scans the array by "
+#~ "column and false (default) \n"
+#~ "      scans the array by row."
+#~ msgstr ""
+#~ "数组是否应按列进行扫描。True表示按列扫描数组，False（默认）表示\n"
+#~ "      按行扫描数组。"
+
+#~ msgid ""
+#~ "Function [[FUNCTION_NAME]] expects number values for %s, but got a %s."
+#~ msgstr "函数 [[FUNCTION_NAME]] 期望值为 %s，但得到的是 %s。"
+
+#~ msgid ""
+#~ "Value for parameter %d is missing, while the function [[FUNCTION_NAME]] "
+#~ "expect a number or a range."
+#~ msgstr "缺少参数 %d 的值，而函数 [[FUNCTION_NAME]] 期望值是一个数字或范围。"
+
+#~ msgid "Cannot multiply matrices : incompatible matrices size."
+#~ msgstr "无法进行矩阵乘法运算：矩阵大小不兼容。"
+
+#~ msgid ""
+#~ "Function [[FUNCTION_NAME]] invert matrix error, only square matrices are "
+#~ "invertible"
+#~ msgstr "函数 [[FUNCTION_NAME]] 逆矩阵错误，只有正方形矩阵可逆"
+
+#~ msgid "The value should be a scalar or a 1x1 matrix"
+#~ msgstr "值应该是标量或 1x1 矩阵"
+
+#~ msgid "[[FUNCTION_NAME]] expects non-empty ranges for both parameters."
+#~ msgstr "[[FUNCTION_NAME]]希望两个参数的范围都不是空的。"
+
+#~ msgid "[[FUNCTION_NAME]] needs at least two values for both parameters."
+#~ msgstr "[[FUNCTION_NAME]] 的两个参数至少需要两个值。"

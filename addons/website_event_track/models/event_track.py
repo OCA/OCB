@@ -334,7 +334,7 @@ class Track(models.Model):
 
     def _search_wishlist_visitor_ids(self, operator, operand):
         if operator == "not in":
-            raise NotImplementedError("Unsupported 'Not In' operation on track wishlist visitors")
+            raise NotImplementedError(self.env._("Unsupported 'Not In' operation on track wishlist visitors"))
 
         track_visitors = self.env['event.track.visitor'].sudo().search([
             ('visitor_id', operator, operand),
@@ -434,6 +434,12 @@ class Track(models.Model):
     # ------------------------------------------------------------
     # MESSAGING
     # ------------------------------------------------------------
+
+    def _mail_get_timezone_with_default(self, default_tz=True):
+        tz = None
+        if self:
+            tz = self.event_id._mail_get_timezone_with_default(default_tz=default_tz)
+        return tz or super()._mail_get_timezone_with_default(default_tz=default_tz)
 
     def _message_get_default_recipients(self):
         return {

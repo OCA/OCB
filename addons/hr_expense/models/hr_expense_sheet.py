@@ -270,7 +270,7 @@ class HrExpenseSheet(models.Model):
         for sheet in self:
             sheet.payment_method_line_id = sheet.selectable_payment_method_line_ids[:1]
 
-    @api.depends('employee_journal_id', 'payment_method_line_id')
+    @api.depends('employee_journal_id', 'payment_method_line_id', 'payment_mode')
     def _compute_journal_id(self):
         for sheet in self:
             if sheet.payment_mode == 'company_account':
@@ -287,6 +287,7 @@ class HrExpenseSheet(models.Model):
             else:
                 sheet.selectable_payment_method_line_ids = self.env['account.payment.method.line'].search([
                     ('payment_type', '=', 'outbound'),
+                    ('journal_id.active', '=', True),
                     ('company_id', 'parent_of', sheet.company_id.id)
                 ])
 
@@ -342,9 +343,9 @@ class HrExpenseSheet(models.Model):
     @api.depends_context('uid')
     @api.depends('employee_id')
     def _compute_can_approve(self):
-        is_team_approver = self.env.user.has_group('hr_expense.group_hr_expense_team_approver')
-        is_approver = self.env.user.has_group('hr_expense.group_hr_expense_user')
-        is_hr_admin = self.env.user.has_group('hr_expense.group_hr_expense_manager')
+        is_team_approver = self.env.user.has_group('hr_expense.group_hr_expense_team_approver') or self.env.su
+        is_approver = self.env.user.has_group('hr_expense.group_hr_expense_user') or self.env.su
+        is_hr_admin = self.env.user.has_group('hr_expense.group_hr_expense_manager') or self.env.su
 
         for sheet in self:
             reason = False
@@ -489,6 +490,20 @@ class HrExpenseSheet(models.Model):
         return sheets
 
     def write(self, values):
+        # Avoid user with write access on expense sheet in draft state to bypass the validation process
+        is_editing_states = 'state' in values or 'approval_state' in values
+        if is_editing_states:
+            valid_states = {'submit', None}
+            if (
+                    not (self.env.user.has_group('hr_expense.group_hr_expense_manager') or self.env.su)
+                    and any(state == 'draft' for state in self.mapped('state'))
+                    and (values.get('state') not in valid_states or values.get('approval_state') not in valid_states)
+            ):
+                raise UserError(_("You don't have the rights to bypass the validation process of this expense report."))
+            elif values.get('state') == 'approve' or values.get('approval_state') == 'approve':
+                self._check_can_approve()
+            elif values.get('state') == 'cancel' or values.get('approval_state') == 'cancel':
+                self._check_can_refuse()
         res = super().write(values)
 
         user_is_accountant = self.env.user.has_group('account.group_account_user')
@@ -698,12 +713,6 @@ class HrExpenseSheet(models.Model):
                 "Please specify if the expenses for this report were paid by the company, or the employee"
             ))
 
-        missing_email_employees = self.filtered(lambda sheet: not sheet.employee_id.work_email).employee_id
-        if missing_email_employees:
-            action = self.env['ir.actions.actions']._for_xml_id('hr.open_view_employee_list_my')
-            action['domain'] = [('id', 'in', missing_email_employees.ids)]
-            raise RedirectWarning(_("The work email of some employees is missing. Please add it on the employee form"), action, _("Show missing work email employees"))
-
     def _do_submit(self):
         self.approval_state = 'submit'
         self.sudo().activity_update()
@@ -786,14 +795,15 @@ class HrExpenseSheet(models.Model):
 
     def _do_reverse_moves(self):
         self = self.with_context(clean_context(self.env.context))
-        moves = self.account_move_ids
-        draft_moves = moves.filtered(lambda m: m.state == 'draft')
-        non_draft_moves = moves - draft_moves
-        non_draft_moves._reverse_moves(
-            default_values_list=[{'invoice_date': fields.Date.context_today(move), 'ref': False} for move in non_draft_moves],
-            cancel=True
-        )
-        draft_moves.unlink()
+        moves_sudo = self.sudo().account_move_ids
+        if moves_sudo:
+            draft_moves_sudo = moves_sudo.filtered(lambda m: m.state == 'draft')
+            non_draft_moves_sudo = moves_sudo - draft_moves_sudo
+            non_draft_moves_sudo._reverse_moves(
+                default_values_list=[{'invoice_date': fields.Date.context_today(move), 'ref': False} for move in non_draft_moves_sudo],
+                cancel=True
+            )
+            draft_moves_sudo.unlink()
 
     def _calculate_default_accounting_date(self):
         """
@@ -834,10 +844,11 @@ class HrExpenseSheet(models.Model):
             'partner_id': self.employee_id.sudo().work_contact_id.id,
             'commercial_partner_id': self.employee_id.user_partner_id.id,
             'currency_id': self.currency_id.id,
+            'company_id': self.company_id.id,
             'line_ids': [Command.create(expense._prepare_move_lines_vals()) for expense in self.expense_line_ids],
             'attachment_ids': [
                 Command.create(attachment.copy_data({'res_model': 'account.move', 'res_id': False, 'raw': attachment.raw})[0])
-                for attachment in self.expense_line_ids.message_main_attachment_id
+                for attachment in self.expense_line_ids.attachment_ids
             ],
         }
 

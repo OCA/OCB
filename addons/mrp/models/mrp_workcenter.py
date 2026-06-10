@@ -3,6 +3,7 @@
 import json
 
 from babel.dates import format_date
+from collections import defaultdict
 from dateutil import relativedelta
 from datetime import timedelta, datetime
 from functools import partial
@@ -128,8 +129,8 @@ class MrpWorkcenter(models.Model):
 
     def _get_workcenter_load_per_week(self, week_range, date_start, date_stop):
         load_data = {rec: {} for rec in self}
-        # demo data
-        if not self.order_ids:
+        has_workorders = bool(self.env['mrp.workorder'].search_count([('workcenter_id', 'in', self.ids)], limit=1))
+        if not has_workorders:  # demo data
             for wc in self:
                 load_limit = 40     # default max load per week is 40 hours on a new workcenter
                 load_data[wc] = {week_start: randint(0, int(load_limit * 2)) for week_start in week_range}
@@ -146,9 +147,13 @@ class MrpWorkcenter(models.Model):
 
     def _prepare_graph_data(self, load_data, week_range):
         graph_data = {wid: [] for wid in self._ids}
+        has_workorders = bool(self.env['mrp.workorder'].search_count([('workcenter_id', 'in', self.ids)], limit=1))
+        attendances_duration_hours_by_resource_calendar = defaultdict(int)
+        for resource_calendar in self.resource_calendar_id:
+            attendances_duration_hours_by_resource_calendar[resource_calendar.id] = sum(resource_calendar.attendance_ids.mapped('duration_hours'))
         for workcenter in self:
-            load_limit = sum(workcenter.resource_calendar_id.attendance_ids.mapped('duration_hours'))
-            wc_data = {'is_sample_data': not self.order_ids, 'labels': list(week_range.values())}
+            load_limit = attendances_duration_hours_by_resource_calendar[workcenter.resource_calendar_id.id]
+            wc_data = {'is_sample_data': not has_workorders, 'labels': list(week_range.values())}
             load_bar = []
             excess_bar = []
             for week_start in week_range:
@@ -230,11 +235,28 @@ class MrpWorkcenter(models.Model):
 
     @api.depends('blocked_time', 'productive_time')
     def _compute_oee(self):
-        for order in self:
-            if order.productive_time:
-                order.oee = round(order.productive_time * 100.0 / (order.productive_time + order.blocked_time), 2)
+        time_data = self.env['mrp.workcenter.productivity']._read_group(
+            domain=[
+                ('date_start', '>=', fields.Datetime.to_string(datetime.now() - relativedelta.relativedelta(months=1))),
+                ('workcenter_id', 'in', self.ids),
+                ('date_end', '!=', False),
+            ],
+            groupby=['workcenter_id', 'loss_type'],
+            aggregates=['duration:sum'],
+        )
+        time_by_workcenter = defaultdict(lambda: {'productive_time': 0.0, 'blocked_time': 0.0})
+        for data in time_data:
+            workcenter, loss_type, duration = data
+            time_to_update = 'productive_time' if loss_type == 'productive' else 'blocked_time'
+            time_by_workcenter[workcenter.id][time_to_update] += duration
+        for workcenter in self:
+            workcenter_time = time_by_workcenter[workcenter.id]
+            productive_time = workcenter_time['productive_time']
+            if productive_time:
+                blocked_time = workcenter_time['blocked_time']
+                workcenter.oee = float_round(productive_time * 100.0 / (productive_time + blocked_time), precision_digits=2)
             else:
-                order.oee = 0.0
+                workcenter.oee = 0.0
 
     def _compute_performance(self):
         wo_data = self.env['mrp.workorder']._read_group([
@@ -327,6 +349,8 @@ class MrpWorkcenter(models.Model):
         :rtype: tuple
         """
         self.ensure_one()
+        ICP = self.env['ir.config_parameter'].sudo()
+        max_planning_iterations = max(int(ICP.get_param('mrp.workcenter_max_planning_iterations', '50')), 1)
         resource = self.resource_id
         start_datetime, revert = make_aware(start_datetime)
         get_available_intervals = partial(self.resource_calendar_id._work_intervals_batch, resources=resource, tz=timezone(self.resource_calendar_id.tz))
@@ -336,11 +360,11 @@ class MrpWorkcenter(models.Model):
         get_workorder_intervals = partial(self.resource_calendar_id._leave_intervals_batch, domain=workorder_intervals_leaves_domain, resources=resource, tz=timezone(self.resource_calendar_id.tz))
         extra_leaves_slots_intervals = Intervals([(make_aware(start)[0], make_aware(stop)[0], self.env['resource.calendar.attendance']) for start, stop in extra_leaves_slots])
 
-        remaining = duration
+        remaining = duration = max(duration, 1 / 60)
         now = make_aware(datetime.now())[0]
         delta = timedelta(days=14)
         start_interval, stop_interval = None, None
-        for n in range(50):  # 50 * 14 = 700 days in advance (hardcoded)
+        for n in range(max_planning_iterations):  # 50 * 14 = 700 days in advance
             if forward:
                 date_start = start_datetime + delta * n
                 date_stop = date_start + delta
@@ -350,8 +374,8 @@ class MrpWorkcenter(models.Model):
                     start_interval = start_interval or start
                     interval_minutes = (stop - start).total_seconds() / 60
                     while (interval := Intervals([(start_interval or start, start + timedelta(minutes=min(remaining, interval_minutes)), _records)])) \
-                      and (conflict := interval & workorder_intervals or interval & extra_leaves_slots_intervals):
-                        (_start, start, _records) = conflict._items[0]  # restart available interval at conflicting interval stop
+                      and (conflict := workorder_intervals.conflicting(interval) or extra_leaves_slots_intervals.conflicting(interval)):
+                        start = min(max(_stop for _start, _stop, _records in conflict), stop)  # restart available interval at conflicting interval stop
                         interval_minutes = (stop - start).total_seconds() / 60
                         start_interval, remaining = start if interval_minutes else None, duration
                     if float_compare(interval_minutes, remaining, precision_digits=3) >= 0:
@@ -368,8 +392,8 @@ class MrpWorkcenter(models.Model):
                     stop_interval = stop_interval or stop
                     interval_minutes = (stop - start).total_seconds() / 60
                     while (interval := Intervals([(stop - timedelta(minutes=min(remaining, interval_minutes)), stop_interval or stop, _records)])) \
-                      and (conflict := interval & workorder_intervals or interval & extra_leaves_slots_intervals):
-                        (stop, _stop, _records) = conflict._items[0]  # restart available interval at conflicting interval start
+                      and (conflict := workorder_intervals.conflicting(interval) or extra_leaves_slots_intervals.conflicting(interval)):
+                        stop = max(min(_start for _start, _stop, _records in conflict), start)  # restart available interval at conflicting interval start
                         interval_minutes = (stop - start).total_seconds() / 60
                         stop_interval, remaining = stop if interval_minutes else None, duration
                     if float_compare(interval_minutes, remaining, precision_digits=3) >= 0:
@@ -521,6 +545,8 @@ class MrpWorkcenterProductivity(models.Model):
 
     @api.onchange('duration')
     def _duration_changed(self):
+        if not self.date_end:
+            return
         self.date_start = self.date_end - timedelta(minutes=self.duration)
         self._loss_type_change()
 

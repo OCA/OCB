@@ -224,15 +224,26 @@ class TestSalePurchaseStockFlow(TransactionCase):
             ],
         })
         so.action_confirm()
+        self.assertEqual(so.delivery_count, 1)
         delivery = so.picking_ids
+        # Both moves should have the procure_method set to 'make_to_order', as the products follow the MTO route
+        self.assertEqual(delivery.move_ids.mapped('procure_method'), ['make_to_order', 'make_to_order'])
+        # Since the products have two different vendors, two purchase orders should be created.
+        self.assertEqual(so.purchase_order_count, 2)
         po_2 = self.env['purchase.order'].search([('partner_id', '=', vendor_2.id)])
         po_2.button_cancel()
+        # As one PO has been canceled, one of the moves should switch to MTS, while the other should remain in MTO.
+        self.assertEqual(delivery.move_ids.mapped('procure_method'), ['make_to_order', 'make_to_stock'])
         line_2 = so.order_line.filtered(lambda sol: sol.product_id == product_2)
+        # Updating the SO line should trigger another delivery, as the product in the first picking is in MTS and not in MTO
         line_2.product_uom_qty = 0
-        self.assertEqual(delivery, so.picking_ids)
+        self.assertEqual(so.delivery_count, 2)
         self.assertRecordValues(delivery.move_ids, [
             {'product_id': product_1.id, 'product_uom_qty': 1.0},
-            {'product_id': product_2.id, 'product_uom_qty': 0.0},
+            {'product_id': product_2.id, 'product_uom_qty': 1.0},
+        ])
+        self.assertRecordValues(so.picking_ids[1].move_ids, [
+            {'product_id': product_2.id, 'product_uom_qty': 1.0},
         ])
 
     def test_mto_cancel_reset_to_quotation_and_update(self):
@@ -427,3 +438,206 @@ class TestSalePurchaseStockFlow(TransactionCase):
             groupby=['date:day', 'product_id'],
         )
         self.assertEqual(forecasted_qty[0]['product_qty'], 0)
+
+    def test_picking_partner_with_several_so_and_same_supplier(self):
+        """
+        2-steps reception, 2-steps delivery. Three types of product: Coss-docks,
+        MTO and MTS. All three based on the same supplier. One SO for each
+        product, with different customers. Ensure that the partner of all
+        transfers (from supplier to customers) is correct.
+        Note: This test is only working thanks to an ICP. That way, the day we
+        remove that parameter, we will have to make sure that the below use case
+        is correctly working
+        """
+        self.env['ir.config_parameter'].sudo().set_param('purchase_stock.split_po', '1')
+
+        self.warehouse.write({
+            'delivery_steps': 'pick_ship',
+            'reception_steps': 'two_steps',
+        })
+        self.warehouse.crossdock_route_id.product_selectable = True
+
+        mts_product, xd_product = self.env['product.product'].create([{
+            'name': 'MTS Product',
+            'is_storable': True,
+            'seller_ids': [Command.create({'partner_id': self.vendor.id})],
+            'route_ids': [Command.link(self.buy_route.id)],
+        }, {
+            'name': 'XD Product',
+            'is_storable': True,
+            'seller_ids': [Command.create({'partner_id': self.vendor.id})],
+            'route_ids': [Command.link(self.warehouse.crossdock_route_id.id), Command.link(self.buy_route.id)],
+        }])
+        products = xd_product | self.mto_product | mts_product
+
+        xd_customer, mto_customer, mts_customer = self.env['res.partner'].create([{
+            'name': name
+        } for name in [
+            'SuperCustomer XD',
+            'SuperCustomer MTO',
+            'SuperCustomer MTS',
+        ]])
+
+        sale_orders = self.env['sale.order'].create([{
+            'partner_id': customer.id,
+            'warehouse_id': self.warehouse.id,
+            'order_line': [Command.create({
+                'product_id': product.id,
+            })]
+        } for customer, product in [
+            (xd_customer, xd_product),
+            (mto_customer, self.mto_product),
+            (mts_customer, mts_product),
+        ]])
+        sale_orders.action_confirm()
+
+        self.env['stock.warehouse.orderpoint']._get_orderpoint_action()
+        orderpoint = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', mts_product.id)], limit=1)
+        orderpoint.action_replenish()
+
+        purchase_orders = self.env['purchase.order'].search([('product_id', 'in', products.ids)], order="id")
+        purchase_orders.button_confirm()
+
+        receipts = purchase_orders.picking_ids
+        self.assertEqual(receipts[0].partner_id, self.vendor)
+        self.assertEqual(receipts[0].move_ids.product_id, xd_product)
+        self.assertEqual(receipts[1].partner_id, self.vendor)
+        self.assertEqual(receipts[1].move_ids.product_id, self.mto_product | mts_product)
+
+        receipts.button_validate()
+        # we will process the XD internal picking during the next step (output pickings)
+        _xd_internal, receipt_internal = receipts._get_next_transfers()
+        self.assertFalse(receipt_internal.partner_id)
+        self.assertEqual(receipt_internal.move_ids.product_id, self.mto_product | mts_product)
+        receipt_internal.button_validate()
+
+        output_pickings = sale_orders.picking_ids.filtered(lambda p: p.location_dest_id == self.warehouse.wh_output_stock_loc_id)
+        self.assertEqual(output_pickings[0].partner_id, xd_customer)
+        self.assertEqual(output_pickings[0].move_ids.product_id, xd_product)
+        self.assertEqual(output_pickings[1].partner_id, mto_customer)
+        self.assertEqual(output_pickings[1].move_ids.product_id, self.mto_product)
+        self.assertEqual(output_pickings[2].partner_id, mts_customer)
+        self.assertEqual(output_pickings[2].move_ids.product_id, mts_product)
+
+        output_pickings.button_validate()
+        deliveries = output_pickings._get_next_transfers()
+        self.assertEqual(deliveries[0].partner_id, xd_customer)
+        self.assertEqual(deliveries[0].move_ids.product_id, xd_product)
+        self.assertEqual(deliveries[1].partner_id, mto_customer)
+        self.assertEqual(deliveries[1].move_ids.product_id, self.mto_product)
+        self.assertEqual(deliveries[2].partner_id, mts_customer)
+        self.assertEqual(deliveries[2].move_ids.product_id, mts_product)
+
+        deliveries.button_validate()
+        self.assertEqual(sale_orders.order_line.mapped('qty_delivered'), [1.0, 1.0, 1.0])
+
+    def test_reservation_on_mto_product_after_po_cancellation(self):
+        """
+        Test that a reservation can be made on an MTO product after PO cancellation.
+        Create a sale order with an MTO product, confirm it, cancel the
+        related purchase order, and then check that the reservation can be done
+        on the picking move of the SO.
+        """
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.customer.id,
+            'order_line': [Command.create({
+                'product_id': self.mto_product.id,
+                'product_uom_qty': 1,
+            })],
+        })
+        sale_order.action_confirm()
+        self.assertEqual(sale_order.state, 'sale')
+        self.assertEqual(sale_order.picking_ids.state, 'waiting')
+        self.assertEqual(sale_order.picking_ids.move_ids.quantity, 0)
+        purchase_order = sale_order._get_purchase_orders()
+        purchase_order.button_cancel()
+        self.assertEqual(purchase_order.state, 'cancel')
+        # update the quantity on hand of the MTO product
+        self.env['stock.quant']._update_available_quantity(self.mto_product, sale_order.picking_ids.move_ids.location_id, 1)
+        sale_order.picking_ids.action_assign()
+        self.assertEqual(sale_order.picking_ids.move_ids.quantity, 1)
+
+    def test_mto_cancel_multi_steps_confirmed_purchase(self):
+        '''
+        In multi step reception, after purchase confirmation, test that when the
+        reception gets cancelled, the delivery (to the client) can be made from
+        stock.
+        '''
+        two_step_wh = self.warehouse
+        three_step_wh = self.env.ref('stock.warehouse0')
+        two_step_wh.reception_steps = 'two_steps'
+        three_step_wh.reception_steps = 'three_steps'
+        sale_orders = self.env['sale.order']
+        for wh in (two_step_wh, three_step_wh):
+            self.env['stock.quant']._update_available_quantity(self.mto_product, wh.lot_stock_id, 10)
+            sale_orders |= self.env['sale.order'].create([{
+                'partner_id': self.customer.id,
+                'order_line': [Command.create({
+                    'product_id': self.mto_product.id,
+                    'product_uom_qty': 1,
+                })],
+                'warehouse_id': wh.id,
+            }])
+        sale_orders.action_confirm()
+        self.assertListEqual(sale_orders.picking_ids.mapped('state'), ['waiting', 'waiting'])
+        self.assertListEqual(sale_orders.picking_ids.move_ids.mapped('procure_method'), ['make_to_order', 'make_to_order'])
+        purchase_orders = sale_orders._get_purchase_orders()
+        purchase_orders.button_confirm()
+        self.assertListEqual(sale_orders.picking_ids.move_ids.move_orig_ids.ids, purchase_orders.picking_ids.move_ids.ids)
+        purchase_orders.picking_ids.action_cancel()
+        self.assertListEqual(sale_orders.picking_ids.mapped('state'), ['confirmed', 'confirmed'])
+        self.assertFalse(sale_orders.picking_ids.move_ids.move_orig_ids)
+        sale_orders.picking_ids.action_assign()
+        self.assertListEqual(sale_orders.picking_ids.move_ids.mapped('quantity'), [1.0, 1.0])
+
+    def test_mto_sale_order_propagates_analytic_distribution_to_purchase_line(self):
+        """Ensure that the analytic distribution defined on a Sale Order line
+        with an MTO + Buy product is propagated to the generated Purchase Order line.
+        """
+        default_plan = self.env['account.analytic.plan'].create({
+            'name': 'Default',
+        })
+        analytic_account = self.env['account.analytic.account'].create({
+            'name': 'Test Analytic Account',
+            'plan_id': default_plan.id,
+        })
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.customer.id,
+            'order_line': [Command.create({
+                'product_id': self.mto_product.id,
+                'product_uom_qty': 1,
+                'analytic_distribution': {str(analytic_account.id): 100},
+            })],
+        })
+        sale_order.action_confirm()
+        purchase_order = sale_order._get_purchase_orders()
+        self.assertEqual(purchase_order.order_line.analytic_distribution, {str(analytic_account.id): 100})
+
+    def test_mto_po_double_quantity_update(self):
+        """
+        Confirm an SO for an MTO + Buy product. Increase and then decrease the quantity on the PO.
+        The quantity of the receipt should be adapted accodingly.
+        """
+        so = self.env['sale.order'].create({
+            'partner_id': self.customer.id,
+            'order_line': [
+                Command.create({
+                    'name': self.mto_product.name,
+                    'product_id': self.mto_product.id,
+                    'product_uom_qty': 1,
+                    'product_uom': self.mto_product.uom_id.id,
+                    'price_unit': 10,
+                }),
+            ],
+        })
+        so.action_confirm()
+        delivery = so.picking_ids
+        self.assertRecordValues(delivery.move_ids, [
+            {'product_id': self.mto_product.id, 'product_uom_qty': 1.0},
+        ])
+        po = so._get_purchase_orders()
+        po.button_confirm()
+        po.order_line.product_qty = 10.0
+        self.assertEqual(po.picking_ids.move_ids.quantity, 10.0)
+        po.order_line.product_qty = 5.0
+        self.assertEqual(po.picking_ids.move_ids.quantity, 5.0)

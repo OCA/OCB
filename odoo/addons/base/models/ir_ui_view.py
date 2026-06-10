@@ -250,6 +250,7 @@ actual arch.
 
     def _inverse_arch(self):
         for view in self:
+            self._validate_xml_encoding(view.arch)
             data = dict(arch_db=view.arch)
             if 'install_filename' in self._context:
                 # we store the relative path to the resource instead of the absolute path, if found
@@ -276,6 +277,7 @@ actual arch.
 
     def _inverse_arch_base(self):
         for view, view_wo_lang in zip(self, self.with_context(lang=None)):
+            self._validate_xml_encoding(view.arch_base)
             view_wo_lang.arch = view.arch_base
 
     def reset_arch(self, mode='soft'):
@@ -365,7 +367,8 @@ actual arch.
                 combined_arch = view._get_combined_arch()
                 if view.type == 'qweb':
                     continue
-            except (etree.ParseError, ValueError) as e:
+            except (etree.ParseError, ValueError, TypeError) as e:
+                # Note: lxml < 5.0 raises ValueError; lxml 5.0+ / libxml2 2.12+ raises TypeError
                 err = ValidationError(_(
                     "Error while parsing or validating view:\n\n%(error)s",
                     error=e,
@@ -473,11 +476,20 @@ actual arch.
                 combined_arch = view._get_combined_arch()
                 if view.type != 'qweb':
                     view._postprocess_view(combined_arch, view.model, is_compute_warning_info=True)
-            except (etree.ParseError, ValueError) as e:
+            except (etree.ParseError, ValueError, TypeError) as e:
+                # Note: lxml < 5.0 raises ValueError; lxml 5.0+ / libxml2 2.12+ raises TypeError
                 view.warning_info = str(e)
+
+    def _validate_xml_encoding(self, text):
+        if isinstance(text, str) and re.search(r'<\?xml[^>]*encoding=.*?\?>', text, re.IGNORECASE):
+            raise UserError(_(
+                "Unicode strings with encoding declaration are not supported in XML.\n"
+                "Remove the encoding declaration."
+            ))
 
     @api.model_create_multi
     def create(self, vals_list):
+        valid_types = self._fields['type']._selection
         for values in vals_list:
             if 'arch_db' in values and not values['arch_db']:
                 # delete empty arch_db to avoid triggering _check_xml before _inverse_arch_base is called
@@ -492,7 +504,15 @@ actual arch.
                         if not values.get('arch') and not values.get('arch_base'):
                             raise ValidationError(_('Missing view architecture.'))
                         values['type'] = etree.fromstring(values.get('arch') or values.get('arch_base')).tag
-                    except LxmlError:
+                        if values['type'] not in valid_types:
+                            raise ValidationError(_(
+                                "Invalid view type: '%(view_type)s'.\n"
+                                "You might have used an invalid starting tag in the architecture.\n"
+                                "Allowed types are: %(valid_types)s",
+                                view_type=values['type'], valid_types=', '.join(valid_types)
+                            ))
+                    except (etree.ParseError, ValueError, TypeError):
+                        # Note: lxml < 5.0 raises ValueError; lxml 5.0+ / libxml2 2.12+ raises TypeError
                         # don't raise here, the constraint that runs `self._check_xml` will
                         # do the job properly.
                         pass
@@ -1016,7 +1036,15 @@ actual arch.
         # check the read/visibility access
         for node in tree.xpath('//*[@__groups_key__]'):
             if not has_access(node.attrib.pop('__groups_key__')):
-                node.getparent().remove(node)
+                tail = node.tail
+                parent = node.getparent()
+                previous = node.getprevious()
+                parent.remove(node)
+                if tail:
+                    if previous is not None:
+                        previous.tail = (previous.tail or '') + tail
+                    elif parent is not None:
+                        parent.text = (parent.text or '') + tail
             elif node.tag == 't' and not node.attrib:
                 # Move content of <t groups=""> blocks
                 # and remove the <t> node.
@@ -2433,6 +2461,8 @@ class Model(models.AbstractModel):
         for fname, field in self._fields.items():
             if field.automatic:
                 continue
+            elif field.type == "binary" and not isinstance(field, fields.Image) and not field.store:
+                continue
             elif field.type in ('one2many', 'many2many', 'text', 'html'):
                 # append to sheet left and right group if needed
                 if len(left_group) > 0:
@@ -2683,6 +2713,29 @@ class Model(models.AbstractModel):
                 raise UserError(_("No default view of type '%s' could be found!", view_type))
         return arch, view
 
+    def _get_view_postprocessed(self, view, arch, **options):
+        """
+        Get the post-processed view architecture and the corresponding fields.
+
+        This method uses the view's ``postprocess_and_fields`` function to process
+        the view architecture. It applies access control rules, field modifiers,
+        and tag-specific logic. It also automatically embeds subviews for
+        ``one2many`` and ``many2many`` fields when required, and collects all
+        fields used across the view and its subviews.
+
+        :param view: an ``ir.ui.view`` record
+        :param arch: the view architecture as a string
+        :param options: bool options to return additional features:
+                        ``mobile`` (bool): true if the web client is currently using
+                        the responsive mobile view (to use kanban views instead of
+                        list views for x2many fields)
+        :return: a tuple containing:
+                - the post-processed view architecture as a string
+                - a dictionary of models and the fields used in the view
+        :rtype: tuple(str, dict)
+        """
+        return view.postprocess_and_fields(arch, model=self._name, **options)
+
     @api.model
     def _get_view_cache_key(self, view_id=None, view_type='form', **options):
         """ Get the key to use for caching `_get_view_cache`.
@@ -2729,7 +2782,7 @@ class Model(models.AbstractModel):
         arch, view = self._get_view(view_id, view_type, **options)
 
         # Apply post processing, groups and modifiers etc...
-        arch, models = view.postprocess_and_fields(arch, model=self._name, **options)
+        arch, models = self._get_view_postprocessed(view, arch, **options)
         models = self._get_view_fields(view_type or view.type, models)
         result = {
             'arch': arch,
@@ -2814,8 +2867,8 @@ class Model(models.AbstractModel):
         :rtype: list
         """
         return [
-            'change_default', 'context', 'currency_field', 'definition_record', 'definition_record_field', 'digits', 'domain', 'aggregator', 'groups',
-            'help', 'model_field', 'name', 'readonly', 'related', 'relation', 'relation_field', 'required', 'searchable', 'selection', 'size',
+            'change_default', 'context', 'currency_field', 'definition_record', 'definition_record_field', 'digits', 'min_display_digits', 'domain', 'aggregator',
+            'groups', 'help', 'model_field', 'name', 'readonly', 'related', 'relation', 'relation_field', 'required', 'searchable', 'selection', 'size',
             'sortable', 'store', 'string', 'translate', 'trim', 'type', 'groupable',
         ]
 

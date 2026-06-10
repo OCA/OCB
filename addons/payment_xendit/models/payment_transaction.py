@@ -39,7 +39,8 @@ class PaymentTransaction(models.Model):
             rounding = self.currency_id.decimal_places
         rounded_amount = float_round(self.amount, rounding, rounding_method='DOWN')
         return {
-            'rounded_amount': rounded_amount
+            'rounded_amount': rounded_amount,
+            'access_token': payment_utils.generate_access_token(self.reference)
         }
 
     def _get_specific_rendering_values(self, processing_values):
@@ -95,6 +96,9 @@ class PaymentTransaction(models.Model):
             ],
             'currency': self.currency_id.name,
         }
+        # If it's one of FPX methods, assign the payment methods as FPX automatically
+        if self.payment_method_code == 'fpx':
+            payload['payment_methods'] = const.FPX_METHODS
         # Extra payload values that must not be included if empty.
         if self.partner_email:
             payload['customer']['email'] = self.partner_email
@@ -133,10 +137,11 @@ class PaymentTransaction(models.Model):
 
         self._xendit_create_charge(self.token_id.provider_ref)
 
-    def _xendit_create_charge(self, token_ref):
+    def _xendit_create_charge(self, token_ref, auth_id=None):
         """ Create a charge on Xendit using the `credit_card_charges` endpoint.
 
         :param str token_ref: The reference of the Xendit token to use to make the payment.
+        :param str auth_id: The authentication id to use to make the payment.
         :return: None
         """
         if self.currency_id.name in const.CURRENCY_DECIMALS:
@@ -150,6 +155,13 @@ class PaymentTransaction(models.Model):
             'amount': rounded_amount,
             'currency': self.currency_id.name,
         }
+
+        if auth_id:  # The payment goes through an authentication.
+            payload['authentication_id'] = auth_id
+
+        if self.token_id or self.tokenize:  # The tx uses a token or is tokenized.
+            payload['is_recurring'] = True  # Ensure that next payments will not require 3DS.
+
         charge_notification_data = self.provider_id._xendit_make_request(
             'credit_card_charges', payload=payload
         )
@@ -199,7 +211,11 @@ class PaymentTransaction(models.Model):
         self.provider_reference = notification_data.get('id')
 
         # Update payment method.
+        # If it's one of FPX Methods, assign the payment method as FPX automatically
         payment_method_code = notification_data.get('payment_method', '')
+        if payment_method_code in const.FPX_METHODS:
+            payment_method_code = 'fpx'
+
         payment_method = self.env['payment.method']._get_from_code(
             payment_method_code, mapping=const.PAYMENT_METHODS_MAPPING
         )

@@ -82,7 +82,11 @@ class ReportMoOverview(models.AbstractModel):
 
         if production.bom_id:
             currency = (production.company_id or self.env.company).currency_id
-            missing_components = (bom_line for bom_line in production.bom_id.bom_line_ids if bom_line not in (production.move_raw_ids.bom_line_id + self._get_kit_bom_lines(production.bom_id)))
+            current_bom_lines = production.move_raw_ids.bom_line_id | self._get_kit_bom_lines(production.bom_id)
+            missing_components = production.bom_id.bom_line_ids.filtered(
+                lambda bom_line: bom_line not in current_bom_lines and
+                not bom_line._skip_bom_line(production.product_id)
+            )
             missing_operations = (bom_line for bom_line in production.bom_id.operation_ids if bom_line not in production.workorder_ids.operation_id)
             for line in missing_components:
                 line_cost = line.product_id.uom_id._compute_price(line.product_id.standard_price, line.product_uom_id) * line.product_qty
@@ -329,7 +333,7 @@ class ReportMoOverview(models.AbstractModel):
             })
             total_expected_time += workorder.duration_expected
             total_current_time += wo_duration if is_workorder_started else workorder.duration_expected
-            total_expected_cost += mo_cost
+            total_expected_cost += production.company_id.currency_id.round(mo_cost)
             total_bom_cost = self._sum_bom_cost(total_bom_cost, bom_cost)
             total_real_cost += real_cost
 
@@ -527,7 +531,8 @@ class ReportMoOverview(models.AbstractModel):
         real_cost = currency.round(self._get_component_real_cost(move_raw, current_quantity if move_raw.picked else 0))
         if production.bom_id:
             if move_raw.bom_line_id:
-                bom_cost = currency.round(self._get_component_real_cost(move_raw, move_raw.bom_line_id.product_qty * production.product_uom_qty / production.bom_id.product_qty))
+                qty_in_bom_uom = production.product_uom_id._compute_quantity(production.product_qty, production.bom_id.product_uom_id)
+                bom_cost = currency.round(self._get_component_real_cost(move_raw, move_raw.bom_line_id.product_qty * qty_in_bom_uom / production.bom_id.product_qty))
             else:
                 bom_cost = False
         else:
@@ -684,7 +689,11 @@ class ReportMoOverview(models.AbstractModel):
         free_qty = max(0, product.uom_id._compute_quantity(product.free_qty, move_raw.product_uom))
         available_qty = reserved_quantity + free_qty + total_ordered
         missing_quantity = quantity - available_qty
-        bom_missing_quantity = production.product_uom_qty * move_raw.bom_line_id.product_qty - (reserved_quantity + free_qty + total_ordered)
+        if move_raw.bom_line_id:
+            qty_in_bom_uom = production.product_uom_id._compute_quantity(production.product_qty, production.bom_id.product_uom_id)
+            bom_missing_quantity = qty_in_bom_uom * move_raw.bom_line_id.product_qty - (reserved_quantity + free_qty + total_ordered)
+        else:
+            bom_missing_quantity = 0
 
         if product.is_storable and production.state not in ('done', 'cancel')\
            and float_compare(missing_quantity, 0, precision_rounding=move_raw.product_uom.rounding) > 0:

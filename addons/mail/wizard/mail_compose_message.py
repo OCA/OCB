@@ -53,8 +53,9 @@ class MailComposer(models.TransientModel):
         may have to give a huge list of IDs that won't fit into res_ids field.
         """
         # support subtype xmlid, like ``message_post``, when easier than using ``ref``
+        composer = self
         if self.env.context.get('default_subtype_xmlid'):
-            self = self.with_context(
+            composer = composer.with_context(
                 default_subtype_id=self.env['ir.model.data']._xmlid_to_res_id(
                     self.env.context['default_subtype_xmlid']
                 )
@@ -62,8 +63,17 @@ class MailComposer(models.TransientModel):
         # deprecated record context management
         if 'default_res_id' in self.env.context:
             raise ValueError(_("Deprecated usage of 'default_res_id', should use 'default_res_ids'."))
+        if (
+            'body' in fields_list
+            and self.env.context.get('default_body')
+            and self.env.context.get('body_contains_signature_only')
+            and super().default_get(['template_id']).get('template_id')
+        ):
+            ctx = dict(composer.env.context)
+            ctx.pop('default_body', None)
+            composer = composer.with_context(ctx)
 
-        result = super().default_get(fields_list)
+        result = super(MailComposer, composer).default_get(fields_list)
 
         # when being in new mode, create_uid is not granted -> ACLs issue may arise
         if 'create_uid' in fields_list and 'create_uid' not in result:
@@ -760,6 +770,7 @@ class MailComposer(models.TransientModel):
         batch_size = int(
             self.env['ir.config_parameter'].sudo().get_param('mail.batch_size')
         ) or self._batch_size or 50  # be sure to not have 0, as otherwise no iteration is done
+        counter_mails_done = 0
         for res_ids_iter in tools.split_every(batch_size, res_ids):
             res_ids_values = list(self._prepare_mail_values(res_ids_iter).values())
 
@@ -786,6 +797,9 @@ class MailComposer(models.TransientModel):
             # send better void the cache and commit what is already generated to avoid
             # running several times on same records in case of issue
             if auto_commit is True:
+                counter_mails_done += len(res_ids_values)
+                self.env['ir.cron']._notify_progress(done=counter_mails_done,
+                                                      remaining=len(res_ids) - counter_mails_done)
                 self._cr.commit()
             self.env.invalidate_all()
 
@@ -1095,7 +1109,10 @@ class MailComposer(models.TransientModel):
                 mail_values['attachment_ids'] = process_record._process_attachments_for_post(
                     decoded_attachments,
                     attachment_ids,
-                    {'model': 'mail.message', 'res_id': 0}
+                    {'model': 'mail.message', 'res_id': 0} if (
+                        not hasattr(record, "_process_attachments_for_post")
+                        or (self.auto_delete and not self.auto_delete_keep_log)
+                    ) else {}  # link to record if kept in chatter, this ensures users can download it
                 )['attachment_ids']
             # comment mode: prepare attachments as a list of IDs, to be processed by MailThread
             else:

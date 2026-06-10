@@ -1,27 +1,30 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* product
-# 
+# * product
+#
 # Translators:
 # Martin Trigaux, 2024
 # Tiffany Chang, 2024
 # Mustafa J. Kadhem <safi2266@gmail.com>, 2024
 # Wil Odoo, 2024
 # Malaz Abuidris <msea@odoo.com>, 2025
-# 
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-27 13:04+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2025\n"
-"Language-Team: Arabic (https://app.transifex.com/odoo/teams/41243/ar/)\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
+"PO-Revision-Date: 2026-04-11 09:07+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-18/product/"
+"ar/>\n"
+"Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ar\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: product
 #. odoo-python
@@ -48,34 +51,28 @@ msgid "# Products"
 msgstr "عدد المنتجات"
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
-msgid "$14.00"
-msgstr "$14.00"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
-msgid "$15.00"
-msgstr "$15.00"
+#. odoo-python
+#: code:addons/product/models/product_pricelist_item.py:0
+msgid ""
+"%(base)s with a %(discount)s %% %(discount_type)s and %(surcharge)s extra "
+"fee\n"
+"Example: %(amount)s * %(discount_charge)s + %(price_surcharge)s → %"
+"(total_amount)s"
+msgstr ""
+"%(base)s مع خصم %(discount)s %% %(discount_type)s ورسوم إضافية %"
+"(surcharge)s\n"
+"مثال: %(amount)s * %(discount_charge)s + %(price_surcharge)s → %"
+"(total_amount)s"
 
 #. module: product
 #. odoo-python
 #: code:addons/product/models/product_pricelist_item.py:0
 msgid ""
-"%(base)s with a %(discount)s %% %(discount_type)s and %(surcharge)s extra fee\n"
-"Example: %(amount)s * %(discount_charge)s + %(price_surcharge)s → %(total_amount)s"
+"%(item_name)s: end date (%(end_date)s) should be after start date (%"
+"(start_date)s)"
 msgstr ""
-"%(base)s مع خصم %(discount)s %% %(discount_type)s ورسوم إضافية %(surcharge)s\n"
-"مثال: %(amount)s * %(discount_charge)s + %(price_surcharge)s → %(total_amount)s"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_pricelist_item.py:0
-msgid ""
-"%(item_name)s: end date (%(end_date)s) should be after start date "
-"(%(start_date)s)"
-msgstr ""
-"%(item_name)s: يجب أن يكون تاريخ الانتهاء (%(end_date)s) أكبر من تاريخ البدء"
-" (%(start_date)s) "
+"%(item_name)s: يجب أن يكون تاريخ الانتهاء (%(end_date)s) أكبر من تاريخ البدء "
+"(%(start_date)s) "
 
 #. module: product
 #. odoo-python
@@ -138,21 +135,26 @@ msgstr "- %(amount)s خصم"
 #. module: product
 #. odoo-python
 #: code:addons/product/models/product_product.py:0
-msgid "- Barcode \"%(barcode)s\" already assigned to product(s): %(product_list)s"
+msgid ""
+"- Barcode \"%(barcode)s\" already assigned to product(s): %(product_list)s"
 msgstr ""
-"- الباركود \"%(barcode)s\" تم تعيينه بالفعل للمنتج (المنتجات): "
-"%(product_list)s "
+"- الباركود \"%(barcode)s\" تم تعيينه بالفعل للمنتج (المنتجات): %"
+"(product_list)s "
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_attribute__create_variant
 msgid ""
-"- Instantly: All possible variants are created as soon as the attribute and its values are added to a product.\n"
-"        - Dynamically: Each variant is created only when its corresponding attributes and values are added to a sales order.\n"
+"- Instantly: All possible variants are created as soon as the attribute and "
+"its values are added to a product.\n"
+"        - Dynamically: Each variant is created only when its corresponding "
+"attributes and values are added to a sales order.\n"
 "        - Never: Variants are never created for the attribute.\n"
 "        Note: this cannot be changed once the attribute is used on a product."
 msgstr ""
-"- على الفور: يتم إنشاء جميع المتغيرات الممكنة بمجرد إضافة السمة وقيمها إلى المنتج.\n"
-"- ديناميكيًا: يتم إنشاء كل متغير فقط عند إضافة السمات والقيم المقابلة له إلى أمر مبيعات.\n"
+"- على الفور: يتم إنشاء جميع المتغيرات الممكنة بمجرد إضافة السمة وقيمها إلى "
+"المنتج.\n"
+"- ديناميكيًا: يتم إنشاء كل متغير فقط عند إضافة السمات والقيم المقابلة له إلى "
+"أمر مبيعات.\n"
 "- أبدًا: لا يتم إنشاء متغيرات للسمة مطلقًا.\n"
 "ملاحظة: لا يمكن تغيير ذلك بمجرد استخدام السمة على المنتج."
 
@@ -167,19 +169,9 @@ msgid "1 year warranty extension"
 msgstr "تمديد الضمان لمدة سنة "
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.report_packagingbarcode
-msgid "10"
-msgstr "10"
-
-#. module: product
 #: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
 msgid "10 Units"
 msgstr "10 وحدات "
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.report_packagingbarcode
-msgid "123456789012"
-msgstr "123456789012"
 
 #. module: product
 #: model:product.template,description_sale:product.product_product_4_product_template
@@ -227,8 +219,12 @@ msgstr ""
 
 #. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_view_kanban
-msgid "<i class=\"fa fa-money\" role=\"img\" aria-label=\"Currency\" title=\"Currency\"/>"
-msgstr "<i class=\"fa fa-money\" role=\"img\" aria-label=\"Currency\" title=\"العملة \"/>"
+msgid ""
+"<i class=\"fa fa-money\" role=\"img\" aria-label=\"Currency\" "
+"title=\"Currency\"/>"
+msgstr ""
+"<i class=\"fa fa-money\" role=\"img\" aria-label=\"Currency\" title=\"العملة "
+"\"/>"
 
 #. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
@@ -236,14 +232,16 @@ msgid ""
 "<span class=\"o_stat_text\" invisible=\"pricelist_item_count == 1\">\n"
 "                                            Rules\n"
 "                                        </span>\n"
-"                                        <span class=\"o_stat_text\" invisible=\"pricelist_item_count != 1\">\n"
+"                                        <span class=\"o_stat_text\" "
+"invisible=\"pricelist_item_count != 1\">\n"
 "                                            Rule\n"
 "                                        </span>"
 msgstr ""
 "<span class=\"o_stat_text\" invisible=\"pricelist_item_count == 1\">\n"
 "                                            القواعد\n"
 "                                        </span>\n"
-"                                        <span class=\"o_stat_text\" invisible=\"pricelist_item_count != 1\">\n"
+"                                        <span class=\"o_stat_text\" "
+"invisible=\"pricelist_item_count != 1\">\n"
 "                                            القاعدة\n"
 "                                        </span> "
 
@@ -253,14 +251,16 @@ msgid ""
 "<span class=\"o_stat_text\" invisible=\"pricelist_item_count == 1\">\n"
 "                                        Pricelists\n"
 "                                    </span>\n"
-"                                    <span class=\"o_stat_text\" invisible=\"pricelist_item_count != 1\">\n"
+"                                    <span class=\"o_stat_text\" "
+"invisible=\"pricelist_item_count != 1\">\n"
 "                                        Pricelist\n"
 "                                    </span>"
 msgstr ""
 "<span class=\"o_stat_text\" invisible=\"pricelist_item_count == 1\">\n"
 "                                        قوائم الأسعار\n"
 "                                    </span>\n"
-"                                    <span class=\"o_stat_text\" invisible=\"pricelist_item_count != 1\">\n"
+"                                    <span class=\"o_stat_text\" "
+"invisible=\"pricelist_item_count != 1\">\n"
 "                                        قائمة الأسعار\n"
 "                                    </span>"
 
@@ -351,8 +351,8 @@ msgstr "يجب أن يحتوي خِيار المجموعة على خِيار م�
 #: model:ir.model.fields,help:product.field_product_product__description_sale
 #: model:ir.model.fields,help:product.field_product_template__description_sale
 msgid ""
-"A description of the Product that you want to communicate to your customers."
-" This description will be copied to every Sales Order, Delivery Order and "
+"A description of the Product that you want to communicate to your customers. "
+"This description will be copied to every Sales Order, Delivery Order and "
 "Customer Invoice/Credit Note"
 msgstr ""
 "وصف المنتج الذي تود التواصل بشأنه مع عملائك. سيتم نسخ هذا الوصف وإضافته لكل "
@@ -367,11 +367,26 @@ msgstr "يوجد طرد يحمل هذا الباركود بالفعل "
 #. module: product
 #: model_terms:ir.actions.act_window,help:product.product_pricelist_action2
 msgid ""
-"A price is a set of sales prices or rules to compute the price of sales order lines based on products, product categories, dates and ordered quantities.\n"
-"            This is the perfect tool to handle several pricings, seasonal discounts, etc."
+"A price is a set of sales prices or rules to compute the price of sales "
+"order lines based on products, product categories, dates and ordered "
+"quantities.\n"
+"            This is the perfect tool to handle several pricings, seasonal "
+"discounts, etc."
 msgstr ""
-"السعر النهائي هو مجموعة من أسعار أو قواعد المبيعات يتم من خلالها احتساب بنود أمر المبيعات حسب المنتجات، وفئات المنتجات، والتواريخ، والكميات المطلوبة.\n"
-"            نها الأداة المثالية للتعامل مع التسعيرات المتعددة والخصومات الموسمية، إلخ. "
+"السعر النهائي هو مجموعة من أسعار أو قواعد المبيعات يتم من خلالها احتساب بنود "
+"أمر المبيعات حسب المنتجات، وفئات المنتجات، والتواريخ، والكميات المطلوبة.\n"
+"            نها الأداة المثالية للتعامل مع التسعيرات المتعددة والخصومات "
+"الموسمية، إلخ. "
+
+#. module: product
+#. odoo-python
+#: code:addons/product/models/product_pricelist_item.py:0
+msgid ""
+"A pricelist item with \"Other Pricelist\" as base must have a "
+"base_pricelist_id."
+msgstr ""
+"يجب أن يكون لعنصر قائمة الأسعار الذي يستخدم \"قائمة أسعار أخرى\" كأساس معرف "
+"base_pricelist_id."
 
 #. module: product
 #. odoo-python
@@ -533,10 +548,8 @@ msgid "All Product Variants using this Tag"
 msgstr "كافة متغيرات المنتجات التي تستخدم علامة التصنيف هذه"
 
 #. module: product
-#. odoo-javascript
 #. odoo-python
 #: code:addons/product/models/product_pricelist_item.py:0
-#: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 #: model:ir.model.fields.selection,name:product.selection__product_pricelist_item__applied_on__3_global
 #: model_terms:ir.ui.view,arch_db:product.product_tag_form_view
 msgid "All Products"
@@ -1484,8 +1497,8 @@ msgstr "سعر إضافي"
 #. module: product
 #: model:ir.model.fields,help:product.field_product_template_attribute_value__price_extra
 msgid ""
-"Extra price for the variant with this attribute value on sale price. eg. 200"
-" price extra, 1000 + 200 = 1200."
+"Extra price for the variant with this attribute value on sale price. eg. 200 "
+"price extra, 1000 + 200 = 1200."
 msgstr ""
 "سعر إضافي للمتغير حامل قيمة هذه الخاصية في سعر البيع. مثال: 200 سعر إضافي، "
 "1000 + 200 = 1200. "
@@ -1559,10 +1572,12 @@ msgstr "أيقونة من Font awesome مثال: fa-tasks "
 #. module: product
 #: model:ir.model.fields,help:product.field_product_pricelist_item__min_quantity
 msgid ""
-"For the rule to apply, bought/sold quantity must be greater than or equal to the minimum quantity specified in this field.\n"
+"For the rule to apply, bought/sold quantity must be greater than or equal to "
+"the minimum quantity specified in this field.\n"
 "Expressed in the default unit of measure of the product."
 msgstr ""
-"ليتم تطبيق القاعدة، يجب أن تكون الكمية المشتراة/المباعة أكبر من أو مساوية للحد الأدنى المحدد في هذا الحقل.\n"
+"ليتم تطبيق القاعدة، يجب أن تكون الكمية المشتراة/المباعة أكبر من أو مساوية "
+"للحد الأدنى المحدد في هذا الحقل.\n"
 "معبر عنه بوحدة القياس الافتراضية للمنتج."
 
 #. module: product
@@ -1924,6 +1939,11 @@ msgid "Kilograms"
 msgstr "كيلوجرامات"
 
 #. module: product
+#: model:product.attribute.value,name:product.size_attribute_l
+msgid "L"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_6_product_template
 msgid "Large Cabinet"
 msgstr "خزانة كبيرة"
@@ -2040,10 +2060,15 @@ msgstr ""
 "على عرض سعر. "
 
 #. module: product
+#: model:product.attribute.value,name:product.size_attribute_m
+msgid "M"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,help:product.field_product_template_attribute_value__exclude_for
 msgid ""
-"Make this attribute value not compatible with other values of the product or"
-" some attribute values of optional and accessory products."
+"Make this attribute value not compatible with other values of the product or "
+"some attribute values of optional and accessory products."
 msgstr ""
 "جعل قيمة هذه الخاصية غير متوافقة مع القيم الأخرى للمنتج أو بعض قيم الخصائص "
 "للمنتجات الاختيارية والملحقات. "
@@ -2321,8 +2346,8 @@ msgstr "مصباح مكتبي"
 #. odoo-python
 #: code:addons/product/models/product_template_attribute_line.py:0
 msgid ""
-"On the product %(product)s you cannot associate the value %(value)s with the"
-" attribute %(attribute)s because they do not match."
+"On the product %(product)s you cannot associate the value %(value)s with the "
+"attribute %(attribute)s because they do not match."
 msgstr ""
 "في المنتج %(product)s لا يمكنك ربط القيمة %(value)s بالخاصية %(attribute)s "
 "لعدم تطابقهما. "
@@ -2331,11 +2356,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/product/models/product_template_attribute_line.py:0
 msgid ""
-"On the product %(product)s you cannot transform the attribute "
-"%(attribute_src)s into the attribute %(attribute_dest)s."
+"On the product %(product)s you cannot transform the attribute %"
+"(attribute_src)s into the attribute %(attribute_dest)s."
 msgstr ""
-"في المنتج %(product)s لا يمكنك تحويل الخاصية %(attribute_src)s إلى الخاصية "
-"%(attribute_dest)s. "
+"في المنتج %(product)s لا يمكنك تحويل الخاصية %(attribute_src)s إلى الخاصية %"
+"(attribute_dest)s. "
 
 #. module: product
 #. odoo-javascript
@@ -3027,11 +3052,11 @@ msgstr "الرقم المرجعي "
 #. module: product
 #: model_terms:ir.actions.act_window,help:product.product_supplierinfo_type_action
 msgid ""
-"Register the prices requested by your vendors for each product, based on the"
-" quantity and the period."
+"Register the prices requested by your vendors for each product, based on the "
+"quantity and the period."
 msgstr ""
-"قم بتسجيل الأسعار المطلوبة من قِبَل مورّديك لكل منتج، بناءً على الكمية "
-"والمدة الزمنية. "
+"قم بتسجيل الأسعار المطلوبة من قِبَل مورّديك لكل منتج، بناءً على الكمية والمدة "
+"الزمنية. "
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_attribute__product_tmpl_ids
@@ -3108,6 +3133,11 @@ msgid "Rule Tip"
 msgstr "تلميح القاعدة "
 
 #. module: product
+#: model:product.attribute.value,name:product.size_attribute_s
+msgid "S"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__sale_ok
 #: model:ir.model.fields,field_description:product.field_product_template__sale_ok
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
@@ -3177,7 +3207,8 @@ msgid ""
 msgstr ""
 "تحديد قيمة السعر لتكون من مضاعفات هذه القيمة.\n"
 "يتم التقريب بعد تطبيق الخصم وقبل حساب الرسوم الإضافية \n"
-"حتى تتمكن من استخدام الأسعار التي تنتهي بـ 9.99، قم بالتقريب إلى 10.00، وقم بتعيين رسوم إضافية بقيمة -0.01 "
+"حتى تتمكن من استخدام الأسعار التي تنتهي بـ 9.99، قم بالتقريب إلى 10.00، وقم "
+"بتعيين رسوم إضافية بقيمة -0.01 "
 
 #. module: product
 #. odoo-javascript
@@ -3208,8 +3239,8 @@ msgid ""
 "Specify a product category if this rule only applies to products belonging "
 "to this category or its children categories. Keep empty otherwise."
 msgstr ""
-"حدد فئة منتج إن كانت هذه القاعدة تُطبق فقط على المنتجات التابعة لهذه الفئة "
-"أو الفئات التابعة لها. وإلا، اترك هذه الخانة فارغة."
+"حدد فئة منتج إن كانت هذه القاعدة تُطبق فقط على المنتجات التابعة لهذه الفئة أو "
+"الفئات التابعة لها. وإلا، اترك هذه الخانة فارغة."
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_pricelist_item__product_id
@@ -3217,8 +3248,8 @@ msgid ""
 "Specify a product if this rule only applies to one product. Keep empty "
 "otherwise."
 msgstr ""
-"حدد منتجًا إن كانت هذه القاعدة تُطبق على منتج واحد فقط. وإلا، اترك هذه "
-"الخانة فارغة."
+"حدد منتجًا إن كانت هذه القاعدة تُطبق على منتج واحد فقط. وإلا، اترك هذه الخانة "
+"فارغة."
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_pricelist_item__product_tmpl_id
@@ -3226,8 +3257,8 @@ msgid ""
 "Specify a template if this rule only applies to one product template. Keep "
 "empty otherwise."
 msgstr ""
-"حدد قالبًا إن كانت هذه القاعدة تُطبق على قالب واحد فقط. وإلا، اترك هذه "
-"الخانة فارغة."
+"حدد قالبًا إن كانت هذه القاعدة تُطبق على قالب واحد فقط. وإلا، اترك هذه الخانة "
+"فارغة."
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_pricelist_item__price_surcharge
@@ -3342,8 +3373,8 @@ msgstr "المرجع '%s' موجود بالفعل. "
 #. odoo-python
 #: code:addons/product/models/product_template_attribute_line.py:0
 msgid ""
-"The attribute %(attribute)s must have at least one value for the product "
-"%(product)s."
+"The attribute %(attribute)s must have at least one value for the product %"
+"(product)s."
 msgstr ""
 "يجب أن يكون للخاصية %(attribute)s قيمة واحدة على الأقل للمنتج %(product)s. "
 
@@ -3362,8 +3393,8 @@ msgid ""
 "The default Unit of Measure and the purchase Unit of Measure must be in the "
 "same category."
 msgstr ""
-"يجب أن تكون وحدة القياس الافتراضية ووحدة القياس المستخدمة في عملية الشراء من"
-" نفس الفئة."
+"يجب أن تكون وحدة القياس الافتراضية ووحدة القياس المستخدمة في عملية الشراء من "
+"نفس الفئة."
 
 #. module: product
 #: model:product.template,description_sale:product.desk_organizer_product_template
@@ -3393,8 +3424,7 @@ msgid ""
 "The minimum height is 65 cm, and for standing work the maximum height "
 "position is 125 cm."
 msgstr ""
-"الطول الأدنى هو 65 سم وللأعمال التي تستدعي الوقوف، يكون الطول الأقصى 125 سم."
-" "
+"الطول الأدنى هو 65 سم وللأعمال التي تستدعي الوقوف، يكون الطول الأقصى 125 سم. "
 
 #. module: product
 #. odoo-python
@@ -3407,12 +3437,12 @@ msgstr "يجب أن يكون الحد الأدنى للهامش أقل من ال
 msgid ""
 "The minimum price among the products in this combo. This value will be used "
 "to prorate the price of this combo with respect to the other combos in a "
-"combo product. This heuristic ensures that whatever product the user chooses"
-" in a combo, it will always be the same price."
+"combo product. This heuristic ensures that whatever product the user chooses "
+"in a combo, it will always be the same price."
 msgstr ""
 "السعر الأدنى بين المنتجات في هذه المجموعة. سيتم استخدام هذه القيمة لتقسيم "
-"سعر هذه المجموعة مقارنة بالمجموعات الأخرى في منتج المجموعة. تضمن هذه الطريقة"
-" أن أي منتج يختاره المستخدم في مجموعة سيكون سعره دائمًا هو نفسه."
+"سعر هذه المجموعة مقارنة بالمجموعات الأخرى في منتج المجموعة. تضمن هذه الطريقة "
+"أن أي منتج يختاره المستخدم في مجموعة سيكون سعره دائمًا هو نفسه."
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_category__product_count
@@ -3425,14 +3455,14 @@ msgstr "عدد المنتجات التابعة لهذه الفئة (بغض ال�
 #. odoo-python
 #: code:addons/product/models/product_template.py:0
 msgid ""
-"The number of variants to generate is above allowed limit. You should either"
-" not generate variants for each combination or generate them on demand from "
+"The number of variants to generate is above allowed limit. You should either "
+"not generate variants for each combination or generate them on demand from "
 "the sales order. To do so, open the form view of attributes and change the "
 "mode of *Create Variants*."
 msgstr ""
 "عدد المتغيرات الذي تحاول إنشاءه أكبر من الحد المسموح به. عليك إما ألا تقوم "
-"بإنشاء متغيرات لكل تركيبة خيارات جديدة تؤدي أو أن تقوم بالإنشاء حسب الطلب من"
-" أمر المبيعات. للقيام بذلك، افتح واجهة نموذج الخصائص وغير وضع *إنشاء "
+"بإنشاء متغيرات لكل تركيبة خيارات جديدة تؤدي أو أن تقوم بالإنشاء حسب الطلب من "
+"أمر المبيعات. للقيام بذلك، افتح واجهة نموذج الخصائص وغير وضع *إنشاء "
 "المتغيرات*. "
 
 #. module: product
@@ -3467,8 +3497,8 @@ msgstr "يجب أن تكون طريقة التقريب إلى قيمة موجب�
 #: model:ir.model.fields,help:product.field_product_combo_item__lst_price
 #: model:ir.model.fields,help:product.field_product_product__lst_price
 msgid ""
-"The sale price is managed from the product template. Click on the 'Configure"
-" Variants' button to set the extra attribute prices."
+"The sale price is managed from the product template. Click on the 'Configure "
+"Variants' button to set the extra attribute prices."
 msgstr ""
 "تتم إدارة سعر البيع من قالب المنتج. اضغط على زر 'تهيئة المتغيرات' لتعيين "
 "أسعار الخصائص الإضافية. "
@@ -3545,7 +3575,8 @@ msgstr "هذا المنتج جزء من كومبو، لذلك لا يمكن تغ
 #. odoo-python
 #: code:addons/product/models/uom_uom.py:0
 msgid ""
-"This rounding precision is higher than the Decimal Accuracy (%(digits)s digits).\n"
+"This rounding precision is higher than the Decimal Accuracy (%(digits)s "
+"digits).\n"
 "This may cause inconsistencies in computations.\n"
 "Please set a precision between %(min_precision)s and 1."
 msgstr ""
@@ -3761,11 +3792,13 @@ msgstr "عدد القيم "
 #: model:ir.model.fields,help:product.field_product_template__standard_price
 msgid ""
 "Value of the product (automatically computed in AVCO).\n"
-"        Used to value the product when the purchase cost is not known (e.g. inventory adjustment).\n"
+"        Used to value the product when the purchase cost is not known (e.g. "
+"inventory adjustment).\n"
 "        Used to compute margins on sale orders."
 msgstr ""
 "قيمة المنتج (يتم احتسابها تلقائياً في AVCO).\n"
-"        تُستخدم لتحديد قيمة المنتج عندما تكون تكلفة الشراء غير معروفة (مثال: تعديلات المخزون).\n"
+"        تُستخدم لتحديد قيمة المنتج عندما تكون تكلفة الشراء غير معروفة (مثال: "
+"تعديلات المخزون).\n"
 "        تُستخدم لاحتساب الهوامش في أوامر المبيعات."
 
 #. module: product
@@ -3953,8 +3986,8 @@ msgstr "تحذيرات"
 #. module: product
 #: model_terms:product.template,website_description:product.product_product_4_product_template
 msgid ""
-"We pay special attention to detail, which is why our desks are of a superior"
-" quality."
+"We pay special attention to detail, which is why our desks are of a superior "
+"quality."
 msgstr "نبدي اهتماماً خاصاً بالتفاصيل، ولهذا السبب مكاتبنا ذات جودة عالية. "
 
 #. module: product
@@ -4022,7 +4055,8 @@ msgid ""
 "You are setting a Decimal Accuracy less precise than the UOMs:\n"
 "%s\n"
 "This may cause inconsistencies in computations.\n"
-"Please increase the rounding of those units of measure, or the digits of this Decimal Accuracy."
+"Please increase the rounding of those units of measure, or the digits of "
+"this Decimal Accuracy."
 msgstr ""
 "تقوم بضبط الدقة العشرية بشكل أقل دقة من وحدات القياس: \n"
 "%s \n"
@@ -4083,43 +4117,44 @@ msgstr "لا يمكنك أرشفة هذه السمة حيث لا تزال هنا
 msgid ""
 "You cannot assign the Main Pricelist as Other Pricelist in PriceList Item"
 msgstr ""
-"لا يمكنك إسناد قائمة الأسعار الرئيسية كقائمة أسعار أخرى في عنصر قائمة "
-"الأسعار"
+"لا يمكنك إسناد قائمة الأسعار الرئيسية كقائمة أسعار أخرى في عنصر قائمة الأسعار"
 
 #. module: product
 #. odoo-python
 #: code:addons/product/models/product_attribute.py:0
 msgid ""
-"You cannot change the Variants Creation Mode of the attribute %(attribute)s because it is used on the following products:\n"
+"You cannot change the Variants Creation Mode of the attribute %(attribute)s "
+"because it is used on the following products:\n"
 "%(products)s"
 msgstr ""
-"لا يمكنك تغيير وضع إنشاء المتغيرات للخاصية %(attribute)s لأنه مستخدَم في المنتجات التالية: \n"
+"لا يمكنك تغيير وضع إنشاء المتغيرات للخاصية %(attribute)s لأنه مستخدَم في "
+"المنتجات التالية: \n"
 "%(products)s "
 
 #. module: product
 #. odoo-python
 #: code:addons/product/models/product_attribute_value.py:0
 msgid ""
-"You cannot change the attribute of the value %(value)s because it is used on"
-" the following products: %(products)s"
+"You cannot change the attribute of the value %(value)s because it is used on "
+"the following products: %(products)s"
 msgstr ""
-"لا يمكنك تغيير الخاصية للقيمة %(value)s لأنها مستخدَمة في المنتجات التالية: "
-"%(products)s "
+"لا يمكنك تغيير الخاصية للقيمة %(value)s لأنها مستخدَمة في المنتجات التالية: %"
+"(products)s "
 
 #. module: product
 #. odoo-python
 #: code:addons/product/models/product_template_attribute_value.py:0
 msgid ""
-"You cannot change the product of the value %(value)s set on product "
-"%(product)s."
+"You cannot change the product of the value %(value)s set on product %"
+"(product)s."
 msgstr "لا يمكنك تغيير المنتج للقيمة %(value)s المعينة للمنتج %(product)s. "
 
 #. module: product
 #. odoo-python
 #: code:addons/product/models/product_template_attribute_value.py:0
 msgid ""
-"You cannot change the value of the value %(value)s set on product "
-"%(product)s."
+"You cannot change the value of the value %(value)s set on product %"
+"(product)s."
 msgstr "لا يمكنك تغيير قيمة القيمة %(value)s المعينة للمنتج %(product)s. "
 
 #. module: product
@@ -4162,7 +4197,8 @@ msgstr "لا يمكنك حذف فئة المنتج %s. "
 #. odoo-python
 #: code:addons/product/models/product_attribute.py:0
 msgid ""
-"You cannot delete the attribute %(attribute)s because it is used on the following products:\n"
+"You cannot delete the attribute %(attribute)s because it is used on the "
+"following products:\n"
 "%(products)s"
 msgstr ""
 "لا يمكنك حذف الخاصية %(attribute)s لأنها مستخدَمة في المنتجات التالية: \n"
@@ -4172,7 +4208,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/product/models/product_attribute_value.py:0
 msgid ""
-"You cannot delete the value %(value)s because it is used on the following products:\n"
+"You cannot delete the value %(value)s because it is used on the following "
+"products:\n"
 "%(products)s\n"
 msgstr ""
 "لا يمكنك حذف القيمة %(value)s لأنها مستخدَمة في المنتجات التالية: \n"
@@ -4189,11 +4226,11 @@ msgstr "لا يمكنك حذف فئة المنتج هذه لأنها الفئة 
 #. odoo-python
 #: code:addons/product/models/product_template_attribute_line.py:0
 msgid ""
-"You cannot move the attribute %(attribute)s from the product %(product_src)s"
-" to the product %(product_dest)s."
+"You cannot move the attribute %(attribute)s from the product %(product_src)s "
+"to the product %(product_dest)s."
 msgstr ""
-"لا يمكنك نقل الخاصية %(attribute)s من المنتج %(product_src)s إلى المنتج "
-"%(product_dest)s. "
+"لا يمكنك نقل الخاصية %(attribute)s من المنتج %(product_src)s إلى المنتج %"
+"(product_dest)s. "
 
 #. module: product
 #. odoo-python
@@ -4210,10 +4247,12 @@ msgstr ""
 #: code:addons/product/static/src/product_catalog/kanban_renderer.xml:0
 msgid ""
 "You must define a product for everything you sell or purchase,\n"
-"                            whether it's a storable product, a consumable or a service."
+"                            whether it's a storable product, a consumable or "
+"a service."
 msgstr ""
 "يجب عليك تحديد منتج لكل شيئ تقوم ببيعه أو شرائه،\n"
-"                            سواءً كان منتجاً قابلاً للتخزين أو استهلاكي أو خدمة. "
+"                            سواءً كان منتجاً قابلاً للتخزين أو استهلاكي أو "
+"خدمة. "
 
 #. module: product
 #: model_terms:ir.actions.act_window,help:product.product_normal_action
@@ -4230,26 +4269,35 @@ msgstr ""
 msgid ""
 "You must define a product for everything you sell or purchase,\n"
 "                whether it's a storable product, a consumable or a service.\n"
-"                The product form contains information to simplify the sale process:\n"
-"                price, notes in the quotation, accounting data, procurement methods, etc."
+"                The product form contains information to simplify the sale "
+"process:\n"
+"                price, notes in the quotation, accounting data, procurement "
+"methods, etc."
 msgstr ""
 "يجب عليك تحديد منتج لكل شيئ تقوم ببيعه أو شرائه،\n"
 "                سواءً كان منتجاً قابلاً للتخزين أو استهلاكي أو خدمة. \n"
-"                تحتوي استمارة المنتج على معلومات تهدف إلى تبسيط عملية البيع:\n"
-"                السعر، ملاحظات عرض السعر، البيانات المحاسبية، طرق الشراء، إلخ. "
+"                تحتوي استمارة المنتج على معلومات تهدف إلى تبسيط عملية "
+"البيع:\n"
+"                السعر، ملاحظات عرض السعر، البيانات المحاسبية، طرق الشراء، "
+"إلخ. "
 
 #. module: product
 #: model_terms:ir.actions.act_window,help:product.product_normal_action_sell
 msgid ""
-"You must define a product for everything you sell, whether it's a physical product,\n"
+"You must define a product for everything you sell, whether it's a physical "
+"product,\n"
 "                a consumable or a service you offer to customers.\n"
-"                The product form contains information to simplify the sale process:\n"
-"                price, notes in the quotation, accounting data, procurement methods, etc."
+"                The product form contains information to simplify the sale "
+"process:\n"
+"                price, notes in the quotation, accounting data, procurement "
+"methods, etc."
 msgstr ""
 "يجب عليك تحديد منتج لكل شيئ تقوم ببيعه، سواءً كان منتجاً فعلياً\n"
 "                أو منتج استهلاكي أو خدمة تقدمها لعملائك. \n"
-"                تحتوي استمارة المنتج على معلومات تهدف إلى تبسيط عملية البيع:\n"
-"                السعر، ملاحظات عرض السعر، البيانات المحاسبية، طرق الشراء، إلخ. "
+"                تحتوي استمارة المنتج على معلومات تهدف إلى تبسيط عملية "
+"البيع:\n"
+"                السعر، ملاحظات عرض السعر، البيانات المحاسبية، طرق الشراء، "
+"إلخ. "
 
 #. module: product
 #. odoo-javascript
@@ -4385,3 +4433,15 @@ msgstr "إلى"
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 msgid "xlsx"
 msgstr "xlsx"
+
+#~ msgid "$14.00"
+#~ msgstr "$14.00"
+
+#~ msgid "$15.00"
+#~ msgstr "$15.00"
+
+#~ msgid "10"
+#~ msgstr "10"
+
+#~ msgid "123456789012"
+#~ msgstr "123456789012"

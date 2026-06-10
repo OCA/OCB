@@ -39,6 +39,7 @@ import {
     defineModels,
     defineParams,
     fields,
+    MockServer,
     models,
     mountWithCleanup,
     onRpc,
@@ -145,6 +146,28 @@ test("creating a domain from scratch", async () => {
     await clickOnButtonDeleteNode(-1);
     await clickOnButtonDeleteNode(-1);
     expect(SELECTORS.debugArea).toHaveValue(`["&", ("bar", "=", True), ("id", "=", 1)]`);
+});
+
+test("creating domain for binary field", async () => {
+    // Add a binary field to the Partner model
+    Partner._fields.image = fields.Binary({
+        string: "Image",
+        searchable: true,
+    });
+
+    await makeDomainSelector({
+        isDebugMode: true,
+    });
+
+    // Add new rule to select field
+    await addNewRule();
+    await openModelFieldSelectorPopover();
+
+    // Find and select the binary field
+    await contains(".o_model_field_selector_popover_item_name:contains('Image')").click();
+
+    // Check that the operator options are limited to 'set' and 'not_set'
+    expect(getOperatorOptions()).toEqual(["is set", "is not set"]);
 });
 
 test("building a domain with a datetime", async () => {
@@ -378,6 +401,26 @@ test("set [(1, '=', 1)] or [(0, '=', 1)] as domain with the debug textarea", asy
     expect(getCurrentPath()).toBe("0");
     expect(getCurrentOperator()).toBe("=");
     expect(getCurrentValue()).toBe("1");
+});
+
+test("ends_with stays selected", async () => {
+    await makeDomainSelector({
+        domain: `[['foo', '=', '']]`,
+        update: (domain) => {
+            expect.step(domain);
+        },
+    });
+
+    await selectOperator("ends_with");
+    expect.verifySteps(['[("foo", "=ilike", "%")]']);
+
+    expect(getCurrentOperator()).toBe("ends with");
+    await editValue("abc");
+    expect.verifySteps(['[("foo", "=ilike", "%abc")]']);
+
+    await selectOperator("starts_with");
+    expect(getCurrentOperator()).toBe("starts with");
+    expect.verifySteps(['[("foo", "=ilike", "abc%")]']);
 });
 
 test("operator fallback (mode readonly)", async () => {
@@ -1077,7 +1120,9 @@ test("support properties", async () => {
         await openModelFieldSelectorPopover();
         expectedDomain = domain;
         await contains(`.o_model_field_selector_popover_item[data-name='${name}'] button`).click();
-        const { string } = Product._records[0].definitions.find((def) => def.name === name);
+        const { string } = MockServer.env["product"][0].definitions.find(
+            (def) => def.name === name
+        );
         expect(getCurrentPath()).toBe(`Properties > ${string}`);
         expect(getOperatorOptions()).toEqual(options);
     }
@@ -2483,4 +2528,52 @@ test("preserve virtual operators in sub domains", async () => {
     expect.verifySteps([
         `[("product_id", "any", [("team_id", "any", ["&", ("active", "=", False), ("name", "=", False)])])]`,
     ]);
+});
+
+test("hide within operators when allowExpressions = False", async () => {
+    Team._fields.active = fields.Boolean();
+    await makeDomainSelector({
+        domain: `[("datetime", "=", False)]`,
+        allowExpressions: false,
+        update(domain) {
+            expect.step(domain);
+        },
+    });
+    expect(getOperatorOptions()).toEqual([
+        "=",
+        "!=",
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "is between",
+        "is set",
+        "is not set",
+    ]);
+});
+
+test("number formatting", async () => {
+    defineParams({
+        lang_parameters: {
+            decimal_point: "$",
+            thousands_sep: "~",
+        },
+    });
+
+    Partner._fields.number = fields.Float();
+    let expr;
+    await makeDomainSelector({
+        update: (e) => {
+            expr = e;
+        },
+        domain: `[("number", "=", 1989.45)]`,
+    });
+    expect(".o_tree_editor_editor input").toHaveValue("1~989$45");
+    await contains(".o_tree_editor_editor input").edit("1~989$46");
+    expect(".o_tree_editor_editor input").toHaveValue("1~989$46");
+    expect(expr).toEqual('[("number", "=", 1989.46)]');
+
+    await contains(".o_tree_editor_editor input").edit("1989.47");
+    expect(".o_tree_editor_editor input").toHaveValue("1~989$47");
+    expect(expr).toEqual('[("number", "=", 1989.47)]');
 });

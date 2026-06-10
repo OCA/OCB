@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from "@odoo/hoot";
+import { waitFor } from "@odoo/hoot-dom";
 import { runAllTimers } from "@odoo/hoot-mock";
 import {
     contains,
@@ -30,7 +31,7 @@ class Partner extends models.Model {
         { id: 2, display_name: "Second record" },
     ];
     _views = {
-        "form,false": `
+        form: `
             <form>
                 <header>
                     <button name="object" string="Call method" type="object"/>
@@ -47,8 +48,7 @@ class Partner extends models.Model {
                     </t>
                 </templates>
             </kanban>`,
-        "list,false": `<list><field name="display_name"/></list>`,
-        "search,false": `<search/>`,
+        list: `<list><field name="display_name"/></list>`,
     };
 }
 
@@ -346,6 +346,53 @@ test("can use custom handlers for report actions", async () => {
         "falling through to default handler",
         "/report/check_wkhtmltopdf",
         "/report/download",
+    ]);
+});
+
+test("custom handlers can close modals", async () => {
+    defineActions([
+        {
+            id: 5,
+            name: "Create a Partner",
+            res_model: "partner",
+            target: "new",
+            views: [[false, "form"]],
+        },
+    ]);
+
+    patchWithCleanup(download, {
+        _download: (options) => {
+            expect.step(options.url);
+            return Promise.resolve();
+        },
+    });
+
+    onRpc("/report/check_wkhtmltopdf", () => "ok");
+
+    await mountWithCleanup(WebClient);
+    registry.category("ir.actions.report handlers").add("custom_handler", async (action) => {
+        expect.step("calling custom handler for action " + action.id);
+        return true;
+    });
+
+    await getService("action").doAction(5);
+    await waitFor(".o_technical_modal .o_form_view");
+    expect(".o_technical_modal .o_form_view").toHaveCount(1, {
+        message: "should have rendered a form view in a modal",
+    });
+
+    await getService("action").doAction(7);
+    expect(".o_technical_modal .o_form_view").toHaveCount(1, {
+        message: "The modal should still exist",
+    });
+
+    await getService("action").doAction(11);
+    expect(".o_technical_modal .o_form_view").toHaveCount(0, {
+        message: "the modal should have been closed after the custom handler",
+    });
+    expect.verifySteps([
+        "calling custom handler for action 7",
+        "calling custom handler for action 11",
     ]);
 });
 

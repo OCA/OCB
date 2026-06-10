@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import Form
 from odoo.addons.stock_account.tests.test_stockvaluation import _create_accounting_data
@@ -104,7 +105,7 @@ class TestStockValuationLayerRevaluation(TestStockValuationCommon):
         revaluation_wizard.save().action_validate_revaluation()
 
         # Check standard price change
-        self.assertEqual(self.product1.standard_price, 1.33)
+        self.assertAlmostEqual(self.product1.standard_price, 1.3333333)
         self.assertEqual(self.product1.quantity_svl, 3)
 
         # Check the creation of stock.valuation.layer
@@ -143,21 +144,21 @@ class TestStockValuationLayerRevaluation(TestStockValuationCommon):
         self.product1.write({'standard_price': 0.022})
         self._make_in_move(self.product1, 10000)
 
-        self.assertEqual(self.product1.standard_price, 0.02)
+        self.assertAlmostEqual(self.product1.standard_price, 0.022)
         self.assertEqual(self.product1.quantity_svl, 10000)
 
         layer = self.product1.stock_valuation_layer_ids
-        self.assertEqual(layer.value, 200)
+        self.assertEqual(layer.value, 220.0)
 
         # Second Move
         self.product1.write({'standard_price': 0.053})
 
-        self.assertEqual(self.product1.standard_price, 0.05)
+        self.assertEqual(self.product1.standard_price, 0.053)
         self.assertEqual(self.product1.quantity_svl, 10000)
 
         layers = self.product1.stock_valuation_layer_ids
-        self.assertEqual(layers[0].value, 200)
-        self.assertEqual(layers[1].value, 300)
+        self.assertEqual(layers[0].value, 220.0)
+        self.assertEqual(layers[1].value, 280.0)
 
     def test_stock_valuation_layer_revaluation_avco_rounding_5_digits(self):
         """
@@ -321,3 +322,69 @@ class TestStockValuationLayerRevaluation(TestStockValuationCommon):
                 'active_ids': [old_layers[2].id],
                 'active_model': 'stock.valuation.layer'
             })).save()
+
+    def test_stock_valuation_layer_revaluation_fifo_rounding_2_digits(self):
+        """ make sure that the rounding in the wizard does not incur a negative remaining value
+        """
+
+        self.product1.categ_id.property_cost_method = 'fifo'
+        context = {
+            'default_product_id': self.product1.id,
+            'default_company_id': self.env.company.id,
+            'default_added_value': 0.0
+        }
+
+        self._make_in_move(self.product1, 67104, unit_cost=0.00952)
+        self._make_in_move(self.product1, 898, unit_cost=0.00952)
+
+        self.assertAlmostEqual(self.product1.standard_price, 0.00952)
+        revaluation_wizard = Form(self.env['stock.valuation.layer.revaluation'].with_context(context))
+        revaluation_wizard.added_value = 636  # triggers the rounding problem
+        revaluation_wizard.account_id = self.stock_valuation_account
+        revaluation_wizard.save().action_validate_revaluation()
+
+        self.assertAlmostEqual(self.product1.standard_price, 0.0193527)
+
+    def test_multi_company_fifo_svl_negative_revaluation(self):
+        """
+        Check that the journal entries and stock valuation layers are created for the company related
+        to the stock move even if the picking is validated using a different one.
+        """
+        company1 = self.env.company
+        company2 = self.env['res.company'].create({
+            'name': 'Lovely Company',
+        })
+        self.env.companies = company1 | company2
+
+        product = self.product1
+        product.categ_id.write({
+            'property_cost_method': 'fifo',
+            'property_valuation': 'real_time',
+        })
+        # Modify valuation to manual_periodic for company2
+        product.categ_id.with_company(company2).property_valuation = 'manual_periodic'
+
+        # Create moves to revaluate for company1
+        self._make_in_move(product, 10, unit_cost=10, create_picking=True)
+        self._make_out_move(product, 15, create_picking=True)
+
+        receipt = self.env['stock.picking'].create({
+            'picking_type_id': self.picking_type_in.id,
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'move_ids': [Command.create({
+                'name': 'test fifo',
+                'product_id': product.id,
+                'location_id': self.supplier_location.id,
+                'location_dest_id': self.stock_location.id,
+                'product_uom': self.uom_unit.id,
+                'product_uom_qty': 10,
+                'price_unit': 7,
+            })]
+        }).with_company(company2)
+        receipt.action_confirm()
+        receipt.button_validate()
+
+        svls = self.env['stock.valuation.layer'].search([('product_id', '=', product.id)])
+        self.assertEqual(len(svls), 4, "Expected 4 valuation layers")
+        self.assertTrue(all(svl.account_move_id for svl in svls), "All SVLs should be linked to a journal entry")

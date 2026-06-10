@@ -3,15 +3,14 @@
 import logging
 
 from werkzeug.urls import url_encode
-from werkzeug.exceptions import NotFound, Unauthorized
+from werkzeug.exceptions import NotFound
+from urllib.parse import parse_qsl, urlencode, urlparse
 
 from odoo import _, http
 from odoo.exceptions import AccessError
 from odoo.http import request
 from odoo.tools import consteq
-from odoo.addons.mail.controllers.discuss.public_page import PublicPageController
 from odoo.addons.mail.models.discuss.mail_guest import add_guest_to_context
-from odoo.addons.mail.tools.discuss import Store
 
 _logger = logging.getLogger(__name__)
 
@@ -20,9 +19,31 @@ class MailController(http.Controller):
     _cp_path = '/mail'
 
     @classmethod
+    def _redirect_to_generic_fallback(cls, model, res_id, access_token=None, **kwargs):
+        if request.session.uid is None:
+            return cls._redirect_to_login_with_mail_view(
+                model, res_id, access_token=access_token, **kwargs,
+            )
+        return cls._redirect_to_messaging()
+
+    @classmethod
     def _redirect_to_messaging(cls):
         url = '/odoo/action-mail.action_discuss'
         return request.redirect(url)
+
+    @classmethod
+    def _redirect_to_login_with_mail_view(cls, model, res_id, access_token=None, **kwargs):
+        url_base = '/mail/view'
+        url_params = request.env['mail.thread']._get_action_link_params(
+            'view', **{
+                'model': model,
+                'res_id': res_id,
+                'access_token': access_token,
+                **kwargs,
+            }
+        )
+        mail_view_url = f'{url_base}?{url_encode(url_params, sort=True)}'
+        return request.redirect(f'/web/login?{url_encode({"redirect": mail_view_url})}')
 
     @classmethod
     def _check_token(cls, token):
@@ -37,12 +58,12 @@ class MailController(http.Controller):
         comparison = cls._check_token(token)
         if not comparison:
             _logger.warning('Invalid token in route %s', request.httprequest.url)
-            return comparison, None, cls._redirect_to_messaging()
+            return comparison, None, cls._redirect_to_generic_fallback(model, res_id)
         try:
             record = request.env[model].browse(res_id).exists()
         except Exception:
             record = None
-            redirect = cls._redirect_to_messaging()
+            redirect = cls._redirect_to_generic_fallback(model, res_id)
         else:
             redirect = cls._redirect_to_record(model, res_id)
         return comparison, record, redirect
@@ -57,20 +78,26 @@ class MailController(http.Controller):
 
         # no model / res_id, meaning no possible record -> redirect to login
         if not model or not res_id or model not in request.env:
-            return cls._redirect_to_messaging()
+            return cls._redirect_to_generic_fallback(
+                model, res_id, access_token=access_token, **kwargs,
+            )
 
         # find the access action using sudo to have the details about the access link
         RecordModel = request.env[model]
         record_sudo = RecordModel.sudo().browse(res_id).exists()
         if not record_sudo:
             # record does not seem to exist -> redirect to login
-            return cls._redirect_to_messaging()
+            return cls._redirect_to_generic_fallback(
+                model, res_id, access_token=access_token, **kwargs,
+            )
 
         suggested_company = record_sudo._get_redirect_suggested_company()
         # the record has a window redirection: check access rights
         if uid is not None:
             if not RecordModel.with_user(uid).has_access('read'):
-                return cls._redirect_to_messaging()
+                return cls._redirect_to_generic_fallback(
+                    model, res_id, access_token=access_token, **kwargs,
+                )
             try:
                 # We need here to extend the "allowed_company_ids" to allow a redirection
                 # to any record that the user can access, regardless of currently visible
@@ -95,35 +122,43 @@ class MailController(http.Controller):
                     record_sudo.with_user(uid).with_context(allowed_company_ids=cids).check_access('read')
                     request.future_response.set_cookie('cids', '-'.join([str(cid) for cid in cids]))
             except AccessError:
-                return cls._redirect_to_messaging()
+                return cls._redirect_to_generic_fallback(
+                    model, res_id, access_token=access_token, **kwargs,
+                )
             else:
                 record_action = record_sudo._get_access_action(access_uid=uid)
         else:
             record_action = record_sudo._get_access_action()
-            if suggested_company:
-                cids = [suggested_company.id]
+            # we have an act_url (probably a portal link): we need to retry being logged to check access
             if record_action['type'] == 'ir.actions.act_url' and record_action.get('target_type') != 'public':
-                url_params = {
-                    'model': model,
-                    'id': res_id,
-                    'active_id': res_id,
-                    'action': record_action.get('id'),
-                }
-                if cids:
-                    request.future_response.set_cookie('cids', '-'.join([str(cid) for cid in cids]))
-                view_id = record_sudo.get_formview_id()
-                if view_id:
-                    url_params['view_id'] = view_id
-                url = '/web/login?redirect=#%s' % url_encode(url_params)
-                return request.redirect(url)
+                return cls._redirect_to_login_with_mail_view(
+                    model, res_id, access_token=access_token, **kwargs,
+                )
 
         record_action.pop('target_type', None)
         # the record has an URL redirection: use it directly
         if record_action['type'] == 'ir.actions.act_url':
-            return request.redirect(record_action['url'])
-        # other choice: act_window (no support of anything else currently)
-        elif not record_action['type'] == 'ir.actions.act_window':
+            url = record_action["url"]
+            if highlight_message_id := kwargs.get("highlight_message_id"):
+                parsed_url = urlparse(url)
+                url = parsed_url._replace(query=urlencode(
+                    parse_qsl(parsed_url.query) + [("highlight_message_id", highlight_message_id)]
+                )).geturl()
+            return request.redirect(url)
+        # anything else than an act_window is not supported
+        elif record_action['type'] != 'ir.actions.act_window':
             return cls._redirect_to_messaging()
+
+        # backend act_window: when not logged, unless really readable as public,
+        # user is going to be redirected to login -> keep mail/view as redirect
+        # in that case. In case of readable record, we consider this might be
+        # a customization and we do not change the behavior in stable
+        if uid is None or request.env.user._is_public():
+            has_access = record_sudo.with_user(request.env.user).has_access('read')
+            if not has_access:
+                return cls._redirect_to_login_with_mail_view(
+                    model, res_id, access_token=access_token, **kwargs,
+                )
 
         url_params = {}
         menu_id = request.env['ir.ui.menu']._get_best_backend_root_menu_id_for_model(model)
@@ -132,14 +167,16 @@ class MailController(http.Controller):
         view_id = record_sudo.get_formview_id()
         if view_id:
             url_params['view_id'] = view_id
+        if highlight_message_id := kwargs.get("highlight_message_id"):
+            url_params["highlight_message_id"] = highlight_message_id
         if cids:
             request.future_response.set_cookie('cids', '-'.join([str(cid) for cid in cids]))
-        
+
         # @see commit c63d14a0485a553b74a8457aee158384e9ae6d3f
         # @see router.js: heuristics to discrimate a model name from an action path
         # is the presence of dots, or the prefix m- for models
         model_in_url = model if "." in model else "m-" + model
-        url = f'/odoo/{model_in_url}/{res_id}?{url_encode(url_params)}'
+        url = f'/odoo/{model_in_url}/{res_id}?{url_encode(url_params, sort=True)}'
         return request.redirect(url)
 
     @http.route('/mail/view', type='http', auth='public')
@@ -204,28 +241,6 @@ class MailController(http.Controller):
         if not message:
             if request.env.user._is_public():
                 return request.redirect(f'/web/login?redirect=/mail/message/{message_id}')
-            raise Unauthorized()
-
-        # sudo: public user can access some relational fields of mail.message
-        if message.sudo()._filter_empty():
             raise NotFound()
-        if not request.env.user._is_internal():
-            thread = request.env[message.model].search([('id', '=', message.res_id)])
-            if message.model == 'discuss.channel':
-                store = Store({'isChannelTokenSecret': True})
-                store.add(thread, {'highlightMessage': Store.one(message, only_id=True)})
-                return PublicPageController()._response_discuss_channel_invitation(store, thread)
-            elif hasattr(thread, '_get_share_url'):
-                return request.redirect(thread._get_share_url(share_token=False))
-            else:
-                raise Unauthorized()
 
-        if message.model == 'discuss.channel':
-            url = f'/odoo/action-mail.action_discuss?active_id={message.res_id}&highlight_message_id={message_id}'
-        else:
-            # @see commit c63d14a0485a553b74a8457aee158384e9ae6d3f
-            # @see router.js: heuristics to discrimate a model name from an action path
-            # is the presence of dots, or the prefix m- for models
-            model_in_url = model if "." in (model := message.model) else "m-" + model
-            url = f'/odoo/{model_in_url}/{message.res_id}?highlight_message_id={message_id}'
-        return request.redirect(url)
+        return self._redirect_to_record(message.model, message.res_id, highlight_message_id=message_id)

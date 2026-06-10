@@ -1,5 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from freezegun import freeze_time
+
 from odoo.exceptions import ValidationError
 from odoo.fields import Command
 from odoo.tests import new_test_user, tagged
@@ -379,6 +381,57 @@ class TestLoyalty(TestSaleCouponCommon):
         self.assertEqual(order.amount_total, 90)
         order.action_confirm()
         self.assertEqual(loyalty_card.points, 90)
+
+    def test_multiple_rewards_after_confirm(self):
+        """
+        Check that multiple rewards from a loyalty promotion program are correctly applied to a SO
+        after its confirmation by asserting that:
+            - Both rewards are applied to the order lines.
+            - The total points cost matches the rule's requirement.
+            - The coupon's points are fully consumed after applying the rewards.
+        """
+        promo_program = self.immediate_promotion_program
+        promo_program.write({
+            'active': True,
+            'rule_ids': [
+                Command.clear(),
+                Command.create({
+                    'minimum_qty': 1,
+                    'minimum_amount': 0.00,
+                    'reward_point_amount': 2,
+                })
+            ],
+            'reward_ids': [
+                Command.clear(),
+                Command.create({
+                    'discount': 10,
+                    'discount_applicability': 'specific',
+                    'discount_product_ids': [self.product_A.id],
+                }),
+                Command.create({
+                    'discount': 15,
+                    'discount_applicability': 'specific',
+                    'discount_product_ids': [self.product_B.id],
+                })
+            ],
+        })
+
+        order = self.empty_order
+        order.order_line = [
+            Command.create({'product_id': self.product_A.id, 'product_uom_qty': 1}),
+            Command.create({'product_id': self.product_B.id, 'product_uom_qty': 1}),
+        ]
+        order.action_confirm()
+
+        order._update_programs_and_rewards()
+        coupon = order.coupon_point_ids.coupon_id.filtered(lambda c: c.program_id == promo_program)
+        reward1, reward2 = rewards = promo_program.reward_ids
+        order._apply_program_reward(reward1, coupon)
+        order._apply_program_reward(reward2, coupon)
+
+        self.assertEqual(order.order_line.reward_id, rewards, "All rewards should be applied")
+        self.assertEqual(sum(order.order_line.mapped('points_cost')), 2)
+        self.assertEqual(coupon.points, 0)
 
     def test_points_awarded_discount_code_no_domain_program(self):
         """
@@ -1065,3 +1118,96 @@ class TestLoyalty(TestSaleCouponCommon):
         order._update_programs_and_rewards()
         rewards = [value.ids for value in order._get_claimable_rewards().values()]
         self.assertTrue(any(loyalty_program_tag.reward_ids[0].id in r for r in rewards))
+
+    def test_sol_free_product_description_equals_reward_description(self):
+        """
+        Ensure that if a "Free Product" reward is added to a sale order,
+        its line description matches the reward description.
+        """
+        loyalty_program = self.env['loyalty.program'].create(
+            self.env['loyalty.program']._get_template_values()['buy_x_get_y']
+        )
+        reward = loyalty_program.reward_ids[0]
+        updated_description = f"{reward.description} Adding manual description"
+        reward.description = updated_description
+
+        order = self.empty_order
+        order.write({
+            'order_line': [
+                Command.create({
+                    'product_id': reward.reward_product_id.id,
+                    'name': '1 Product',
+                    'product_uom': self.uom_unit.id,
+                    'product_uom_qty': 4.0,
+                }),
+            ]
+        })
+        order._update_programs_and_rewards()
+        self._claim_reward(order, loyalty_program)
+
+        self.assertEqual(len(order.order_line.ids), 2)
+        self.assertEqual(order.order_line[1].name, updated_description)
+
+    def test_archiving_loyalty_card_unlinks_draft_points_from_sale_order(self):
+        """
+        When a loyalty card has points accrued from a draft sale order, archiving the
+        card should unlink those draft points so they are no longer claimable on that order
+        """
+        loyalty_program = self.env['loyalty.program'].create({
+            'name': 'Loyalty Program',
+            'program_type': 'loyalty',
+            'trigger': 'auto',
+            'applies_on': 'both',
+            'rule_ids': [
+                Command.create({
+                    'reward_point_mode': 'unit',
+                    'reward_point_amount': 100,
+                    'product_ids': [self.product_a.id],
+                }),
+            ],
+            'reward_ids': [
+                Command.create({
+                    'reward_type': 'discount',
+                    'discount': 50,
+                    'discount_mode': 'percent',
+                    'discount_applicability': 'order',
+                    'required_points': 10,
+                }),
+            ],
+        })
+        loyalty_card = self.env['loyalty.card'].create({
+            'program_id': loyalty_program.id,
+            'partner_id': self.partner.id,
+            'points': 0,
+        })
+        sale_order = self.empty_order
+        sale_order.write({
+            'order_line': [
+                Command.create({
+                    'product_id': self.product_a.id,
+                }),
+            ]
+        })
+        sale_order._update_programs_and_rewards()
+        claimable_rewards = sale_order._get_claimable_rewards()
+        self.assertTrue(claimable_rewards[loyalty_card])
+        loyalty_card.action_archive()
+        claimable_rewards = sale_order._get_claimable_rewards()
+        self.assertFalse(claimable_rewards.get(loyalty_card))
+
+    @freeze_time("2026-01-10")
+    def test_expired_ewallet_is_not_claimable(self):
+        self.ewallet.expiration_date = '2026-01-01'
+        sale_order = self.empty_order
+        sale_order.write({
+            'partner_id': self.partner.id,
+            'order_line': [
+                Command.create({
+                    'product_id': self.product_a.id,
+                }),
+            ],
+        })
+        sale_order.action_open_reward_wizard()
+        sale_order._update_programs_and_rewards()
+        claimable_rewards = sale_order._get_claimable_rewards()
+        self.assertFalse(claimable_rewards.get(self.ewallet))

@@ -1,3 +1,4 @@
+import { floatCompare } from "@point_of_sale/utils";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { roundPrecision, formatFloat } from "@web/core/utils/numbers";
@@ -15,6 +16,8 @@ export class PosScaleService extends Reactive {
     setup(env, deps) {
         this.env = env;
         this.hardwareProxy = deps.hardware_proxy;
+        this.lastWeight = null;
+        this.weight = 0;
         this.reset();
     }
 
@@ -27,13 +30,17 @@ export class PosScaleService extends Reactive {
     }
 
     reset() {
-        this.weight = 0;
         this.tare = 0;
         this.tareRequested = false;
         this.loading = false;
         this.isMeasuring = false;
         this.product = null;
         this.onError = null;
+    }
+
+    confirmWeight() {
+        this.lastWeight = this.weight;
+        return this.netWeight;
     }
 
     async _readWeightContinuously() {
@@ -52,8 +59,8 @@ export class PosScaleService extends Reactive {
     async readWeight() {
         this.loading = true;
         try {
-            this._checkScaleIsConnected();
             this.weight = await this._getWeightFromScale();
+            this._clearLastWeightIfValid();
         } catch (error) {
             this.isMeasuring = false;
             this.onError?.(error.message);
@@ -78,6 +85,12 @@ export class PosScaleService extends Reactive {
         }
     }
 
+    _clearLastWeightIfValid() {
+        if (this.lastWeight && this.isWeightValid) {
+            this.lastWeight = null;
+        }
+    }
+
     requestTare() {
         this.tareRequested = true;
         if (this.isManualMeasurement && !this.loading) {
@@ -85,6 +98,17 @@ export class PosScaleService extends Reactive {
         } else {
             setTimeout(() => this._setTareIfRequested(), TARE_TIMEOUT_MS);
         }
+    }
+
+    get isWeightValid() {
+        // LNE requires that the weight changes from the previously
+        // added value before another product is allowed to be added.
+        return (
+            !this.lastWeight ||
+            floatCompare(this.weight, this.lastWeight, {
+                decimals: this._roundingDecimalPlaces,
+            }) !== 0
+        );
     }
 
     get isManualMeasurement() {
@@ -128,15 +152,6 @@ export class PosScaleService extends Reactive {
 
     get _roundingDecimalPlaces() {
         return Math.ceil(Math.log(1.0 / this.product.rounding) / Math.log(10));
-    }
-
-    _checkScaleIsConnected() {
-        if (this.hardwareProxy.connectionInfo.status !== "connected") {
-            throw new Error(_t("Cannot weigh product - IoT Box is disconnected"));
-        }
-        if (this.hardwareProxy.connectionInfo.drivers.scale?.status !== "connected") {
-            throw new Error(_t("Cannot weigh product - Scale is not connected to IoT Box"));
-        }
     }
 }
 

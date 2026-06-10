@@ -1,25 +1,29 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* pos_self_order
-# 
+# * pos_self_order
+#
 # Translators:
 # Wil Odoo, 2024
-# Fernanda Alvarez, 2025
 # Patricia Gutiérrez Capetillo <pagc@odoo.com>, 2025
-# 
+# Fernanda Alvarez, 2025
+# "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-07 20:37+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Patricia Gutiérrez Capetillo <pagc@odoo.com>, 2025\n"
-"Language-Team: Spanish (Latin America) (https://app.transifex.com/odoo/teams/41243/es_419/)\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
+"PO-Revision-Date: 2026-05-16 09:03+0000\n"
+"Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
+"Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
+"odoo-18/pos_self_order/es_419/>\n"
+"Language: es_419\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: es_419\n"
-"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
+"0) ? 1 : 2);\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_self_order
 #: model:ir.actions.report,print_report_name:pos_self_order.report_self_order_qr_codes_page
@@ -69,8 +73,8 @@ msgid ""
 "Access rights of this user will be used when visiting self order website "
 "when no session is open."
 msgstr ""
-"Los permisos de acceso de este usuario se utilizarán al visitar el sitio web"
-" de autopedido cuando no haya ninguna sesión abierta."
+"Los permisos de acceso de este usuario se utilizarán al visitar el sitio web "
+"de autopedido cuando no haya ninguna sesión abierta."
 
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_config__status__active
@@ -110,13 +114,14 @@ msgstr "Agregar al carrito"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/cancel_popup/cancel_popup.xml:0
 msgid "All the items will be removed from the cart."
-msgstr "Se eliminarán todos los artículos del carrito."
+msgstr "Todos los artículos serán eliminados del carrito."
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
 msgid "Allow self-order customers to set their order for takeout."
 msgstr ""
-"Permita que los clientes de autopedido establezcan sus ordenes para llevar."
+"Permite que los clientes de autopedido definan que sus ordenes son para "
+"llevar."
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -133,13 +138,13 @@ msgstr "Ocurrió un error"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/cancel_popup/cancel_popup.xml:0
 msgid "Any items already sent will not be cancelled"
-msgstr "Cualquier artículo que ya se haya enviado no se podrá cancelar"
+msgstr "No podrás cancelar los artículos que ya hayan sido enviados"
 
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/cancel_popup/cancel_popup.xml:0
 msgid "Are you sure you want to cancel this order?"
-msgstr "¿Está seguro de que desea cancelar esta orden? "
+msgstr "¿De verdad quieres cancelar esta orden?"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_category__hour_after
@@ -198,6 +203,7 @@ msgstr "Regresar"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -210,6 +216,7 @@ msgstr "Cancelar orden"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 #: code:addons/pos_self_order/static/src/app/pages/product_list_page/product_list_page.js:0
 msgid "Cancel order"
 msgstr "Cancelar orden"
@@ -242,7 +249,7 @@ msgstr "Elija su"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/eating_location_page/eating_location_page.xml:0
 msgid "Choose your eating location"
-msgstr "Elija el lugar donde comerá"
+msgstr "Elige dónde quieres comer"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -393,7 +400,7 @@ msgstr "Descargar códigos QR"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Download your receipt here"
-msgstr "Descargue su recibo aquí"
+msgstr "Descarga tu recibo aquí"
 
 #. module: pos_self_order
 #. odoo-python
@@ -404,11 +411,15 @@ msgstr "Cada orden"
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
 msgid ""
-"Each table in your floor plan is assigned a unique QR code based on your configuration. For security reasons,\n"
-"                    both the point of sale and table names are encrypted in the generated URL, as shown in the example below:."
+"Each table in your floor plan is assigned a unique QR code based on your "
+"configuration. For security reasons,\n"
+"                    both the point of sale and table names are encrypted in "
+"the generated URL, as shown in the example below:."
 msgstr ""
-"A cada mesa de su piso se le asignará un código QR único según su configuración. Por motivos de seguridad,\n"
-"                    tanto el punto de venta como los nombres de las mesas se cifran en la URL generada, tal y como se muestra en el siguiente ejemplo:"
+"A cada mesa de su piso se le asignará un código QR único según su "
+"configuración. Por motivos de seguridad,\n"
+"                    tanto el punto de venta como los nombres de las mesas se "
+"cifran en la URL generada, tal y como se muestra en el siguiente ejemplo:"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -424,6 +435,15 @@ msgstr "Editar"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/backend/qr_order_button/qr_order_button.js:0
+msgid ""
+"Enable QR menu in the Restaurant settings to get QR codes for free on tables."
+msgstr ""
+"Activa el menú QR en los ajustes del restaurante para obtener códigos QR "
+"gratis en las mesas."
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/attribute_selection/attribute_selection.xml:0
 msgid "Enter your custom value"
 msgstr "Introduzca su valor personalizado"
@@ -431,8 +451,8 @@ msgstr "Introduzca su valor personalizado"
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
 msgid ""
-"Feel free to use and print this QR code as many times as needed according to"
-" your requirements."
+"Feel free to use and print this QR code as many times as needed according to "
+"your requirements."
 msgstr ""
 "No dude en utilizar e imprimir este código QR tantas veces como necesite."
 
@@ -453,10 +473,28 @@ msgid "Follow instructions on the terminal"
 msgstr "Siga las instrucciones de la terminal"
 
 #. module: pos_self_order
+#: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
+msgid "Free Metal / Wood Stands"
+msgstr "Soportes de metal y madera gratis"
+
+#. module: pos_self_order
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
 msgid "Generic"
 msgstr "Genérico"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/overrides/components/navbar/navbar.xml:0
+#: code:addons/pos_self_order/static/src/overrides/screens/floor_screen/floor_screen.xml:0
+msgid "Get QR Codes"
+msgstr "Obtén códigos QR"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/backend/qr_order_button/qr_order_button.js:0
+msgid "Get QR codes"
+msgstr "Obtén códigos QR"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -481,8 +519,8 @@ msgid ""
 "Hey, looks like you forgot to create products or add them to pos_config. "
 "Please add them before using the Self Order"
 msgstr ""
-"Disculpe, parece que olvidó crear productos o agregarlos a pos_config. "
-"Agréguelos antes de utilizar Autopedido."
+"Parece que olvidaste crear productos o agregarlos a pos_config. Agrégalos "
+"antes de utilizar Autopedido."
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -493,7 +531,7 @@ msgstr "Botones de inicio"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Hope you enjoyed your meal!"
-msgstr "Ojalá haya disfrutado su comida."
+msgstr "Esperamos que hayas disfrutado tus alimentos."
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
@@ -519,11 +557,15 @@ msgstr "Si este producto está disponible en las pantallas de autopedido"
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
 msgid ""
-"If you need customized QR codes, start by scanning the relevant QR code to acquire the URL. Then, make\n"
-"                use of a QR code generator like https://www.qrcode-monkey.com or https://www.qr-code-generator.com"
+"If you need customized QR codes, start by scanning the relevant QR code to "
+"acquire the URL. Then, make\n"
+"                use of a QR code generator like https://www.qrcode-"
+"monkey.com or https://www.qr-code-generator.com"
 msgstr ""
-"Si necesita códigos QR personalizados, primero escanee el código QR correspondiente para obtener la URL. Después,\n"
-"                utilice un generador de códigos QR como https://www.qrcode-monkey.com o https://www.qr-code-generator.com."
+"Si necesita códigos QR personalizados, primero escanee el código QR "
+"correspondiente para obtener la URL. Después,\n"
+"                utilice un generador de códigos QR como https://www.qrcode-"
+"monkey.com o https://www.qr-code-generator.com."
 
 #. module: pos_self_order
 #: model:ir.model.fields,help:pos_self_order.field_pos_config__self_ordering_image_brand
@@ -598,8 +640,7 @@ msgstr "Última actualización el"
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
 msgid "Let your customers order using their mobile or a kiosk."
-msgstr ""
-"Permita que sus clientes hagan sus pedidos desde su celular o en un quiosco"
+msgstr "Permita que sus clientes ordenen desde su celular o un quiosco"
 
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_self_order_custom_link__style__light
@@ -996,8 +1037,8 @@ msgstr "Seleccione una mesa"
 #: model:ir.model.fields,help:pos_self_order.field_pos_self_order_custom_link__pos_config_ids
 msgid ""
 "Select for which points of sale you want to display this link. Leave empty "
-"to display it for all points of sale. You have to select among the points of"
-" sale that have the 'QR Code Menu' feature enabled."
+"to display it for all points of sale. You have to select among the points of "
+"sale that have the 'QR Code Menu' feature enabled."
 msgstr ""
 "Seleccione los puntos de venta donde desea mostrar este enlace, deje el "
 "campo vacío para mostrarlo en todos. Debe seleccionar entre los puntos de "
@@ -1132,7 +1173,7 @@ msgstr "Rastreador de mesas:"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
 msgid "Table detective time!"
-msgstr "¡Hora de ser detective!"
+msgstr "Es hora de inspeccionar las mesas"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
@@ -1143,7 +1184,7 @@ msgstr "Mesa:"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/eating_location_page/eating_location_page.xml:0
 msgid "Take Out"
-msgstr "Comida para llevar"
+msgstr "Para llevar"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1167,20 +1208,21 @@ msgstr "¡Muchas gracias!"
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_category.py:0
 msgid "The Availability After must be set between 00:00 and 24:00"
-msgstr "El valor en Disponible después de debe ser entre 00:00 y 24:00"
+msgstr "El valor \"Disponible después de\" debe estar entre 00:00 y 24:00"
 
 #. module: pos_self_order
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_category.py:0
 msgid "The Availability Until must be greater than Availability After."
 msgstr ""
-"El valor Disponible hasta debe ser mayor que el valor Disponible después de."
+"El valor \"Disponible hasta\" debe ser mayor que el valor \"Disponible "
+"después de\"."
 
 #. module: pos_self_order
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_category.py:0
 msgid "The Availability Until must be set between 00:00 and 24:00"
-msgstr "El valor Disponible hasta debe ser entre 00:00 24:00"
+msgstr "El valor \"Disponible hasta\" debe estar entre 00:00 y 24:00"
 
 #. module: pos_self_order
 #. odoo-python
@@ -1277,6 +1319,22 @@ msgstr "Sí"
 
 #. module: pos_self_order
 #. odoo-python
+#: code:addons/pos_self_order/controllers/orders.py:0
+msgid ""
+"You are not authorized to create, update, or delete records of type '%"
+"(model)s'. Only the following models are allowed: %(allowed)s"
+msgstr ""
+"No tienes autorización para crear, actualizar ni eliminar registros de tipo "
+"\"%(model)s\". Solo los siguientes modelos están permitidos: %(allowed)s"
+
+#. module: pos_self_order
+#. odoo-python
+#: code:addons/pos_self_order/controllers/orders.py:0
+msgid "You are not authorized to remove this order"
+msgstr "No tiene autorización para eliminar esta orden."
+
+#. module: pos_self_order
+#. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
 #: code:addons/pos_self_order/models/res_config_settings.py:0
 msgid "You cannot add cash payment methods in kiosk mode."
@@ -1286,7 +1344,7 @@ msgstr "No puede agregar métodos de pago en efectivo al modo de quiosco."
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "You cannot edit a posted orderline !"
-msgstr "No puede editar una línea de orden publicada."
+msgstr "No puedes editar la línea de una orden publicada."
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1299,13 +1357,19 @@ msgstr "No tiene los permisos necesarios para realizar esta acción"
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
 msgid "Your Order"
-msgstr "Su orden"
+msgstr "Tu orden"
 
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 msgid "Your Selection"
-msgstr "Su selección"
+msgstr "Tu selección"
+
+#. module: pos_self_order
+#. odoo-python
+#: code:addons/pos_self_order/controllers/orders.py:0
+msgid "Your order does not exist or has been removed"
+msgstr "Su orden no existe o ha sido eliminada."
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1332,6 +1396,11 @@ msgid "Your order status has been changed"
 msgstr "El estado de su orden cambió"
 
 #. module: pos_self_order
+#: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
+msgid "a"
+msgstr "a"
+
+#. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.pos_self_order_product_pos_category_form_view
 msgid "and"
 msgstr "y"
@@ -1340,12 +1409,6 @@ msgstr "y"
 #: model_terms:ir.ui.view,arch_db:pos_self_order.custom_link_tree
 msgid "empty = all points of sale"
 msgstr "vacío = todos los puntos de venta"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "floor"
-msgstr "piso "
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.custom_link_tree
@@ -1362,3 +1425,9 @@ msgstr "odoo"
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "options"
 msgstr "opciones"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
+msgid "x"
+msgstr "x"

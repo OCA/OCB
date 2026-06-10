@@ -1,6 +1,11 @@
 import { Plugin } from "@html_editor/plugin";
 import { closestBlock, isBlock } from "@html_editor/utils/blocks";
-import { removeClass, toggleClass, wrapInlinesInBlocks } from "@html_editor/utils/dom";
+import {
+    removeClass,
+    toggleClass,
+    unwrapContents,
+    wrapInlinesInBlocks,
+} from "@html_editor/utils/dom";
 import {
     getDeepestPosition,
     isEmptyBlock,
@@ -9,6 +14,7 @@ import {
     isParagraphRelatedElement,
     isProtected,
     isProtecting,
+    isShrunkBlock,
     listElementSelector,
 } from "@html_editor/utils/dom_info";
 import {
@@ -120,7 +126,9 @@ export class ListPlugin extends Plugin {
         tab_overrides: this.handleTab.bind(this),
         shift_tab_overrides: this.handleShiftTab.bind(this),
         split_element_block_overrides: this.handleSplitBlock.bind(this),
+        triple_click_overrides: this.handleTripleClick.bind(this),
         node_to_insert_processors: this.processNodeToInsert.bind(this),
+        before_insert_within_pre_processors: this.insertListWithinPre.bind(this),
     };
 
     setup() {
@@ -205,23 +213,23 @@ export class ListPlugin extends Plugin {
             throw new Error(`listStyle is not compatible with "CL" list type`);
         }
 
-        // @todo @phoenix: original implementation removed whitespace-only text nodes from traversedNodes.
+        // @todo @phoenix: original implementation removed whitespace-only text nodes from targetedNodes.
         // Check if this is necessary.
 
-        const traversedBlocks = this.dependencies.selection.getTraversedBlocks();
+        const targetedBlocks = this.dependencies.selection.getTargetedBlocks();
 
         // Keep deepest blocks only.
-        for (const block of traversedBlocks) {
-            if (descendants(block).some((descendant) => traversedBlocks.has(descendant))) {
-                traversedBlocks.delete(block);
+        for (const block of targetedBlocks) {
+            if (descendants(block).some((descendant) => targetedBlocks.has(descendant))) {
+                targetedBlocks.delete(block);
             }
         }
 
-        // Classify traversed blocks.
+        // Classify targeted blocks.
         const sameModeListItems = new Set();
         const nonListBlocks = new Set();
         const listsToSwitch = new Set();
-        for (const block of traversedBlocks) {
+        for (const block of targetedBlocks) {
             if (["OL", "UL"].includes(block.tagName) || !block.isContentEditable) {
                 continue;
             }
@@ -240,6 +248,10 @@ export class ListPlugin extends Plugin {
         // Apply changes.
         if (listsToSwitch.size || nonListBlocks.size) {
             for (const list of listsToSwitch) {
+                // Clean before preserving cursors otherwise the saved cursors
+                // might reference a node that will be removed when setTagName
+                // eventually calls clean of its own.
+                this.dispatchTo("clean_handlers", list);
                 const cursors = this.dependencies.selection.preserveSelection();
                 const newList = this.switchListMode(list, mode);
                 cursors.remapNode(list, newList).restore();
@@ -290,7 +302,7 @@ export class ListPlugin extends Plugin {
             return this.baseContainerToList(element, mode);
         }
         // @todo @phoenix: check for callbacks registered as resources instead?
-        if (element.matches("td, th, li.nav-item")) {
+        if (element.matches("td, th, li.nav-item, blockquote")) {
             return this.blockContentsToList(element, mode);
         }
         let list;
@@ -439,10 +451,15 @@ export class ListPlugin extends Plugin {
         if (!isOrphan) {
             return;
         }
-        // Transform <li> into <p> if they are not in a <ul> / <ol>.
-        const paragraph = this.dependencies.baseContainer.createBaseContainer();
-        element.replaceWith(paragraph);
-        paragraph.replaceChildren(...element.childNodes);
+        if (element.children.length && [...element.children].every(isBlock)) {
+            // Unwrap <li> if each of its children is a block element.
+            unwrapContents(element);
+        } else {
+            // Otherwise, wrap its content in a new <p> element.
+            const paragraph = this.dependencies.baseContainer.createBaseContainer();
+            element.replaceWith(paragraph);
+            paragraph.replaceChildren(...element.childNodes);
+        }
     }
 
     mergeSimilarLists(element) {
@@ -622,14 +639,16 @@ export class ListPlugin extends Plugin {
         const ul = li.parentNode;
         const dir = ul.getAttribute("dir");
         const textAlign = ul.style.getPropertyValue("text-align");
-        wrapInlinesInBlocks(li, {
-            baseContainerNodeName: this.dependencies.baseContainer.getDefaultNodeName(),
-            cursors,
-        });
-        if (!li.hasChildNodes()) {
-            // Outdenting an empty LI produces an empty baseContainer
+        const children = childNodes(li);
+        if (!children.every(isBlock)) {
             const baseContainer = this.dependencies.baseContainer.createBaseContainer();
-            baseContainer.append(this.document.createElement("br"));
+            for (const child of children) {
+                cursors.update(callbacksForCursorUpdate.append(baseContainer, child));
+                baseContainer.append(child);
+            }
+            if (isShrunkBlock(baseContainer)) {
+                baseContainer.append(this.document.createElement("br"));
+            }
             li.append(baseContainer);
             cursors.remapNode(li, baseContainer);
         }
@@ -671,7 +690,7 @@ export class ListPlugin extends Plugin {
         const listItems = new Set();
         const navListItems = new Set();
         const nonListItems = [];
-        for (const block of this.dependencies.selection.getTraversedBlocks()) {
+        for (const block of this.dependencies.selection.getTargetedBlocks()) {
             const closestLI = block.closest("li");
             if (closestLI) {
                 if (closestLI.classList.contains("nav-item")) {
@@ -837,6 +856,29 @@ export class ListPlugin extends Plugin {
         return true;
     }
 
+    insertListWithinPre(node) {
+        const listItems = node.querySelectorAll("li:not(.oe-nested)");
+        for (const li of listItems) {
+            const nestingLvl = ancestors(li).filter(isListElement).length - 1;
+            const list = closestElement(li, "ul, ol");
+            const listMode = this.getListMode(list);
+            let char;
+            if (listMode === "CL") {
+                char = "[] ";
+            } else if (listMode === "OL") {
+                const children = childNodes(li.parentElement).filter(
+                    (n) => !n.classList.contains("oe-nested")
+                );
+                char = `${children.indexOf(li) + 1}. `;
+            } else {
+                char = "* ";
+            }
+            const prefix = " ".repeat(nestingLvl * 4) + char;
+            li.prepend(this.document.createTextNode(prefix));
+        }
+        return node;
+    }
+
     // --------------------------------------------------------------------------
     // Event handlers
     // --------------------------------------------------------------------------
@@ -861,6 +903,15 @@ export class ListPlugin extends Plugin {
 
         if (isChecklistItem && this.isPointerInsideCheckbox(node, offsetX, offsetY)) {
             toggleClass(node, "o_checked");
+            const { documentSelectionIsInEditable } =
+                this.dependencies.selection.getSelectionData();
+            // When the editable is not focused, clicking on checkbox
+            // wont make it focused So changes will be lost
+            // as no blur event will occur when clicking outside.
+            if (!documentSelectionIsInEditable) {
+                this.editable.focus();
+                this.dependencies.selection.setSelection({ anchorNode: node, anchorOffset: 0 });
+            }
             ev.preventDefault();
             this.dependencies.history.addStep();
         }
@@ -885,5 +936,15 @@ export class ListPlugin extends Plugin {
             pointerOffsetY >= checkboxPosition.top &&
             pointerOffsetY <= checkboxPosition.bottom
         );
+    }
+
+    handleTripleClick(ev) {
+        const node = ev.target;
+        const isChecklistItem =
+            node.tagName === "LI" && this.getListMode(node.parentElement) === "CL";
+        if (isChecklistItem && this.isPointerInsideCheckbox(node, ev.offsetX, ev.offsetY)) {
+            // If pointer is inside checkbox, prevent tripleclick selection.
+            return true;
+        }
     }
 }

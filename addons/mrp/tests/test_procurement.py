@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from datetime import timedelta
+from freezegun import freeze_time
 
-from odoo import fields
+from odoo import Command, fields
 from odoo.tests import Form
 from odoo.addons.mrp.tests.common import TestMrpCommon
 from odoo.exceptions import UserError
@@ -352,6 +353,50 @@ class TestProcurement(TestMrpCommon):
 
         move_dest._action_assign()
         self.assertEqual(move_dest.quantity, 10.0)
+
+    def test_mtso_with_empty_bom(self):
+        """Test to ensure that a Manufacturing Order is created in 'draft' state
+        via MTSO route when BoM has no components or operations.
+        """
+        route_manufacture = self.warehouse_1.manufacture_pull_id.route_id
+        # Set up MTSO route.
+        route_mto = self.warehouse_1.mto_pull_id.route_id
+        route_mto.rule_ids.procure_method = "mts_else_mto"
+
+        # Create a product with a BoM that has no components or operations.
+        product = self.env['product.product'].create({
+            'name': 'Product',
+            'route_ids': [Command.link(route_manufacture.id), Command.link(route_mto.id)],
+        })
+        self.env['mrp.bom'].create({
+            'product_id': product.id,
+            'product_tmpl_id': product.product_tmpl_id.id,
+            'product_qty': 1.0,
+        })
+
+        pg = self.env['procurement.group'].create({'name': 'Test-mtso'})
+        self.env['procurement.group'].run([
+            pg.Procurement(
+                product,
+                1.0,
+                product.uom_id,
+                self.warehouse_1.lot_stock_id,
+                'test_mtso',
+                'test_mtso',
+                self.warehouse_1.company_id,
+                {
+                    'warehouse_id': self.warehouse_1,
+                    'group_id': pg,
+                },
+            ),
+        ])
+
+        # Check that the MO is created and remains in 'draft' state.
+        production = self.env['mrp.production'].search([('product_id', '=', product.id)])
+        self.assertEqual(len(production), 1, "The manufacturing order was not automatically created.")
+        self.assertFalse(production.move_raw_ids)
+        self.assertFalse(production.workorder_ids)
+        self.assertEqual(production.state, "draft", "MO with empty BoM created via MTSO should remain in draft state.")
 
     def test_auto_assign(self):
         """ When auto reordering rule exists, check for when:
@@ -936,6 +981,7 @@ class TestProcurement(TestMrpCommon):
         self.assertRecordValues(mo.move_raw_ids, expected_vals)
         self.assertRecordValues(mo.picking_ids.move_ids, expected_vals)
 
+    @freeze_time("2025-11-3")
     def test_consecutive_pickings(self):
         """ Test that when we generate several procurements for a product in a raw
             we do not create demand for the same quantities several times """
@@ -996,14 +1042,63 @@ class TestProcurement(TestMrpCommon):
                     'location_dest_id': self.env.ref('stock.stock_location_customers').id,
                     'name': 'picking move',
                     'product_id': product_1.id,
-                    'product_uom_qty': 15,
+                    'product_uom_qty': 8,
                     'product_uom': self.uom_unit.id,
                 })],
             })
             picking.action_confirm()
             if not mo:
                 mo = self.env['mrp.production'].search([('product_id', '=', product_1.id)])
-            self.assertEqual(delta_hours(mo.date_finished - mo.date_start), i * 15)
+            self.assertEqual(delta_hours(mo.date_finished - mo.date_start), i * 24)
 
         # Check the generated MO
-        self.assertEqual(mo.product_qty, 45)
+        self.assertEqual(mo.product_qty, 24)
+
+    def test_update_mo_producing_qty_with_mtso_rule_and_some_available_stock(self):
+        """
+        We set up for 3 step manufacturing and have some component in stock in pre-prod location.
+        We set the pre-prod -> prod rule to MTSO.
+        When confirming a MO, we expect a procurement for the missing component from stock to pre-prod.
+        When updating the producing quantity on the MO, we expect the procurement to be updated to match the demand.
+        """
+        warehouse = self.env['stock.warehouse'].search([], limit=1)
+        # 3 steps Manufacture
+        warehouse.write({'manufacture_steps': 'pbm_sam'})
+        # Set the pre-prod -> prod rule to 'mts_else_mto'
+        pre_prod_to_prod_rule = warehouse.pbm_route_id.rule_ids.filtered(lambda r: 'Pre-Production' in r.location_src_id.name)
+        self.assertTrue(pre_prod_to_prod_rule)
+        pre_prod_to_prod_rule.procure_method = 'mts_else_mto'
+
+        bom = self.env['mrp.bom'].create({
+            'product_id': self.productA.id,
+            'product_tmpl_id': self.productA.product_tmpl_id.id,
+            'product_qty': 1.0,
+            'type': 'normal',
+            'bom_line_ids': [
+                Command.create({'product_id': self.productB.id, 'product_qty': 1}),
+            ],
+        })
+        # Update component stock in pre-prod
+        self.env['stock.quant'].with_context(inventory_mode=True).create({
+            'product_id': self.productB.id,
+            'inventory_quantity': 2,
+            'location_id': warehouse.pbm_loc_id.id,
+        }).action_apply_inventory()
+
+        mo = self.env['mrp.production'].create({
+            'product_id': self.productA.id,
+            'bom_id': bom.id,
+            'product_qty': 5,
+            'location_src_id': warehouse.pbm_loc_id.id,
+        })
+        mo.action_confirm()
+        replenishment = self.env['stock.move'].search([('product_id', '=', self.productB.id), ('product_uom_qty', '=', 3), ('location_dest_id', '=', warehouse.pbm_loc_id.id)])
+        self.assertTrue(replenishment)
+
+        # Update producing quantity through the wizard
+        update_quantity_wizard = self.env['change.production.qty'].create({
+            'mo_id': mo.id,
+            'product_qty': 9,
+        })
+        update_quantity_wizard.change_prod_qty()
+        self.assertEqual(replenishment.product_uom_qty, 7)

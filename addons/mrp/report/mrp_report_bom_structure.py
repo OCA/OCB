@@ -44,7 +44,7 @@ class ReportBomStructure(models.AbstractModel):
         availability_delay = bom_data['availability_delay']
         same_delay = lead_time == availability_delay
         res = {}
-        if bom_data.get('producible_qty', 0):
+        if bom_data.get('producible_qty', 0) and not self.env.context.get('skip_producible_qty'):
             # Some quantities are producible today, at the earliest time possible
             earliest_capacity = bom_data['producible_qty']
 
@@ -125,10 +125,18 @@ class ReportBomStructure(models.AbstractModel):
         if self.env.context.get('warehouse_id'):
             warehouse = self.env['stock.warehouse'].browse(self.env.context.get('warehouse_id'))
         else:
-            warehouse = self.env['stock.warehouse'].browse(self.get_warehouses()[0]['id'])
+            warehouses = self.get_warehouses()
+            warehouse = self.env['stock.warehouse'].browse(warehouses[0]['id']) if warehouses else self.env['stock.warehouse']
 
         lines = self._get_bom_data(bom, warehouse, product=product, line_qty=bom_quantity, level=0)
-        production_capacities = self._compute_production_capacities(bom_quantity, lines)
+        try:
+            production_capacities = self._compute_production_capacities(bom_quantity, lines)
+        except UserError as e:
+            if not hasattr(e, '_planning_error'):
+                raise
+            # The planning failed, try again with the requested quantity
+            production_capacities = self.with_context(skip_producible_qty=True)._compute_production_capacities(bom_quantity, lines)
+
         lines.update(production_capacities)
         return {
             'lines': lines,
@@ -440,7 +448,7 @@ class ReportBomStructure(models.AbstractModel):
             if byproduct._skip_byproduct_line(product):
                 continue
             line_quantity = (bom_quantity / (bom.product_qty or 1.0)) * byproduct.product_qty
-            cost_share = byproduct.cost_share / 100
+            cost_share = byproduct.cost_share / 100 if byproduct.product_qty > 0 else 0
             byproduct_cost_portion += cost_share
             price = byproduct.product_id.uom_id._compute_price(byproduct.product_id.with_company(company).standard_price, byproduct.product_uom_id) * line_quantity
             byproducts.append({
@@ -530,7 +538,8 @@ class ReportBomStructure(models.AbstractModel):
         if self.env.context.get('warehouse_id'):
             warehouse = self.env['stock.warehouse'].browse(self.env.context.get('warehouse_id'))
         else:
-            warehouse = self.env['stock.warehouse'].browse(self.get_warehouses()[0]['id'])
+            warehouses = self.get_warehouses()
+            warehouse = self.env['stock.warehouse'].browse(warehouses[0]['id']) if warehouses else self.env['stock.warehouse']
 
         level = 1
         data = self._get_bom_data(bom, warehouse, product=product, line_qty=qty, level=0)
@@ -624,7 +633,7 @@ class ReportBomStructure(models.AbstractModel):
         found_rules = []
         if self._need_special_rules(product_info, parent_bom, parent_product):
             found_rules = self._find_special_rules(product, product_info, bom, parent_bom, parent_product)
-        if not found_rules:
+        if not found_rules and warehouse:
             found_rules = product._get_rules_from_location(warehouse.lot_stock_id)
         if not found_rules:
             return {}
@@ -867,7 +876,9 @@ class ReportBomStructure(models.AbstractModel):
                 best_duration_expected = duration_expected
         # If none of the workcenter are available, raise
         if best_date_finished == datetime.max:
-            raise UserError(_('Impossible to plan. Please check the workcenter availabilities.'))
+            err = UserError(_('Impossible to plan. Please check the workcenter availabilities.'))
+            err._planning_error = True
+            raise err
         planning_per_operation[operation] = {
             'date_start': best_date_start,
             'date_finished': best_date_finished,

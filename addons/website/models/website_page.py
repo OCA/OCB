@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import re
+from collections import Counter
 
 from odoo.addons.website.tools import text_from_html
 from odoo import api, fields, models
@@ -65,6 +66,8 @@ class Page(models.Model):
 
     @api.depends_context('uid')
     def _compute_can_publish(self):
+        # Note: this `if`'s purpose it to optimize the way this is computed for
+        # multiple records.
         if self.env.user.has_group('website.group_website_designer'):
             for record in self:
                 record.can_publish = True
@@ -75,9 +78,12 @@ class Page(models.Model):
         ''' Returns the most specific pages in self. '''
         ids = []
         previous_page = None
-        page_keys = self.sudo().search(
-            self.env['website'].website_domain(website_id=self._context.get('website_id'))
+        page_keys = self.sudo().with_context(prefetch_fields=False).search_fetch(
+            self.env['website'].website_domain(website_id=self._context.get('website_id')),
+            field_names=['key']
         ).mapped('key')
+        page_keys_counts = Counter(page_keys)
+
         # Iterate a single time on the whole list sorted on specific-website first.
         for page in self.sorted(key=lambda p: (p.url, not p.website_id)):
             if (
@@ -85,7 +91,7 @@ class Page(models.Model):
                 # If a generic page (niche case) has been COWed and that COWed
                 # page received a URL change, it should not let you access the
                 # generic page anymore, despite having a different URL.
-                and (page.website_id or page_keys.count(page.key) == 1)
+                and (page.website_id or page_keys_counts[page.key] == 1)
             ):
                 ids.append(page.id)
             previous_page = page
@@ -182,7 +188,17 @@ class Page(models.Model):
         domain = [website.website_domain()]
         if not self.env.user.has_group('website.group_website_designer'):
             # Rule must be reinforced because of sudo.
-            domain.append([('website_published', '=', True)])
+            domain.append([
+                ('website_published', '=', True),
+                ('website_indexed', '=', True),
+            ])
+            # Prevent accessing unaccessible pages
+            domain.append([('visibility', '!=', 'password')])
+            if website.is_public_user():
+                domain.append([('visibility', '!=', 'connected')])
+            domain.append(expression.OR([
+                [('groups_id', '=', False)], [('groups_id', 'in', self.env.user.groups_id.ids)]
+            ]))
 
         search_fields = ['name', 'url']
         fetch_fields = ['id', 'name', 'url']
@@ -251,13 +267,20 @@ class Page(models.Model):
                 )
 
         def filter_page(search, page, all_pages):
-            # Search might have matched words in the xml tags and parameters therefore we make
-            # sure the terms actually appear inside the text.
-            text = '%s %s %s' % (page.name, page.url, text_from_html(page.arch))
-            pattern = '|'.join([re.escape(search_term) for search_term in search.split()])
-            return re.findall('(%s)' % pattern, text, flags=re.I) if pattern else False
-        if search and with_description:
-            results = results.filtered(lambda result: filter_page(search, result, results))
+            # Exclude pages that do not pass ACL.
+            Rule = page.env['ir.rule'].sudo(False)
+            if not page.filtered_domain(Rule._compute_domain('website.page', 'read')):
+                return False
+            if not page.view_id.filtered_domain(Rule._compute_domain('ir.ui.view', 'read')):
+                return False
+            if search and with_description:
+                # Search might have matched words in the xml tags and parameters therefore we make
+                # sure the terms actually appear inside the text.
+                text = '%s %s %s' % (page.name, page.url, text_from_html(page.arch))
+                pattern = '|'.join([re.escape(search_term) for search_term in search.split()])
+                return re.findall('(%s)' % pattern, text, flags=re.I) if pattern else False
+            return True
+        results = results.filtered(lambda result: filter_page(search, result, results))
         return results[:limit], len(results)
 
     def action_page_debug_view(self):

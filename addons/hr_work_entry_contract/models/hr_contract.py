@@ -8,7 +8,7 @@ import pytz
 
 from dateutil.relativedelta import relativedelta
 
-from odoo import api, fields, models, _
+from odoo import api, Command, fields, models, _
 from odoo.addons.resource.models.utils import string_to_datetime, Intervals
 from odoo.osv import expression
 from odoo.tools import ormcache, format_list
@@ -100,12 +100,16 @@ class HrContract(models.Model):
             employees_by_calendar[contract.resource_calendar_id] |= contract.employee_id
         result = dict()
         for calendar, employees in employees_by_calendar.items():
-            result.update(calendar._attendance_intervals_batch(
-                start_dt,
-                end_dt,
-                resources=employees.resource_id,
-                tz=pytz.timezone(calendar.tz)
-            ))
+            if not calendar:
+                for employee in employees:
+                    result.update({employee.resource_id.id: WorkIntervals([(start_dt, end_dt, self.env['resource.calendar.attendance'])])})
+            else:
+                result.update(calendar._attendance_intervals_batch(
+                    start_dt,
+                    end_dt,
+                    resources=employees.resource_id,
+                    tz=pytz.timezone(calendar.tz) if calendar.tz else pytz.utc
+                ))
         return result
 
     def _get_lunch_intervals(self, start_dt, end_dt):
@@ -115,6 +119,8 @@ class HrContract(models.Model):
             employees_by_calendar[contract.resource_calendar_id] |= contract.employee_id
         result = {}
         for calendar, employees in employees_by_calendar.items():
+            if not calendar:
+                continue
             result.update(calendar._attendance_intervals_batch(
                 start_dt,
                 end_dt,
@@ -189,12 +195,23 @@ class HrContract(models.Model):
             leaves = mapped_leaves[resource.id]
 
             real_attendances = attendances - leaves
-            if contract.has_static_work_entries() or not leaves:
+
+            if not calendar:
+                real_leaves = leaves
+            elif calendar.flexible_hours:
+                # Flexible hours case
+                # For multi day leaves, we want them to occupy the virtual working schedule 12 AM to average working days
+                # For one day leaves, we want them to occupy exactly the time it was taken, for a time off in days
+                # this will mean the virtual schedule and for time off in hours the chosen hours
+                one_day_leaves = WorkIntervals([l for l in leaves if l[0].date() == l[1].date()])
+                multi_day_leaves = leaves - one_day_leaves
+                static_attendances = calendar._attendance_intervals_batch(
+                    start_dt, end_dt, resources=resource, tz=tz)[resource.id]
+                real_leaves = (static_attendances & multi_day_leaves) | one_day_leaves
+
+            elif contract.has_static_work_entries() or not leaves:
                 # Empty leaves means empty real_leaves
                 real_leaves = attendances - real_attendances
-            elif not calendar:
-                # If fully flexible working schedule is defined
-                real_leaves = leaves
             else:
                 # In the case of attendance based contracts use regular attendances to generate leave intervals
                 static_attendances = calendar._attendance_intervals_batch(
@@ -327,7 +344,7 @@ class HrContract(models.Model):
         for contract in self:
             contracts_by_company_tz[(
                 contract.company_id,
-                (contract.resource_calendar_id or contract.employee_id.resource_calendar_id).tz
+                (contract.resource_calendar_id or contract.employee_id.resource_calendar_id or contract.employee_id).tz,
             )] += contract
         utc = pytz.timezone('UTC')
         new_work_entries = self.env['hr.work.entry']
@@ -365,7 +382,7 @@ class HrContract(models.Model):
         })
         utc = pytz.timezone('UTC')
         for contract in self:
-            contract_tz = (contract.resource_calendar_id or contract.employee_id.resource_calendar_id).tz
+            contract_tz = (contract.resource_calendar_id or contract.employee_id.resource_calendar_id or contract.employee_id).tz
             tz = pytz.timezone(contract_tz) if contract_tz else pytz.utc
             contract_start = tz.localize(fields.Datetime.to_datetime(contract.date_start)).astimezone(utc).replace(tzinfo=None)
             contract_stop = datetime.combine(fields.Datetime.to_datetime(contract.date_end or datetime.max.date()),
@@ -460,11 +477,11 @@ class HrContract(models.Model):
         self.ensure_one()
         if self.employee_id:
             wizard = self.env['hr.work.entry.regeneration.wizard'].create({
-                'employee_ids': [(4, self.employee_id.id)],
+                'employee_ids': [Command.set(self.employee_id.ids)],
                 'date_from': date_from,
                 'date_to': date_to,
             })
-            wizard.with_context(work_entry_skip_validation=True).regenerate_work_entries()
+            wizard.with_context(work_entry_skip_validation=True, active_test=False).regenerate_work_entries()
 
     def _get_fields_that_recompute_we(self):
         # Returns the fields that should recompute the work entries

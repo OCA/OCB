@@ -148,8 +148,6 @@ ul.o_checklist {
     >li {
         list-style: none;
         position: relative;
-        margin-left: $o-checklist-margin-left;
-        margin-right: $o-checklist-margin-left;
 
         &:not(.oe-nested)::before {
             content: '';
@@ -306,9 +304,8 @@ div.media_iframe_video {
     iframe {
         width: 100%;
         height: 100%;
-        @include o-position-absolute($top: 0);
+        @include o-position-absolute($top: 0, $left: 0, $right: 0);
         margin: 0 auto;
-        margin-left: -50%;
     }
     &.padding-small iframe {
         padding: 4px;
@@ -616,6 +613,10 @@ pre {
                 }
             }
         }
+
+        .btn-close {
+            filter: unset;
+        }
     }
 }
 @for $index from 1 through length($o-color-combinations) {
@@ -719,6 +720,12 @@ pre {
                     background-color: $-btn-primary-color;
                     color: color-contrast($-btn-primary-color);
                     border-color: $-btn-primary-color;
+                }
+            }
+
+            .btn-close {
+                @if (lightness($-bg-color) < 50) {
+                    @include btn-close-white();
                 }
             }
         }
@@ -833,6 +840,27 @@ section, .oe_img_bg, [data-oe-shape-data] {
     // are not rendered (invisible) when inside a gradient.
     .fa {
         display: inherit;
+    }
+
+    %o-text-gradient-decoration {
+        background-size: 100% 0.1em;
+        background-repeat: repeat-x;
+        background-image: inherit !important;
+        text-decoration-color: transparent !important;
+        color: transparent;
+        caret-color: black;
+    }
+    * {
+        background-size: 0px;
+        background-image: inherit !important;
+    }
+    s:not(font[style*="-webkit-text-fill-color"] s) {
+        @extend %o-text-gradient-decoration;
+        background-position: 0 50%;
+    }
+    u:not(font[style*="-webkit-text-fill-color"] u) {
+        @extend %o-text-gradient-decoration;
+        background-position: 0 95%;
     }
 }
 

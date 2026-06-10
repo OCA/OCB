@@ -4,14 +4,14 @@ import {
     click,
     hover,
     press,
-    queryAll,
     queryAllAttributes,
     queryAllTexts,
     queryFirst,
+    waitFor,
 } from "@odoo/hoot-dom";
 import {
-    Deferred,
     animationFrame,
+    Deferred,
     mockTimeZone,
     mockTouch,
     runAllTimers,
@@ -41,6 +41,7 @@ import {
     getService,
     installLanguages,
     makeServerError,
+    MockServer,
     mockService,
     models,
     mountView,
@@ -346,6 +347,16 @@ test(`button box rendering on big screen`, async () => {
     for (const btn of buttonBox.children) {
         expect(btn).toHaveRect({ top: buttonBoxRect.top });
     }
+});
+
+test(`button box rendering invisible`, async () => {
+    await mountView({
+        resModel: "partner",
+        type: "form",
+        arch: `<form><div name="button_box" invisible="1"><button id="btn1">MyButton</button></div></form>`,
+        resId: 2,
+    });
+    expect(`.o_control_panel .o_control_panel_actions`).toHaveInnerHTML("");
 });
 
 test(`form view gets size class on small and big screens`, async () => {
@@ -657,6 +668,40 @@ test(`form with o2m having a selection field with fieldDependencies`, async () =
     expect(`.modal .o_form_view .o_field_widget[name=display_name]`).toHaveCount(1);
 });
 
+test(`form view: widget having a o2m field as fieldDependencies`, async () => {
+    class MyWidget extends Component {
+        static template = xml`<span>My custom widget</span>`;
+        static props = ["*"];
+    }
+    widgetsRegistry.add("my_widget", {
+        component: MyWidget,
+        fieldDependencies: [{ name: "child_ids", type: "one2many" }],
+    });
+
+    await mountView({
+        resModel: "res.users",
+        type: "form",
+        arch: `
+            <form>
+                <field name="partner_ids" >
+                    <list>
+                        <field name="name"/>
+                        <widget name="my_widget" />
+                    </list>
+                    <form>
+                        <field name="name"/>
+                        <widget name="my_widget" />
+                    </form>
+                </field>
+            </form>
+        `,
+        resId: 17,
+    });
+
+    await contains(`.o_list_view .o_field_cell[name="name"]`).click();
+    expect(`.modal .o_form_view .o_widget_my_widget`).toHaveCount(1);
+});
+
 test(`fieldDependencies are readonly by default`, async () => {
     class MyField extends CharField {}
     fieldsRegistry.add("my_widget", {
@@ -900,7 +945,6 @@ test(`Form and subview with _view_ref contexts`, async () => {
                 <field name="product_id" context="{'list_view_ref': 'some_tree_view'}"/>
             </form>
         `,
-        search: `<search/>`,
     };
     PartnerType._views = {
         list: `<list><field name="color"/></list>`,
@@ -921,7 +965,6 @@ test(`Form and subview with _view_ref contexts`, async () => {
                 <field name="type_ids" widget="one2many" context="{'list_view_ref': 'some_other_tree_view'}"/>
             </form>
         `,
-        search: `<search/>`,
     };
 
     onRpc("product", "get_views", ({ kwargs }) => {
@@ -967,7 +1010,6 @@ test(`Form and subview with _view_ref contexts`, async () => {
 test(`Form and subsubview with only _view_ref contexts`, async () => {
     PartnerType._fields.company_ids = fields.One2many({ relation: "res.company" });
     ResCompany._views = {
-        search: `<search/>`,
         list: `<list><field name="name"/></list>`,
         kanban: `
             <kanban>
@@ -981,7 +1023,6 @@ test(`Form and subsubview with only _view_ref contexts`, async () => {
         "form,2": `<form><field name="name"/></form>`,
     };
     PartnerType._views = {
-        search: `<search/>`,
         list: `<list><field name="name"/></list>`,
         kanban: `
             <kanban>
@@ -992,12 +1033,12 @@ test(`Form and subsubview with only _view_ref contexts`, async () => {
                 </templates>
             </kanban>
         `,
-        "form,foo_partner_type_form_view": `
+        "form,foo.partner_type_form_view": `
             <form>
                 <field name="color"/>
                 <field name="company_ids" context="{
                     'default_color': 2,
-                    'form_view_ref': 'bar_rescompany_form_view',
+                    'form_view_ref': 'bar.rescompany_form_view',
                 }"/>
             </form>
         `,
@@ -1014,11 +1055,11 @@ test(`Form and subsubview with only _view_ref contexts`, async () => {
     expectedContexts.set("onchange:partner", { ...userContext });
     expectedContexts.set("view:partner.type", {
         ...userContext,
-        form_view_ref: "foo_partner_type_form_view",
+        form_view_ref: "foo.partner_type_form_view",
     });
     expectedContexts.set("onchange:partner.type", {
         ...userContext,
-        form_view_ref: "foo_partner_type_form_view",
+        form_view_ref: "foo.partner_type_form_view",
     });
 
     onRpc("get_views", ({ model, kwargs }) => {
@@ -1038,7 +1079,7 @@ test(`Form and subsubview with only _view_ref contexts`, async () => {
             <form>
                 <field string="Partner Types" name="type_ids" widget="one2many" context="{
                     'default_partner_id': id,
-                    'form_view_ref': 'foo_partner_type_form_view'
+                    'form_view_ref': 'foo.partner_type_form_view'
                 }"/>
             </form>
         `,
@@ -1050,12 +1091,12 @@ test(`Form and subsubview with only _view_ref contexts`, async () => {
     expectedContexts.clear();
     expectedContexts.set("view:partner.type", {
         ...userContext,
-        form_view_ref: "foo_partner_type_form_view",
+        form_view_ref: "foo.partner_type_form_view",
     });
     expectedContexts.set("onchange:partner.type", {
         ...userContext,
         default_partner_id: 2,
-        form_view_ref: "foo_partner_type_form_view",
+        form_view_ref: "foo.partner_type_form_view",
     });
 
     await contains(
@@ -1071,12 +1112,12 @@ test(`Form and subsubview with only _view_ref contexts`, async () => {
     expectedContexts.clear();
     expectedContexts.set("view:res.company", {
         ...userContext,
-        form_view_ref: "bar_rescompany_form_view",
+        form_view_ref: "bar.rescompany_form_view",
     });
     expectedContexts.set("onchange:res.company", {
         ...userContext,
         default_color: 2,
-        form_view_ref: "bar_rescompany_form_view",
+        form_view_ref: "bar.rescompany_form_view",
     });
 
     await contains(`.modal [name=company_ids] .o_field_x2many_list_row_add a`).click();
@@ -1088,7 +1129,7 @@ test(`x2many form_view_ref with defined list`, async () => {
 
     PartnerType._records = [{ id: 1, name: "Timmy 1" }];
     PartnerType._views = {
-        "form,foo_partner_type_form_view": `
+        "form,foo.partner_type_form_view": `
             <form>
                 <div class="form_view_ref_partner_type">
                     <field name="display_name" />
@@ -1108,7 +1149,7 @@ test(`x2many form_view_ref with defined list`, async () => {
     expectedContexts.set("partner", { ...userContext });
     expectedContexts.set("partner.type", {
         ...userContext,
-        form_view_ref: "foo_partner_type_form_view",
+        form_view_ref: "foo.partner_type_form_view",
     });
 
     onRpc("get_views", ({ model, kwargs }) => {
@@ -1124,7 +1165,7 @@ test(`x2many form_view_ref with defined list`, async () => {
                 <field name="type_ids" invisible="1" />
                 <field string="Partner Types" name="type_ids" context="{
                     'default_partner_id': id,
-                    'form_view_ref': 'foo_partner_type_form_view'
+                    'form_view_ref': 'foo.partner_type_form_view'
                 }">
                     <list>
                         <field name="display_name" />
@@ -1716,7 +1757,6 @@ test(`reset local state when switching to another view`, async () => {
             </form>
         `,
         list: `<list><field name="foo"/></list>`,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -1783,11 +1823,9 @@ test(`trying to leave an invalid form view should not change the navbar`, async 
                 </sheet>
             </form>
         `,
-        search: `<search/>`,
     };
     Product._views = {
         list: `<list><field name="name"/></list>`,
-        search: `<search/>`,
     };
 
     await mountWithCleanup(WebClient);
@@ -3840,7 +3878,7 @@ test(`can create a record with default values`, async () => {
         context: { active_field: 2 },
     });
 
-    const n = Partner._records.length;
+    const n = MockServer.env["partner"].length;
 
     await contains(`.o_form_button_create`).click();
     expect(`.o_form_editable`).toHaveCount(1);
@@ -3849,7 +3887,7 @@ test(`can create a record with default values`, async () => {
     await contains(`.o_form_button_save`).click();
     expect.verifySteps(["web_save"]);
     expect(`.o_form_editable`).toHaveCount(1);
-    expect(Partner._records).toHaveLength(n + 1);
+    expect(MockServer.env["partner"]).toHaveLength(n + 1);
 });
 
 test(`default record with a one2many and an onchange on sub field`, async () => {
@@ -4089,7 +4127,6 @@ test(`make default record with non empty many2one`, async () => {
 test(`form view properly change its title`, async () => {
     Partner._views = {
         form: `<form><field name="foo"/></form>`,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -4112,7 +4149,7 @@ test(`form view properly change its title`, async () => {
 
 test(`archive/unarchive a record`, async () => {
     // add active field on partner model to have archive option
-    Partner._fields.active = fields.Boolean({ default: true });
+    Partner._fields.active = fields.Boolean();
 
     onRpc(({ method }) => expect.step(method));
     await mountView({
@@ -4149,7 +4186,7 @@ test(`archive/unarchive a record`, async () => {
 
 test(`apply custom standard action menu (archive)`, async () => {
     // add active field on partner model to have archive option
-    Partner._fields.active = fields.Boolean({ default: true });
+    Partner._fields.active = fields.Boolean();
 
     const formView = registry.category("views").get("form");
     class CustomFormController extends formView.Controller {
@@ -4258,13 +4295,18 @@ test(`add custom static action menu`, async () => {
 
 test(`archive a record with intermediary action`, async () => {
     // add active field on partner model to have archive option
-    Partner._fields.active = fields.Char({ default: "true" });
+    Partner._fields.active = fields.Boolean();
+    Partner._fields.archived = fields.Char({ default: "false" });
     Partner._views = {
-        form: `<form><field name="active"/><field name="foo"/></form>`,
-        search: `<search/>`,
+        form: /* xml */ `
+            <form>
+                <field name="active" />
+                <field name="archived" />
+                <field name="foo" />
+            </form>`,
     };
     Product._views = {
-        form: `
+        form: /* xml */ `
             <form>
                 <field name="display_name" />
                 <footer>
@@ -4272,7 +4314,6 @@ test(`archive a record with intermediary action`, async () => {
                 </footer>
             </form>
         `,
-        search: `<search/>`,
     };
 
     let readPartner = 0;
@@ -4285,7 +4326,7 @@ test(`archive a record with intermediary action`, async () => {
     }));
     onRpc("partner", "web_read", () => {
         if (readPartner === 1) {
-            return [{ id: 1, active: "archived" }];
+            return [{ id: 1, archived: "true" }];
         }
         readPartner++;
     });
@@ -4299,7 +4340,7 @@ test(`archive a record with intermediary action`, async () => {
         type: "ir.actions.act_window",
         views: [[false, "form"]],
     });
-    expect(`[name='active'] input`).toHaveValue("true");
+    expect(`[name='archived'] input`).toHaveValue("false");
     expect.verifySteps(["get_views: partner", "web_read: partner"]);
 
     await toggleActionMenu();
@@ -4315,12 +4356,12 @@ test(`archive a record with intermediary action`, async () => {
     await contains(`.modal footer .myButton`).click();
     expect.verifySteps(["web_save: product", "do_archive: product", "web_read: partner"]);
     expect(`.modal`).toHaveCount(0);
-    expect(`[name='active'] input`).toHaveValue("archived");
+    expect(`[name='archived'] input`).toHaveValue("true");
 });
 
 test(`archive action with active field not in view`, async () => {
     // add active field on partner model, but do not put it in the view
-    Partner._fields.active = fields.Boolean({ default: true });
+    Partner._fields.active = fields.Boolean();
 
     await mountView({
         resModel: "partner",
@@ -4338,7 +4379,7 @@ test(`archive action with active field not in view`, async () => {
 
 test(`archive action not shown with readonly active field`, async () => {
     // add active field on partner model in readonly mode to do not have Archive option
-    Partner._fields.active = fields.Boolean({ default: true, readonly: true });
+    Partner._fields.active = fields.Boolean({ readonly: true });
 
     await mountView({
         resModel: "partner",
@@ -5324,7 +5365,8 @@ test(`switching to another record from a dirty one on desktop`, async () => {
     expect(getPagerValue()).toEqual([1]);
 });
 
-test.tags("desktop")("Save record, no changes but dirty (add and remove tag)", async () => {
+test.tags("desktop");
+test("Save record, no changes but dirty (add and remove tag)", async () => {
     onRpc("web_save", () => expect.step("ERROR: web_save should not be called"));
     onRpc("web_read", () => expect.step("web_read"));
     await mountView({
@@ -5357,48 +5399,46 @@ test.tags("desktop")("Save record, no changes but dirty (add and remove tag)", a
     expect.verifySteps([]); // avoid doint an extra web_read
 });
 
-test.tags("desktop")(
-    "switching to another record from a dirty record but wo changes (add and remove tag)",
-    async () => {
-        onRpc("web_save", () => expect.step("ERROR: web_save should not be called"));
-        onRpc("web_read", () => expect.step("web_read"));
-        await mountView({
-            type: "form",
-            resModel: "partner",
-            arch: `<form>
+test.tags("desktop");
+test("switching to another record from a dirty record but wo changes (add and remove tag)", async () => {
+    onRpc("web_save", () => expect.step("ERROR: web_save should not be called"));
+    onRpc("web_read", () => expect.step("web_read"));
+    await mountView({
+        type: "form",
+        resModel: "partner",
+        arch: `<form>
                   <field name="type_ids" widget="many2many_tags"/>
               </form>`,
-            resIds: [1, 2],
-            resId: 1,
-        });
+        resIds: [1, 2],
+        resId: 1,
+    });
 
-        expect(getPagerValue()).toEqual([1]);
-        expect(getPagerLimit()).toBe(2);
+    expect(getPagerValue()).toEqual([1]);
+    expect(getPagerLimit()).toBe(2);
 
-        expect(`.o_field_widget[name=type_ids] .o_tag`).toHaveCount(0);
-        expect(`.o_breadcrumb`).toHaveText("first record");
+    expect(`.o_field_widget[name=type_ids] .o_tag`).toHaveCount(0);
+    expect(`.o_breadcrumb`).toHaveText("first record");
 
-        // add a tag
-        await contains(`.o_input_dropdown input`).click();
-        await contains(`.dropdown-item:contains(gold)`).click();
+    // add a tag
+    await contains(`.o_input_dropdown input`).click();
+    await contains(`.dropdown-item:contains(gold)`).click();
 
-        expect(`.o_field_widget[name=type_ids] .o_tag`).toHaveCount(1);
+    expect(`.o_field_widget[name=type_ids] .o_tag`).toHaveCount(1);
 
-        // remove tag
-        await contains(`.o_field_widget[name=type_ids] .o_tag .o_delete`).click();
-        expect(`.o_field_widget[name=type_ids] .o_tag`).toHaveCount(0);
-        expect.verifySteps(["web_read", "web_read"]);
+    // remove tag
+    await contains(`.o_field_widget[name=type_ids] .o_tag .o_delete`).click();
+    expect(`.o_field_widget[name=type_ids] .o_tag`).toHaveCount(0);
+    expect.verifySteps(["web_read", "web_read"]);
 
-        // click on the pager to switch to the next record
-        // The `web_save` RPC should not be called as there are no changes.
-        // The next record should be load correctly.
-        await contains(`.o_pager_next`).click();
-        expect(`.modal`).toHaveCount(0);
-        expect(getPagerValue()).toEqual([2]);
-        expect(`.o_breadcrumb`).toHaveText("second record");
-        expect.verifySteps(["web_read"]);
-    }
-);
+    // click on the pager to switch to the next record
+    // The `web_save` RPC should not be called as there are no changes.
+    // The next record should be load correctly.
+    await contains(`.o_pager_next`).click();
+    expect(`.modal`).toHaveCount(0);
+    expect(getPagerValue()).toEqual([2]);
+    expect(`.o_breadcrumb`).toHaveText("second record");
+    expect.verifySteps(["web_read"]);
+});
 
 test(`do not reload after save when using pager`, async () => {
     onRpc(({ method }) => expect.step(method));
@@ -5754,7 +5794,6 @@ test(`restore local state when switching to another record`, async () => {
 
 test(`restore the open notebook page when switching to another view`, async () => {
     Partner._views = {
-        search: `<search/>`,
         list: `<list><field name="foo"/></list>`,
         form: `
             <form>
@@ -5831,7 +5870,6 @@ test(`restore the open notebook page when switching to another view`, async () =
 test.tags("desktop");
 test(`don't restore the open notebook page when we create a new record`, async () => {
     Partner._views = {
-        search: `<search/>`,
         list: `<list><field name="foo"/></list>`,
         form: `
                 <form>
@@ -6159,10 +6197,9 @@ test(`deleting the last record`, async () => {
 test("delete the last record (without previous action)", async () => {
     Partner._views = {
         form: `
-                <form>
-                    <field name="display_name"/>
-                </form>`,
-        search: "<search></search>",
+            <form>
+                <field name="display_name"/>
+            </form>`,
     };
 
     redirect("/odoo/m-partner/1");
@@ -6291,7 +6328,7 @@ test(`onchange returns an error`, async () => {
 
     await contains(`.o_field_widget[name=int_field] input`).edit("64");
     expect.verifyErrors(["Some business message"]);
-    expect(`.modal`).toHaveCount(1);
+    await waitFor(`.modal`);
     expect(`.modal-body`).toHaveText(/Some business message/);
     expect(`.o_field_widget[name="int_field"] input`).toHaveValue("9");
 
@@ -6710,7 +6747,6 @@ test(`rpc complete after destroying parent`, async () => {
             </form>
         `,
         list: `<list><field name="display_name"/></list>`,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -7646,7 +7682,6 @@ test(`modifiers are considered on multiple <footer/> tags`, async () => {
                 </footer>
             </form>
         `,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -7678,7 +7713,6 @@ test(`buttons in footer are moved to $buttons if necessary`, async () => {
                 </footer>
             </form>
         `,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -7833,6 +7867,26 @@ test(`in create mode, autofocus fields are focused`, async () => {
         resModel: "partner",
         type: "form",
         arch: `<form><field name="int_field"/><field name="foo" default_focus="1"/></form>`,
+    });
+    expect(`.o_field_widget[name="foo"] input`).toBeFocused();
+});
+
+test.tags("desktop");
+test(`in create mode, if two fields have default focus, the first gets the focus`, async () => {
+    await mountView({
+        resModel: "partner",
+        type: "form",
+        arch: `<form><field name="int_field" default_focus="1"/><field name="foo" default_focus="1"/></form>`,
+    });
+    expect(`.o_field_widget[name="int_field"] input`).toBeFocused();
+});
+
+test.tags("desktop");
+test(`in create mode, if two fields have default focus but the first is invisible, the second gets the focus`, async () => {
+    await mountView({
+        resModel: "partner",
+        type: "form",
+        arch: `<form><field name="int_field" default_focus="1" invisible="1"/><field name="foo" default_focus="1"/></form>`,
     });
     expect(`.o_field_widget[name="foo"] input`).toBeFocused();
 });
@@ -9126,8 +9180,6 @@ test(`multiple clicks on save should reload only once`, async () => {
 });
 
 test(`form view is not broken if save operation fails`, async () => {
-    expect.errors(1);
-
     onRpc("web_save", ({ args }) => {
         if (args[1].foo === "incorrect value") {
             throw makeServerError();
@@ -9146,7 +9198,6 @@ test(`form view is not broken if save operation fails`, async () => {
     await contains(`.o_form_button_save`).click();
     await animationFrame();
     expect(`.o_dialog`).toHaveCount(1);
-    expect.verifyErrors(["RPC_ERROR: Odoo Server Error"]);
     expect.verifySteps(["web_save"]); // write on save (it fails, does not trigger a read)
 
     await contains(`.o_dialog .modal-footer .btn-primary`).click();
@@ -9201,6 +9252,76 @@ test(`form view is not broken if save operation fails with redirect warning`, as
 
     // RedirectWarning dialog
     expect(`.modal-title`).toHaveText("Sub view");
+});
+
+test.tags("desktop");
+test("Redirect Warning full feature: additional context, action_id, leaving while dirty", async function () {
+    defineActions([
+        {
+            id: 1,
+            name: "Partner",
+            res_model: "partner",
+            type: "ir.actions.act_window",
+            views: [[false, "form"]],
+            res_id: 1,
+        },
+        {
+            id: 2,
+            name: "Partner List",
+            res_model: "partner",
+            type: "ir.actions.act_window",
+            domain: "[['id', 'in', [active_id]]]",
+            views: [[false, "list"]],
+        },
+    ]);
+    Partner._views = {
+        list: `
+                <list>
+                    <field name="name"/>
+                </list>`,
+        form: `
+                <form>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </form>`,
+        "partner,false,search": "<search></search>",
+    };
+    onRpc("partner", "web_save", () => {
+        expect.step("web_save");
+        throw makeServerError({
+            type: `RedirectWarning`,
+            args: [
+                "The message",
+                2,
+                "Button Label",
+                {
+                    active_id: 4,
+                },
+            ],
+            description: "Beep boop server stuff and technical string",
+        });
+    });
+    onRpc("partner", "web_search_read", (args) => {
+        expect.step("web_search_read");
+        expect(args.kwargs.domain).toEqual([["id", "in", [4]]]);
+    });
+
+    await mountWithCleanup(WebClient);
+    await getService("action").doAction(1);
+
+    await contains(".o_field_widget[name='name'] input").edit("some invalid input");
+    await contains(".o_form_button_save").click();
+    expect.verifySteps(["web_save"]);
+
+    await waitFor(".o_error_dialog");
+    expect(".o_error_dialog .btn-primary").toHaveCount(1);
+    expect(".o_error_dialog .btn-secondary").toHaveCount(2);
+
+    await contains(".o_error_dialog .btn-secondary").click();
+    await waitFor(".o_list_view");
+    expect.verifySteps(["web_search_read"]);
+    expect(".o_breadcrumb").toHaveText("first record\nPartner List");
 });
 
 test(`form view is not broken if save failed in readonly mode on field changed`, async () => {
@@ -9422,7 +9543,7 @@ test(`display tooltips for buttons (debug = false)`, async () => {
 
 test.tags("desktop");
 test(`display tooltips for buttons (debug = true)`, async () => {
-    serverState.debug = true;
+    serverState.debug = "1";
 
     await mountView({
         resModel: "partner",
@@ -9554,6 +9675,12 @@ test(`Can switch to form view on inline tree`, async () => {
         doAction(action, options) {
             expect.step("doAction");
             expect(action).toEqual({
+                context: {
+                    allowed_company_ids: [1],
+                    lang: "en",
+                    tz: "taht",
+                    uid: 7,
+                },
                 res_id: id,
                 res_model: "partner",
                 type: "ir.actions.act_window",
@@ -9780,7 +9907,7 @@ test(`basic support for widgets: onchange update`, async () => {
 
 test.tags("desktop");
 test(`proper stringification in debug mode tooltip`, async () => {
-    serverState.debug = true;
+    serverState.debug = "1";
 
     await mountView({
         resModel: "partner",
@@ -9810,7 +9937,7 @@ test(`proper stringification in debug mode tooltip`, async () => {
 
 test.tags("desktop");
 test(`field tooltip in debug mode, on field with domain attr`, async () => {
-    serverState.debug = true;
+    serverState.debug = "1";
 
     await mountView({
         resModel: "partner",
@@ -9832,7 +9959,7 @@ test(`field tooltip in debug mode, on field with domain attr`, async () => {
 
 test.tags("desktop");
 test(`do not display unset attributes in debug field tooltip`, async () => {
-    serverState.debug = true;
+    serverState.debug = "1";
 
     await mountView({
         resModel: "partner",
@@ -10110,7 +10237,6 @@ test(`leave the form view while saving`, async () => {
                 <field name="foo"/>
             </form>
         `,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -10180,7 +10306,6 @@ test(`leave the form twice (clicking on the breadcrumb) should save only once`, 
 
     Partner._views = {
         list: `<list><field name="foo"/></list>`,
-        search: `<search/>`,
         form: `
                 <form>
                     <field name="display_name"/>
@@ -10235,7 +10360,6 @@ test(`discard after a failed save (and close notifications)`, async () => {
                 </templates>
             </kanban>
         `,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -10356,9 +10480,10 @@ test(`form view with inline list view with optional fields and local storage moc
                 </field>
             </form>
         `,
+        viewId: 1,
     });
 
-    const localStorageKey = "partner,form,123456789,child_ids,list,bar,foo";
+    const localStorageKey = "partner,form,1,child_ids,list,bar,foo";
     expect.verifySteps([
         "getItem pwaService.installationState",
         `getItem optional_fields,${localStorageKey}`,
@@ -10366,7 +10491,7 @@ test(`form view with inline list view with optional fields and local storage moc
     ]);
     expect(`.o_list_table th`).toHaveCount(2);
     expect(`th[data-name="foo"]`).toBeVisible();
-    expect(`th[data-name="bar"]`).not.toBeVisible();
+    expect(`th[data-name="bar"]`).not.toHaveCount();
 
     // optional fields
     await contains(`.o_optional_columns_dropdown .dropdown-toggle`).click();
@@ -10420,16 +10545,17 @@ test(`form view with list_view_ref with optional fields and local storage mock`,
                 <field name="child_ids" widget="one2many" context="{'list_view_ref': '34'}"/>
             </form>
         `,
+        viewId: 1,
     });
 
-    const localStorageKey = "partner,form,123456789,child_ids,list,bar,foo";
+    const localStorageKey = "partner,form,1,child_ids,list,bar,foo";
     expect.verifySteps([
         "getItem pwaService.installationState",
         `getItem optional_fields,${localStorageKey}`,
         `getItem debug_open_view,${localStorageKey}`,
     ]);
     expect(`.o_list_table th`).toHaveCount(2);
-    expect(`th[data-name="foo"]`).not.toBeVisible();
+    expect(`th[data-name="foo"]`).not.toHaveCount();
     expect(`th[data-name="bar"]`).toBeVisible();
 
     // optional fields
@@ -10551,20 +10677,19 @@ test("resequence list lines when previous resequencing crashed", async () => {
     await contains(".o_form_button_save").click();
     await animationFrame();
 
-    const getNames = () => [...queryAll(".o_list_char")].map((el) => el.textContent);
-    expect(getNames()).toEqual(["first line", "second line"]);
+    expect(queryAllTexts(".o_list_char")).toEqual(["first line", "second line"]);
     await contains("tbody.ui-sortable tr:nth-child(1) .o_handle_cell").dragAndDrop(
         "tbody.ui-sortable tr:nth-child(2)"
     );
     await animationFrame();
     expect.verifyErrors(["RPC_ERROR"]);
-    expect(getNames()).toEqual(["first line", "second line"]);
+    expect(queryAllTexts(".o_list_char")).toEqual(["first line", "second line"]);
 
     await contains("tbody.ui-sortable tr:nth-child(1) .o_handle_cell").dragAndDrop(
         "tbody.ui-sortable tr:nth-child(2)"
     );
     await animationFrame();
-    expect(getNames()).toEqual(["second line", "first line"]);
+    expect(queryAllTexts(".o_list_char")).toEqual(["second line", "first line"]);
     expect.verifySteps(["resequence onChange crash", "resequence onChange ok"]);
 });
 
@@ -10867,7 +10992,6 @@ test(`Action Button clicked with failing action on desktop`, async () => {
                 </sheet>
             </form>
         `,
-        search: `<search/>`,
     };
 
     await mountWithCleanup(WebClient);
@@ -10911,7 +11035,6 @@ test(`Action Button clicked with failing action on mobile`, async () => {
                 </sheet>
             </form>
         `,
-        search: `<search/>`,
     };
 
     await mountWithCleanup(WebClient);
@@ -11036,7 +11159,7 @@ test(`save a form view with an invisible required field in a x2many`, async () =
 
 test(`help on field as precedence over field's declaration -- form`, async () => {
     Partner._fields.foo = fields.Char({ help: "pythonhelp" });
-    serverState.debug = true;
+    serverState.debug = "1";
 
     await mountView({
         resModel: "partner",
@@ -11103,7 +11226,6 @@ test(`form view does not deactivate sample data on other views`, async () => {
     Partner._views = {
         list: `<list sample="1"><field name="name"/></list>`,
         form: `<form><field name="name"/></form>`,
-        search: `<search/>`,
     };
 
     await mountWithCleanup(WebClient);
@@ -11144,7 +11266,6 @@ test(`empty x2manys when coming form a list with sample data`, async () => {
                 </field>
             </form>
         `,
-        search: `<search/>`,
     };
     await mountWithCleanup(WebClient);
     await getService("action").doAction({
@@ -11392,7 +11513,6 @@ test(`reload form view with an empty notebook`, async () => {
             </form>
         `,
         list: `<list><field name="foo"/></list>`,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -11543,7 +11663,6 @@ test(`prevent recreating a deleted record`, async () => {
                 </group>
             </form>
         `,
-        search: `<search/>`,
     };
 
     defineActions([
@@ -11628,7 +11747,6 @@ test(`coming to an action with an error from a form view with a dirty x2m`, asyn
                     <field name="child_ids"/>
                 </form>
             `,
-        search: `<search/>`,
     };
 
     onRpc(({ method, args }) => {
@@ -11705,7 +11823,6 @@ test(`coming to an action with an error from a form view with a record in creati
                 <field name="foo"/>
             </form>
         `,
-        search: `<search/>`,
     };
 
     onRpc("web_read", ({ args }) => {
@@ -12212,7 +12329,6 @@ test(`x2many field in form dialog view is correctly saved when using a view butt
 
     Partner._views = {
         form: `<form><field name="name"/></form>`,
-        search: `<search/>`,
     };
     ResUsers._views = {
         form: `
@@ -12230,7 +12346,6 @@ test(`x2many field in form dialog view is correctly saved when using a view butt
                 </field>
             </form>
         `,
-        search: `<search/>`,
     };
 
     onRpc("partner", "web_save", ({ args }) => {
@@ -12558,7 +12673,6 @@ test("executing new action, closes dialog, and avoid reload previous view", asyn
                     </t>
                 </templates>
             </kanban>`,
-        search: `<search/>`,
     };
 
     await mountWithCleanup(WebClient);
@@ -12593,7 +12707,8 @@ test("executing new action, closes dialog, and avoid reload previous view", asyn
     ]);
 });
 
-test.tags("mobile")(`pager is up to date`, async () => {
+test.tags("mobile");
+test(`pager is up to date`, async () => {
     patchWithCleanup(transitionConfig, { disabled: true });
     await mountView({
         resModel: "partner",

@@ -1,7 +1,6 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
-import { browser } from "@web/core/browser/browser";
 
 function fillSelectMenu(inputID, search) {
     return [
@@ -73,18 +72,6 @@ registry.category("web_tour.tours").add('website_links_tour', {
         ...fillSelectMenu("channel-select-wrapper", mediumValue),
         ...fillSelectMenu("source-select-wrapper", sourceValue),
         {
-            content: "Copy tracker link",
-            trigger: '#btn_shorten_url',
-            run: function () {
-                // Patch and ignore write on clipboard in tour as we don't have permissions
-                const oldWriteText = browser.navigator.clipboard.writeText;
-                browser.navigator.clipboard.writeText = () => {
-                    console.info("Copy in clipboard ignored!");
-                };
-                browser.navigator.clipboard.writeText = oldWriteText;
-            },
-        },
-        {
             content: "Generate Link Tracker",
             trigger: "#btn_shorten_url",
             run: "click",
@@ -99,10 +86,11 @@ registry.category("web_tour.tours").add('website_links_tour', {
             run: function () {
                 window.location.href = $('#generated_tracked_link .o_website_links_short_url').text();
             },
+            expectUnloadPage: true,
         },
         {
             content: "check that we landed on correct page with correct query strings",
-            trigger: ".s_title h1:contains(/^Contact us$/)",
+            trigger: ".s_title h1:text(Contact us)",
             run: function () {
                 const enc = c => encodeURIComponent(c).replace(/%20/g, '+');
                 const expectedUrl = `/contactus?utm_campaign=${enc(campaignValue)}&utm_source=${enc(sourceValue)}&utm_medium=${enc(mediumValue)}`;
@@ -111,6 +99,7 @@ registry.category("web_tour.tours").add('website_links_tour', {
                 }
                 window.location.href = '/r';
             },
+            expectUnloadPage: true,
         },
         // 3. Check that counter got incremented and charts are correctly displayed
         {
@@ -127,6 +116,7 @@ registry.category("web_tour.tours").add('website_links_tour', {
             content: "visit link stats page",
             trigger: ".o_website_links_card",
             run: "click",
+            expectUnloadPage: true,
         },
         {
             trigger: '.website_links_click_chart .title:contains("1 clicks")',

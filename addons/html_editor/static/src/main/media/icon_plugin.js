@@ -2,6 +2,11 @@ import { withSequence } from "@html_editor/utils/resource";
 import { Plugin } from "../../plugin";
 import { _t } from "@web/core/l10n/translation";
 import { ColorSelector } from "../font/color_selector";
+import { isZWS } from "@html_editor/utils/dom_info";
+import { leftPos, rightPos } from "@html_editor/utils/position";
+import { normalizeCursorPosition } from "@html_editor/utils/selection";
+import { closestElement } from "@html_editor/utils/dom_traversal";
+import { computeBackgroundColorForElement } from "@html_editor/utils/color";
 
 export class IconPlugin extends Plugin {
     static id = "icon";
@@ -43,14 +48,7 @@ export class IconPlugin extends Plugin {
         toolbar_namespaces: [
             {
                 id: "icon",
-                isApplied: (traversedNodes) =>
-                    traversedNodes.every(
-                        (node) =>
-                            // All nodes should be icons, its ZWS child or its ancestors
-                            node.classList?.contains("fa") ||
-                            node.parentElement.classList.contains("fa") ||
-                            (node.querySelector?.(".fa") && node.isContentEditable !== false)
-                    ),
+                isApplied: this.isSelectingOnlyIcons.bind(this),
             },
         ],
         toolbar_groups: [
@@ -121,40 +119,88 @@ export class IconPlugin extends Plugin {
                 isActive: () => this.hasSpinIcon(),
             },
         ],
-        color_apply_overrides: this.applyIconColor.bind(this),
+        /** Handlers */
+        selectionchange_handlers: this.normalizeIconSelection.bind(this),
+        /** Providers */
+        selected_background_color_providers: withSequence(
+            5,
+            this.computeBackgroundColorForIcon.bind(this)
+        ),
     };
 
+    /**
+     * @deprecated
+     */
     getSelectedIcon() {
-        const selectedNodes = this.dependencies.selection.getSelectedNodes();
-        return selectedNodes.find((node) => node.classList?.contains?.("fa"));
+        return this.getTargetedIcon();
+    }
+
+    getTargetedIcon() {
+        const targetedNodes = this.dependencies.selection.getTargetedNodes();
+        return targetedNodes.map((node) => closestElement(node, ".fa")).find(Boolean);
+    }
+
+    isSelectingOnlyIcons(targetedNodes = this.dependencies.selection.getTargetedNodes()) {
+        return (
+            targetedNodes.length &&
+            targetedNodes.every(
+                (node) =>
+                    // All nodes should be icons, its ZWS child or its ancestors
+                    node.classList?.contains("fa") ||
+                    node.parentElement.classList.contains("fa") ||
+                    (node.querySelector?.(".fa") && node.isContentEditable !== false)
+            )
+        );
+    }
+
+    normalizeIconSelection() {
+        const { anchorNode, focusNode } = this.document.getSelection();
+        if (this.isSelectingOnlyIcons() && (isZWS(anchorNode) || isZWS(focusNode))) {
+            const selectedIcon = this.getSelectedIcon();
+            const [anchorNode, anchorOffset] = normalizeCursorPosition(
+                ...leftPos(selectedIcon),
+                "left"
+            );
+            const [focusNode, focusOffset] = normalizeCursorPosition(...rightPos(selectedIcon));
+            this.dependencies.selection.setSelection(
+                {
+                    anchorNode,
+                    anchorOffset,
+                    focusNode,
+                    focusOffset,
+                },
+                { normalize: false }
+            );
+        }
     }
 
     resizeIcon({ size }) {
-        const selectedIcon = this.getSelectedIcon();
-        if (!selectedIcon) {
+        const targetedIcon = this.getTargetedIcon();
+        if (!targetedIcon) {
             return;
         }
-        for (const classString of selectedIcon.classList) {
+        for (const classString of targetedIcon.classList) {
             if (classString.match(/^fa-[2-5]x$/)) {
-                selectedIcon.classList.remove(classString);
+                targetedIcon.classList.remove(classString);
             }
         }
         if (size !== "1") {
-            selectedIcon.classList.add(`fa-${size}x`);
+            targetedIcon.classList.add(`fa-${size}x`);
         }
         this.dependencies.history.addStep();
     }
 
     toggleSpinIcon() {
-        const selectedIcon = this.getSelectedIcon();
+        const selectedIcon = this.getTargetedIcon();
         if (!selectedIcon) {
             return;
         }
         selectedIcon.classList.toggle("fa-spin");
+        this.dependencies.history.addStep();
     }
 
     hasIconSize(size) {
-        const selectedIcon = this.getSelectedIcon();
+        const selectedIcon = this.getTargetedIcon();
         if (!selectedIcon) {
             return;
         }
@@ -167,19 +213,24 @@ export class IconPlugin extends Plugin {
     }
 
     hasSpinIcon() {
-        const selectedIcon = this.getSelectedIcon();
+        const selectedIcon = this.getTargetedIcon();
         if (!selectedIcon) {
             return;
         }
         return selectedIcon.classList.contains("fa-spin");
     }
 
-    applyIconColor(color, mode) {
-        const selectedIcon = this.getSelectedIcon();
-        if (!selectedIcon) {
+    computeBackgroundColorForIcon() {
+        const nodes = this.dependencies.selection
+            .getTargetedNodes()
+            .filter((node) => node.classList?.contains("fa"));
+        if (nodes.length === 0) {
             return;
         }
-        this.dependencies.color.colorElement(selectedIcon, color, mode);
-        return true;
+        const el = closestElement(nodes[0], "font");
+        if (!el) {
+            return;
+        }
+        return computeBackgroundColorForElement(el);
     }
 }

@@ -28,7 +28,7 @@ class WebsiteEventController(http.Controller):
 
     def _get_events_search_options(self, **post):
         return {
-            'displayDescription': False,
+            'displayDescription': True,
             'displayDetail': False,
             'displayExtraDetail': False,
             'displayExtraLink': False,
@@ -228,8 +228,7 @@ class WebsiteEventController(http.Controller):
             'quantity': count,
         } for tid, count in ticket_order.items() if count]
 
-    @http.route(['/event/<model("event.event"):event>/registration/new'], type='json', auth="public", methods=['POST'], website=True)
-    def registration_new(self, event, **post):
+    def _prepare_registration_new_values(self, event, **post):
         tickets = self._process_tickets_form(event, post)
         availability_check = True
         if event.seats_limited:
@@ -255,12 +254,20 @@ class WebsiteEventController(http.Controller):
                     "email": visitor.email,
                     "phone": visitor.mobile,
                 }
-        return request.env['ir.ui.view']._render_template("website_event.registration_attendee_details", {
+
+        return {
             'tickets': tickets,
             'event': event,
             'availability_check': availability_check,
             'default_first_attendee': default_first_attendee,
-        })
+        }
+
+    @http.route(['/event/<model("event.event"):event>/registration/new'], type='json', auth="public", methods=['POST'], website=True)
+    def registration_new(self, event, **post):
+        values = self._prepare_registration_new_values(event, **post)
+        if not values:
+            return values
+        return request.env['ir.ui.view']._render_template("website_event.registration_attendee_details", values)
 
     def _process_attendees_form(self, event, form_details):
         """ Process data posted from the attendee details form.
@@ -294,7 +301,10 @@ class WebsiteEventController(http.Controller):
                 registration_index, field_name = key_values
                 if field_name not in registration_fields:
                     continue
-                registrations.setdefault(registration_index, dict())[field_name] = int(value) or False
+                # Only cast when needed, as it might crash here for custom inputs in overrides
+                if isinstance(registration_fields[field_name], (fields.Many2one, fields.Integer)):
+                    value = int(value) or False
+                registrations.setdefault(registration_index, dict())[field_name] = value
                 continue
 
             if len(key_values) != 3:

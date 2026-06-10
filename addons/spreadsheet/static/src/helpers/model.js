@@ -13,6 +13,7 @@ import {
     isMarkdownIrMenuIdUrl,
     isIrMenuXmlUrl,
 } from "@spreadsheet/ir_ui_menu/odoo_menu_link_cell";
+import { getNeutralizedLink } from "./neutralized_link";
 
 /**
  * @typedef {import("@spreadsheet").OdooSpreadsheetModel} OdooSpreadsheetModel
@@ -107,7 +108,7 @@ export async function freezeOdooData(model) {
                 if (pivotId && model.getters.getPivotCoreDefinition(pivotId).type !== "ODOO") {
                     continue;
                 }
-                cell.content = evaluatedCell.value.toString();
+                cell.content = toFrozenContent(evaluatedCell);
                 if (evaluatedCell.format) {
                     sheet.formats[xc] = getItemId(evaluatedCell.format, data.formats);
                 }
@@ -124,7 +125,7 @@ export async function freezeOdooData(model) {
                             });
                             sheet.cells[xc] = {
                                 ...sheet.cells[xc],
-                                content: evaluatedCell.value.toString(),
+                                content: toFrozenContent(evaluatedCell),
                             };
                             if (evaluatedCell.format) {
                                 sheet.formats[xc] = getItemId(evaluatedCell.format, data.formats);
@@ -134,7 +135,7 @@ export async function freezeOdooData(model) {
                 }
             }
             if (containsLinkToOdoo(evaluatedCell.link)) {
-                cell.content = evaluatedCell.link.label;
+                cell.content = `[${evaluatedCell.link.label}](${getNeutralizedLink()})`;
             }
         }
         for (const figure of sheet.figures) {
@@ -157,6 +158,14 @@ export async function freezeOdooData(model) {
     data.lists = {};
     exportGlobalFiltersToSheet(model, data);
     return data;
+}
+
+function toFrozenContent(evaluatedCell) {
+    const value = evaluatedCell.value;
+    if (value === "") {
+        return '=""';
+    }
+    return value.toString();
 }
 
 /**

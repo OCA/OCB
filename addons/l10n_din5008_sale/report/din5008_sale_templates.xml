@@ -28,6 +28,10 @@
                                 <td>Order Date:</td>
                                 <td><div t-field="doc.date_order" t-options="{'widget': 'date'}"/></td>
                             </tr>
+                            <tr t-if="doc.commitment_date">
+                                <td>Delivery Date:</td>
+                                <td><div t-field="doc.commitment_date" t-options="{'widget': 'date'}"/></td>
+                            </tr>
                         </t>
                         <tr t-if="doc.client_order_ref">
                             <td>Customer Reference:</td>
@@ -65,7 +69,7 @@
                             </div>
                         </td>
                     </t>
-                    <t t-else="">
+                    <t t-elif="commercial_partner != invoice_partner or commercial_partner != delivery_partner">
                         <t t-if="doc.partner_invoice_id == doc.partner_shipping_id">
                             <td class="shipping_address">
                                 <span class="fw-bold">Invoicing and Shipping Address:</span>

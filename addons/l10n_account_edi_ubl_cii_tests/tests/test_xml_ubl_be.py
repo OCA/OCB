@@ -14,6 +14,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
     @TestUBLCommon.setup_country("be")
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ir.config_parameter'].sudo().set_param('account_edi_ubl_cii.use_new_dict_to_xml_helpers', 'False')
 
         cls.company.vat = "BE0246697724"
 
@@ -25,7 +26,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             'city': "Ramillies",
             'vat': 'BE0202239951',
             'country_id': cls.env.ref('base.be').id,
-            'bank_ids': [(0, 0, {'acc_number': 'BE15001559627230'})],
+            'bank_ids': [(0, 0, {'acc_number': 'BE15001559627230', 'allow_out_payment': True})],
             'ref': 'ref_partner_1',
             'invoice_edi_format': 'ubl_bis3',
         })
@@ -38,7 +39,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             'city': "Ramillies",
             'vat': 'BE0477472701',
             'country_id': cls.env.ref('base.be').id,
-            'bank_ids': [(0, 0, {'acc_number': 'BE90735788866632'})],
+            'bank_ids': [(0, 0, {'acc_number': 'BE90735788866632', 'allow_out_payment': True})],
             'ref': 'ref_partner_2',
             'invoice_edi_format': 'ubl_bis3',
         })
@@ -92,6 +93,11 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             'country_id': cls.env.ref('base.be').id,
         })
 
+        cls.env['res.partner.bank'].sudo().create({
+            'acc_number': 'BE15001559627230',
+            'partner_id': cls.company_data['company'].partner_id.id,
+        })
+
         cls.pay_term = cls.env['account.payment.term'].create({
             'name': "2/7 Net 30",
             'note': "Payment terms: 30 Days, 2% Early Payment Discount under 7 days",
@@ -107,6 +113,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
     ####################################################
 
     def test_export_import_invoice(self):
+        self.env['ir.config_parameter'].sudo().set_param('account_edi_ubl_cii.use_new_dict_to_xml_helpers', True)
         invoice = self._generate_move(
             self.partner_1,
             self.partner_2,
@@ -141,19 +148,19 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             invoice.ubl_cii_xml_id,
             xpaths=f'''
                 <xpath expr="./*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='InvoiceLine'][2]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='InvoiceLine'][3]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
-                    <PaymentID>___ignore___</PaymentID>
+                    <cbc:PaymentID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:PaymentID>
                 </xpath>
                 <xpath expr=".//*[local-name()='AdditionalDocumentReference']/*[local-name()='Attachment']/*[local-name()='EmbeddedDocumentBinaryObject']" position="attributes">
                     <attribute name="mimeCode">application/pdf</attribute>
@@ -166,6 +173,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
         self._assert_imported_invoice_from_etree(invoice, attachment)
 
     def test_export_import_refund(self):
+        self.env['ir.config_parameter'].sudo().set_param('account_edi_ubl_cii.use_new_dict_to_xml_helpers', True)
         refund = self._generate_move(
             self.partner_1,
             self.partner_2,
@@ -199,19 +207,19 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             refund.ubl_cii_xml_id,
             xpaths=f'''
                 <xpath expr="./*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr="./*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
-                    <PaymentID>___ignore___</PaymentID>
+                    <cbc:PaymentID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:PaymentID>
                 </xpath>
                 <xpath expr=".//*[local-name()='CreditNoteLine'][1]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='CreditNoteLine'][2]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='CreditNoteLine'][3]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
+                    <cbc:ID xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">___ignore___</cbc:ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='AdditionalDocumentReference']/*[local-name()='Attachment']/*[local-name()='EmbeddedDocumentBinaryObject']" position="attributes">
                     <attribute name="mimeCode">application/pdf</attribute>
@@ -231,559 +239,6 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             invoice_line_ids=[{'product_id': self.product_a.id}],
         )
         self._test_encoding_in_attachment(invoice.ubl_cii_xml_id, 'ubl_bis3.xml')
-
-    def test_sending_to_public_admin(self):
-        """ A public administration has no VAT, but has an arbitrary number (see:
-        https://pch.gouvernement.lu/fr/peppol.html). Then, the `EndpointID` node should be filled with this arbitrary
-        number (use the field `peppol_endpoint`).
-        In addition, when the Seller has no VAT, the node PartyTaxScheme and PartyLegalEntity may contain the Seller
-        identifier or the Seller legal registration identifier.
-        """
-        def check_attachment(invoice, expected_file):
-            self._assert_invoice_attachment(
-                invoice.ubl_cii_xml_id,
-                xpaths=f'''
-                    <xpath expr="./*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
-                        <PaymentID>___ignore___</PaymentID>
-                    </xpath>
-                    <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
-                        <ID>___ignore___</ID>
-                    </xpath>
-                    <xpath expr=".//*[local-name()='AdditionalDocumentReference']/*[local-name()='Attachment']/*[local-name()='EmbeddedDocumentBinaryObject']" position="attributes">
-                        <attribute name="mimeCode">application/pdf</attribute>
-                        <attribute name="filename">{invoice.invoice_pdf_report_id.name}</attribute>
-                    </xpath>
-                ''',
-                expected_file_path=expected_file,
-            )
-        # Setup a public admin in Luxembourg without VAT
-        self.partner_2.write({
-            'vat': None,
-            'peppol_eas': '9938',
-            'peppol_endpoint': '00005000041',
-            'country_id': self.env.ref('base.lu').id,
-        })
-        invoice_vals = {
-            'move_type': 'out_invoice',
-            'invoice_line_ids': [{
-                'product_id': self.product_a.id,
-                'quantity': 2,
-                'price_unit': 100,
-                'tax_ids': [(6, 0, self.tax_21.ids)],
-            }],
-        }
-        invoice1 = self._generate_move(self.partner_1, self.partner_2, **invoice_vals)
-        check_attachment(invoice1, "from_odoo/bis3_out_invoice_public_admin_1.xml")
-        # Switch the partner's roles
-        invoice2 = self._generate_move(self.partner_2, self.partner_1, **invoice_vals)
-        check_attachment(invoice2, "from_odoo/bis3_out_invoice_public_admin_2.xml")
-
-    def test_rounding_price_unit(self):
-        """ OpenPeppol states that:
-        * All document level amounts shall be rounded to two decimals for accounting
-        * Invoice line net amount shall be rounded to two decimals
-        See: https://docs.peppol.eu/poacc/billing/3.0/bis/#_rounding
-        Do not round the unit prices. It allows to obtain the correct line amounts when prices have more than 2
-        digits.
-        """
-        # Set the allowed number of digits for the price_unit
-        decimal_precision = self.env['decimal.precision'].search([('name', '=', 'Product Price')], limit=1)
-        self.assertTrue(bool(decimal_precision), "The decimal precision for Product Price is required for this test")
-        decimal_precision.digits = 4
-
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 10000,
-                    'price_unit': 0.4567,
-                    'tax_ids': [(6, 0, self.tax_21.ids)],
-                }
-            ],
-        )
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_out_invoice_rounding.xml')
-
-    def test_inverting_negative_price_unit(self):
-        """ We can not have negative unit prices, so we try to invert the unit price and quantity.
-        """
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 100.0,
-                    'tax_ids': [(6, 0, self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': -25.0,
-                    'tax_ids': [(6, 0, self.tax_21.ids)],
-                }
-            ],
-        )
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_out_invoice_negative_unit_price.xml')
-
-    def test_export_with_fixed_taxes_case1(self):
-        # CASE 1: simple invoice with a recupel tax
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 99,
-                    'tax_ids': [(6, 0, [self.recupel.id, self.tax_21.id])],
-                }
-            ],
-        )
-        self.assertEqual(invoice.amount_total, 121)
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_ecotaxes_case1.xml')
-
-    def test_export_with_fixed_taxes_case2(self):
-        # CASE 2: Same but with several ecotaxes
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 98,
-                    'tax_ids': [(6, 0, [self.recupel.id, self.auvibel.id, self.tax_21.id])],
-                }
-            ],
-        )
-        self.assertEqual(invoice.amount_total, 121)
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_ecotaxes_case2.xml')
-
-    def test_export_with_fixed_taxes_case3(self):
-        # CASE 3: same as Case 1 but taxes are Price Included
-        self.recupel.price_include_override = 'tax_included'
-        self.tax_21.price_include_override = 'tax_included'
-
-        # Price TTC = 121 = (99 + 1 ) * 1.21
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 121,
-                    'tax_ids': [(6, 0, [self.recupel.id, self.tax_21.id])],
-                }
-            ],
-        )
-        self.assertEqual(invoice.amount_total, 121)
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_ecotaxes_case3.xml')
-
-    def test_export_with_fixed_taxes_case4(self):
-        """ CASE 4: simple invoice with a recupel tax + discount
-        1) Subtotal (price after discount, without taxes): 99 * 2 * (1-0.9) = 178.2
-        2) Taxes:
-            - recupel = 2
-            - VAT = (178.2 + 2) * 0.21 = 37.842
-        3) Total = 178.2 + 2 + 37.842 = 218.042
-        """
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 2,
-                    'discount': 10,
-                    'price_unit': 99,
-                    'tax_ids': [(6, 0, [self.recupel.id, self.tax_21.id])],
-                }
-            ],
-        )
-        self.assertEqual(invoice.amount_total, 218.042)
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_ecotaxes_case4.xml')
-
-    def test_export_payment_terms(self):
-        """
-        Tests the early payment discount using the example case from the VBO/FEB.
-
-        ------------- + Price + Tax + Cash Discount (2%) + Taxable Amount + VAT --
-        Product A     |   200 |  6% |                 -4 |            196 |  11.76
-        Product B     |  2400 | 21% |                -48 |           2352 | 493.92
-        --------------+-------+-----+--------------------+----------------+-------
-
-        Subtotal (Taxable amount incl. payment discount): 2548
-        VAT: 505.68
-        Payable amount (excl. payment discount): 3105.68
-        Payable amount (incl. payment discount): 3053.68
-        """
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_payment_term_id=self.pay_term.id,
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 200,
-                    'tax_ids': [(6, 0, [self.tax_6.id])],
-                },
-                {
-                    'product_id': self.product_b.id,
-                    'quantity': 1,
-                    'price_unit': 2400,
-                    'tax_ids': [(6, 0, [self.tax_21.id])],
-                }
-            ],
-        )
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_pay_term.xml')
-
-    def test_export_payment_terms_fixed_tax(self):
-        """
-        Tests the early payment discount combined with a fixed tax.
-
-        ------------- + Price + Tax + Cash Discount (2%) + ------- Taxable Amount + VAT ----
-        Product A     |    99 | 21% |              -1.98 |  97.02 + 1 (fixed tax) |  20.5842
-        --------------+-------+-----+--------------------+------------------------+---------
-        NB: The fixed taxes (recupel, auvibel, etc) are excluded from the early payment discount !
-
-        Subtotal (Taxable amount incl. payment discount): 97.02 + 1
-        VAT: (97.02 + 1) * 0.21 = 20.58
-        Payable amount (excl. payment discount): 99 + 1 + 20.58 = 120.58
-        Payable amount (incl. payment discount): 97.02 + 1 + 20.58 = 118.60
-        """
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_payment_term_id=self.pay_term.id,
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 99,
-                    'tax_ids': [(6, 0, [self.tax_21.id, self.recupel.id])],
-                },
-            ],
-        )
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_pay_term_ecotax.xml')
-
-    def test_export_payment_terms_with_discount(self):
-        self.maxDiff = None
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            currency_id=self.env.company.currency_id.id,
-            move_type='out_invoice',
-            invoice_payment_term_id=self.pay_term.id,
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 20,
-                    'discount': 41,
-                    'price_unit': 180.75,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 480,
-                    'discount': 41,
-                    'price_unit': 25.80,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'discount': 39,
-                    'price_unit': 532.5,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'discount': 39,
-                    'price_unit': 74.25,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'discount': 39,
-                    'price_unit': 369.0,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 5,
-                    'discount': 39,
-                    'price_unit': 79.5,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 5,
-                    'discount': 39,
-                    'price_unit': 107.5,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 5,
-                    'discount': 39,
-                    'price_unit': 160.0,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 5,
-                    'discount': 39,
-                    'price_unit': 276.75,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 60,
-                    'discount': 39,
-                    'price_unit': 8.32,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 60,
-                    'discount': 39,
-                    'price_unit': 8.32,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 12,
-                    'discount': 39,
-                    'price_unit': 37.65,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 12,
-                    'discount': 39,
-                    'price_unit': 89.4,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 12,
-                    'discount': 39,
-                    'price_unit': 149.4,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 6,
-                    'discount': 39,
-                    'price_unit': 124.8,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'discount': 39,
-                    'price_unit': 253.2,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 12,
-                    'discount': 39,
-                    'price_unit': 48.3,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 20,
-                    'discount': 39,
-                    'price_unit': 34.8,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 10,
-                    'discount': 39,
-                    'price_unit': 48.3,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 10,
-                    'discount': 39,
-                    'price_unit': 72.0,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 5,
-                    'discount': 39,
-                    'price_unit': 96.0,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'discount': 39,
-                    'price_unit': 115.5,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 4,
-                    'discount': 39,
-                    'price_unit': 50.75,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 30,
-                    'discount': 39,
-                    'price_unit': 21.37,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'discount': 39,
-                    'price_unit': 40.8,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'discount': 39,
-                    'price_unit': 40.8,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'discount': 39,
-                    'price_unit': 32.9,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': -1,
-                    'price_unit': 1337.83,
-                    'tax_ids': [Command.set(self.tax_21.ids)],
-                },
-            ],
-        )
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_pay_term_discount.xml')
-
-    def test_export_with_changed_taxes(self):
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            send=False,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 200,
-                    'tax_ids': [Command.set([self.tax_21.id])],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 1,
-                    'price_unit': 200,
-                    'tax_ids': [Command.set([self.tax_21.id])],
-                },
-                {
-                    'product_id': self.product_b.id,
-                    'quantity': 1,
-                    'price_unit': 100,
-                    'tax_ids': [Command.set([self.tax_12.id])],
-                },
-                {
-                    'product_id': self.product_b.id,
-                    'quantity': 1,
-                    'price_unit': 100,
-                    'tax_ids': [Command.set([self.tax_12.id])],
-                },
-            ],
-        )
-        self.assertRecordValues(invoice, [{
-            'amount_untaxed': 600.00,
-            'amount_tax': 108.00,  # tax_12: 24.00 ; tax_21: 84.00
-            'amount_total': 708.00
-        }])
-
-        invoice.button_draft()
-        tax_lines = invoice.line_ids.filtered(lambda line: line.display_type == 'tax')
-        tax_line_21 = next((line for line in tax_lines if line.name == 'tax_21'))
-        tax_line_12 = next((line for line in tax_lines if line.name == 'tax_12'))
-        invoice.line_ids = [
-            Command.update(tax_line_21.id, {'amount_currency': -84.03}), # distribute  3 cents over 2 lines
-            Command.update(tax_line_12.id, {'amount_currency': -23.99}), # distribute -1 cent  over 2 lines
-        ]
-
-        invoice.action_post()
-        invoice._generate_and_send(mail_template_id=self.move_template.id, sending_methods=['manual'])
-
-        self.assertRecordValues(invoice, [{
-            'amount_untaxed': 600.00,
-            'amount_tax': 108.02,  # tax_12: 23.99 ; tax_21: 84.03
-            'amount_total': 708.02
-        }])
-
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_export_with_changed_taxes.xml')
-
-    def test_export_rounding_price_amount(self):
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'price_unit': 102.15,
-                    'tax_ids': [Command.set([self.tax_12.id])],
-                },
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 3,
-                    'price_unit': 83.60,
-                    'tax_ids': [Command.set([self.tax_21.id])],
-                },
-            ],
-        )
-        price_amounts = etree.fromstring(invoice.ubl_cii_xml_id.raw).findall('.//{*}InvoiceLine/{*}Price/{*}PriceAmount')
-        self.assertEqual(price_amounts[0].text, '102.15')
-        self.assertEqual(price_amounts[1].text, '83.6')
-
-    def test_export_tax_exempt(self):
-        invoice = self._generate_move(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'price_unit': 990.0,
-                    'tax_ids': [(6, 0, self.tax_0.ids)],
-                },
-            ],
-        )
-        self._assert_invoice_attachment(invoice.ubl_cii_xml_id, None, 'from_odoo/bis3_out_invoice_tax_exempt.xml')
 
     ####################################################
     # Test import
@@ -842,6 +297,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
         acc_bank = self.env['res.partner.bank'].create({
             'acc_number': 'BE15001559627231',
             'partner_id': self.company_data['company'].partner_id.id,
+            'allow_out_payment': True,
         })
 
         invoice = self._generate_move(
@@ -882,6 +338,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
 
         # Import:
         created_bill = self.env['account.move'].create({'move_type': 'in_invoice'})
+        self.env['res.partner'].search([('vat', '=', 'BE0246697724'), ('id', '!=', self.company_data['company'].id)]).vat = False  # clean demo company to avoid picking it as a partner
         created_bill.message_post(attachment_ids=[attachment.id])
         self.assertTrue(created_bill)
 
@@ -904,6 +361,10 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
         self._assert_imported_invoice_from_file(filename='bis3_out_invoice_no_prices.xml', **kwargs)
 
     def test_import_invoice_xml_open_peppol_examples(self):
+        self.env['res.partner.bank'].sudo().create({
+            'acc_number': 'IBAN32423940',
+            'partner_id': self.company_data['company'].partner_id.id,
+        })
         # Source: https://github.com/OpenPEPPOL/peppol-bis-invoice-3/tree/master/rules/examples
         subfolder = 'tests/test_files/from_peppol-bis-invoice-3_doc'
         # source: Allowance-example.xml
@@ -913,7 +374,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             invoice_vals={
                 'amount_total': 7125,
                 'amount_tax': 1225,
-                'invoice_lines': [{'price_subtotal': x} for x in (200, -200, 3999, 1, 1000, 899, 1)],
+                'invoice_lines': [{'price_subtotal': x} for x in (200, -200, 4000, 1000, 900)],
             },
         )
         # source: base-creditnote-correction.xml
@@ -938,6 +399,16 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
                 'invoice_lines': [{'price_subtotal': x} for x in (25, 2800, -1500)],
             },
         )
+        # source: base-creditnote-correction.xml with ignored LineExtensionAmount
+        self._assert_imported_invoice_from_file(
+            subfolder=subfolder,
+            filename='bis3_invoice_ignore_lineextensionamount.xml',
+            invoice_vals={
+                'amount_total': 1000,
+                'amount_tax': 0,
+                'invoice_lines': [{'price_subtotal': 1000}],
+            }
+        )
         # source: vat-category-E.xml
         self._assert_imported_invoice_from_file(
             subfolder=subfolder,
@@ -946,7 +417,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
                 'currency_id': self.env.ref('base.GBP').id,
                 'amount_total': 1200,
                 'amount_tax': 0,
-                'invoice_lines': [{'price_subtotal': 1200}],
+                'invoice_lines': [{'price_subtotal': 1200.0}],
             },
         )
 
@@ -1057,11 +528,11 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
                         'discount': 0,
                         'tax_ids': tax.ids,
                     } for (price_unit, tax) in [
-                        (-4, self.tax_6),
-                        (-48, tax_21),
-                        (52, self.tax_0),
-                        (200, self.tax_6),
-                        (2400, tax_21),
+                        (52.0, self.tax_0),
+                        (-4.0, self.tax_6),
+                        (-48.0, tax_21),
+                        (200.0, self.tax_6),
+                        (2400.0, tax_21),
                     ]
                 ]
             },
@@ -1156,8 +627,8 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             filename='bis3_out_invoice_quantity_and_or_unit_price_zero.xml',
             move_type='out_invoice',
             invoice_vals={
-                'amount_total': 3630,
-                'amount_tax': 630,
+                'amount_total': 3630.0,
+                'amount_tax': 630.0,
                 'currency_id': self.other_currency.id,
                 'invoice_lines': [
                     {
@@ -1169,4 +640,33 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
                     } for price_unit, quantity in [(1000, 1), (100, 10), (10, 100)]
                 ]
             }
+        )
+
+    def test_import_invoice_ubl_bis3_full_discount_line(self):
+        """ A line whose LineExtensionAmount is 0 because of a 100% AllowanceCharge
+        must be imported with the right quantity / price / 100% discount, and must NOT
+        be filtered out by the zero-amount line filter
+        """
+        self._assert_imported_invoice_from_file(
+            subfolder='tests/test_files/from_odoo',
+            filename='bis3_invoice_full_discount_line.xml',
+            invoice_vals={
+                'amount_untaxed': 100.0,
+                'amount_tax': 21.0,
+                'amount_total': 121.0,
+                'invoice_lines': [
+                    {
+                        'quantity': 1.0,
+                        'price_unit': 100.0,
+                        'discount': 0.0,
+                        'price_subtotal': 100.0,
+                    },
+                    {
+                        'quantity': 5.0,
+                        'price_unit': 330.0,
+                        'discount': 100.0,
+                        'price_subtotal': 0.0,
+                    },
+                ],
+            },
         )

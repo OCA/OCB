@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from contextlib import nullcontext
 from markupsafe import Markup
 from unittest.mock import patch
 
@@ -303,7 +304,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
             # voip module read activity_type during create leading to one less query in enterprise on action_feedback
             _category = activity.activity_type_id.category
 
-        with self.assertQueryCount(admin=14, employee=13):  # tm 10/10
+        with self.assertQueryCount(admin=15, employee=14):  # tm 10/10
             activity.action_feedback(feedback='Zizisse Done !')
 
     @warmup
@@ -338,7 +339,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
 
         record.write({'name': 'Dupe write'})
 
-        with self.assertQueryCount(admin=15, employee=14):  # tm 11/11
+        with self.assertQueryCount(admin=18, employee=17):  # tm 12/12
             record.action_close('Dupe feedback')
 
         self.assertEqual(record.activity_ids, self.env['mail.activity'])
@@ -364,7 +365,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
 
         record.write({'name': 'Dupe write'})
 
-        with self.assertQueryCount(admin=16, employee=15):  # tm 12/12
+        with self.assertQueryCount(admin=19, employee=18):  # tm 12/12
             record.action_close('Dupe feedback', attachment_ids=attachments.ids)
 
         # notifications
@@ -421,7 +422,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
         test_record, _test_template = self._create_test_records()
         customer = self.env['res.partner'].browse(self.customer.ids)
         attachments = self.env['ir.attachment'].with_user(self.env.user).create(self.test_attachments_vals)
-        with self.assertQueryCount(admin=9, employee=9):  # tm 8/8
+        with self.assertQueryCount(admin=10, employee=10):  # tm 8/8
             composer_form = Form(
                 self.env['mail.compose.message'].with_context({
                     'default_composition_mode': 'comment',
@@ -449,7 +450,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
     def test_mail_composer_mass_w_template(self):
         _partners, test_records, test_template = self._create_test_records_for_batch()
 
-        with self.assertQueryCount(admin=4, employee=4):
+        with self.assertQueryCount(admin=5, employee=5):
             composer = self.env['mail.compose.message'].with_context({
                 'default_composition_mode': 'mass_mail',
                 'default_model': test_records._name,
@@ -489,7 +490,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
         test_record, test_template = self._create_test_records()
         test_template.write({'attachment_ids': [(5, 0)]})
 
-        with self.assertQueryCount(admin=28, employee=28):  # tm 16/16
+        with self.assertQueryCount(admin=31, employee=31):  # tm 16/16
             composer = self.env['mail.compose.message'].with_context({
                 'default_composition_mode': 'comment',
                 'default_model': test_record._name,
@@ -513,7 +514,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
     def test_mail_composer_w_template_attachments(self):
         test_record, test_template = self._create_test_records()
 
-        with self.assertQueryCount(admin=29, employee=29):  # tm 17/17
+        with self.assertQueryCount(admin=32, employee=32):  # tm 17/17
             composer = self.env['mail.compose.message'].with_context({
                 'default_composition_mode': 'comment',
                 'default_model': test_record._name,
@@ -542,7 +543,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
         test_template.write({'attachment_ids': [(5, 0)]})
 
         customer = self.env['res.partner'].browse(self.customer.ids)
-        with self.assertQueryCount(admin=37, employee=37):  # tm 24/24
+        with self.assertQueryCount(admin=41, employee=41):  # tm 24/24
             composer_form = Form(
                 self.env['mail.compose.message'].with_context({
                     'default_composition_mode': 'comment',
@@ -572,7 +573,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
         test_record, test_template = self._create_test_records()
 
         customer = self.env['res.partner'].browse(self.customer.ids)
-        with self.assertQueryCount(admin=37, employee=37):  # tm 24/24
+        with self.assertQueryCount(admin=41, employee=41):  # tm 24/24
             composer_form = Form(
                 self.env['mail.compose.message'].with_context({
                     'default_composition_mode': 'comment',
@@ -610,7 +611,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
         # use another user already pre-defined with the email notification type,
         # so the ormcache is preserved.
         record = self.env['mail.test.track'].create({'name': 'Test'})
-        with self.assertQueryCount(admin=40, employee=39):
+        with self.assertQueryCount(admin=41, employee=40):
             record.write({
                 'user_id': self.user_test_email.id,
             })
@@ -619,7 +620,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
     @warmup
     def test_message_assignation_inbox(self):
         record = self.env['mail.test.track'].create({'name': 'Test'})
-        with self.assertQueryCount(admin=22, employee=21):
+        with self.assertQueryCount(admin=23, employee=22):
             record.write({
                 'user_id': self.user_test_inbox.id,
             })
@@ -669,7 +670,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
     def test_message_log_with_post(self):
         record = self.env['mail.test.simple'].create({'name': 'Test'})
 
-        with self.assertQueryCount(admin=7, employee=7):
+        with self.assertQueryCount(admin=8, employee=8):
             record.message_post(
                 body=Markup('<p>Test message_post as log</p>'),
                 subtype_xmlid='mail.mt_note',
@@ -680,7 +681,7 @@ class TestBaseAPIPerformance(BaseMailPerformance):
     def test_message_post_no_notification(self):
         record = self.env['mail.test.simple'].create({'name': 'Test'})
 
-        with self.assertQueryCount(admin=7, employee=7):
+        with self.assertQueryCount(admin=8, employee=8):
             record.message_post(
                 body=Markup('<p>Test Post Performances basic</p>'),
                 partner_ids=[],
@@ -932,7 +933,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
     def test_message_post_view(self):
         _partners, test_records, test_template = self._create_test_records_for_batch()
 
-        with self.assertQueryCount(admin=4, employee=4):
+        with self.assertQueryCount(admin=5, employee=5):
             _composer = self.env['mail.compose.message'].with_context({
                 'default_composition_mode': 'mass_mail',
                 'default_model': test_records._name,
@@ -1007,7 +1008,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
         rec1 = rec.with_context(active_test=False)      # to see inactive records
         self.assertEqual(rec1.message_partner_ids, self.partners | self.env.user.partner_id)
 
-        with self.assertQueryCount(admin=42, employee=42):
+        with self.assertQueryCount(admin=43, employee=43):
             rec.write({'user_id': self.user_portal.id})
         self.assertEqual(rec1.message_partner_ids, self.partners | self.env.user.partner_id | self.user_portal.partner_id)
         # write tracking message
@@ -1027,7 +1028,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
         customer_id = self.customer.id
         user_id = self.user_portal.id
 
-        with self.assertQueryCount(admin=92, employee=92):
+        with self.assertQueryCount(admin=93, employee=93):
             rec = self.env['mail.test.ticket'].create({
                 'name': 'Test',
                 'container_id': container_id,
@@ -1144,6 +1145,112 @@ class TestMailAPIPerformance(BaseMailPerformance):
         self.assertEqual(rec1.message_ids[2].subtype_id, self.env.ref('test_mail.st_mail_test_ticket_container_upd'))
         self.assertEqual(rec1.message_ids[2].notified_partner_ids, self.partners | self.user_portal.partner_id)
         self.assertEqual(len(rec1.message_ids), 3)
+
+
+@tagged('mail_performance', 'WIP', 'post_install', '-at_install')
+class TestMailAccessPerformance(BaseMailPerformance):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.records_access = cls.env['mail.test.access'].create([
+            {'name': 'Access.1', 'access': 'public'},
+            {'name': 'Access.2', 'access': 'logged'},
+            {'name': 'Access.3', 'access': 'followers'},
+        ])
+        cls.records_access_custo = cls.env['mail.test.access.custo'].create([
+            {'name': 'Custo.1'},
+            {'name': 'Custo.2', 'is_readonly': True},  # read access, should be able to read messages / activities
+            {'name': 'Custo.3', 'is_locked': True},  # not able to read messages / activities
+        ])
+        cls.records_mc = cls.env['mail.test.multi.company'].create([
+            {'name': 'MC.1'},
+            {'name': 'MC.2'},
+            {'name': 'MC.3'},
+        ])
+
+        # messages to check access
+        cls.messages = cls.env['mail.message']
+        for records_model in [cls.records_access, cls.records_access_custo, cls.records_mc]:
+            for record in records_model:
+                cls.messages += record.with_user(cls.user_admin).message_post(
+                    body=f'Posting on {record.name}',
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_comment',
+                )
+        # message employee cannot read due to specific rules (aka locked record)
+        cls.messages_emp_nope = cls.messages[5]
+
+        # activities to check access
+        cls.activities = cls.env['mail.activity']
+        for records_model in [cls.records_access, cls.records_access_custo, cls.records_mc]:
+            cls.activities += cls.env['mail.activity'].create([
+                {
+                    'res_id': record.id,
+                    'res_model_id': cls.env['ir.model']._get_id(record._name),
+                    'summary': f'TestActivity {idx} on {record._name},{record.id} for {user.name}',
+                    'user_id': user.id,
+                }
+                for record in records_model
+                for user in (cls.user_admin + cls.user_employee)
+                for idx in range(2)
+            ])
+            records_model.message_unsubscribe(partner_ids=(cls.user_admin + cls.user_employee).partner_id.ids)
+        # activities employee cannot read due to specific rules (other user on non open custo)
+        cls.activities_emp_nope = cls.activities.filtered(
+            lambda a: a.res_model == 'mail.test.access.custo' and a.res_id == cls.records_access_custo[2].id and a.user_id == cls.user_admin
+        )
+
+    @users('employee')
+    @warmup
+    def test_activity_read(self):
+        # queries
+        # fetch messages: 1
+        # filter records: 3 (1 / model)
+        # 'read': 1
+        profile = self.profile() if self.warm else nullcontext()
+        with self.assertQueryCount(employee=5), profile:
+            content = (self.activities - self.activities_emp_nope).with_env(self.env).read(['summary'])
+        self.assertEqual(len(content), len(self.activities - self.activities_emp_nope))
+
+    @users('employee')
+    @warmup
+    def test_activity_search(self):
+        # queries
+        # select mail.activity: 1
+        # filter records: 3 (1 / model)
+        profile = self.profile() if self.warm else nullcontext()
+        with self.assertQueryCount(employee=4), profile:
+            found = self.activities.with_env(self.env).search([('summary', 'ilike', 'TestActivity')])
+        self.assertEqual(found, self.activities - self.activities_emp_nope)
+
+    @users('employee')
+    @warmup
+    def test_message_read(self):
+        # queries
+        # fetch messages: 1
+        # filter records: 3
+        #  * 1 / model without _get_mail_message_access override (_filter_access_rule)
+        #  * 1 for model with _get_mail_message_access override (_get_mail_message_access)
+        # 'read': 1
+        profile = self.profile() if self.warm else nullcontext()
+        with self.assertQueryCount(employee=5), profile:
+            content = (self.messages - self.messages_emp_nope).with_env(self.env).read(['body'])
+        self.assertEqual(len(content), len(self.messages - self.messages_emp_nope))
+
+    @users('employee')
+    @warmup
+    def test_message_search(self):
+        # queries
+        # select mail.message: 1
+        # filter records: 3
+        #  * 1 / model without _get_mail_message_access override (_filter_access_rule)
+        #  * 1 for model with _get_mail_message_access override (_get_mail_message_access + _filter_access_rule)
+        profile = self.profile() if self.warm else nullcontext()
+        with self.assertQueryCount(employee=4), profile:
+            found = self.messages.with_env(self.env).search([('body', 'ilike', 'Posting on ')])
+        self.assertEqual(found, self.messages - self.messages_emp_nope)
 
 
 @tagged('mail_performance', 'mail_store', 'post_install', '-at_install')
@@ -1285,7 +1392,7 @@ class TestMessageToStorePerformance(BaseMailPerformance):
         """
         messages_all = self.messages_all.with_env(self.env)
 
-        with self.assertQueryCount(employee=27):
+        with self.assertQueryCount(employee=22):
             res = Store(messages_all, for_current_user=True).get_result()
 
         self.assertEqual(len(res["mail.message"]), 2 * 2)
@@ -1298,7 +1405,7 @@ class TestMessageToStorePerformance(BaseMailPerformance):
     def test_message_to_store_single(self):
         message = self.messages_all[0].with_env(self.env)
 
-        with self.assertQueryCount(employee=27):
+        with self.assertQueryCount(employee=22):
             res = Store(message, for_current_user=True).get_result()
 
         self.assertEqual(len(res["mail.message"]), 1)
@@ -1319,14 +1426,14 @@ class TestMessageToStorePerformance(BaseMailPerformance):
             'res_id': record.id
         } for record in records])
 
-        with self.assertQueryCount(employee=7):
+        with self.assertQueryCount(employee=5):
             res = Store(messages, for_current_user=True).get_result()
             self.assertEqual(len(res["mail.message"]), 6)
 
         self.env.flush_all()
         self.env.invalidate_all()
 
-        with self.assertQueryCount(employee=15):
+        with self.assertQueryCount(employee=14):
             res = Store(messages, for_current_user=True).get_result()
             self.assertEqual(len(res["mail.message"]), 6)
 
@@ -1396,7 +1503,7 @@ class TestMessageToStorePerformance(BaseMailPerformance):
                                     "recipients": [],
                                     "record_name": "Test",
                                     "res_id": record.id,
-                                    "scheduledDatetime": None,
+                                    "scheduledDatetime": False,
                                     "starred": False,
                                     "subject": False,
                                     "subtype_description": False,
@@ -1502,7 +1609,7 @@ class TestMessageToStorePerformance(BaseMailPerformance):
                                     "recipients": [],
                                     "record_name": "Test",
                                     "res_id": record.id,
-                                    "scheduledDatetime": None,
+                                    "scheduledDatetime": False,
                                     "starred": False,
                                     "subject": False,
                                     "subtype_description": False,

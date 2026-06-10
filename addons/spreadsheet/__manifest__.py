@@ -76,6 +76,7 @@
             'spreadsheet/static/src/pivot/pivot_helpers.js',
             'spreadsheet/static/src/o_spreadsheet/odoo_module.js',
             'spreadsheet/static/src/helpers/helpers.js',
+            'spreadsheet/static/src/helpers/neutralized_link.js',
             'spreadsheet/static/src/public_readonly_app/**/*.xml',
             'spreadsheet/static/src/public_readonly_app/**/*.scss',
             'spreadsheet/static/src/public_readonly_app/**/*',
@@ -87,6 +88,7 @@
             'spreadsheet/static/src/assets_backend/**/*',
             ('remove', 'spreadsheet/static/src/public_readonly_app/**/*.scss'),
             ('remove', 'spreadsheet/static/src/**/*.dark.scss'),
+            ('remove', 'spreadsheet/static/src/print_assets/**/*'),
         ],
         "web.assets_web_dark": [
             'spreadsheet/static/src/**/*.dark.scss',

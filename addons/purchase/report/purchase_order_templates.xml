@@ -9,7 +9,7 @@
         </t>
         <t t-if="o.dest_address_id">
             <t t-set="information_block">
-                <strong>Shipping address</strong>
+                <strong class="d-block mt-3">Shipping address</strong>
                 <div t-if="o.dest_address_id">
                     <div t-field="o.dest_address_id"
                         t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' name="purchase_shipping_address"/>
@@ -52,7 +52,7 @@
             </div>
 
             <table class="o_has_total_table table o_main_table table-borderless">
-                <thead>
+                <thead style="display: table-row-group">
                     <tr>
                         <th name="th_description" class="text-start"><strong>Description</strong></th>
                         <th name="th_quantity" class="text-end"><strong>Qty</strong></th>

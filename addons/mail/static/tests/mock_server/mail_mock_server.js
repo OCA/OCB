@@ -6,6 +6,7 @@ import {
     MockServer,
     MockServerError,
     models,
+    onRpc,
     serverState,
     unmakeKwArgs,
 } from "@web/../tests/web_test_helpers";
@@ -13,6 +14,7 @@ import { serializeDateTime } from "@web/core/l10n/dates";
 import { registry } from "@web/core/registry";
 import { groupBy } from "@web/core/utils/arrays";
 
+const mockRpcRegistry = registry.category("mail.mock_rpc");
 export const DISCUSS_ACTION_ID = 104;
 
 /**
@@ -76,7 +78,7 @@ const onRpcAfterGlobal = { cb: (route, args) => {} };
 registry.category("mail.on_rpc_before_global").add(true, onRpcBeforeGlobal);
 registry.category("mail.on_rpc_after_global").add(true, onRpcAfterGlobal);
 export function registerRoute(route, handler) {
-    const beforeCallableHandler = async function (request) {
+    async function beforeCallableHandler(request) {
         let args;
         try {
             args = await parseRequestParams(request);
@@ -97,8 +99,9 @@ export function registerRoute(route, handler) {
             return res;
         }
         return response;
-    };
-    registry.category("mock_rpc").add(route, beforeCallableHandler);
+    }
+    mockRpcRegistry.add(route, beforeCallableHandler);
+    onRpc(route, beforeCallableHandler);
 }
 
 // RPC handlers
@@ -111,7 +114,7 @@ async function mail_attachment_upload(request) {
     /** @type {import("mock_models").IrAttachment} */
     const IrAttachment = this.env["ir.attachment"];
 
-    const body = await request.text();
+    const body = await request.formData();
     const ufile = body.get("ufile");
     const is_pending = body.get("is_pending") === "true";
     const model = is_pending ? "mail.compose.message" : body.get("thread_model");
@@ -695,7 +698,7 @@ async function mail_message_update_content(request) {
     /** @type {import("mock_models").MailMessage} */
     const MailMessage = this.env["mail.message"];
 
-    const { attachment_ids, body, message_id } = await parseRequestParams(request);
+    const { attachment_ids, body, message_id, ...kwargs } = await parseRequestParams(request);
     const [message] = MailMessage.browse(message_id);
     const msg_values = {};
     if (body !== null) {
@@ -719,23 +722,30 @@ async function mail_message_update_content(request) {
         );
         msg_values.attachment_ids = attachment_ids;
     }
+    if ("subject" in kwargs) {
+        msg_values.subject = kwargs.subject;
+    }
     MailMessage.write([message_id], msg_values);
     if (body === "" && attachment_ids.length === 0) {
         MailMessage.write([message_id], { pinned_at: false });
         MailMessage._cleanup_side_records([message_id]);
     }
+    const res = {
+        attachment_ids: mailDataHelpers.Store.many(IrAttachment.browse(message.attachment_ids)),
+        body: message.body,
+        pinned_at: message.pinned_at,
+        recipients: mailDataHelpers.Store.many(
+            this.env["res.partner"].browse(message.partner_ids),
+            makeKwArgs({ fields: ["avatar_128", "name"] })
+        ),
+    };
+    if ("subject" in kwargs) {
+        res.subject = message.subject;
+    }
     BusBus._sendone(
         MailMessage._bus_notification_target(message.id),
         "mail.record/insert",
-        new mailDataHelpers.Store(MailMessage.browse(message.id), {
-            attachment_ids: mailDataHelpers.Store.many(IrAttachment.browse(message.attachment_ids)),
-            body: message.body,
-            pinned_at: message.pinned_at,
-            recipients: mailDataHelpers.Store.many(
-                this.env["res.partner"].browse(message.partner_ids),
-                makeKwArgs({ fields: ["avatar_128", "name"] })
-            ),
-        }).get_result()
+        new mailDataHelpers.Store(MailMessage.browse(message.id), res).get_result()
     );
     return new mailDataHelpers.Store(
         MailMessage.browse(message_id),

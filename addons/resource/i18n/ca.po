@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* resource
-# 
+# * resource
+#
 # Translators:
 # Jonatan Gk, 2024
 # Carles Antoli <carlesantoli@hotmail.com>, 2024
@@ -11,26 +11,29 @@
 # jabiri7, 2024
 # Óscar Fonseca <tecnico@pyming.com>, 2024
 # Arnau Ros, 2024
-# Xavier, 2024
+# Harcogourmet, 2024
 # Quim - coopdevs <quim.rebull@coopdevs.org>, 2024
 # Josep Anton Belchi, 2024
 # Martin Trigaux, 2024
 # marcescu, 2024
+# Wil Odoo, 2025
 # Noemi Pla, 2025
-# 
+# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 08:56+0000\n"
-"PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Noemi Pla, 2025\n"
-"Language-Team: Catalan (https://app.transifex.com/odoo/teams/41243/ca/)\n"
+"POT-Creation-Date: 2025-12-29 18:37+0000\n"
+"PO-Revision-Date: 2026-02-14 09:12+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-18/resource/"
+"ca/>\n"
+"Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: ca\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: resource
 #. odoo-python
@@ -47,7 +50,7 @@ msgstr "<span class=\"o_stat_text\">Absències</span>"
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.resource_calendar_form
 msgid "<span class=\"o_stat_text\">Work Resources</span>"
-msgstr ""
+msgstr "<span class=\"o_stat_text\">Recursos de treball</span>"
 
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.resource_calendar_form
@@ -86,6 +89,8 @@ msgid ""
 "Are you sure you want to switch to a 2-week calendar? All work entries will "
 "be lost."
 msgstr ""
+"Estàs segur que vols canviar a un calendari de 2 setmanes? Es perdran totes "
+"les entrades de treball."
 
 #. module: resource
 #. odoo-python
@@ -192,6 +197,8 @@ msgid ""
 "Define the working schedule of the resource. If not set, the resource will "
 "have fully flexible working hours."
 msgstr ""
+"Defineix l'horari de treball del recurs. Si no es configura cap, el recurs "
+"tindrà un horari totalment flexible."
 
 #. module: resource
 #: model_terms:ir.actions.act_window,help:resource.action_resource_calendar_form
@@ -364,8 +371,8 @@ msgid ""
 "If the active field is set to false, it will allow you to hide the Working "
 "Time without removing it."
 msgstr ""
-"Si l'àmbit actiu s'estableix en fals, li permetrà amagar el temps de treball"
-" sense eliminar-lo."
+"Si l'àmbit actiu s'estableix en fals, li permetrà amagar el temps de treball "
+"sense eliminar-lo."
 
 #. module: resource
 #. odoo-python
@@ -373,8 +380,8 @@ msgstr ""
 msgid ""
 "In a calendar with 2 weeks mode, all periods need to be in the sections."
 msgstr ""
-"En un calendari amb mode de 2 setmanes, tots els períodes han d'estar en les"
-" seccions."
+"En un calendari amb mode de 2 setmanes, tots els períodes han d'estar en les "
+"seccions."
 
 #. module: resource
 #: model:ir.model.fields,field_description:resource.field_resource_calendar__write_uid
@@ -436,8 +443,7 @@ msgstr "Nom"
 #. module: resource
 #: model:ir.model.fields,help:resource.field_resource_calendar__full_time_required_hours
 msgid ""
-"Number of hours to work on the company schedule to be considered as "
-"fulltime."
+"Number of hours to work on the company schedule to be considered as fulltime."
 msgstr ""
 
 #. module: resource
@@ -530,8 +536,8 @@ msgid ""
 msgstr ""
 "Els recursos li permeten crear i gestionar els recursos que han de "
 "participar en una certa fase d'un projecte. També podeu definir el seu "
-"nivell d'eficiència i càrrega de treball sobre la base de les seves hores de"
-" treball setmanals."
+"nivell d'eficiència i càrrega de treball sobre la base de les seves hores de "
+"treball setmanals."
 
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__5
@@ -588,7 +594,7 @@ msgstr "Estàndard 40 h/setm."
 #. module: resource
 #: model:ir.model.fields,field_description:resource.field_resource_calendar_leaves__date_from
 msgid "Start Date"
-msgstr "Data inicial"
+msgstr "Data d'inici"
 
 #. module: resource
 #: model:ir.model.fields,help:resource.field_resource_calendar_attendance__hour_from
@@ -602,7 +608,7 @@ msgstr ""
 #. module: resource
 #: model:ir.model.fields,field_description:resource.field_resource_calendar_attendance__date_from
 msgid "Starting Date"
-msgstr "Data inicial"
+msgstr "Data d'inici"
 
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.view_resource_calendar_leaves_search
@@ -613,6 +619,11 @@ msgstr ""
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__6
 msgid "Sunday"
 msgstr "Diumenge"
+
+#. module: resource
+#: model_terms:ir.ui.view,arch_db:resource.resource_calendar_form
+msgid "Switch"
+msgstr "Commutador"
 
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.resource_calendar_form
@@ -801,11 +812,10 @@ msgstr ""
 #. module: resource
 #: model:ir.model.fields,help:resource.field_resource_calendar_leaves__time_type
 msgid ""
-"Whether this should be computed as a time off or as work time (eg: "
-"formation)"
+"Whether this should be computed as a time off or as work time (eg: formation)"
 msgstr ""
-"Si això s'ha de calcular com a temps d'espera o com a temps de treball (pex:"
-" formació)"
+"Si això s'ha de calcular com a temps d'espera o com a temps de treball (pex: "
+"formació)"
 
 #. module: resource
 #: model:ir.model,name:resource.model_resource_calendar_attendance

@@ -1,7 +1,7 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* stock_account
-# 
+# * stock_account
+#
 # Translators:
 # emre oktem, 2024
 # Tiffany Chang, 2024
@@ -20,20 +20,23 @@
 # Ediz Duman <neps1192@gmail.com>, 2024
 # Tugay Hatıl <tugayh@projetgrup.com>, 2025
 # Melih Melik Sonmez, 2025
-# 
+# Deniz Guvener_Odoo <degu@odoo.com>, 2025
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-07 20:36+0000\n"
-"PO-Revision-Date: 2024-09-25 09:42+0000\n"
-"Last-Translator: Melih Melik Sonmez, 2025\n"
-"Language-Team: Turkish (https://app.transifex.com/odoo/teams/41243/tr/)\n"
+"POT-Creation-Date: 2026-04-10 18:38+0000\n"
+"PO-Revision-Date: 2025-12-26 14:00+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-18/"
+"stock_account/tr/>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_account
 #. odoo-python
@@ -73,7 +76,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 msgid ""
-"%(user)s changed stock valuation from  %(previous)s to %(new_value)s - %(product)s\n"
+"%(user)s changed stock valuation from  %(previous)s to %(new_value)s - %"
+"(product)s\n"
 "%(reason)s"
 msgstr ""
 
@@ -81,15 +85,13 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_revaluation_form_view
 msgid ""
 ")\n"
-"                            <small class=\"mx-2 fst-italic\">Use a negative added value to record a decrease in the product value</small>"
+"                            <small class=\"mx-2 fst-italic\">Use a negative "
+"added value to record a decrease in the product value</small>"
 msgstr ""
 ")\n"
-"                            <small class=\"mx-2 fst-italic\">Ürün değerindeki bir düşüşü kaydetmek için negatif bir katma değer kullanın</small>"
-
-#. module: stock_account
-#: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
-msgid "6.00"
-msgstr ""
+"                            <small class=\"mx-2 fst-italic\">Ürün "
+"değerindeki bir düşüşü kaydetmek için negatif bir katma değer kullanın</"
+"small>"
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.view_category_property_form
@@ -173,14 +175,14 @@ msgstr "Eklenen değer"
 #. module: stock_account
 #: model:ir.actions.act_window,name:stock_account.action_revalue_layers
 msgid "Adjust Valuation"
-msgstr ""
+msgstr "Değerlemeyi Ayarla"
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_res_config_settings__module_stock_landed_costs
 #: model_terms:ir.ui.view,arch_db:stock_account.res_config_settings_view_form
 msgid ""
-"Affect landed costs on reception operations and split them among products to"
-" update their cost price."
+"Affect landed costs on reception operations and split them among products to "
+"update their cost price."
 msgstr ""
 "Malın bedelini güncellemek için, ek maliyetleri ürünler arasında bölün ve "
 "ürün maliyetlerinin üzerine yükleyin."
@@ -208,7 +210,7 @@ msgstr "Otomatik"
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_res_config_settings__group_stock_accounting_automatic
 msgid "Automatic Stock Accounting"
-msgstr ""
+msgstr "Otomatik Stok Muhasebesi"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_product__avg_cost
@@ -224,7 +226,7 @@ msgstr "Ortalama Maliyet (AVCO)"
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
 msgid "BC46282798"
-msgstr ""
+msgstr "BC46282798"
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
@@ -240,11 +242,11 @@ msgstr "İptal"
 #. odoo-python
 #: code:addons/stock_account/models/stock_move.py:0
 msgid ""
-"Cannot find a stock input account for the product %s. You must define one on"
-" the product category, or on the location, before processing this operation."
+"Cannot find a stock input account for the product %s. You must define one on "
+"the product category, or on the location, before processing this operation."
 msgstr ""
-"%s ürünü için stok giriş hesabı bulunamadı. Bu işlemi yapmadan önce ürün "
-"kategorisi veya lokasyon üzerinden tanımlamanız gerekmektedir."
+"Ürün %s için stok çıkış hesabı bulunamadı. Bu işlemi gerçekleştirmeden önce "
+"ürün kategorisinde veya konumda bir tanesini tanımlamanız gerekir."
 
 #. module: stock_account
 #. odoo-python
@@ -254,8 +256,8 @@ msgid ""
 "on the product category, or on the location, before processing this "
 "operation."
 msgstr ""
-"%s ürünü için stok çıkış hesabı bulunamadı. Bu işlemi yapmadan önce ürün "
-"kategorisi veya lokasyon üzerinden tanımlamanız gerekmektedir."
+"Ürün %s için stok çıkış hesabı bulunamadı. Bu işlemi gerçekleştirmeden önce "
+"ürün kategorisinde veya konumda bir tanesini tanımlamanız gerekir."
 
 #. module: stock_account
 #. odoo-python
@@ -275,7 +277,7 @@ msgstr "Değerlemeyi o tarihte almak için bir tarih seçin"
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_account_move_line__cogs_origin_id
 msgid "Cogs Origin"
-msgstr ""
+msgstr "Cogs Kökeni"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
@@ -301,8 +303,8 @@ msgid ""
 "Configuration error. Please configure the price difference account on the "
 "product or its category to process this operation."
 msgstr ""
-"Yapılandırma Hatası : Lütfen bu işlemi yapabilmek için öncelikle fiyat farkı"
-" hesabını ürün veya ürün kategorisi üzerinde yapılandırın."
+"Yapılandırma Hatası : Lütfen bu işlemi yapabilmek için öncelikle fiyat farkı "
+"hesabını ürün veya ürün kategorisi üzerinde yapılandırın."
 
 #. module: stock_account
 #. odoo-python
@@ -327,11 +329,11 @@ msgstr "Maliyet Yöntemi"
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid ""
-"Costing method change for product category %(category)s: from %(old_method)s"
-" to %(new_method)s."
+"Costing method change for product category %(category)s: from %(old_method)s "
+"to %(new_method)s."
 msgstr ""
-"%(category)s ürün kategorisi için maliyetlendirme yöntemi değişikliği: "
-"%(old_method)s'den %(new_method)s'e"
+"%(category)s ürün kategorisi için maliyetlendirme yöntemi değişikliği: %"
+"(old_method)s'den %(new_method)s'e"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__account_id
@@ -341,8 +343,10 @@ msgstr "Karşı Hesap"
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_product_category__property_stock_account_input_categ_id
 msgid ""
-"Counterpart journal items for all incoming stock moves will be posted in this account, unless there is a specific valuation account\n"
-"                set on the source location. This is the default value for all products in this category. It can also directly be set on each product."
+"Counterpart journal items for all incoming stock moves will be posted in "
+"this account, unless there is a specific valuation account\n"
+"                set on the source location. This is the default value for "
+"all products in this category. It can also directly be set on each product."
 msgstr ""
 "Kaynak konumda ayarlanmış belirli bir değerleme hesabı olmadığı sürece, "
 "gelen tüm stok hareketlerine karşılık gelen  yevmiye kalemleri bu hesaba "
@@ -397,8 +401,8 @@ msgid ""
 "Date at which the accounting entries will be created in case of automated "
 "inventory valuation. If empty, the inventory date will be used."
 msgstr ""
-"Otomatik envanter değerlemesi durumunda muhasebe kayıtlarının oluşturulacağı"
-" tarih. Boşsa, envanter tarihi kullanılacaktır."
+"Otomatik envanter değerlemesi durumunda muhasebe kayıtlarının oluşturulacağı "
+"tarih. Boşsa, envanter tarihi kullanılacaktır."
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_stock_valuation_layer__uom_id
@@ -430,8 +434,8 @@ msgstr "Faturalarda Seri Numara & Lotları Göster"
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid ""
-"Due to a change of product category (from %(old_category)s to "
-"%(new_category)s), the costing method has changed for product %(product)s: "
+"Due to a change of product category (from %(old_category)s to %"
+"(new_category)s), the costing method has changed for product %(product)s: "
 "from %(old_method)s to %(new_method)s."
 msgstr ""
 
@@ -460,7 +464,7 @@ msgstr "ID"
 #: model:ir.model.fields,help:stock_account.field_product_product__lot_valuated
 #: model:ir.model.fields,help:stock_account.field_product_template__lot_valuated
 msgid "If checked, the valuation will be specific by Lot/Serial number."
-msgstr ""
+msgstr "İşaretlenirse, değerleme Lot/Seri numarasına göre spesifik olacaktır."
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.view_inventory_valuation_search
@@ -573,7 +577,7 @@ msgstr ""
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.res_config_settings_view_form
 msgid "Lots & Serial numbers will appear on the invoice"
-msgstr ""
+msgstr "Lot ve Seri numaraları faturada görünecektir"
 
 #. module: stock_account
 #: model:ir.model.fields.selection,name:stock_account.selection__product_category__property_valuation__manual_periodic
@@ -592,12 +596,15 @@ msgstr "Manuel Stok Değerleme: %s."
 #: model:ir.model.fields,help:stock_account.field_product_template__valuation
 #: model:ir.model.fields,help:stock_account.field_stock_valuation_layer_revaluation__property_valuation
 msgid ""
-"Manual: The accounting entries to value the inventory are not posted automatically.\n"
-"        Automated: An accounting entry is automatically created to value the inventory when a product enters or leaves the company.\n"
+"Manual: The accounting entries to value the inventory are not posted "
+"automatically.\n"
+"        Automated: An accounting entry is automatically created to value the "
+"inventory when a product enters or leaves the company.\n"
 "        "
 msgstr ""
 "Manuel: Stok değeri veren muhasebe kayıtları,otomatik olarak postalanmaz. \n"
-"Otomatik: Bir ürün şirkete girdiğinde veya şirketten ayrıldığında envantere değer vermek için otomatik olarak bir muhasebe girişi oluşturulur. "
+"Otomatik: Bir ürün şirkete girdiğinde veya şirketten ayrıldığında envantere "
+"değer vermek için otomatik olarak bir muhasebe girişi oluşturulur. "
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__new_value
@@ -636,8 +643,17 @@ msgstr "Ürün"
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid ""
-"Product %(product)s has quantity in valued location %(location)s without any lot.\n"
+"Product %(product)s has quantity in valued location %(location)s without any "
+"lot.\n"
 "Please assign lots to all your quantities before enabling lot valuation."
+msgstr ""
+
+#. module: stock_account
+#. odoo-python
+#: code:addons/stock_account/models/stock_move_line.py:0
+msgid ""
+"Product %(product)s is valuated by lot: an explicit Lot/Serial number is "
+"required."
 msgstr ""
 
 #. module: stock_account
@@ -675,18 +691,18 @@ msgstr "Ürün Varyantı"
 msgid ""
 "Product value manually modified (from %(original_price)s to %(new_price)s)"
 msgstr ""
-"Manuel olarak değiştirilen ürün değeri ( %(original_price)s'den "
-"%(new_price)s'e)"
+"Manuel olarak değiştirilen ürün değeri ( %(original_price)s'den %"
+"(new_price)s'e)"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_res_company__account_production_wip_account_id
 msgid "Production WIP Account"
-msgstr ""
+msgstr "Üretim WIP Hesabı"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_res_company__account_production_wip_overhead_account_id
 msgid "Production WIP Overhead Account"
-msgstr ""
+msgstr "Üretim WIP Genel Gider Hesabı"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer__quantity
@@ -752,6 +768,12 @@ msgstr "Ters Transfer Satırları"
 
 #. module: stock_account
 #. odoo-python
+#: code:addons/stock_account/models/product.py:0
+msgid "Revaluation of %(name)s (negative inventory)"
+msgstr ""
+
+#. module: stock_account
+#. odoo-python
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 msgid "Revaluation of %s"
 msgstr "%s nin yeniden değerlemesi"
@@ -778,19 +800,25 @@ msgstr "Standart Maliyet"
 #: model:ir.model.fields,help:stock_account.field_product_template__cost_method
 #: model:ir.model.fields,help:stock_account.field_stock_quant__cost_method
 msgid ""
-"Standard Price: The products are valued at their standard cost defined on the product.\n"
-"        Average Cost (AVCO): The products are valued at weighted average cost.\n"
-"        First In First Out (FIFO): The products are valued supposing those that enter the company first will also leave it first.\n"
+"Standard Price: The products are valued at their standard cost defined on "
+"the product.\n"
+"        Average Cost (AVCO): The products are valued at weighted average "
+"cost.\n"
+"        First In First Out (FIFO): The products are valued supposing those "
+"that enter the company first will also leave it first.\n"
 "        "
 msgstr ""
-"Standart Maliyet : Ürünler tanımlanan standart maliyetlerine göre değerlenir.\n"
-"Ortalama Maliyet (AVCO): Ürünler ağırlıklı ortalama maliyetine göre değerlenir.\n"
-"First in First Out (FIFO): Ürünler,  şirkete önce girenlerin, ilk önce de çıkacaklarını var sayar."
+"Standart Maliyet : Ürünler tanımlanan standart maliyetlerine göre "
+"değerlenir.\n"
+"Ortalama Maliyet (AVCO): Ürünler ağırlıklı ortalama maliyetine göre "
+"değerlenir.\n"
+"First in First Out (FIFO): Ürünler,  şirkete önce girenlerin, ilk önce de "
+"çıkacaklarını var sayar."
 
 #. module: stock_account
 #: model:res.groups,name:stock_account.group_stock_accounting_automatic
 msgid "Stock Accounting Automatic"
-msgstr ""
+msgstr "Stok Muhasebesi Otomatik"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_category__property_stock_account_input_categ_id
@@ -979,16 +1007,26 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/stock_account/static/src/fields/boolean_confirm.js:0
 msgid ""
-"This operation might lead in a loss of data. Valuation will be identical for"
-" all lots/SN. Do you want to proceed ? "
+"This operation might lead in a loss of data. Valuation will be identical for "
+"all lots/SN. Do you want to proceed ? "
 msgstr ""
+"Bu işlem veri kaybına yol açabilir. Değerleme tüm lotlar/SN için aynı "
+"olacaktır. Devam etmek istiyor musunuz? "
 
 #. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid ""
-"This product is valuated by lot/serial number. Changing the cost will update"
-" the cost of every lot/serial number in stock."
+"This product is valuated by lot/serial number. Changing the cost will update "
+"the cost of every lot/serial number in stock."
+msgstr ""
+
+#. module: stock_account
+#. odoo-python
+#: code:addons/stock_account/models/stock_move_line.py:0
+msgid ""
+"This product is valuated by lot: an explicit Lot/Serial number is required "
+"when adding quantity"
 msgstr ""
 
 #. module: stock_account
@@ -1027,11 +1065,11 @@ msgstr "Aktarım"
 #: model:ir.model.fields,help:stock_account.field_stock_move__to_refund
 #: model:ir.model.fields,help:stock_account.field_stock_return_picking_line__to_refund
 msgid ""
-"Trigger a decrease of the delivered/received quantity in the associated Sale"
-" Order/Purchase Order"
+"Trigger a decrease of the delivered/received quantity in the associated Sale "
+"Order/Purchase Order"
 msgstr ""
-"ilişkili Satış/Satın Alma Siparişinde ki teslimat/alınan miktarındaki düşüşü"
-" tetikle."
+"ilişkili Satış/Satın Alma Siparişinde ki teslimat/alınan miktarındaki düşüşü "
+"tetikle."
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_tree
@@ -1136,11 +1174,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid ""
-"Valuation method change for product category %(category)s: from "
-"%(old_method)s to %(new_method)s."
+"Valuation method change for product category %(category)s: from %"
+"(old_method)s to %(new_method)s."
 msgstr ""
-"%(category)s ürün kategorisi için değerleme yöntemi değişikliği: - "
-"%(old_method)s'den %(new_method)s'e."
+"%(category)s ürün kategorisi için değerleme yöntemi değişikliği: - %"
+"(old_method)s'den %(new_method)s'e."
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_stock_valuation_layer_revaluation__adjusted_layer_ids
@@ -1168,9 +1206,14 @@ msgstr "Değer svl"
 #: model:ir.model.fields,help:stock_account.field_stock_lot__standard_price
 msgid ""
 "Value of the lot (automatically computed in AVCO).\n"
-"        Used to value the product when the purchase cost is not known (e.g. inventory adjustment).\n"
+"        Used to value the product when the purchase cost is not known (e.g. "
+"inventory adjustment).\n"
 "        Used to compute margins on sale orders."
 msgstr ""
+"Partinin değeri (AVCO'da otomatik olarak hesaplanır).\n"
+"        Satın alma maliyeti bilinmediğinde ürüne değer biçmek için "
+"kullanılır (örn. envanter düzeltmesi).\n"
+"        Satış siparişlerinde marjları hesaplamak için kullanılır."
 
 #. module: stock_account
 #. odoo-python
@@ -1190,8 +1233,11 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_product_category__property_stock_account_output_categ_id
 msgid ""
-"When doing automated inventory valuation, counterpart journal items for all outgoing stock moves will be posted in this account,\n"
-"                unless there is a specific valuation account set on the destination location. This is the default value for all products in this category.\n"
+"When doing automated inventory valuation, counterpart journal items for all "
+"outgoing stock moves will be posted in this account,\n"
+"                unless there is a specific valuation account set on the "
+"destination location. This is the default value for all products in this "
+"category.\n"
 "                It can also directly be set on each product."
 msgstr ""
 "Gerçek-zamanlı envanter değerlemesi yaparken, hedef konuma özel bir "
@@ -1276,8 +1322,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid ""
-"You don't have any input valuation account defined on your product category."
-" You must define one before processing this operation."
+"You don't have any input valuation account defined on your product category. "
+"You must define one before processing this operation."
 msgstr ""
 "Ürün kategorinizde tanımlanmış bir giriş değerleme hesabınız yok. Bu işlemi "
 "gerçekleştirmeden önce bir tane tanımlamanız gerekir."
@@ -1294,8 +1340,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid ""
-"You don't have any stock input account defined on your product category. You"
-" must define one before processing this operation."
+"You don't have any stock input account defined on your product category. You "
+"must define one before processing this operation."
 msgstr ""
 "Ürün kategorinizde tanımlı stok giriş hesabınız yok. Bu işlemi "
 "gerçekleştirmeden önce bir tane tanımlamanız gerekir."
@@ -1307,8 +1353,8 @@ msgid ""
 "You don't have any stock journal defined on your product category, check if "
 "you have installed a chart of accounts."
 msgstr ""
-"Ürün kategorisine tanımlı bir stok yevmiyesi bulunamadı. Eğer muhasebe hesap"
-" planı yüklediyseniz bunu mutlaka kontrol edin."
+"Ürün kategorisine tanımlı bir stok yevmiyesi bulunamadı. Eğer muhasebe hesap "
+"planı yüklediyseniz bunu mutlaka kontrol edin."
 
 #. module: stock_account
 #. odoo-python
@@ -1316,8 +1362,8 @@ msgstr ""
 #: code:addons/stock_account/models/stock_move.py:0
 #: code:addons/stock_account/models/stock_valuation_layer.py:0
 msgid ""
-"You don't have any stock valuation account defined on your product category."
-" You must define one before processing this operation."
+"You don't have any stock valuation account defined on your product category. "
+"You must define one before processing this operation."
 msgstr ""
 "Ürün kategorisine tanımlı bir stok değerleme hesabı bulunamadı. Bu "
 "operasyonu gerçekleştirmek için öncelikle bu hesabı tanımlamalısınız."
@@ -1352,3 +1398,6 @@ msgstr "Birimler"
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_graph
 msgid "valuation graph"
 msgstr ""
+
+#~ msgid "6.00"
+#~ msgstr "6.00"

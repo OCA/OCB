@@ -124,10 +124,10 @@ class AccountMove(models.Model):
                 raise ValidationError(_('Cannot reset to draft or cancel invoice %s because an electronic document was already sent to NAV!', move.name))
 
     # === Computes === #
+
     @api.depends('delivery_date')
-    def _compute_invoice_currency_rate(self):
-        # In Hungary, the currency rate should be based on the delivery date.
-        super()._compute_invoice_currency_rate()
+    def _compute_expected_currency_rate(self):
+        super()._compute_expected_currency_rate()
 
     def _get_invoice_currency_rate_date(self):
         self.ensure_one()
@@ -157,6 +157,12 @@ class AccountMove(models.Model):
     def _compute_l10n_hu_edi_attachment_filename(self):
         for move in self:
             move.l10n_hu_edi_attachment_filename = f'{move.name.replace("/", "_")}.xml' if move.name else 'nav30.xml'
+
+    # === Inverses === #
+
+    def _inverse_delivery_date(self):
+        super()._inverse_delivery_date()
+        self._conditional_add_to_compute('invoice_currency_rate', lambda m: m.country_code == 'HU')
 
     # === Overrides === #
 
@@ -272,23 +278,16 @@ class AccountMove(models.Model):
     def _l10n_hu_get_currency_rate(self):
         """ Get the invoice currency / HUF rate.
 
-        If the company currency is HUF, we estimate this based on the invoice lines
-        (or if this is not an invoice, based on the AMLs), using a MMSE estimator.
-
-        If the company currency is not HUF (e.g. Hungarian companies that do their accounting in euro),
-        we get the rate from the currency rates.
+            We don't use `invoice_currency_rate` to avoid rounding error as 1/0.002470 ≃ 404.87,
+            and we want exactly 404.87, i.e. the rate given by the MNB of Hungary, to avoid NAV error
+            upon XML submission.
         """
-        if self.currency_id.name == 'HUF':
-            return 1
-        if self.company_id.currency_id.name == 'HUF':
-            squared_amount_currency = sum(line.amount_currency ** 2 for line in (self.invoice_line_ids or self.line_ids))
-            squared_balance = sum(line.balance ** 2 for line in self.invoice_line_ids)
-            return math.sqrt(squared_balance / squared_amount_currency)
+        self.ensure_one()
         return self.env['res.currency']._get_conversion_rate(
             from_currency=self.currency_id,
             to_currency=self.env.ref('base.HUF'),
             company=self.company_id,
-            date=self.invoice_date,
+            date=self._get_invoice_currency_rate_date(),
         )
 
     def _l10n_hu_edi_set_chain_index(self):
@@ -350,8 +349,8 @@ class AccountMove(models.Model):
                 'action_text': _('View Company/ies'),
             },
             'company_not_huf': {
-                'records': self.company_id.filtered(lambda c: c.currency_id.name != 'HUF'),
-                'message': _('Please use HUF as company currency!'),
+                'records': self.company_id.filtered(lambda c: c.currency_id.name not in ['HUF', 'EUR']),
+                'message': _('Please use HUF or EUR as your company currency.'),
                 'action_text': _('View Company/ies'),
             },
             'partner_bank_account_invalid': {
@@ -500,6 +499,18 @@ class AccountMove(models.Model):
             for batch in split_every(100, batch_company):
                 self.env['account.move'].union(*batch)._l10n_hu_edi_upload_single_batch(connection)
 
+    def _l10n_hu_edi_get_operation_type(self):
+        base_invoice = self._l10n_hu_get_chain_base()
+        modification_invoices = self._l10n_hu_get_chain_invoices() - base_invoice
+
+        all_invoices_residual_zero = all(invoice.amount_residual == 0 for invoice in modification_invoices)
+
+        if self == base_invoice:
+            return 'CREATE'
+        if base_invoice.amount_residual == 0 and all_invoices_residual_zero:
+            return 'STORNO'
+        return 'MODIFY'
+
     def _l10n_hu_edi_upload_single_batch(self, connection):
         try:
             token_result = connection.do_token_exchange(self.company_id.sudo()._l10n_hu_edi_get_credentials_dict())
@@ -517,19 +528,10 @@ class AccountMove(models.Model):
         for i, invoice in enumerate(self, start=1):
             invoice.l10n_hu_edi_batch_upload_index = i
 
-        def get_operation_type(invoice):
-            operation_type = 'MODIFY'
-            base_invoice = invoice._l10n_hu_get_chain_base()
-            if invoice == base_invoice:
-                operation_type = 'CREATE'
-            elif base_invoice.amount_residual == 0:
-                operation_type = 'STORNO'
-            return operation_type
-
         invoice_operations = [
             {
                 'index': invoice.l10n_hu_edi_batch_upload_index,
-                'operation': get_operation_type(invoice),
+                'operation': invoice._l10n_hu_edi_get_operation_type(),
                 'invoice_data': base64.b64decode(invoice.l10n_hu_edi_attachment),
             }
             for invoice in self
@@ -840,6 +842,9 @@ class AccountMove(models.Model):
         supplier = self.company_id.partner_id
         customer = self.partner_id.commercial_partner_id
 
+        supplier_bank = self.partner_bank_id if self.partner_bank_id and self.move_type == "out_invoice" else supplier.bank_ids[:1]
+        customer_bank = self.partner_bank_id if self.partner_bank_id and self.move_type == "out_refund" else customer.bank_ids[:1]
+
         currency_huf = self.env.ref('base.HUF')
         currency_rate = self._l10n_hu_get_currency_rate()
 
@@ -853,12 +858,12 @@ class AccountMove(models.Model):
             'base_invoice': base_invoice if base_invoice != self else None,
             'supplier': supplier,
             'supplier_vat_data': get_vat_data(supplier, self.fiscal_position_id.foreign_vat),
-            'supplierBankAccountNumber': format_bank_account_number(self.partner_bank_id or supplier.bank_ids[:1]),
+            'supplierBankAccountNumber': format_bank_account_number(supplier_bank),
             'individualExemption': self.company_id.l10n_hu_tax_regime == 'ie',
             'customer': customer,
             'customerVatStatus': (not customer.is_company and 'PRIVATE_PERSON') or (customer.country_code == 'HU' and 'DOMESTIC') or 'OTHER',
             'customer_vat_data': get_vat_data(customer) if customer.is_company else None,
-            'customerBankAccountNumber': format_bank_account_number(customer.bank_ids[:1]),
+            'customerBankAccountNumber': format_bank_account_number(customer_bank),
             'smallBusinessIndicator': self.company_id.l10n_hu_tax_regime == 'sb',
             'exchangeRate': currency_rate,
             'cashAccountingIndicator': self.company_id.l10n_hu_tax_regime == 'ca',

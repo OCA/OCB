@@ -13,7 +13,7 @@
     <!-- Add price information on tickets (multi tickets, aka in collapse) -->
     <xpath expr="//div[hasclass('o_wevent_registration_multi_select')]" position="inside">
         <t t-if="ticket.price">
-            <t t-if="(ticket.price - ticket.price_reduce) &gt; 0">
+            <t t-if="ticket._show_discount()">
                 <del t-if="website.show_line_subtotals_tax_selection == 'tax_excluded'"
                      class="text-danger me-1"
                      t-field="ticket.price"
@@ -56,7 +56,7 @@
     <xpath expr="//div[hasclass('o_wevent_registration_single_select')]" position="before">
         <div class="flex-md-grow-1 me-2 text-end">
             <t t-if="tickets.price">
-                <t t-if="(tickets.price - tickets.price_reduce) &gt;0">
+                <t t-if="tickets._show_discount()">
                     <del t-if="website.show_line_subtotals_tax_selection == 'tax_excluded'"
                          class="text-danger me-1"
                          t-field="tickets.price"
@@ -85,15 +85,13 @@
 <template id="registration_attendee_details" inherit_id="website_event.registration_attendee_details">
     <!-- Change 'continue' button to use the website login settings -->
     <xpath expr="//div[hasclass('modal-footer')]//button[hasclass('btn-primary')]" position="replace">
-        <t t-if="website.account_on_checkout == 'mandatory' and website.is_public_user()">
-            <button class="btn btn-primary" type="submit">
+        <t t-if="availability_check">
+            <t t-set="has_paying_ticket" t-value="any(ticket.get('price', 0) > 0 for ticket in tickets)"/>
+            <button t-if="website.account_on_checkout == 'mandatory' and website.is_public_user() and has_paying_ticket" class="btn btn-primary" type="submit">
                 <span>Sign In</span>
                 <span class="fa fa-sign-in"/>
             </button>
-        </t>
-        <t t-else="">
-            <t t-set="has_paying_ticket" t-value="any(ticket.get('price', 0) > 0 for ticket in tickets)"/>
-            <button t-if="availability_check" type="submit" class="btn btn-primary">
+            <button t-else="" type="submit" class="btn btn-primary">
                 <span t-if="has_paying_ticket">Go to Payment</span>
                 <span t-else="">Confirm Registration</span>
             </button>
