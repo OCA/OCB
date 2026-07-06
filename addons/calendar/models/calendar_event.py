@@ -1508,7 +1508,18 @@ class Meeting(models.Model):
             if meeting.location:
                 event.add('location').value = meeting.location
             if meeting.rrule:
-                event.add('rrule').value = meeting.rrule
+                # meeting.rrule is stored as a full dateutil rrule string, e.g.:
+                #   "DTSTART:20250218T113209\nRRULE:FREQ=YEARLY;COUNT=720"
+                # Passing the full multi-line string as a single RRULE property value
+                # causes vobject to emit two RRULE lines, where the first one
+                # ("RRULE:DTSTART:...") has no FREQ and is rejected by calendar
+                # clients (e.g. Thunderbird: "invalid frequency null").
+                # Extract only the RRULE value part (after "RRULE:").
+                rrule_value = next(
+                    (line[6:] for line in meeting.rrule.splitlines() if line.upper().startswith("RRULE:")),
+                    meeting.rrule,  # fallback: use as-is if already a bare value
+                )
+                event.add('rrule').value = rrule_value
 
             if meeting.alarm_ids:
                 for alarm in meeting.alarm_ids:
