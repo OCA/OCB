@@ -39,6 +39,7 @@ class AccountEdiDocument(models.Model):
     name = fields.Char(related='attachment_id.name')
     edi_format_name = fields.Char(string='Format Name', related='edi_format_id.name')
     edi_content = fields.Binary(compute='_compute_edi_content', compute_sudo=True)
+    company_id = fields.Many2one(related="move_id.company_id")
 
     _sql_constraints = [
         (
