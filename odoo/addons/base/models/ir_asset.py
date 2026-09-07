@@ -202,7 +202,7 @@ class IrAsset(models.Model):
 
         # 2. Process all addons' manifests.
         for addon in self._topological_sort(tuple(addons)):
-            for command in odoo.modules.module._get_manifest_cached(addon)['assets'].get(bundle, ()):
+            for command in odoo.modules.module._get_manifest_cached(addon, None)['assets'].get(bundle, ()):
                 directive, target, path_def = self._process_command(command)
                 process_path(directive, target, path_def)
 
@@ -257,7 +257,7 @@ class IrAsset(models.Model):
         IrModule = self.env['ir.module.module']
 
         def mapper(addon):
-            manif = odoo.modules.module._get_manifest_cached(addon)
+            manif = odoo.modules.module._get_manifest_cached(addon, None)
             from_terp = IrModule.get_values_from_terp(manif)
             from_terp['name'] = addon
             from_terp['depends'] = manif.get('depends', ['base'])
@@ -302,7 +302,7 @@ class IrAsset(models.Model):
         path_url = fs2web(path_def)
         path_parts = [part for part in path_url.split('/') if part]
         addon = path_parts[0]
-        addon_manifest = odoo.modules.module._get_manifest_cached(addon)
+        addon_manifest = odoo.modules.module._get_manifest_cached(addon, None)
 
         safe_path = True
         if addon_manifest:
