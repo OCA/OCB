@@ -12,7 +12,7 @@
         'auth_totp_mail',
         'iap',
     ],
-    'auto_install': ['l10n_fr_account', 'auth_totp_mail'],
+    'auto_install': False,
     'data': [
         'data/ir_cron.xml',
         'security/ir.model.access.csv',
