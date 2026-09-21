@@ -5,7 +5,7 @@
     'license': 'LGPL-3',
     'author': 'Odoo S.A.',
     'depends': ['base', 'web'],
-    'auto_install': True,
+    'auto_install': False,
     'data': [
         'views/menus.xml',
     ],

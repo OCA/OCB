@@ -17,7 +17,7 @@ Price and Cost Price.
         "views/sale_order_template_views.xml",
         "report/sale_report_views.xml",
     ],
-    "auto_install": True,
+    "auto_install": False,
     "author": "Odoo S.A.",
     "license": "LGPL-3",
 }

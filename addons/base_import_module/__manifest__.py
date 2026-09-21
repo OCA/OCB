@@ -10,7 +10,7 @@ for customization purpose.
 """,
     'category': 'Hidden/Tools',
     'depends': ['web'],
-    'auto_install': True,
+    'auto_install': False,
     'data': [
         'views/base_import_module_view.xml',
         'views/ir_module_views.xml',

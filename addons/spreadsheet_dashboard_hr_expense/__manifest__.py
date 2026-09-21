@@ -8,7 +8,7 @@
     'data': [
         "data/dashboards.xml",
     ],
-    'auto_install': ['sale_expense'],
+    'auto_install': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

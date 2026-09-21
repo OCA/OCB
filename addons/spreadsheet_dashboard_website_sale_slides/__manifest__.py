@@ -8,7 +8,7 @@
     'data': [
         "data/dashboards.xml",
     ],
-    'auto_install': ['website_sale_slides'],
+    'auto_install': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

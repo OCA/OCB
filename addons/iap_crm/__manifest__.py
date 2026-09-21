@@ -10,7 +10,7 @@
         'crm',
         'iap_mail',
     ],
-    'auto_install': True,
+    'auto_install': False,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

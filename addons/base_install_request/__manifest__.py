@@ -8,7 +8,7 @@
 Allow internal users requesting a module installation
 =====================================================
     """,
-    'auto_install': True,
+    'auto_install': False,
     'data':[
         'wizard/base_module_install_request_views.xml',
         'data/mail_templates.xml',

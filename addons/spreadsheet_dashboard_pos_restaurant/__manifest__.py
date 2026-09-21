@@ -8,7 +8,7 @@
     'data': [
         "data/dashboards.xml",
     ],
-    'auto_install': ['pos_hr', 'pos_restaurant'],
+    'auto_install': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

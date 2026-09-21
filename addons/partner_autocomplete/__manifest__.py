@@ -18,7 +18,7 @@ Auto-complete partner companies' data
         'views/res_partner_views.xml',
         'data/iap_service_data.xml',
     ],
-    'auto_install': True,
+    'auto_install': False,
     'iap_paid_service': True,
     'assets': {
         'web.assets_backend': [

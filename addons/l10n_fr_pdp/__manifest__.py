@@ -11,7 +11,7 @@
         'account_peppol',
         'iap',
     ],
-    'auto_install': ['l10n_fr_account'],
+    'auto_install': False,
     'data': [
         'data/ir_cron.xml',
         'views/account_move_views.xml',
