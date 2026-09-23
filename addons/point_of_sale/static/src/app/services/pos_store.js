@@ -657,6 +657,7 @@ export class PosStore extends WithLazyGetterTrap {
                 this.removeOrder(order, false);
                 this.removePendingOrder(order);
             }
+            await Promise.all(ordersToDelete.map((order) => this.recycleOrderNumber(order)));
         }
 
         return true;
@@ -984,7 +985,9 @@ export class PosStore extends WithLazyGetterTrap {
         // It will return the weight of the product as quantity
         // ---
         // This actions cannot be handled inside pos_order.js or pos_order_line.js
-        if (values.product_tmpl_id.to_weight && this.config.iface_electronic_scale && configure) {
+        // A scanned product barcode still has to be weighed, unlike a weight barcode.
+        const shouldWeigh = configure || (code && code.type !== "weight");
+        if (values.product_tmpl_id.to_weight && this.config.iface_electronic_scale && shouldWeigh) {
             if (values.product_tmpl_id.isScaleAvailable) {
                 const decimalAccuracy = this.models["decimal.precision"].find(
                     (dp) => dp.name === "Product Unit"
@@ -1355,8 +1358,18 @@ export class PosStore extends WithLazyGetterTrap {
             return;
         }
 
-        this.device.saveUnusedNumber([order]);
-        return this.data.localDeleteCascade(order);
+        const removed = this.data.localDeleteCascade(order);
+        this.recycleOrderNumber(order);
+        return removed;
+    }
+    /**
+     * Recycle the receipt number only once the order is gone from IndexedDB,
+     * otherwise a reload restores it next to a new order using the same number.
+     */
+    recycleOrderNumber(order) {
+        return this.data
+            .deleteRecordsInIndexedDB("pos.order", [order.uuid])
+            .then(() => this.device.saveUnusedNumber([order]));
     }
 
     /**
