@@ -9,7 +9,7 @@
         "data/livechat_ongoing_sessions_actions.xml",
         "data/dashboards.xml",
     ],
-    'auto_install': ['im_livechat'],
+    'auto_install': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

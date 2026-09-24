@@ -30,7 +30,7 @@ respectively. UBL Bis 3 is only available for companies which country is present
             'account_edi_ubl_cii/static/src/scss/**/*',
         ],
     },
-    'auto_install': True,
+    'auto_install': False,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
     'uninstall_hook': 'uninstall_hook',

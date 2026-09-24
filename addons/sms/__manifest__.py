@@ -39,7 +39,7 @@ The service is provided by the In App Purchase Odoo platform.
         'data/sms_demo.xml',
         'data/mail_demo.xml',
     ],
-    'auto_install': True,
+    'auto_install': False,
     'iap_paid_service': True,
     'assets': {
         'web.assets_backend': [

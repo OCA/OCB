@@ -8,7 +8,7 @@
     'depends': [
         'project',
     ],
-    'auto_install': True,
+    'auto_install': False,
     'data': [
         'data/digest_data.xml',
         'data/todo_template.xml',

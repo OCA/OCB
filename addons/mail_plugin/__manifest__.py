@@ -15,7 +15,7 @@
         'data/digest_tips.xml',
         'views/mail_plugin_login.xml',
     ],
-    'auto_install': True,
+    'auto_install': False,
     'iap_paid_service': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',

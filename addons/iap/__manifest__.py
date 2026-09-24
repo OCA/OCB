@@ -19,7 +19,7 @@ to support In-App Purchase inside Odoo. """,
         'views/res_users_views.xml',
         'security/ir.access.csv',
     ],
-    'auto_install': True,
+    'auto_install': False,
     'iap_paid_service': True,
     'assets': {
         'web.assets_backend': [
