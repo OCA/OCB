@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import json
+from importlib import metadata
 from io import StringIO
 from socket import gethostbyname
 from unittest.mock import patch
@@ -14,12 +15,7 @@ from odoo.addons.test_http.controllers import CT_JSON
 
 from .test_common import TestHttpBase
 
-try:
-    from importlib import metadata
-    werkzeug_version = metadata.version('werkzeug')
-except ImportError:
-    import werkzeug
-    werkzeug_version = werkzeug.__version__
+werkzeug_version = metadata.version('werkzeug')
 
 
 @tagged('post_install', '-at_install')
