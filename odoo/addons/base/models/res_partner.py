@@ -18,7 +18,7 @@ from werkzeug import urls
 
 from odoo import api, fields, models, tools, _, Command
 from odoo.exceptions import RedirectWarning, UserError, ValidationError
-from odoo.tools import SQL, LazyTranslate
+from odoo.tools import SQL, LazyTranslate, frozendict
 from odoo.tools.business_data import street_split, split_vat
 from odoo.tools.date_utils import all_timezones
 from odoo.tools.translate import LazyGettext
@@ -46,15 +46,16 @@ if typing.TYPE_CHECKING:
 ADDRESS_FIELDS = ('street', 'street2', 'zip', 'city', 'state_id', 'country_id')
 
 
-EU_EXTRA_VAT_CODES = {
+EU_EXTRA_VAT_CODES = frozendict({
     'GR': 'EL',
     'GB': 'XI',
-}
-EU_EXTRA_VAT_CODES_INV = {v: k for k, v in EU_EXTRA_VAT_CODES.items()}
+})
+EU_EXTRA_VAT_CODES_INV = frozendict({v: k for k, v in EU_EXTRA_VAT_CODES.items()})
 
+PK_VAT = re.compile(r'[a-zA-Z\d]{7,8}|\d{13}')
 
 _lt = LazyTranslate(__name__)
-_ref_vat = {
+_ref_vat = frozendict({
     'al': 'ALJ91402501L',
     'ar': '20055361682',
     'at': 'ATU12345675',
@@ -101,7 +102,7 @@ _ref_vat = {
     'nz': _lt('49-098-576 or 49098576'),
     'pe': _lt('10XXXXXXXXY or 20XXXXXXXXY or 15XXXXXXXXY or 16XXXXXXXXY or 17XXXXXXXXY'),
     'ph': '123-456-789-123',
-    'pk': _lt('1234567 or 1234567-8 or 12345-1234567-8'),
+    'pk': _lt('1234567 or B594380 or 1234567-8 or 12345-1234567-8'),
     'pl': 'PL1234567883',
     'pt': 'PT123456789',
     'ro': 'RO1234567897 or 8001011234567 or 9000123456789',
@@ -119,7 +120,7 @@ _ref_vat = {
     've': 'V-12345678-1, V123456781, V-12.345.678-1',
     'xi': 'XI123456782',
     'sa': _lt('310175397400003 [Fifteen digits, first and last digits should be "3"]'),
-}
+})
 
 
 @api.model
@@ -1142,10 +1143,10 @@ class ResPartner(models.Model):
                 'target': 'current',
                 }
 
-    @api.depends('complete_name', 'email', 'vat', 'state_id', 'country_id')
+    @api.depends('complete_name', 'email', 'vat', 'additional_identifiers', 'state_id', 'country_id')
     @api.depends_context(
         'show_address', 'partner_show_db_id',
-        'show_email', 'show_vat', 'lang', 'formatted_display_name'
+        'show_email', 'show_identifier', 'lang', 'formatted_display_name'
     )
     def _compute_display_name(self):
         type_description = dict(self._fields['type']._description_selection(self.env))
@@ -1170,11 +1171,13 @@ class ResPartner(models.Model):
                 if partner.env.context.get('show_address'):
                     name = name + "\n" + partner.address
 
-                if partner.env.context.get('show_vat') and partner.vat:
-                    if partner.env.context.get('show_address'):
-                        name = f"{name} \n {partner.vat}"
-                    else:
-                        name = f"{name} - {partner.vat}"
+                if partner.env.context.get('show_identifier'):
+                    identifier = partner.vat or partner._get_preferred_legal_entity_identifier_vals().get('value')
+                    if identifier:
+                        if partner.env.context.get('show_address'):
+                            name = f"{name} \n {identifier}"
+                        else:
+                            name = f"{name} - {identifier}"
 
             # Remove extra empty lines
             name = re.sub(r'\s+\n', '\n', name)
@@ -1794,10 +1797,7 @@ class ResPartner(models.Model):
         return identifier_vals or {}
 
     def _deduce_additional_identifiers_from_vat(self):
-        """Populate companion identifiers freely derivable from the VAT (e.g. BE_VAT → BE_EN,
-        AT_VAT → AT_EN) so users only enter the VAT and don't have to retype the same digits.
-        Pre-existing entries are kept as-is and tracking is muted to avoid recomputing
-        VAT-tracked computed fields mid-inverse."""
+        """Populate identifiers derivable from the VAT (e.g. BE_VAT => BE_EN, AT_VAT => AT_EN)."""
         for partner in self:
             if not partner.vat or not partner.country_code:
                 continue
@@ -1805,19 +1805,21 @@ class ResPartner(models.Model):
             if not vat_key:
                 continue
             deduced_identifiers = get_deduced_identifiers(vat_key, partner.vat)
+            if not deduced_identifiers:
+                continue
             identifiers = partner.additional_identifiers or {}
             # Only keep deduced identifiers that are actually valid: a VAT does not always map to a
             # well-formed companion id (e.g. a 13-digit RO fiscal code is not a valid 10-digit CUI).
-            new_identifiers = {
+            to_update = {
                 k: v for k, v in deduced_identifiers.items()
-                if k not in identifiers and self.env['res.partner']._validate_identifier(k, v)['valid']
+                if identifiers.get(k) != v and self.env['res.partner']._validate_identifier(k, v)['valid']
             }
-            if not new_identifiers:
+            if not to_update:
                 continue
             try:
                 # Use mail_notrack to avoid triggering mail tracking, which would
                 # recompute tracked computed fields (e.g. vies_valid) mid-inverse.
-                partner.with_context(mail_notrack=True).additional_identifiers = {**identifiers, **new_identifiers}
+                partner.with_context(mail_notrack=True).additional_identifiers = {**identifiers, **to_update}
             except ValidationError:
                 _logger.info("Skipped %s: deduced identifier from %s could not be validated.", deduced_identifiers, vat_key)
                 continue
@@ -2142,8 +2144,9 @@ class ResPartner(models.Model):
         return len(vat) >= 11 and len(vat) <= 17 and self._check_vat_ph_re.match(vat)
 
     def check_vat_pk(self, vat):
-        # NTN (7 digits, or 7 + 1 check digit) or CNIC (13 digits): 1234567, 1234567-8, 12345-1234567-8.
-        return bool(re.fullmatch(r'\d{7}|\d{8}|\d{13}', (vat or '').replace('-', '').replace(' ', '')))
+        # NTN (7 or 8 alphanumeric characters) or CNIC (13 digits):
+        # 1234567, B594380, 1234567-8, 12345-1234567-8.
+        return vat and bool(PK_VAT.fullmatch(vat.replace('-', '').replace(' ', '')))
 
     _check_tin1_ro_natural_persons = re.compile(r'[1-9]\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{6}')
     _check_tin2_ro_natural_persons = re.compile(r'9000\d{9}')

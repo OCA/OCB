@@ -8,7 +8,7 @@ import {
     tripleClick,
 } from "../_helpers/user_actions";
 import { Plugin } from "@html_editor/plugin";
-import { press } from "@odoo/hoot-dom";
+import { press, waitFor } from "@odoo/hoot-dom";
 import { getContent } from "../_helpers/selection";
 import { QWebPlugin } from "@html_editor/others/qweb_plugin";
 
@@ -217,6 +217,32 @@ test("should update the font class if the parent already has one", async () => {
     });
 });
 
+test("should preserve a heading typography span in its matching heading", async () => {
+    await testEditor({
+        contentBefore: '<h4><span class="h4">a[b]c</span></h4>',
+        stepFunction: setFontSizeClassName("display-1-fs"),
+        contentAfter: '<h4><span class="h4">a<span class="display-1-fs">[b]</span>c</span></h4>',
+    });
+});
+
+test("should replace a default heading typography class with another default class", async () => {
+    await testEditor({
+        contentBefore: '<p><span class="h4">a[b]c</span></p>',
+        stepFunction: setFontSizeClassName("h1"),
+        contentAfter:
+            '<p><span class="h4">a</span><span class="h1">[b]</span><span class="h4">c</span></p>',
+    });
+});
+
+test("should split an inline default font size class", async () => {
+    await testEditor({
+        contentBefore: '<p><span class="o_default_font_size">a[b]c</span></p>',
+        stepFunction: setFontSizeClassName("display-1-fs"),
+        contentAfter:
+            '<p><span class="o_default_font_size">a</span><span class="display-1-fs">[b]</span><span class="o_default_font_size">c</span></p>',
+    });
+});
+
 test("should apply font size on space", async () => {
     await testEditor({
         contentBefore: `<div><p>a[ ]b</p></div>`,
@@ -259,4 +285,18 @@ test("should format inside of content editable boundary (setFontSize)", async ()
         contentAfter:
             '<div contenteditable="false"><p>a<span contenteditable="true"><span style="font-size: 36px;">[b]</span></span>c</p></div>',
     });
+});
+
+test("should set exact font size along with responsive one", async () => {
+    const { el } = await setupEditor("<p>[abc]</p>");
+    await waitFor('[name="font_size"]');
+    const input = el.ownerDocument
+        .querySelector('[name="font_size"] iframe')
+        .contentDocument.querySelector("input");
+    input.value = "10";
+    input.dispatchEvent(new Event("input"));
+    await waitFor("span.o_rfs");
+    expect(el.querySelector("span").getAttribute("style")).toInclude(
+        `font-size: 10px; font-size: clamp(`
+    );
 });

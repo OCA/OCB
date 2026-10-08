@@ -39,11 +39,12 @@ class _Record extends Component {
                 fields: this.props.fields,
                 isMonoRecord: true,
                 activeFields,
-                resId: this.props.info.resId,
+                resId: this.props.info.resId || false,
                 mode: this.props.info.mode,
                 context: this.props.info.context,
             },
             hooks: this.props.info.hooks,
+            allowTranslate: this.props.info.allowTranslate,
         };
         const modelServices = Object.fromEntries(
             StandaloneRelationalModel.services.map((servName) => [servName, useService(servName)])
@@ -142,8 +143,9 @@ class _Record extends Component {
         });
         onWillUpdateProps(async (nextProps) => {
             const params = {};
-            if (nextProps.info.resId !== this.model.root.resId) {
-                params.resId = nextProps.info.resId;
+            const nextResId = nextProps.info.resId || false;
+            if (nextResId !== this.model.root.resId) {
+                params.resId = nextResId;
             }
             if (nextProps.values) {
                 params.values = await prepareLoadWithValues(nextProps.values);
@@ -182,6 +184,7 @@ export class Record extends Component {
         values: t.any().optional(),
         context: t.any().optional({}),
         hooks: t.any().optional(),
+        allowTranslate: t.any().optional(),
     });
     setup() {
         const { activeFields, fieldNames, fields, resModel } = this.props;

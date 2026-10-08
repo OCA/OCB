@@ -90,7 +90,11 @@ class SaleOrder(models.Model):
     @api.onchange("partner_id")
     def _onchange_partner_id(self):
         """Reload template for unsaved orders with unmodified lines & orders."""
-        if self._origin or not self.sale_order_template_id:
+        if (
+            self._origin
+            or not self.sale_order_template_id
+            or self.env.context.get("sale_onchange_first_call")
+        ):
             return
 
         def line_eqv(line, t_line):
@@ -136,7 +140,8 @@ class SaleOrder(models.Model):
         new_template = self.env["sale.order.template"].create(template_vals)
 
         # Assign the newly created template to the current SO
-        self.sale_order_template_id = new_template.id
+        with self.env.protecting([self._fields["sale_order_template_id"]], self):
+            self.sale_order_template_id = new_template.id
 
         return new_template.get_record_default_action()
 
@@ -151,7 +156,9 @@ class SaleOrder(models.Model):
         """
         self.ensure_one()
         template_lines = [
-            Command.create(line._prepare_template_line_values()) for line in self.order_line
+            Command.create(line._prepare_template_line_values())
+            for line in self.order_line
+            if line._can_be_saved_as_template()
         ]
 
         return {

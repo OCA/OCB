@@ -280,15 +280,16 @@ class MrpWorkorder(models.Model):
             wo.barcode = f"{wo.production_id.name}/{wo.id}"
 
     @api.depends('production_id', 'product_id')
-    @api.depends_context('prefix_product')
+    @api.depends_context('display_complete_name')
     def _compute_display_name(self):
         for wo in self:
-            wo.display_name = f"{wo.production_id.name} - {wo.name}"
-            if self.env.context.get('prefix_product'):
-                product_name = wo.product_id.name
-                if variant := wo.product_id.product_template_attribute_value_ids._get_combination_name():
-                    product_name = f"{product_name}({variant})"
-                wo.display_name = f"{product_name} - {wo.production_id.name} - {wo.name}"
+            product_name = wo.product_id.name
+            if variant := wo.product_id.product_template_attribute_value_ids._get_combination_name():
+                product_name = f"{product_name} ({variant})"
+            product_name_qty_prefix = f"{product_name} - {wo.qty_remaining:g} {wo.uom_id.name}"
+            wo.display_name = product_name_qty_prefix
+            if self.env.context.get('display_complete_name'):
+                wo.display_name = f"{product_name_qty_prefix} - {wo.production_id.name} - {wo.name}"
 
     @api.depends('duration_expected', 'duration', 'state')
     def _compute_remaining_time(self):
@@ -690,8 +691,6 @@ class MrpWorkorder(models.Model):
         return total
 
     def button_start(self, raise_on_invalid_state=False):
-        if any(wo.working_state == 'blocked' for wo in self):
-            raise UserError(_('Please unblock the work center to start the work order.'))
         for wo in self:
             if any(not time.date_end for time in wo.time_ids.filtered(lambda t: t.user_id.id == self.env.user.id)):
                 continue
@@ -994,8 +993,6 @@ class MrpWorkorder(models.Model):
 
     def action_mark_as_done(self):
         for wo in self:
-            if wo.working_state == 'blocked':
-                raise UserError(_('Please unblock the work center to validate the work order'))
             res = wo.button_finish()
             if res is not True:
                 return res

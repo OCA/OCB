@@ -1,25 +1,23 @@
-import { useLayoutEffect } from "@web/owl2/utils";
+import { loadIframe } from "@mail/convert_inline/iframe_utils";
+import { Component, onMounted, proxy, signal, status, useProps } from "@odoo/owl";
+import { isBrowserSafari } from "@web/core/browser/feature_detection";
 import { registry } from "@web/core/registry";
 import { useBus, useService } from "@web/core/utils/hooks";
 import { renderToFragment } from "@web/core/utils/render";
-import { isBrowserSafari } from "@web/core/browser/feature_detection";
 import { useThrottleForAnimation } from "@web/core/utils/timing";
+import { useLayoutEffect } from "@web/owl2/utils";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import { Component, onMounted, signal, status, proxy } from "@odoo/owl";
-import { loadIframe } from "@mail/convert_inline/iframe_utils";
 import { MailingPreviewDisplayModeToggle } from "../mailing_preview_mode_toggle/mailing_preview_mode_toggle";
 import { MassMailingPreviewRecordField } from "./mass_mailing_preview_record_field";
 
 export class MailingPreviewIframe extends Component {
     static template = "mass_mailing.MailingPreviewIframe";
-    static props = {
-        ...standardFieldProps,
-    };
-
     static components = {
         MassMailingPreviewRecordField,
         MailingPreviewDisplayModeToggle,
     };
+
+    props = useProps(standardFieldProps);
 
     iframeRef = signal.ref();
 
@@ -43,6 +41,7 @@ export class MailingPreviewIframe extends Component {
                     this.iframeRef()?.contentDocument.body.replaceChildren(
                         this.renderBodyContent()
                     );
+                    this.throttledResize();
                 });
             },
             () => [this.props.record.data.preview_record_ref]
@@ -65,12 +64,20 @@ export class MailingPreviewIframe extends Component {
 
         const updateIframeSize = () => {
             const iframe = this.iframeRef();
+            const content = iframe.contentDocument.body.firstElementChild;
+            if (content) {
+                content.style.zoom = "";
+            }
             if (this.state.isMobileMode) {
                 // same styling for mobile as we have in 'mass_mailing_iframe'
                 iframe.style.width = "367px";
                 iframe.style.height = "668px";
                 iframe.style.transform = "";
                 iframe.style.backgroundColor = "white";
+                // Scale the email down to fit the screen, like a mobile mail client.
+                if (content && content.clientWidth && content.scrollWidth > content.clientWidth) {
+                    content.style.zoom = content.clientWidth / content.scrollWidth;
+                }
                 iframe.contentDocument.body.scrollTop = 0;
             } else {
                 iframe.style.width = "140%";

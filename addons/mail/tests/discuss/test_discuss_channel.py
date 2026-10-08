@@ -932,9 +932,9 @@ class TestChannelInternals(MailCommon, HttpCase):
         self.assertEqual(private_group.avatar_128.content, expected_group)
         # meeting: day of month of the creation date
         self.assertEqual(meeting.avatar_128.content, self._expected_default_avatar(str(meeting.create_date.day), str(meeting.id)))
-        # chat with a photo-less correspondent: first and last name initials, seeded by partner
-        self.assertEqual(chat_initials.avatar_128.content, self._expected_default_avatar("JD", str(photoless_partner.id)))
-        # chat with a correspondent that has a real photo: defer to the partner avatar
+        # chat: always defer to the correspondent's avatar
+        self.assertFalse(chat_initials.avatar_128)
+        self.assertEqual(chat_initials.avatar_cache_key, "no-avatar")
         self.assertFalse(chat_photo.avatar_128)
         self.assertEqual(chat_photo.avatar_cache_key, "no-avatar")
 
@@ -1432,6 +1432,14 @@ class TestChannelInternals(MailCommon, HttpCase):
         result = self.make_jsonrpc_request("/discuss/search", {"term": "test"})
         channel_ids = [c["id"] for c in result.get("discuss.channel", [])]
         self.assertEqual(channel_ids[0], favorite.id, "Favorite channel should come first")
+
+    def test_channel_self_join_no_push_notification(self):
+        """When a user joins a channel via the Join button themselves, they
+        should NOT receive push notification"""
+        self._setup_push_devices_for_partners(self.partner_employee)
+        with self.mock_push_to_end_point():
+            self.test_channel.with_user(self.user_employee).channel_join()
+        self.assertNoPushNotification()
 
     def test_notify_typing_channel_not_found_should_not_crash(self):
         """channel can be deleted while someone is still typing in it.

@@ -76,7 +76,7 @@ class TestOutOfOffice(TestHrHolidaysCommon):
         )
         self.assertEqual(
             self.employee_hruser.user_id.with_context(formatted_display_name=True).display_name,
-            'armande (base.group_user,hr_holidays.group_hr_holidays_user) \t ✈ --Back on Jun 12, 2024--',
+            'armande (base.group_user,hr_holidays.group_hr_holidays_user) !!✈ Back on Jun 12, 2024!!',
             'formatted display name should show the "Back on" formatted date'
         )
 
@@ -99,6 +99,28 @@ class TestOutOfOffice(TestHrHolidaysCommon):
         leaves.write({'state': 'validate'})
         employees.invalidate_recordset(["leave_date_to"])
         self.assertEqual(employees.mapped("leave_date_to"), [date(2024, 6, 7), date(2024, 6, 6)])
+
+    @freeze_time('2024-06-04')
+    def test_leave_status_without_hr_access(self):
+        """ The leave status is read by every internal user: it feeds the
+        presence icon and the avatar card of its colleagues. Computing it must
+        not require the officer access of the employee versions.
+        """
+        leave = self.env['hr.leave'].create({
+            'employee_id': self.employee_hruser.id,
+            'work_entry_type_id': self.work_entry_type.id,
+            'request_date_from': "2024-06-03",
+            'request_date_to': "2024-06-05",
+        })
+        leave.action_approve()
+
+        self.env.invalidate_all()
+        employee = self.employee_hruser.with_user(self.user_employee)
+        self.assertFalse(
+            employee.has_field_access(employee._fields['version_ids'], 'read'),
+            "an employee is not an officer: the versions stay out of reach")
+        self.assertTrue(employee.leave_date_to, "a colleague reads when the employee is back")
+        self.assertEqual(employee.hr_icon_display, 'presence_holiday_absent')
 
     @freeze_time("2024-06-05")
     def test_public_holiday_ooo(self):

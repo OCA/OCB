@@ -340,10 +340,22 @@ export class LinkPlugin extends Plugin {
         is_node_fully_selected_predicates: (node, selection) => {
             if (
                 node.nodeName === "A" &&
-                !node.classList.contains("btn") &&
                 cleanZWChars(selection.toString()) === cleanZWChars(node.innerText)
             ) {
                 return true;
+            }
+        },
+
+        formattable_node_providers: (node, { formatSpec }) => {
+            // Links often have styles applied to them by css which can only be
+            // overriden by applying the style to the link itself.
+            const closestLink = closestElement(node, "A");
+            if (
+                closestLink &&
+                formatSpec.addNeutralStyle &&
+                this.dependencies.selection.areNodeContentsFullySelected(closestLink)
+            ) {
+                return closestLink;
             }
         },
 
@@ -375,6 +387,7 @@ export class LinkPlugin extends Plugin {
 
         /** Processors */
         clean_for_save_processors: (root) => this.removeEmptyLinks(root),
+        html_compatibility_processors: this.moveLinkColorToFont.bind(this),
         normalize_processors: this.normalizeLink.bind(this),
         to_inline_code_processors: (node) => {
             this.removeEmptyLinks(node);
@@ -409,11 +422,48 @@ export class LinkPlugin extends Plugin {
                 ev.preventDefault();
             }
         });
-        this.addDomListener(this.editable, "mousedown", () => {
-            this._isNavigatingByMouse = true;
-        });
-        this.addDomListener(this.editable, "keydown", () => {
-            delete this._isNavigatingByMouse;
+        this.addDomListener(this.editable, "pointerdown", (ev) => {
+            const clickedEl = this.document.elementFromPoint(ev.clientX, ev.clientY);
+            if (!clickedEl || !isContentEditable(clickedEl)) {
+                return;
+            }
+            let caretPosition = {};
+            if (this.document.caretPositionFromPoint) {
+                // Firefox API
+                const pos = this.document.caretPositionFromPoint(ev.clientX, ev.clientY);
+                caretPosition = pos;
+            } else if (this.document.caretRangeFromPoint) {
+                // Chrome / Safari API
+                const range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
+                caretPosition.offsetNode = range?.startContainer;
+                caretPosition.offset = range?.startOffset;
+            }
+            const link = caretPosition?.offsetNode && closestElement(caretPosition.offsetNode, "A");
+            if (clickedEl.closest("a") && isZwnbsp(caretPosition.offsetNode)) {
+                // This handles the case of clicking at the start of the button
+                const isFirstFeff = !caretPosition.offsetNode.previousSibling;
+                if (isFirstFeff && caretPosition.offset === 0) {
+                    ev.preventDefault();
+                    this.dependencies.selection.setSelection({
+                        anchorNode: clickedEl,
+                        anchorOffset: 1,
+                    });
+                }
+            } else if (!clickedEl.closest("a") && link) {
+                // This handles the case of clicking outside the link that is
+                // at the start/end of paragraph
+                ev.preventDefault();
+                const anchorFeff =
+                    nodeSize(caretPosition.offsetNode) === caretPosition.offset
+                        ? link.nextSibling
+                        : link.previousSibling;
+                if (anchorFeff && isZwnbsp(anchorFeff)) {
+                    this.dependencies.selection.setSelection({
+                        anchorNode: anchorFeff,
+                        anchorOffset: 1,
+                    });
+                }
+            }
         });
         this.addDomListener(this.editable, "auxclick", (ev) => {
             if (ev.button === 1) {
@@ -759,9 +809,8 @@ export class LinkPlugin extends Plugin {
         this.currentOverlay.close();
         this.LinkPopoverState.editing = false;
         const selection = this.dependencies.selection.getEditableSelection();
-        const commonAncestor = closestElement(selection.commonAncestorContainer);
-        const isNonEditableLink =
-            commonAncestor.nodeName === "A" && !commonAncestor.isContentEditable;
+        const commonAncestor = closestElement(selection.commonAncestorContainer, "A");
+        const isNonEditableLink = commonAncestor && !commonAncestor.isContentEditable;
         if (!this.isLinkAllowedOnSelection() && !isNonEditableLink) {
             return this.services.notification.add(
                 _t("Unable to create a link on the current selection."),
@@ -837,7 +886,13 @@ export class LinkPlugin extends Plugin {
         }
     }
 
-    normalizeLink(root) {
+    /**
+     * An inline color on an anchor only comes from an external style: the
+     * editor never colors an anchor itself. Remove it from the anchor, create
+     * a font tag inside it, and move the color to the font tag, so that the
+     * color is applied to the font element instead of the anchor element.
+     */
+    moveLinkColorToFont(root) {
         for (const anchorEl of selectElements(root, "a")) {
             if (/btn(-[a-z0-9_-]*)custom/.test(anchorEl.className)) {
                 // if the link is a customized button, we don't want to change the color
@@ -845,11 +900,6 @@ export class LinkPlugin extends Plugin {
             }
             const { color } = anchorEl.style;
             const childNodes = [...anchorEl.childNodes];
-            // For each anchor element, if it has an inline color style,
-            // (converted from an external style), remove it from the anchor,
-            // create a font tag inside it, and move the color to the font tag.
-            // This ensures the color is applied to the font element instead of
-            // the anchor element itself.
             if (color && childNodes.every(isPhrasingContent)) {
                 anchorEl.style.removeProperty("color");
                 const font =
@@ -862,7 +912,12 @@ export class LinkPlugin extends Plugin {
                 anchorEl.appendChild(newFont);
                 this.dependencies.color.colorElement(newFont, color, "color");
             }
+        }
+        return root;
+    }
 
+    normalizeLink(root) {
+        for (const anchorEl of selectElements(root, "a")) {
             // When a link contains unsupported element (like an iframe or a link),
             // we remove the link. Cases can happen when a image link is replaced
             // by a document or a video
@@ -876,48 +931,6 @@ export class LinkPlugin extends Plugin {
 
     handleSelectionChange(selectionData) {
         const selection = selectionData.editableSelection;
-        if (
-            this._isNavigatingByMouse &&
-            selection.isCollapsed &&
-            selectionData.documentSelectionIsInEditable
-        ) {
-            delete this._isNavigatingByMouse;
-            const { startContainer, startOffset, endContainer, endOffset } = selection;
-            const linkElement = closestElement(startContainer, "a");
-            if (
-                linkElement &&
-                linkElement.textContent.startsWith("\uFEFF") &&
-                linkElement.textContent.endsWith("\uFEFF")
-            ) {
-                const linkDescendants = descendants(linkElement);
-
-                // Check if the cursor is positioned at the begining of link.
-                const isCursorAtStartOfLink = isZwnbsp(startContainer)
-                    ? linkDescendants.indexOf(startContainer) === 0
-                    : startContainer.nodeType === Node.TEXT_NODE &&
-                      linkDescendants.indexOf(startContainer) === 1 &&
-                      startOffset === 0;
-
-                // Check if the cursor is positioned at the end of link.
-                const isCursorAtEndOfLink = isZwnbsp(endContainer)
-                    ? linkDescendants.indexOf(endContainer) === linkDescendants.length - 1
-                    : endContainer.nodeType === Node.TEXT_NODE &&
-                      linkDescendants.indexOf(endContainer) === linkDescendants.length - 2 &&
-                      endOffset === nodeSize(endContainer);
-
-                // Handle selection movement.
-                if (isCursorAtStartOfLink || isCursorAtEndOfLink) {
-                    const [targetNode, targetOffset] = isCursorAtStartOfLink
-                        ? leftPos(linkElement)
-                        : rightPos(linkElement);
-                    this.dependencies.selection.setSelection({
-                        anchorNode: targetNode,
-                        anchorOffset: isCursorAtStartOfLink ? targetOffset - 1 : targetOffset + 1,
-                    });
-                    return;
-                }
-            }
-        }
         const anchorNode = this.document.getSelection()?.anchorNode;
         const isSelectionInProtected =
             this.document.getSelection()?.isCollapsed &&

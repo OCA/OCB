@@ -438,9 +438,11 @@ class PosSession(models.Model):
         sessions = self.search(domain)
         for session in sessions:
             try:
-                session.with_company(session.company_id)._validate_session_accounting()
+                with self.env.cr.savepoint():
+                    session.with_company(session.company_id)._validate_session_accounting()
             except Exception as e:  # noqa: BLE001
                 # We don't block the cron if one session fails to validate, we log the error and continue with the next session
+                # The savepoint ensures a failure here does not leave partial accounting entries behind
                 _logger.error("Failed to validate session accounting for session %s: %s", session.id, e)
 
     @api.model
@@ -557,7 +559,7 @@ class PosSession(models.Model):
                 'amount': cash_move.amount,
                 'id': cash_move.id,
                 'date': cash_move.create_date,
-                'cashier_name': cash_move.partner_id.name,
+                'cashier_name': self._get_cash_move_cashier_name(cash_move),
             })
         return cash_in_out_list
 
@@ -630,7 +632,7 @@ class PosSession(models.Model):
             record.refund_move_count = len(record.refund_move_ids)
 
     def _get_session_and_order_account_moves(self):
-        return self.sale_move_ids | self.refund_move_ids | self.order_ids.mapped('account_move')
+        return self.sale_move_ids | self.refund_move_ids | self.order_ids.mapped('account_move') | self.order_ids.reversed_move_ids
 
     def _get_related_account_moves(self):
         invoices = self._get_session_and_order_account_moves()
@@ -749,6 +751,9 @@ class PosSession(models.Model):
             ))
         return True
 
+    def _get_cash_move_cashier_name(self, cash_move):
+        return cash_move.create_uid.name
+
     def try_cash_in_out(self, _type, amount, reason, partner_id):
         if not self.env.user._has_cash_move_permission():
             raise AccessError(_("You don't have the access rights to perform a cash in/out."))
@@ -760,13 +765,12 @@ class PosSession(models.Model):
 
         message = f'{self.name}-{_type}-{reason}'
         signed_amount = amount * sign
-        partner = self.env['res.partner'].browse(partner_id)
+        # partner_id is the cashier, not the counterpart of the cash move
         cash_pm._create_payment_line(
             self,
             signed_amount,
             cash_pm.journal_id.suspense_account_id,
             message,
-            partner,
         )
 
     def delete_cash_in_out(self, absl_id, partner_id):
@@ -775,7 +779,7 @@ class PosSession(models.Model):
         absl = self.env['account.bank.statement.line'].browse(absl_id).sudo()
         if absl not in self.sudo().bank_statement_line_ids:
             raise AccessError(_("You cannot delete a cash move that is not linked to this session."))
-        cashier_name = absl.partner_id.name
+        cashier_name = self._get_cash_move_cashier_name(absl)
         amount = absl.amount
         action = (cashier_name + ': ' if cashier_name else '') + str(amount)
         absl.unlink()
@@ -1218,8 +1222,8 @@ class PosSession(models.Model):
             )[idx]
             receivable_line = Command.create({
                 'name': _("Payment reversal %s", matching_line.name),
-                'account_id': matching_line.account_id.id,
-                'partner_id': matching_line.partner_id.id,
+                'account_id': order.partner_id.property_account_receivable_id.id,
+                'partner_id': order.partner_id.id,
                 'currency_id': order.company_id.currency_id.id,
                 'amount_currency': -payment.amount_currency,
                 'balance': -payment.balance,

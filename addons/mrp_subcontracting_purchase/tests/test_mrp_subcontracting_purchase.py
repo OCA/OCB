@@ -172,6 +172,89 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
             po_action2 = self.env[action2['res_model']].browse(action2['res_id'])
             self.assertEqual(po_action2, po)
 
+    def test_mixed_mto_subcontracting_source_button(self):
+        """
+        Test the PO/Picking link when a regular and a subcontracted
+        PO are generated to fulfill the component demand of a common MO
+        """
+        mto_route = self.env.ref('stock.route_warehouse0_mto')
+        mto_route.active = True
+        resupply_route = self.env.ref('mrp_subcontracting.route_resupply_subcontractor_mto')
+        resupply_route.product_selectable = True
+
+        final_product, regular_product, subcontracted_product, component = self.env['product.product'].create([{
+            'name': 'Final Product',
+            'is_storable': True,
+        }, {
+            'name': 'Regular Product',
+            'is_storable': True,
+            'route_ids': mto_route.ids,
+        }, {
+            'name': 'Subcontracted Product',
+            'is_storable': True,
+            'route_ids': mto_route.ids,
+        }, {
+            'name': 'Component',
+            'is_storable': True,
+            'route_ids': resupply_route.ids,
+        }])
+
+        warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)])
+        self.env['stock.quant']._update_available_quantity(component, warehouse.lot_stock_id, 10)
+
+        self.env['product.supplierinfo'].create([{
+            'partner_id': self.vendor.id,
+            'product_tmpl_id': regular_product.product_tmpl_id.id,
+        }, {
+            'partner_id': self.subcontractor_partner1.id,
+            'product_tmpl_id': subcontracted_product.product_tmpl_id.id,
+        }])
+
+        self.env['mrp.bom'].create([{
+            'product_tmpl_id': final_product.product_tmpl_id.id,
+            'type': 'normal',
+            'bom_line_ids': [
+                Command.create({'product_id': regular_product.id, 'product_qty': 1.0}),
+                Command.create({'product_id': subcontracted_product.id, 'product_qty': 1.0}),
+            ],
+        }, {
+            'product_tmpl_id': subcontracted_product.product_tmpl_id.id,
+            'type': 'subcontract',
+            'subcontractor_ids': [Command.link(self.subcontractor_partner1.id)],
+            'bom_line_ids': [
+                Command.create({'product_id': component.id, 'product_qty': 1.0})
+            ],
+        }])
+
+        mo = self.env['mrp.production'].create({
+            'product_id': final_product.id,
+            'product_qty': 1.0,
+        })
+        mo.action_confirm()
+
+        purchase_orders = mo.move_raw_ids.created_purchase_line_ids.order_id
+        self.assertEqual(len(purchase_orders), 2)
+        purchase_orders.button_confirm()
+
+        regular_po = purchase_orders.filtered(lambda po: po.partner_id == self.vendor)
+        subcontracted_po = purchase_orders.filtered(lambda po: po.partner_id == self.subcontractor_partner1)
+
+        regular_receipt = regular_po.picking_ids
+        subcontract_receipt = subcontracted_po.picking_ids
+        action = subcontracted_po.action_view_subcontracting_resupply()
+        resupply_picking = self.env[action['res_model']].browse(action['res_id'])
+
+        # The regular and subcontracted product receipts should have 0 source POs
+        # The resupply product picking (component) should should have 1
+        self.assertRecordValues(regular_receipt | subcontract_receipt | resupply_picking, [
+            {'subcontracting_source_purchase_count': 0},
+            {'subcontracting_source_purchase_count': 0},
+            {'subcontracting_source_purchase_count': 1},
+        ])
+
+        action = resupply_picking.action_view_subcontracting_source_purchase()
+        self.assertEqual(self.env[action['res_model']].browse(action['res_id']), subcontracted_po)
+
     def test_decrease_qty(self):
         """ Tests when a PO for a subcontracted product has its qty decreased after confirmation
         """
@@ -291,6 +374,33 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
 
         self.assertEqual(self.finished2.qty_available, 7.0)
         self.assertEqual(po.order_line.qty_received, 10.0)
+
+    def test_purchase_receipt_uses_partner_subcontracting_location(self):
+        """
+        When the subcontractor partner has its own subcontracting location,
+        the receipt move for a subcontracted product bought through a PO should
+        take that location as its source.
+        """
+        partner_subcontract_location = self.env['stock.location'].create({
+            'name': 'Specific partner location',
+            'location_id': self.company.subcontracting_location_id.id,
+            'usage': 'internal',
+            'company_id': self.company.id,
+        })
+        self.subcontractor_partner1.property_stock_subcontractor = partner_subcontract_location.id
+
+        po = self.env['purchase.order'].create({
+            'partner_id': self.subcontractor_partner1.id,
+            'order_line': [Command.create({
+                'name': self.finished2.name,
+                'product_id': self.finished2.id,
+                'product_uom_qty': 10,
+                'uom_id': self.finished2.uom_id.id,
+                'price_unit': 1,
+            })],
+        })
+        po.button_confirm()
+        self.assertEqual(po.picking_ids.move_ids.location_id, partner_subcontract_location)
 
     def test_subcontracting_purchase_bill(self):
         (self.comp1 | self.comp2 | self.finished).categ_id = self.category_fifo_auto
@@ -778,7 +888,8 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         subcontract_mo_move.move_dest_ids = po.picking_ids.move_ids
         self.assertEqual(len(subcontract_mo_move.move_dest_ids), 2)
 
-        self.assertEqual(subcontract_mo_move._get_value_from_account_move(1).get('value'), 20.0)
+        quantity = subcontract_mo_move._get_valued_qty()
+        self.assertEqual(subcontract_mo_move._get_value_from_account_move(quantity).get('value'), 20.0)
 
     def test_update_qty_purchased_with_subcontracted_product(self):
         """

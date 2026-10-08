@@ -430,12 +430,11 @@ class SaleProductConfiguratorController(Controller):
             )
         else:
             price, pricelist_rule_id = 0.0, False
-        if kwargs.get("show_packaging", True) and product_or_template._has_multiple_uoms():
+        if kwargs.get("show_packaging", True) and self.env["res.groups"]._is_feature_enabled("uom.group_uom"):
             basic_information["available_uoms"] = product_or_template._get_available_uoms().read([
                 "id",
                 "display_name",
             ])
-        pricelist_rule = request.env["product.pricelist.item"].browse(pricelist_rule_id)
         return dict(
             **basic_information,
             price=price,
@@ -443,7 +442,6 @@ class SaleProductConfiguratorController(Controller):
             **self.env["product.template"]._get_additional_configurator_data(
                 product_or_template, pricelist=pricelist, **kwargs
             ),
-            show_extra_price=pricelist_rule.compute_price != "fixed",
         )
 
     def _get_ptav_price_extra(self, ptav, currency, date, product_or_template):  # noqa: ARG002

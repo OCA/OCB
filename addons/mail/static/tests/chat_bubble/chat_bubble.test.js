@@ -1,11 +1,12 @@
-import { describe, test } from "@odoo/hoot";
-import { leave, runAllTimers } from "@odoo/hoot-dom";
+import { describe, expect, test } from "@odoo/hoot";
+import { advanceTime, freezeTime, leave, queryOne, runAllTimers } from "@odoo/hoot-dom";
 import { Command, serverState, withUser } from "@web/../tests/web_test_helpers";
 import {
     assertChatHub,
     click,
     contains,
     defineMailModels,
+    focus,
     hover,
     insertText,
     listenStoreFetch,
@@ -20,6 +21,7 @@ import {
     waitStoreFetch,
     MENU_ACTIVE_IDS,
 } from "../mail_test_helpers";
+import { BOUNCE_DURATION } from "@mail/core/common/chat_bubble";
 
 import { rpc } from "@web/core/network/rpc";
 import { range } from "@web/core/utils/numbers";
@@ -199,6 +201,25 @@ test("Hover on chat bubble shows chat name + last message preview", async () => 
     });
     await hover(".o-mail-ChatBubble[name='Demo']");
     await contains(".o-mail-ChatBubble-preview:text('Demo You: Hi')");
+});
+
+test("Escape closes a chat bubble preview containing a focused link", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    pyEnv["mail.message"].create({
+        author_id: serverState.partnerId,
+        body: '<a href="https://odoo.com/">https://odoo.com</a>',
+        model: "discuss.channel",
+        res_id: channelId,
+    });
+    setupChatHub({ folded: [channelId] });
+    await start();
+    await hover(".o-mail-ChatBubble[name='General']");
+    await contains(".o-mail-ChatBubble-preview");
+    // Do not focus the anchor automatically, as doing so would show an empty preview for long messages with trailing link
+    await focus('.o-mail-ChatBubble-preview a[href="https://odoo.com/"]:not(:focus)');
+    await triggerHotkey("Escape");
+    await contains(".o-mail-ChatBubble-preview", { count: 0 });
 });
 
 test("Hover on chat bubble shows message preview along with message seen indicator", async () => {
@@ -642,4 +663,73 @@ test("Close chat window from bubble while bubble preview is displayed", async ()
     await hover(".o-mail-ChatBubble[name='John']");
     await click(`.o-mail-ChatBubble[name='John'] .o-mail-ChatBubble-close`);
     await contains(`.o-mail-ChatBubble[name='John']`, { count: 0 });
+});
+
+test("Chat bubble bounces on new important messages only, until they stop coming", async () => {
+    const pyEnv = await startServer();
+    const johnUserId = pyEnv["res.users"].create({ name: "John" });
+    const johnPartnerId = pyEnv["res.partner"].create({ user_ids: [johnUserId], name: "John" });
+    const chatId = pyEnv["discuss.channel"].create({
+        channel_member_ids: [
+            Command.create({
+                message_unread_counter: 1,
+                new_message_separator: 0,
+                partner_id: serverState.partnerId,
+                seen_message_id: false,
+            }),
+            Command.create({ partner_id: johnPartnerId }),
+        ],
+        channel_type: "chat",
+    });
+    pyEnv["mail.message"].create({
+        author_id: johnPartnerId,
+        body: "Hello!",
+        message_type: "comment",
+        model: "discuss.channel",
+        res_id: chatId,
+    });
+    const johnPosts = (body) =>
+        withUser(johnUserId, () =>
+            rpc("/mail/message/post", {
+                post_data: { body, message_type: "comment" },
+                thread_id: chatId,
+                thread_model: "discuss.channel",
+            })
+        );
+    // Animations are disabled in tests: simulate the end of a bounce iteration.
+    const bounce = () => triggerEvents(".o-mail-ChatBubble[name='John']", ["animationiteration"]);
+    setupChatHub({ folded: [chatId] });
+    await start();
+    freezeTime(); // to make bouncing checks unaffected by CPU load
+    // Messages that were already unread on mount do not trigger a bounce.
+    await contains(".o-mail-ChatBubble[name='John'] .o-mail-ChatBubble-counter:text('1')");
+    await contains(".o-mail-ChatBubble.o-bouncing", { count: 0 });
+    await johnPosts("Anyone here?");
+    await contains(".o-mail-ChatBubble.o-bouncing");
+    // A restarted animation would momentarily drop the class to force a reflow.
+    let animationInterrupted = false;
+    const observer = new MutationObserver((records) => {
+        animationInterrupted ||= records.some(
+            ({ target }) => !target.classList.contains("o-bouncing")
+        );
+    });
+    observer.observe(queryOne(".o-mail-ChatBubble[name='John']"), { attributeFilter: ["class"] });
+    // Half-way through the bounce, another message comes in.
+    await advanceTime(BOUNCE_DURATION / 2);
+    await bounce();
+    await johnPosts("Are you there?");
+    await contains(".o-mail-ChatBubble-counter:text('3')");
+    // First deadline passed: still bouncing, never interrupted.
+    await advanceTime(BOUNCE_DURATION / 2);
+    await bounce();
+    await contains(".o-mail-ChatBubble.o-bouncing");
+    expect(animationInterrupted).toBe(false);
+    observer.disconnect();
+    // It only stops a full bounce duration after the newest message.
+    await advanceTime(BOUNCE_DURATION / 2 - 1);
+    await bounce();
+    await contains(".o-mail-ChatBubble.o-bouncing");
+    await advanceTime(1);
+    await bounce();
+    await contains(".o-mail-ChatBubble.o-bouncing", { count: 0 });
 });

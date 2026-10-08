@@ -120,7 +120,7 @@
                                                         <span class="fw-bolder">Zoom</span>
                                                     </a>
                                                 </div>
-                                                <div class="w-100 border-top border-1 border-secondary mt-0 mb-3"></div>
+                                                <div class="w-100 border-top border-1 mt-0 mb-3"></div>
                                             </div>
                                         </div>
                                         <div invisible="subordinate_ids or (parent_id and not parent_id == id)">
@@ -128,7 +128,7 @@
                                                 <div class="d-flex align-items-left mb-0">
                                                     <span class="text-uppercase fw-bolder" style="font-size: 13px">Organization Chart</span>
                                                 </div>
-                                                <div class="w-100 border-top border-1 border-secondary mt-0 mb-3"></div>
+                                                <div class="w-100 border-top border-1 mt-0 mb-3"></div>
                                             </div>
                                         </div>
                                         <field name="child_ids" class="position-relative" widget="hr_org_chart" readonly="1" nolabel="1"/>
@@ -170,18 +170,18 @@
             <field name="arch" type="xml">
                 <kanban class="o_hr_employee_kanban" sample="1">
                     <field name="show_hr_icon_display"/>
-                    <field name="image_128" />
+                    <field name="image_256" />
                     <field name="work_phone_sanitized"/>
                     <field name="work_phone_formatted"/>
                     <templates>
                         <t t-name="card" class="flex-row">
                             <aside class="o_card_aside_full">
                                 <t t-if="!record.image_1024.raw_value">
-                                    <field name="avatar_128" class="d-block position-relative"
+                                    <field name="avatar_256" class="d-block position-relative"
                                         widget="background_image" options="{'zoom': true, 'zoom_delay': 1000}"/>
                                 </t>
                                 <t t-else="">
-                                    <field name="image_1024" class="d-block position-relative" preview_image="image_128"
+                                    <field name="image_1024" class="d-block position-relative" preview_image="image_256"
                                         widget="background_image" options="{'zoom': true, 'zoom_delay': 1000}"/>
                                 </t>
                             </aside>

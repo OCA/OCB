@@ -31,6 +31,10 @@
         tbody > tr:first-child {
             border-top: 0;
         }
+
+        .o_optional_columns .o-dropdown {
+            --gradient: none;
+        }
     }
     .o_activity_summary_cell {
         .o-mail-ActivityCell-counter {
@@ -67,7 +71,7 @@
             }
         }
         &.done {
-            background-color: map-get($theme-colors, 'secondary');
+            background-color: $gray-300;
             a {
                 color: map-get($theme-colors, 'dark');
                 &:hover {

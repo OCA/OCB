@@ -470,6 +470,9 @@ test("many2ones in form views with show_address", async () => {
         { type: "html" }
     );
     expect("button.o_external_button").toHaveCount(1);
+
+    await contains(".o_field_many2one_extra").click();
+    expect(".o-autocomplete--dropdown-menu").toHaveCount(0);
 });
 
 test("many2one show_address in edit", async () => {
@@ -3724,6 +3727,29 @@ test("focus when closing many2one modal in many2one modal", async () => {
     expect(".o_dialog").toHaveCount(1);
 });
 
+test("closing the many2one modal does not focus the field if it becomes readonly", async () => {
+    onRpc("get_formview_id", () => false);
+
+    await mountViewInDialog({
+        type: "form",
+        resModel: "partner",
+        arch: `<form><field name="trululu" readonly="id"/></form>`,
+    });
+    expect(".modal").toHaveCount(1);
+
+    // Select many2one record
+    await selectFieldDropdownItem("trululu", "first record");
+    expect(".o_field_widget[name=trululu] input").toHaveCount(1);
+
+    // Open many2one modal
+    await contains(".o_field_widget[name=trululu] .o_external_button", { visible: false }).click();
+    expect(".modal").toHaveCount(2);
+
+    // Close modal without focusing readonly field
+    await contains(".o_dialog:not(.o_inactive_modal) .btn-close").click();
+    expect(".o_field_widget[name=trululu]").toHaveClass("o_readonly_modifier");
+});
+
 test("search more pager is reset when doing a new search", async () => {
     Partner._fields.datetime = fields.Datetime({ string: "Datetime Field", searchable: true });
     Partner._records.push(...range(170).map((i) => ({ id: i + 10, name: `Partner ${i}` })));
@@ -3862,7 +3888,7 @@ test("external_button performs a doAction by default", async () => {
     });
 
     await selectFieldDropdownItem("trululu", "first record");
-    expect(".o_field_widget .o_external_button [data-icon='east']").toHaveCount(1);
+    expect(".o_field_widget .o_external_button [data-icon='arrow_forward']").toHaveCount(1);
     await contains(".o_field_widget .o_external_button", { visible: false }).click();
 
     expect.verifySteps(["get_record_default_action"]);

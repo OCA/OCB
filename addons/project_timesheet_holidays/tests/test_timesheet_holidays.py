@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
 
@@ -149,6 +149,33 @@ class TestTimesheetHolidays(TestCommonTimesheet):
         # The leave type and timesheet are linked to the same project and task of the employee company as the company is not set
         self.assertEqual(holiday.timesheet_ids.project_id.id, company.internal_project_id.id)
         self.assertEqual(holiday.timesheet_ids.task_id.id, company.leave_timesheet_task_id.id)
+
+    def test_back_to_approval_removes_timesheets(self):
+        holiday = self.Requests.with_user(self.user_employee).create({
+            'name': 'Time Off 1',
+            'employee_id': self.empl_employee.id,
+            'work_entry_type_id': self.hr_work_entry_type_with_ts.id,
+            'request_date_from': self.leave_start_datetime,
+            'request_date_to': self.leave_end_datetime,
+        })
+        holiday.with_user(SUPERUSER_ID).action_approve()
+        timesheets = holiday.timesheet_ids
+        self.assertEqual(len(timesheets), 3)
+
+        holiday.with_user(SUPERUSER_ID).action_back_to_approval()
+        self.assertEqual(holiday.state, 'confirm')
+        self.assertFalse(timesheets.exists(), 'Timesheets should be removed when the time off goes back to approval')
+
+        # the employee moves the time off by one day, only the new dates are timesheeted on validation
+        holiday.with_user(self.user_employee).write({
+            'request_date_from': self.leave_start_datetime + relativedelta(days=1),
+            'request_date_to': self.leave_end_datetime + relativedelta(days=1),
+        })
+        holiday.with_user(SUPERUSER_ID).action_approve()
+        self.assertEqual(
+            sorted(holiday.timesheet_ids.mapped('date')),
+            [(self.leave_start_datetime + relativedelta(days=d)).date() for d in (1, 2, 3)],
+        )
 
     def test_validate_worked_leave(self):
         # employee creates a leave request of worked time type
@@ -529,3 +556,36 @@ class TestTimesheetHolidays(TestCommonTimesheet):
         for leave, expected_entries, expected_hours in validation_data:
             self.assertEqual(len(leave.timesheet_ids), expected_entries, f"{leave.name}: incorrect number of timesheet entries.")
             self.assertEqual(sum(leave.timesheet_ids.mapped('unit_amount')), expected_hours, f"{leave.name}: incorrect total timesheet hours.")
+
+    def test_archive_employee_timesheet_with_leave(self):
+        """ Test that future timesheets linked to leaves are successfully deleted upon departure. """
+        Timesheet = self.env['account.analytic.line']
+        today = fields.Date.context_today(self.env.user)
+        yesterday = today - timedelta(days=1)
+        tomorrow = today + timedelta(days=1)
+        self.empl_employee.version_ids.sudo().write({
+            'date_version': today - timedelta(days=10),
+            'contract_date_start': today - timedelta(days=10),
+        })
+        global_leave = self.env['resource.calendar.leaves'].create({
+            'name': 'Test Public Holiday',
+            'date_from': tomorrow,
+            'date_to': tomorrow + timedelta(days=1),
+        })
+
+        leave_timesheet = Timesheet.create({
+            'project_id': self.project_customer.id,
+            'task_id': self.task1.id,
+            'name': 'Future Timesheet (With Leave)',
+            'unit_amount': 2,
+            'employee_id': self.empl_employee.id,
+            'date': tomorrow,
+            'global_leave_id': global_leave.id,
+        })
+
+        self.env['hr.employee.departure'].with_context(employee_termination=True).create({
+            'employee_id': self.empl_employee.id,
+            'departure_date': yesterday,
+        }).action_register()
+
+        self.assertFalse(leave_timesheet.exists(), "The timesheet should be safely unlinked from the leave and deleted.")

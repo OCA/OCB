@@ -245,6 +245,12 @@ class ProductProduct(models.Model):
         return
 
     def _correct_inventory_valuation(self, from_date):
+        boundary = from_date - timedelta(seconds=1) if from_date != datetime.min else from_date
+        valued_products = self.filtered(lambda product: product.cost_method != 'standard')
+        moves_by_product = valued_products._get_stock_moves_with_valuation_by_product(boundary)
+        moves_out = self.env['stock.move'].concat(moves_by_product.values()).filtered('is_out')
+        old_values = {move.id: move.value for move in moves_out}
+
         def replay(products, cost_method, lot=False):
             if cost_method == 'standard':
                 products._run_standard(at_date=from_date, correction=True)
@@ -255,14 +261,16 @@ class ProductProduct(models.Model):
 
         lot_valuated = self.filtered(lambda p: p.lot_valuated and p.cost_method != 'standard')
         for product in lot_valuated:
-            boundary = from_date - timedelta(seconds=1) if from_date != datetime.min else from_date
-            moves_in_scope = product._get_stock_moves_with_valuation_by_product(boundary).get(product, self.env['stock.move'])
+            moves_in_scope = moves_by_product.get(product, self.env['stock.move'])
             moves_in_scope.filtered('is_out').value = 0.0
             for lot in moves_in_scope.move_line_ids.lot_id:
                 replay(product, product.cost_method, lot=lot)
 
         for cost_method, products in (self - lot_valuated).grouped('cost_method').items():
             replay(products, cost_method)
+
+        replayed_moves = self.env['stock.move'].browse(list(old_values))
+        return replayed_moves.filtered(lambda move: move.value != old_values[move.id])
 
     def _get_stock_moves_with_valuation_by_product(self, from_date, lot=False):
         domain = [
@@ -302,7 +310,7 @@ class ProductProduct(models.Model):
         return {pv.product_id: pv for pv in product_values}
 
     def _get_last_in(self, date=None):
-        last_in_domain = Domain([('is_in', '=', True), ('product_id', '=', self.id)])
+        last_in_domain = Domain([('is_in', '=', True), ('product_id', '=', self.id), ('company_id', '=', self.env.company.id)])
         if date:
             last_in_domain &= Domain([('date', '<=', date)])
         last_in = self.env['stock.move'].search(last_in_domain, order='date desc, id desc', limit=1)
@@ -383,7 +391,7 @@ class ProductProduct(models.Model):
         moves_domain = Domain([
             ('product_id', 'in', self._as_query()),
             ('company_id', '=', self.env.company.id),
-            '|', '|', ('is_in', '=', True), ('is_dropship', '=', True), ('is_out', '=', True)
+            '|', ('is_in', '=', True), ('is_out', '=', True)
         ])
         if lot:
             moves_domain &= Domain([
@@ -419,13 +427,13 @@ class ProductProduct(models.Model):
             order='product_id, date, id'
         )
         # PERF avoid memoryerror
-        move_fields = ['date', 'is_dropship', 'is_in', 'is_out', 'location_dest_id', 'location_id', 'move_line_ids', 'picked', 'value', 'product_id']
+        move_fields = ['date', 'is_in', 'is_out', 'location_dest_id', 'location_id', 'move_line_ids', 'picked', 'value', 'product_id']
         move_line_fields = ['company_id', 'location_id', 'location_dest_id', 'lot_id', 'owner_id', 'picked', 'quantity_product_uom']
 
         product, valuation_from_date = False, False
         batch_size = 50000
 
-        move_ids_by_product = defaultdict(list)
+        product_move_ids = []
         std_price_history_by_product_id = False
         if correction:
             std_price_history_by_product_id = self._get_std_price_history_by_product(at_date)
@@ -440,67 +448,63 @@ class ProductProduct(models.Model):
                     valuation_from_date = date_by_product_id.get(product.id)
                 if valuation_from_date and move.date <= valuation_from_date:
                     continue
-                move_ids_by_product[product].append(move.id)
+                product_move_ids.append(move.id)
 
             self.env['stock.move'].invalidate_model()
 
-        for product, move_ids in move_ids_by_product.items():
-            product_moves = self.env['stock.move'].browse(move_ids)
-
-            first_move = product_moves[0]
-            quantity = quantity_by_product_id.get(product.id, 0)
-            average_cost = std_price_by_product_id.get(product.id, first_move.value / first_move._get_valued_qty() if first_move._get_valued_qty() else 0)
-            value = value_by_product_id.get(product.id, 0)
-
-            price_changes = iter(std_price_history_by_product_id.get(product, self.env['product.value']) if correction else self.env['product.value'])
-            next_change = next(price_changes, None)
-
-            for moves_batch in split_every(batch_size, product_moves.ids):
-                moves_batch = self.env['stock.move'].browse(moves_batch)
-                moves_batch.fetch(move_fields)
-                moves_batch.move_line_ids.fetch(move_line_fields)
-                for move in moves_batch:
-                    while next_change and next_change.date <= move.date:
-                        average_cost = next_change.value
+        product = False
+        for moves_batch in split_every(batch_size, product_move_ids):
+            moves_batch = self.env['stock.move'].browse(moves_batch)
+            moves_batch.fetch(move_fields)
+            moves_batch.move_line_ids.fetch(move_line_fields)
+            for move in moves_batch:
+                quantity = quantity_by_product_id.get(move.product_id.id, 0.0)
+                average_cost = std_price_by_product_id.get(move.product_id.id, move.value / move._get_valued_qty() if move._get_valued_qty() else 0)
+                value = value_by_product_id.get(move.product_id.id, 0.0)
+                if move.product_id != product:
+                    product = move.product_id
+                    price_changes = iter(std_price_history_by_product_id.get(product, self.env['product.value']) if correction else self.env['product.value'])
+                    next_change = next(price_changes, None)
+                while next_change and next_change.date <= move.date:
+                    average_cost = next_change.value
+                    value = average_cost * quantity
+                    next_change = next(price_changes, None)
+                if move.is_in:
+                    in_qty = move._get_valued_qty()
+                    in_value = move.value
+                    if lot:
+                        lot_qty = move._get_valued_qty(lot)
+                        in_value = (in_value * lot_qty / in_qty) if in_qty else 0
+                        in_qty = lot_qty
+                    previous_qty = quantity
+                    quantity += in_qty
+                    if previous_qty > 0:
+                        value += in_value
+                        average_cost = value / quantity
+                    elif previous_qty <= 0:
+                        average_cost = in_value / in_qty if in_qty else average_cost
                         value = average_cost * quantity
-                        next_change = next(price_changes, None)
-                    if move.is_in or move.is_dropship:
-                        in_qty = move._get_valued_qty()
-                        in_value = move.value
-                        if move.is_dropship:
-                            in_value = move.sudo()._get_value(forced_std_price=average_cost)
+                if move.is_out:
+                    out_qty = move._get_valued_qty()
+                    out_value = out_qty * average_cost
+                    if lot:
+                        lot_qty = move._get_valued_qty(lot)
+                        out_value = (out_value * lot_qty / out_qty) if out_qty else 0
+                        out_qty = lot_qty
+                    if correction and move.date > at_date and move.is_out:
                         if lot:
-                            lot_qty = move._get_valued_qty(lot)
-                            in_value = (in_value * lot_qty / in_qty) if in_qty else 0
-                            in_qty = lot_qty
-                        previous_qty = quantity
-                        quantity += in_qty
-                        if previous_qty > 0:
-                            value += in_value
-                            average_cost = value / quantity
-                        elif previous_qty <= 0:
-                            average_cost = in_value / in_qty if in_qty else average_cost
-                            value = average_cost * quantity
-                    if move.is_out or move.is_dropship:
-                        out_qty = move._get_valued_qty()
-                        out_value = out_qty * average_cost
-                        if lot:
-                            lot_qty = move._get_valued_qty(lot)
-                            out_value = (out_value * lot_qty / out_qty) if out_qty else 0
-                            out_qty = lot_qty
-                        if correction and move.date > at_date and move.is_out:
-                            if lot:
-                                move.value -= out_value
-                            elif move.value != -out_value:
-                                move.value = -out_value
-                        value -= out_value
-                        quantity -= out_qty
+                            move.value -= out_value
+                        elif move.value != -out_value:
+                            move.value = -out_value
+                    value -= out_value
+                    quantity -= out_qty
 
-                self.env['stock.move'].invalidate_model()  # Avoid keeping too many records in cache
-                self.env['stock.move.line'].invalidate_model()
+                quantity_by_product_id[move.product_id.id] = quantity
+                std_price_by_product_id[move.product_id.id] = average_cost
+                value_by_product_id[move.product_id.id] = value
 
-            std_price_by_product_id[product.id] = average_cost
-            value_by_product_id[product.id] = value
+            self.env['stock.move'].invalidate_model()  # Avoid keeping too many records in cache
+            self.env['stock.move.line'].invalidate_model()
 
         return std_price_by_product_id, value_by_product_id
 

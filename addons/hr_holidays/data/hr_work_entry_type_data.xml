@@ -13,7 +13,7 @@
             'unit_of_measure': 'day',
             'leave_notif_subtype_id': ref('hr_holidays.mt_leave'),
             'allocation_notif_subtype_id': ref('hr_holidays.mt_leave_allocation'),
-            'color': 2,
+            'color': 11,
             'sequence': 1,
         }"/>
     </function>
@@ -507,7 +507,7 @@
         <field name="requires_allocation" eval="False"/>
     </record>
 
-    <!-- LEAVE6665  -->
+    <!-- 137.00 -->
     <record id="hr_work_entry.l10n_be_work_entry_type_economic_unemployment" model="hr.work.entry.type">
         <field name="requires_allocation" eval="False"/>
         <field name="leave_validation_type">hr</field>
@@ -524,7 +524,7 @@
         <field name="country_id" ref="base.be"/>
     </record>
 
-    <!-- LEAVE231  -->
+    <!-- 152.00 -->
     <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_incident" model="hr.work.entry.type">
         <field name="requires_allocation" eval="False"/>
         <field name="leave_validation_type">hr</field>
@@ -532,7 +532,7 @@
         <field name="country_id" ref="base.be"/>
     </record>
 
-    <!-- LEAVE238  -->
+    <!-- 151.00 -->
     <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_bad_weather" model="hr.work.entry.type">
         <field name="requires_allocation" eval="False"/>
         <field name="leave_validation_type">hr</field>
@@ -549,7 +549,7 @@
         <field name="include_public_holidays_in_duration" eval="True"/>
     </record>
 
-        <!-- LEAVE207  -->
+        <!-- 006.11 -->
     <record id="hr_work_entry.l10n_be_work_entry_type_public_holiday_temporary_unemployment" model="hr.work.entry.type">
         <field name="requires_allocation" eval="False"/>
         <field name="leave_validation_type">hr</field>
@@ -1365,6 +1365,160 @@
     </record>
 <!-- PH : Philippines END-->
 
+<!-- UZ : Uzbekistan -->
+    <record id="hr_work_entry.l10n_uz_work_entry_type_annual_labor_leave" model="hr.work.entry.type">
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="count_days_as">calendar</field>
+        <field name="requires_allocation">True</field>
+        <field name="employee_requests">True</field>
+        <field name="leave_validation_type">hr</field>
+        <field name="allocation_validation_type">hr</field>
+    </record>
+
+    <!-- Automatically created to keep track of annual leaves that fall on Sunday and are unpaid -->
+    <record id="hr_work_entry.l10n_uz_work_entry_type_annual_labor_leave_sunday" model="hr.work.entry.type">
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="count_days_as">calendar</field>
+        <field name="requires_allocation">False</field>
+        <field name="employee_requests">False</field>
+        <field name="time_off_selectable">False</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_uz_work_entry_type_social_leave" model="hr.work.entry.type">
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="count_days_as">working</field>
+        <field name="requires_allocation">False</field>
+        <field name="employee_requests">True</field>
+        <field name="leave_validation_type">hr</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_uz_work_entry_type_partially_paid_leave" model="hr.work.entry.type">
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="count_days_as">working</field>
+        <field name="requires_allocation">False</field>
+        <field name="employee_requests">True</field>
+        <field name="leave_validation_type">hr</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_uz_work_entry_type_study_leave" model="hr.work.entry.type">
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="count_days_as">working</field>
+        <field name="requires_allocation">False</field>
+        <field name="employee_requests">True</field>
+        <field name="leave_validation_type">hr</field>
+        <field name="unpaid">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_uz_work_entry_type_child_support_leave" model="hr.work.entry.type">
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="count_days_as">working</field>
+        <field name="requires_allocation">False</field>
+        <field name="employee_requests">True</field>
+        <field name="leave_validation_type">hr</field>
+    </record>
+    <!-- UZ: Uzbekistan END -->
+
+<!-- VN : Vietnam -->
+    <!-- Overtime is encoded by HR from the payroll calendar, not requested by the employees.
+         Overtime worked on a public holiday (paid at 300%) keeps its duration. -->
+    <record id="hr_work_entry.vn_work_entry_type_overtime" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="request_unit">hour</field>
+        <field name="time_off_selectable">False</field>
+        <field name="include_public_holidays_in_duration">True</field>
+    </record>
+
+    <record id="hr_work_entry.vn_work_entry_type_legal_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">True</field>
+        <field name="request_unit">half_day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="hr_work_entry.vn_work_entry_type_sick_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="request_unit">half_day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="support_document">True</field>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_vn_work_entry_type_maternity_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="support_document">True</field>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_vn_work_entry_type_paternity_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="support_document">True</field>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_vn_work_entry_type_marriage_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_vn_work_entry_type_bereavement_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+<!-- ZA: South Africa -->
+    <record id="hr_work_entry.za_work_entry_type_maternity_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="leave_validation_type">hr</field>
+        <field name="request_unit">day</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="hr_work_entry.za_work_entry_type_paternity_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="leave_validation_type">hr</field>
+        <field name="request_unit">day</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="hr_work_entry.za_work_entry_type_legal_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">True</field>
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="leave_validation_type">no_validation</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="hr_work_entry.za_work_entry_type_sick_leave" model="hr.work.entry.type">
+        <field name="requires_allocation">True</field>
+        <field name="request_unit">day</field>
+        <field name="unit_of_measure">day</field>
+        <field name="leave_validation_type">no_validation</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="hr_work_entry.za_work_entry_type_overtime_public_holidays" model="hr.work.entry.type">
+        <field name="requires_allocation">False</field>
+        <field name="request_unit">hour</field>
+        <field name="unit_of_measure">hour</field>
+        <field name="leave_validation_type">hr</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+    <!-- ZA: South Africa END -->
+
     <function model="hr.work.entry.type" name="write">
         <value model="hr.work.entry.type" eval="obj().sudo().search([('code', 'in', ['LEAVE100', 'LEAVE105', '002.08', '158.00', '013.00', '016.00', '000.00'])]).ids"/>
         <value eval="{'request_unit': 'half_day'}"/>
@@ -1379,5 +1533,4 @@
         <value model="hr.work.entry.type" eval="obj().sudo().search([('code', '=', '040.00')]).ids"/>
         <value eval="{'request_unit': 'hour'}"/>
     </function>
-
 </data></odoo>

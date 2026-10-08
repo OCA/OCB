@@ -729,7 +729,7 @@ class TestSaleProject(TestSaleProjectCommon):
     def test_generated_project_stages(self):
         """ This test checks that when a project is created on SO confirmation, the following stages are automatically
             generated for the new project (assuming there is no project template set on the product):
-            - To Do
+            - New
             - In Progress
             - Done
             - Cancelled
@@ -756,7 +756,7 @@ class TestSaleProject(TestSaleProjectCommon):
             'product_uom_qty': 10,
             'price_unit': product.list_price,
         })
-        names = ['To Do', 'In Progress', 'Done', 'Cancelled']
+        names = ['New', 'In Progress', 'Done', 'Cancelled']
         project = sale_order_line._timesheet_create_project()
         self.assertEqual(names, project.type_ids.mapped('name'), "The project stages' name should be equal to: %s" % names)
 
@@ -1349,6 +1349,36 @@ class TestSaleProject(TestSaleProjectCommon):
             so2.order_line.project_id,
             "The project of `so1` should be set to the project that was generated at SO confirmation."
         )
+
+    def test_so_confirmation_batch_task_template(self):
+        """
+        Sales order lines from different sales orders should generate 1 task
+        by task template for every sale order when they are confirmed in batch.
+        """
+        product = self.env['product.product'].create({
+            'name': 'Test product with task template',
+            'type': 'service',
+            'service_tracking': 'task_global_project',
+            'project_id': self.project_global.id,
+            'task_template_id': self.task_template.id,
+            'service_policy': 'ordered_prepaid',
+        })
+        so_1, so_2 = self.env['sale.order'].create([
+            {
+                'partner_id': self.partner.id,
+                'order_line': [Command.create({'product_id': product.id, 'product_uom_qty': 1})],
+            },
+            {
+                'partner_id': self.partner.id,
+                'order_line': [
+                    Command.create({'product_id': product.id, 'product_uom_qty': 1}),
+                    Command.create({'product_id': product.id, 'product_uom_qty': 1}),
+                ],
+            },
+        ])
+        (so_1 | so_2).action_confirm()
+        self.assertEqual(len(so_1.tasks_ids), 1)
+        self.assertEqual(len(so_2.tasks_ids), 1, "Only 1 task should be created if multiple SOLs share the same task template")
 
     def test_group_expand_sales_order(self):
         """

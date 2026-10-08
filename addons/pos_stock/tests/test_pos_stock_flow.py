@@ -684,6 +684,111 @@ class TestPosStockFlow(CommonPosStockTest):
             "stock moves have zero valuation",
         )
 
+    def test_no_serial_total_cost_fallback_to_standard_price(self):
+        self.pos_config_usd.open_ui()
+        current_session = self.pos_config_usd.current_session_id
+        stock_location = self.company_data['default_warehouse'].lot_stock_id
+
+        categ = self.env['product.category'].create({
+            'name': 'FIFO Serial Category',
+            'property_cost_method': 'fifo',
+            'property_valuation': 'real_time',
+        })
+        # needed in the order so total quantity is not 0 and backorder is created
+        available_product = self.env['product.product'].create({
+            'name': 'Available Product',
+            'categ_id': categ.id,
+            'lst_price': 5,
+            'standard_price': 2,
+            'is_storable': True,
+        })
+        self.env['stock.quant']._update_available_quantity(available_product, stock_location, 5)
+        serial_product = self.env['product.product'].create({
+            'name': 'Out of Stock Serial Product',
+            'categ_id': categ.id,
+            'lst_price': 15,
+            'standard_price': 10,
+            'is_storable': True,
+            'tracking': 'serial',
+        })
+
+        order_data = {
+            'company_id': self.env.company.id,
+            'session_id': current_session.id,
+            'partner_id': self.partner.id,
+            'lines': [Command.create({
+                'name': "OL/0001",
+                'product_id': available_product.id,
+                'price_unit': 5,
+                'discount': 0,
+                'qty': 1,
+                'tax_ids': [Command.clear()],
+                'price_subtotal': 5,
+                'price_subtotal_incl': 5,
+            }), Command.create({
+                'name': "OL/0002",
+                'product_id': serial_product.id,
+                'price_unit': 15,
+                'discount': 0,
+                'qty': 1,
+                'pack_lot_ids': [],
+                'tax_ids': [Command.clear()],
+                'price_subtotal': 15,
+                'price_subtotal_incl': 15,
+            })],
+            'payment_ids': [Command.create({
+                'amount': 20,
+                'name': fields.Datetime.now(),
+                'payment_method_id': self.cash_payment_method.id,
+            })],
+            'amount_paid': 20.0,
+            'amount_total': 20.0,
+            'amount_tax': 0.0,
+            'amount_return': 0.0,
+        }
+        self.env['pos.order'].sync_from_ui([order_data])
+        order = current_session.order_ids[0]
+        serial_line = order.lines.filtered(lambda l: l.product_id == serial_product)
+
+        self.assertTrue(order.picking_ids.backorder_ids, "A backorder should have been created for the missing serial")
+        self.assertEqual(
+            serial_line.total_cost, 10,
+            "total_cost should equal qty * standard_price (1 * 10 = 10) when the serial "
+            "line has no valued stock move because it was sold out of stock",
+        )
+
+    def test_zero_cost_delivered_stock_not_overridden_by_standard_price(self):
+        categ = self.env['product.category'].create({
+            'name': 'FIFO Category',
+            'property_cost_method': 'fifo',
+            'property_valuation': 'real_time',
+        })
+        product = self.env['product.product'].create({
+            'name': 'Free Sample Product',
+            'categ_id': categ.id,
+            'standard_price': 10,
+            'is_storable': True,
+        })
+        self.env['stock.quant']._update_available_quantity(
+            product, self.company_data['default_warehouse'].lot_stock_id, 1)
+
+        order, _ = self.create_backend_pos_order({
+            'line_data': [{'product_id': product.id}],
+            'payment_data': [{'payment_method_id': self.cash_payment_method.id}],
+        })
+        out_move = order.picking_ids.move_ids
+        self.assertTrue(out_move._get_valued_qty(), "The move should have a real delivered quantity")
+        self.env['product.value'].create({'move_id': out_move.id, 'value': 0})
+        order.lines.is_total_cost_computed = False
+        order.lines._compute_total_cost()
+
+        self.assertEqual(
+            order.lines.total_cost, 0,
+            "total_cost should stay 0 for a move that was actually delivered and genuinely "
+            "costs 0, even though the product's standard_price is non-zero: only moves with "
+            "no valued quantity at all should fall back to standard_price",
+        )
+
     def test_sum_only_pos_locations(self):
         """Test that quantities are summed only from POS source locations"""
 
@@ -974,28 +1079,28 @@ class TestPosStockFlow(CommonPosStockTest):
         order_no_invoice.action_pos_order_invoice()
 
         reversal_move = order_no_invoice.reversed_move_ids
-        self.assertEqual(len(reversal_move.line_ids), 7)
-        used_line = self.env['account.move.line']
-        for line in order_no_invoice.session_id.sale_move_ids.line_ids:
-            reverse_line = reversal_move.line_ids.filtered(
-                lambda l: l.account_id == line.account_id and l not in used_line,
-            )
-            used_line |= reverse_line[0]
-            self.assertEqual(line.debit, reverse_line[0].credit)
-            self.assertEqual(line.credit, reverse_line[0].debit)
+        self.assertEqual(len(reversal_move.line_ids), 5)
+        receivable = order_no_invoice.partner_id.property_account_receivable_id
+        reversal_payment_lines = reversal_move.line_ids.filtered(
+            lambda line: line.account_id == receivable,
+        )
+        invoice_payment_lines = order_no_invoice.account_move.line_ids.filtered(
+            lambda line: line.account_id == receivable,
+        )
+        self.assertEqual(reversal_payment_lines.credit, invoice_payment_lines.debit)
 
         refund_order_no_invoice.partner_id = self.partner
         refund_order_no_invoice.action_pos_order_invoice()
         reversal_move = refund_order_no_invoice.reversed_move_ids
-        self.assertEqual(len(reversal_move.line_ids), 7)
-        used_line = self.env['account.move.line']
-        for line in refund_order_no_invoice.session_id.refund_move_ids[0].line_ids:
-            reverse_line = reversal_move.line_ids.filtered(
-                lambda l: l.account_id == line.account_id and l not in used_line,
-            )
-            used_line |= reverse_line[0]
-            self.assertEqual(line.debit, reverse_line[0].credit)
-            self.assertEqual(line.credit, reverse_line[0].debit)
+        self.assertEqual(len(reversal_move.line_ids), 5)
+        receivable = refund_order_no_invoice.partner_id.property_account_receivable_id
+        reversal_payment_lines = reversal_move.line_ids.filtered(
+            lambda line: line.account_id == receivable,
+        )
+        invoice_payment_lines = refund_order_no_invoice.account_move.line_ids.filtered(
+            lambda line: line.account_id == receivable,
+        )
+        self.assertEqual(reversal_payment_lines.credit, invoice_payment_lines.debit)
 
     def test_description_is_computed_for_product_with_attribute(self):
         """

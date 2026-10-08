@@ -75,6 +75,7 @@ import { OfflinePlugin } from "@web/core/offline/offline_plugin";
  *  defaultGroupBy?: string[];
  *  maxGroupByDepth?: number;
  *  multiEdit?: boolean;
+ *  allowTranslate?: boolean;
  *  groupByInfo?: Record<string, unknown>;
  *  activeIdsLimit?: number;
  *  useSendBeaconToSaveUrgently?: boolean;
@@ -164,6 +165,7 @@ export class RelationalModel extends Model {
         this.maxGroupByDepth = params.maxGroupByDepth;
         this.groupByInfo = params.groupByInfo || {};
         this.multiEdit = params.multiEdit;
+        this.allowTranslate = params.allowTranslate ?? true;
         this.activeIdsLimit = params.activeIdsLimit || Number.MAX_SAFE_INTEGER;
         this.specialDataCaches = markRaw(params.state?.specialDataCaches || {});
         this.useSendBeaconToSaveUrgently = params.useSendBeaconToSaveUrgently || false;
@@ -439,7 +441,7 @@ export class RelationalModel extends Model {
         config.context = "context" in params ? params.context : config.context;
         config.context = { ...config.context };
         if (currentConfig.isMonoRecord) {
-            config.resId = "resId" in params ? params.resId : config.resId;
+            config.resId = ("resId" in params ? params.resId : config.resId) || false;
             config.resIds = "resIds" in params ? params.resIds : config.resIds;
             if (!config.resIds) {
                 config.resIds = config.resId ? [config.resId] : [];

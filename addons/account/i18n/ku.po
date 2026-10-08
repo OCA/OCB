@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 17:41+0000\n"
+"POT-Creation-Date: 2026-10-02 17:39+0000\n"
 "PO-Revision-Date: 2026-08-31 15:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kurdish (Sorani) <https://translate.odoo.com/projects/odoo-"
@@ -120,6 +120,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/account/models/account_journal_dashboard.py:0
 msgid "%(action)s for journal %(journal)s"
+msgstr ""
+
+#. module: account
+#. odoo-python
+#: code:addons/account/wizard/account_payment_register.py:0
+msgid "%(amount).2f %(currency)s already paid."
 msgstr ""
 
 #. module: account
@@ -265,6 +271,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/account/models/account_document_import_mixin.py:0
 msgid "'%(filename)s' (type=%(type)s)"
+msgstr ""
+
+#. module: account
+#: model:ir.model.fields,field_description:account.field_res_company__vat_disabled_available
+msgid "'Not Subject to VAT' Available"
 msgstr ""
 
 #. module: account
@@ -554,13 +565,6 @@ msgid ""
 "                .\n"
 "            </t>\n"
 "        </t>\n"
-"        <t t-if=\"hasattr(object, 'display_timesheet_portal_link') and "
-"object.display_timesheet_portal_link\">\n"
-"            <br/><br/>\n"
-"            PS: you can review your timesheets <a t-att-href=\"'/my/"
-"timesheets?search_in=invoice&amp;search=%s' % object.name\">from the portal."
-"</a>\n"
-"        </t>\n"
 "        <br/><br/>\n"
 "        Do not hesitate to contact us if you have any questions.\n"
 "        <t t-if=\"not is_html_empty(object.invoice_user_id.signature)\">\n"
@@ -611,13 +615,6 @@ msgid ""
 "        from <t t-out=\"object.company_id.name or ''\">YourCompany</t>.\n"
 "        <t t-if=\"object.payment_state in ('paid', 'in_payment')\">\n"
 "            This self-billing invoice has already been paid.\n"
-"        </t>\n"
-"        <t t-if=\"hasattr(object, 'display_timesheet_portal_link') and "
-"object.display_timesheet_portal_link\">\n"
-"            <br/><br/>\n"
-"            PS: you can review your timesheets <a t-att-href=\"'/my/"
-"timesheets?search_in=invoice&amp;search=%s' % object.name\">from the portal."
-"</a>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "        Do not hesitate to contact us if you have any questions.\n"
@@ -1194,6 +1191,11 @@ msgstr "<span>ژمارەی فاکتورە</span>"
 #: model_terms:ir.ui.view,arch_db:account.account_journal_dashboard_kanban_view
 msgid "<span>New</span>"
 msgstr "<span>نوێ</span>"
+
+#. module: account
+#: model_terms:ir.ui.view,arch_db:account.setup_financial_year_opening_form
+msgid "<span>Not Subject to VAT</span>"
+msgstr ""
 
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.account_journal_dashboard_kanban_view
@@ -2159,7 +2161,6 @@ msgstr "ناوی هەژمار"
 #: model:ir.model.fields,field_description:account.field_account_setup_bank_manual_config__account_number
 #: model:ir.model.fields,field_description:account.field_base_document_layout__account_number
 #: model:ir.model.fields,field_description:account.field_res_partner_bank__account_number
-#: model_terms:ir.ui.view,arch_db:account.view_account_payment_register_form
 msgid "Account Number"
 msgstr "ژمارەی هەژمار"
 
@@ -2200,6 +2201,11 @@ msgstr ""
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_tax__account_reconcile_model_line_ids
 msgid "Account Reconcile Model Line"
+msgstr ""
+
+#. module: account
+#: model:onboarding.onboarding,name:account.onboarding_onboarding_account_return_dashboard
+msgid "Account Return Dashboard Onboarding"
 msgstr ""
 
 #. module: account
@@ -2566,42 +2572,42 @@ msgstr "کۆی گشتی کۆکراوە"
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_depreciation_buildings
-msgid "Accumulated Amortization - Buildings"
+msgid "Accumulated Depreciation - Buildings"
 msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_depreciation_furniture
-msgid "Accumulated Amortization - Furniture & Fixtures"
+msgid "Accumulated Depreciation - Furniture & Fixtures"
 msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_depreciation_improvements
-msgid "Accumulated Amortization - Improvements"
+msgid "Accumulated Depreciation - Improvements"
 msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_depreciation_machines
-msgid "Accumulated Amortization - Machines & Tools"
+msgid "Accumulated Depreciation - Machines & Tools"
 msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_depreciation_other_property
-msgid "Accumulated Amortization - Other Property"
+msgid "Accumulated Depreciation - Other Property"
 msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_depreciation_technology
-msgid "Accumulated Amortization - Technology"
+msgid "Accumulated Depreciation - Technology"
 msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_depreciation_vehicles
-msgid "Accumulated Amortization - Vehicles"
+msgid "Accumulated Depreciation - Vehicles"
 msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_acc_depreciation
-msgid "Accumulated Depreciation"
+msgid "Accumulated Depreciation Misc"
 msgstr ""
 
 #. module: account
@@ -2634,6 +2640,12 @@ msgstr "کردەوەی پێویستە"
 #: model:ir.model.fields,field_description:account.field_account_payment_register__actionable_errors
 msgid "Actionable Errors"
 msgstr "کرداری هەڵە"
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_journal_dashboard.py:0
+msgid "Activate E-Invoicing"
+msgstr ""
 
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.autopost_bills_wizard
@@ -3267,14 +3279,6 @@ msgstr "جۆری بڕ"
 #: model_terms:ir.ui.view,arch_db:account.view_account_payment_tree
 msgid "Amount in Currency"
 msgstr "بڕی پارە بە دراو"
-
-#. module: account
-#. odoo-python
-#: code:addons/account/wizard/account_payment_register.py:0
-msgid ""
-"Amount of %(amount).2f %(currency)s is already paid. Make sure you don't pay "
-"twice."
-msgstr ""
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_payment_register__source_amount
@@ -4019,7 +4023,7 @@ msgstr "ڕێژەی باڵانس ناتوانێت 0 بێت"
 #: code:addons/account/models/account_journal.py:0
 #: code:addons/account/models/chart_template.py:0
 #: model:account.account,name:account.21_bank_journal_default_account_163
-#: model:account.account,name:account.22_bank_journal_default_account_296
+#: model:account.account,name:account.22_bank_journal_default_account_297
 #: model:account.journal,name:account.21_bank
 #: model:account.journal,name:account.22_bank
 #: model:ir.model.fields,field_description:account.field_res_partner__bank_account_count
@@ -4073,6 +4077,7 @@ msgstr "ناوی هەژماری بانکی"
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_bank_statement_line__account_number
 #: model_terms:ir.ui.view,arch_db:account.view_account_journal_form
+#: model_terms:ir.ui.view,arch_db:account.view_account_payment_register_form
 msgid "Bank Account Number"
 msgstr "ژمارەی هەژماری بانکی"
 
@@ -4821,7 +4826,8 @@ msgstr ""
 #. module: account
 #. odoo-python
 #: code:addons/account/models/account_journal.py:0
-#: model:account.account,name:account.21_cash_journal_default_account_306
+#: code:addons/account/models/account_journal_dashboard.py:0
+#: model:account.account,name:account.21_cash_journal_default_account_307
 #: model:ir.model.fields.selection,name:account.selection__account_journal__type__cash
 #: model_terms:ir.ui.view,arch_db:account.account_bank_statement_line_view_search_cashflow
 #: model_terms:ir.ui.view,arch_db:account.view_account_move_filter
@@ -4835,12 +4841,12 @@ msgid "Cash Account"
 msgstr "هەژمێری کاش"
 
 #. module: account
-#: model:account.account,name:account.21_cash_journal_default_account_303
+#: model:account.account,name:account.21_cash_journal_default_account_304
 msgid "Cash Bakery"
 msgstr ""
 
 #. module: account
-#: model:account.account,name:account.21_cash_journal_default_account_305
+#: model:account.account,name:account.21_cash_journal_default_account_306
 msgid "Cash Bar"
 msgstr ""
 
@@ -4882,7 +4888,7 @@ msgid "Cash Basis Transition Account"
 msgstr "هەژماری گواستنەوەی بنەمای نەختینەیی"
 
 #. module: account
-#: model:account.account,name:account.21_cash_journal_default_account_302
+#: model:account.account,name:account.21_cash_journal_default_account_303
 msgid "Cash Clothes Shop"
 msgstr ""
 
@@ -4944,26 +4950,22 @@ msgid "Cash Discount Write-Off Loss Account"
 msgstr ""
 
 #. module: account
-#: model:account.account,name:account.21_cash_journal_default_account_301
+#: model:account.account,name:account.21_cash_journal_default_account_302
 msgid "Cash Furn. Shop"
 msgstr ""
 
 #. module: account
-#. odoo-python
-#: code:addons/account/models/account_journal_dashboard.py:0
 #: model_terms:ir.ui.view,arch_db:account.account_bank_statement_line_view_search_cashflow
 msgid "Cash In"
 msgstr ""
 
 #. module: account
-#. odoo-python
-#: code:addons/account/models/account_journal_dashboard.py:0
 #: model_terms:ir.ui.view,arch_db:account.account_bank_statement_line_view_search_cashflow
 msgid "Cash Out"
 msgstr ""
 
 #. module: account
-#: model:account.account,name:account.21_cash_journal_default_account_304
+#: model:account.account,name:account.21_cash_journal_default_account_305
 msgid "Cash Restaurant"
 msgstr ""
 
@@ -5108,12 +5110,6 @@ msgstr "پشکنین"
 #. odoo-python
 #: code:addons/account/models/account_move_send.py:0
 msgid "Check Partner(s) Email(s)"
-msgstr ""
-
-#. module: account
-#. odoo-python
-#: code:addons/account/wizard/account_payment_register.py:0
-msgid "Check payments"
 msgstr ""
 
 #. module: account
@@ -5332,6 +5328,8 @@ msgid "Companies that refers to partner"
 msgstr "ئەو کۆمپانیایانەی کە ئاماژە بە هاوبەش دەکەن"
 
 #. module: account
+#. odoo-javascript
+#: code:addons/account/static/src/components/invoice_guide/invoice_guide.xml:0
 #: model:ir.model,name:account.model_res_company
 #: model:ir.model.fields,field_description:account.field_account_accrued_orders_wizard__company_id
 #: model:ir.model.fields,field_description:account.field_account_automatic_entry_wizard__company_id
@@ -5575,6 +5573,7 @@ msgid ""
 msgstr ""
 
 #. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_report__availability_condition__consolidation
 #: model_terms:ir.ui.view,arch_db:account.view_account_form
 msgid "Consolidation"
 msgstr ""
@@ -5914,6 +5913,11 @@ msgid "Create a new incoterm"
 msgstr ""
 
 #. module: account
+#: model_terms:ir.actions.act_window,help:account.action_account_matching_rules
+msgid "Create a new matching rule"
+msgstr ""
+
+#. module: account
 #: model_terms:ir.actions.act_window,help:account.product_product_action_purchasable
 msgid "Create a new purchasable product"
 msgstr "بەرهەمێکی نوێ دروست بکە کە دەتوانرێت بکڕدرێت"
@@ -6140,7 +6144,9 @@ msgid "Created on"
 msgstr "دروستکراوە لە"
 
 #. module: account
+#. odoo-javascript
 #. odoo-python
+#: code:addons/account/static/src/components/stock_valuation/stock_valuation_report.xml:0
 #: code:addons/account/wizard/account_automatic_entry_wizard.py:0
 #: code:addons/account/wizard/accrued_orders.py:0
 #: model:ir.model.fields,field_description:account.field_account_move_line__credit
@@ -6272,38 +6278,38 @@ msgstr ""
 
 #. module: account
 #: model:account.account,description:account.22_account_account_us_depreciation_buildings
-msgid "Cumulative amortization recorded for building assets."
+msgid "Cumulative depreciation recorded for building assets."
 msgstr ""
 
 #. module: account
 #: model:account.account,description:account.22_account_account_us_depreciation_technology
-msgid "Cumulative amortization recorded for capitalized technology assets."
+msgid "Cumulative depreciation recorded for capitalized technology assets."
 msgstr ""
 
 #. module: account
 #: model:account.account,description:account.22_account_account_us_depreciation_furniture
-msgid "Cumulative amortization recorded for furniture and fixture assets."
+msgid "Cumulative depreciation recorded for furniture and fixture assets."
 msgstr ""
 
 #. module: account
 #: model:account.account,description:account.22_account_account_us_depreciation_improvements
 msgid ""
-"Cumulative amortization recorded for leasehold or property improvements."
+"Cumulative depreciation recorded for leasehold or property improvements."
 msgstr ""
 
 #. module: account
 #: model:account.account,description:account.22_account_account_us_depreciation_machines
-msgid "Cumulative amortization recorded for machinery and tool assets."
+msgid "Cumulative depreciation recorded for machinery and tool assets."
 msgstr ""
 
 #. module: account
 #: model:account.account,description:account.22_account_account_us_depreciation_other_property
-msgid "Cumulative amortization recorded for other depreciable property assets."
+msgid "Cumulative depreciation recorded for other depreciable property assets."
 msgstr ""
 
 #. module: account
 #: model:account.account,description:account.22_account_account_us_depreciation_vehicles
-msgid "Cumulative amortization recorded for vehicle assets."
+msgid "Cumulative depreciation recorded for vehicle assets."
 msgstr ""
 
 #. module: account
@@ -6757,7 +6763,9 @@ msgid "Days on the next month"
 msgstr "ڕۆژەکانی مانگی داهاتوودا"
 
 #. module: account
+#. odoo-javascript
 #. odoo-python
+#: code:addons/account/static/src/components/stock_valuation/stock_valuation_report.xml:0
 #: code:addons/account/wizard/account_automatic_entry_wizard.py:0
 #: code:addons/account/wizard/accrued_orders.py:0
 #: model:ir.model.fields,field_description:account.field_account_move_line__debit
@@ -6797,11 +6805,6 @@ msgstr ""
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_journal__payment_sequence
 msgid "Dedicated Payment Sequence"
-msgstr ""
-
-#. module: account
-#: model:ir.model.fields,field_description:account.field_account_move_line__deductible_percentage
-msgid "Deductibility Percentage"
 msgstr ""
 
 #. module: account
@@ -7072,6 +7075,11 @@ msgstr ""
 #: model:ir.model.fields.selection,name:account.selection__account_account__account_type__expense_depreciation
 msgid "Depreciation"
 msgstr "دابەزینی بەها"
+
+#. module: account
+#: model:account.account,name:account.22_account_account_us_deprec_amort_expense
+msgid "Depreciation & Amortization Expense"
+msgstr ""
 
 #. module: account
 #: model:account.account,name:account.22_account_account_us_expense_buildings
@@ -7636,13 +7644,6 @@ msgid "Download"
 msgstr "دابەزاندن"
 
 #. module: account
-#: model:ir.model.fields,help:account.field_account_tax_group__advance_tax_payment_account_id
-msgid ""
-"Downpayments posted on this account will be considered by the Tax Closing "
-"Entry."
-msgstr ""
-
-#. module: account
 #. odoo-python
 #: code:addons/account/wizard/account_move_send_batch_wizard.py:0
 #: model:ir.model.fields.selection,name:account.selection__account_invoice_report__state__draft
@@ -8126,8 +8127,7 @@ msgid "Ending Stock"
 msgstr ""
 
 #. module: account
-#. odoo-javascript
-#: code:addons/account/static/src/components/product_label_section_and_note_field/product_label_section_and_note_field.xml:0
+#: model_terms:ir.ui.view,arch_db:account.view_move_form
 msgid "Enter a description"
 msgstr "وەسفێک دابنێ"
 
@@ -8965,24 +8965,6 @@ msgid "Foreign tax account (%s)"
 msgstr "حسابی باجی بیانی (%s)"
 
 #. module: account
-#. odoo-python
-#: code:addons/account/models/chart_template.py:0
-msgid "Foreign tax account advance payment (%s)"
-msgstr "پارەی پێشوەختەی حسابی باجی بیانی (%s)"
-
-#. module: account
-#. odoo-python
-#: code:addons/account/models/chart_template.py:0
-msgid "Foreign tax account payable (%s)"
-msgstr "حسابی باجی بیانی دەدرێت (%s)"
-
-#. module: account
-#. odoo-python
-#: code:addons/account/models/chart_template.py:0
-msgid "Foreign tax account receivable (%s)"
-msgstr "وەرگرتنی حسابی باجی بیانی (%s)"
-
-#. module: account
 #: model:ir.model.fields,field_description:account.field_account_report_expression__formula
 msgid "Formula"
 msgstr ""
@@ -9241,12 +9223,6 @@ msgid "Goods"
 msgstr ""
 
 #. module: account
-#. odoo-python
-#: code:addons/account/models/account_journal_dashboard.py:0
-msgid "Gross Margin"
-msgstr ""
-
-#. module: account
 #: model:account.account,name:account.22_account_account_us_ground_transportation
 msgid "Ground Transportation"
 msgstr ""
@@ -9445,6 +9421,11 @@ msgstr ""
 #: code:addons/account/static/src/components/section_and_note_fields_backend/section_and_note_fields_backend.xml:0
 #: model:ir.model.fields,field_description:account.field_account_move_line__collapse_composition
 msgid "Hide Composition"
+msgstr ""
+
+#. module: account
+#: model:ir.model.fields,field_description:account.field_account_payment_register__hide_payment_method
+msgid "Hide Payment Method"
 msgstr ""
 
 #. module: account
@@ -9833,6 +9814,13 @@ msgstr ""
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.res_config_settings_view_form
 msgid ""
+"If you are not subject to VAT, you will have no sale taxes and only non "
+"deductible taxes activated"
+msgstr ""
+
+#. module: account
+#: model_terms:ir.ui.view,arch_db:account.res_config_settings_view_form
+msgid ""
 "If you check this box, you will be able to collect payments using SEPA "
 "Direct Debit mandates."
 msgstr ""
@@ -9945,6 +9933,11 @@ msgid "In Payment"
 msgstr "بە پارەدان"
 
 #. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_reconcile_model__payment_tolerance_type__amount
+msgid "In amount"
+msgstr ""
+
+#. module: account
 #: model_terms:ir.ui.view,arch_db:account.account_default_terms_and_conditions
 msgid "In order for it to be admissible,"
 msgstr ""
@@ -9963,6 +9956,11 @@ msgstr "بۆ ئەوەی ئەم فاکتورەیە پشتڕاست بکرێتەو�
 #: model_terms:ir.ui.view,arch_db:account.view_account_invoice_filter
 msgid "In payment"
 msgstr "بە پارەدان"
+
+#. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_reconcile_model__payment_tolerance_type__percentage
+msgid "In percentage"
+msgstr ""
 
 #. module: account
 #. odoo-python
@@ -10391,6 +10389,7 @@ msgstr ""
 #. module: account
 #. odoo-python
 #: code:addons/account/models/chart_template.py:0
+#: code:addons/account/report/account_stock_valuation_report.py:0
 #: model:account.account,name:account.21_stock_valuation
 #: model:account.account,name:account.22_account_account_us_inventory_valuation
 #: model:account.journal,name:account.21_inventory_valuation
@@ -10701,6 +10700,7 @@ msgstr ""
 #. module: account
 #. odoo-python
 #: code:addons/account/controllers/portal.py:0
+#: code:addons/account/models/account_journal_dashboard.py:0
 #: code:addons/account/models/account_move.py:0
 #: model:ir.actions.act_window,name:account.action_move_out_invoice
 #: model:ir.actions.act_window,name:account.action_move_out_invoice_type
@@ -11091,6 +11091,7 @@ msgstr ""
 #: model:ir.actions.act_window,name:account.action_move_journal_line
 #: model:ir.ui.menu,name:account.menu_action_move_journal_line_form
 #: model_terms:ir.ui.view,arch_db:account.account_journal_dashboard_kanban_view
+#: model_terms:ir.ui.view,arch_db:account.account_move_view_list_stock_closing
 #: model_terms:ir.ui.view,arch_db:account.view_account_journal_form
 #: model_terms:ir.ui.view,arch_db:account.view_account_reconcile_model_form
 #: model_terms:ir.ui.view,arch_db:account.view_move_tree
@@ -12058,10 +12059,32 @@ msgid "Matching #"
 msgstr "هاوتاکردن #"
 
 #. module: account
+#: model:ir.model.fields,field_description:account.field_account_reconcile_model__matching_order
+msgid "Matching Order"
+msgstr ""
+
+#. module: account
+#: model:ir.actions.act_window,name:account.action_account_matching_rules
+#: model_terms:ir.ui.view,arch_db:account.account_journal_dashboard_kanban_view
+msgid "Matching Rules"
+msgstr ""
+
+#. module: account
 #: model:ir.model.fields,help:account.field_account_move_line__matching_number
 msgid ""
 "Matching number for this line, 'P' if it is only partially reconcile, or the "
 "name of the full reconcile if it exists."
+msgstr ""
+
+#. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_reconcile_model__rule_type__matching_rule
+msgid "Matching rule"
+msgstr ""
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_reconcile_model.py:0
+msgid "Matching rules must be automatic."
 msgstr ""
 
 #. module: account
@@ -12536,6 +12559,11 @@ msgid "New eInvoices Notification"
 msgstr ""
 
 #. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_reconcile_model__matching_order__new_first
+msgid "Newest first"
+msgstr ""
+
+#. module: account
 #: model:ir.model.fields,field_description:account.field_account_reconcile_model__next_activity_type_id
 msgid "Next Activity"
 msgstr ""
@@ -12604,11 +12632,6 @@ msgstr "بەرواری پارەدانی داهاتوو"
 #: model:res.groups.privilege,placeholder:account.res_groups_privilege_accounting
 msgid "No"
 msgstr "نەخێر"
-
-#. module: account
-#: model_terms:ir.ui.view,arch_db:account.view_account_payment_search
-msgid "No Bank Matching"
-msgstr ""
 
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.view_account_move_line_filter
@@ -12806,9 +12829,23 @@ msgstr "پارێزراو نییە"
 #. module: account
 #: model:ir.model.fields.selection,name:account.selection__account_move__move_sent_values__not_sent
 #: model_terms:ir.ui.view,arch_db:account.view_account_invoice_filter
-#: model_terms:ir.ui.view,arch_db:account.view_account_payment_search
 msgid "Not Sent"
 msgstr "نەنێردراوە"
+
+#. module: account
+#: model:ir.model.fields,field_description:account.field_account_bank_statement_line__company_vat_disabled
+#: model:ir.model.fields,field_description:account.field_account_financial_year_op__company_vat_disabled
+#: model:ir.model.fields,field_description:account.field_account_move__company_vat_disabled
+#: model:ir.model.fields,field_description:account.field_res_company__vat_disabled
+#: model:ir.model.fields,field_description:account.field_res_config_settings__vat_disabled
+#: model_terms:ir.ui.view,arch_db:account.res_config_settings_view_form
+msgid "Not Subject to VAT"
+msgstr ""
+
+#. module: account
+#: model:ir.model.fields,field_description:account.field_res_config_settings__vat_disabled_available
+msgid "Not Subject to VAT Available"
+msgstr ""
 
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.view_account_secure_entries_wizard
@@ -13046,6 +13083,11 @@ msgid "Office desks, chairs, shelving, etc"
 msgstr ""
 
 #. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_reconcile_model__matching_order__old_first
+msgid "Oldest first"
+msgstr ""
+
+#. module: account
 #: model:ir.model.fields.selection,name:account.selection__account_payment_term__early_pay_discount_computation__included
 msgid "On early payment"
 msgstr "لەسەر پارەدانی پێشوەختە"
@@ -13108,6 +13150,12 @@ msgstr "یەک یان چەند فاکتورەیەک نەتوانرا پرۆسێ�
 #: code:addons/account/models/account_move_line.py:0
 msgid "One or more lines require a 100% analytic distribution."
 msgstr "یەک یان چەند هێڵێک پێویستیان بە دابەشکردنی شیکاری 100% هەیە."
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/partner.py:0
+msgid "Only Accounting managers can create foreign taxes."
+msgstr ""
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_report__only_tax_exigible
@@ -13376,6 +13424,12 @@ msgid "Other Info"
 msgstr "زانیاری تر"
 
 #. module: account
+#. odoo-javascript
+#: code:addons/account/static/src/components/stock_valuation/stock_valuation_report.js:0
+msgid "Other Stock Variation"
+msgstr ""
+
+#. module: account
 #: model:account.account,name:account.22_account_account_us_other_property
 msgid "Other property"
 msgstr ""
@@ -13415,6 +13469,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:account.view_account_journal_form
 msgid "Outgoing Payments"
 msgstr "پارەدانی دەرەوە"
+
+#. module: account
+#: model_terms:ir.ui.view,arch_db:account.view_account_payment_search
+msgid "Outstanding"
+msgstr ""
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_payment__outstanding_account_id
@@ -13970,6 +14029,16 @@ msgstr "مەرجەکانی پارەدان"
 #: model:ir.model,name:account.model_account_payment_term_line
 msgid "Payment Terms Line"
 msgstr "هێڵی مەرجەکانی پارەدان"
+
+#. module: account
+#: model:ir.model.fields,field_description:account.field_account_reconcile_model__payment_tolerance
+msgid "Payment Tolerance"
+msgstr ""
+
+#. module: account
+#: model:ir.model.fields,field_description:account.field_account_reconcile_model__payment_tolerance_type
+msgid "Payment Tolerance Type"
+msgstr ""
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_payment__payment_type
@@ -14664,6 +14733,11 @@ msgid "Professional"
 msgstr ""
 
 #. module: account
+#: model:ir.model.fields,field_description:account.field_account_move_line__deductible_percentage
+msgid "Professional Expense Deductibility Percentage"
+msgstr ""
+
+#. module: account
 #: model:account.account,name:account.22_us_group_62
 msgid "Professional Fees"
 msgstr ""
@@ -14782,6 +14856,7 @@ msgid "Purchase Lock date"
 msgstr "بەرواری قوفڵی کڕین"
 
 #. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_invoice_report__move_type__in_receipt
 #: model:ir.model.fields.selection,name:account.selection__account_move__move_type__in_receipt
 msgid "Purchase Receipt"
 msgstr "پسوڵەی کڕین"
@@ -14983,6 +15058,11 @@ msgid "Receive invoices"
 msgstr "وەرگرتنی فاکتورەکان"
 
 #. module: account
+#: model:ir.model.fields,field_description:account.field_account_payment_register__partner_bank_id
+msgid "Recipient Account"
+msgstr ""
+
+#. module: account
 #: model:ir.model.fields,field_description:account.field_account_bank_statement_line__partner_bank_id
 #: model:ir.model.fields,field_description:account.field_account_move__partner_bank_id
 msgid "Recipient Bank"
@@ -14990,7 +15070,6 @@ msgstr "بانکی وەرگر"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_payment__partner_bank_id
-#: model:ir.model.fields,field_description:account.field_account_payment_register__partner_bank_id
 msgid "Recipient Bank Account"
 msgstr "حسابی بانکی وەرگر"
 
@@ -15013,7 +15092,6 @@ msgstr ""
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_move_line__reconciled
 #: model:ir.model.fields.selection,name:account.selection__account_payment__state__reconciled
-#: model_terms:ir.ui.view,arch_db:account.view_account_payment_search
 msgid "Reconciled"
 msgstr ""
 
@@ -15066,6 +15144,11 @@ msgstr ""
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_full_reconcile__partial_reconcile_ids
 msgid "Reconciliation Parts"
+msgstr ""
+
+#. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_reconcile_model__rule_type__reco_model
+msgid "Reconciliation model"
 msgstr ""
 
 #. module: account
@@ -15179,6 +15262,7 @@ msgstr "ڕەتکردنەوە"
 
 #. module: account
 #: model:ir.model.fields.selection,name:account.selection__account_payment__state__rejected
+#: model_terms:ir.ui.view,arch_db:account.view_account_payment_search
 msgid "Rejected"
 msgstr "ڕەتکرایەوە"
 
@@ -15467,8 +15551,6 @@ msgid "Returns Bank Account"
 msgstr ""
 
 #. module: account
-#. odoo-python
-#: code:addons/account/models/account_journal_dashboard.py:0
 #: model:ir.model.fields,field_description:account.field_digest_digest__kpi_account_total_revenue
 #: model:ir.model.fields.selection,name:account.selection__account_analytic_line__analytic_profitability__revenue
 #: model:ir.model.fields.selection,name:account.selection__account_automatic_entry_wizard__account_type__income
@@ -15707,6 +15789,11 @@ msgid "Rounding Methods"
 msgstr ""
 
 #. module: account
+#: model:ir.model.fields,field_description:account.field_account_reconcile_model__rule_type
+msgid "Rule Type"
+msgstr ""
+
+#. module: account
 #: model:ir.model,name:account.model_account_reconcile_model_line
 msgid "Rules for the reconciliation model"
 msgstr ""
@@ -15814,6 +15901,7 @@ msgid "Sales Lock Date"
 msgstr "بەرواری قفڵی فرۆشتن"
 
 #. module: account
+#: model:ir.model.fields.selection,name:account.selection__account_invoice_report__move_type__out_receipt
 #: model:ir.model.fields.selection,name:account.selection__account_move__move_type__out_receipt
 msgid "Sales Receipt"
 msgstr "پسووڵەی فرۆشتن"
@@ -15967,6 +16055,11 @@ msgid "Search a name or Tax ID..."
 msgstr "گەڕان بە ناوێک یان ناسنامەی باج..."
 
 #. module: account
+#: model_terms:ir.ui.view,arch_db:account.view_move_form
+msgid "Search a product"
+msgstr ""
+
+#. module: account
 #. odoo-javascript
 #: code:addons/account/static/src/components/tax_totals/tax_totals.js:0
 msgid "Search more..."
@@ -15992,8 +16085,6 @@ msgid "Section Of"
 msgstr "لە بەشی"
 
 #. module: account
-#. odoo-javascript
-#: code:addons/account/static/src/components/product_catalog/search/search_panel/search_panel.xml:0
 #: model:ir.model.fields,field_description:account.field_account_report__section_report_ids
 msgid "Sections"
 msgstr "بەشەکان"
@@ -16284,7 +16375,6 @@ msgstr "ناردنی فاکتورەکان"
 #: model:ir.model.fields,field_description:account.field_account_move__move_sent_values
 #: model:ir.model.fields.selection,name:account.selection__account_move__move_sent_values__sent
 #: model:ir.model.fields.selection,name:account.selection__account_move__status_in_payment__sent
-#: model_terms:ir.ui.view,arch_db:account.view_account_payment_search
 #: model_terms:ir.ui.view,arch_db:account.view_invoice_tree
 #: model_terms:ir.ui.view,arch_db:account.view_move_form
 msgid "Sent"
@@ -16409,6 +16499,8 @@ msgid ""
 msgstr ""
 
 #. module: account
+#. odoo-javascript
+#: code:addons/account/static/src/components/invoice_guide/invoice_guide.xml:0
 #: model:onboarding.onboarding.step,title:account.onboarding_onboarding_step_company_data
 msgid "Set Company Data"
 msgstr "داتاکانی کۆمپانیا دابنێ"
@@ -16465,6 +16557,12 @@ msgstr "باجەکان دابنێ"
 #: model:onboarding.onboarding.step,description:account.onboarding_onboarding_step_chart_of_accounts
 msgid "Set up your chart of accounts and record initial balances."
 msgstr "چارتی حیساباتەکانت دابنێ و باڵانسی سەرەتایی تۆمار بکە."
+
+#. module: account
+#. odoo-javascript
+#: code:addons/account/static/src/components/invoice_guide/invoice_guide.js:0
+msgid "Set your Company Data"
+msgstr ""
 
 #. module: account
 #. odoo-python
@@ -16590,12 +16688,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:account.field_account_bank_statement_line__show_journal
 #: model:ir.model.fields,field_description:account.field_account_move__show_journal
 msgid "Show Journal"
-msgstr ""
-
-#. module: account
-#. odoo-javascript
-#: code:addons/account/static/src/components/product_label_section_and_note_field/product_label_section_and_note_field.js:0
-msgid "Show Label Warning"
 msgstr ""
 
 #. module: account
@@ -16957,7 +17049,7 @@ msgstr ""
 #. module: account
 #. odoo-python
 #: code:addons/account/models/company.py:0
-msgid "Stock Closing"
+msgid "Stock Closing as of %(date)s"
 msgstr ""
 
 #. module: account
@@ -16986,7 +17078,7 @@ msgstr ""
 #. odoo-javascript
 #. odoo-python
 #: code:addons/account/report/account_stock_valuation_report.py:0
-#: code:addons/account/static/src/components/stock_valuation/stock_valuation_report.xml:0
+#: code:addons/account/static/src/components/stock_valuation/stock_valuation_report.js:0
 #: model_terms:ir.ui.view,arch_db:account.view_category_property_form
 msgid "Stock Variation"
 msgstr ""
@@ -17372,11 +17464,6 @@ msgid "Tax 7.25%"
 msgstr ""
 
 #. module: account
-#: model:ir.model.fields,field_description:account.field_account_tax_group__advance_tax_payment_account_id
-msgid "Tax Advance Account"
-msgstr "حسابی پێشوەختەی باج"
-
-#. module: account
 #: model:ir.model.fields,field_description:account.field_res_company__tax_calculation_rounding_method
 msgid "Tax Calculation Rounding Method"
 msgstr ""
@@ -17518,20 +17605,10 @@ msgid "Tax Payable"
 msgstr ""
 
 #. module: account
-#: model:ir.model.fields,field_description:account.field_account_tax_group__tax_payable_account_id
-msgid "Tax Payable Account"
-msgstr ""
-
-#. module: account
 #: model:account.account,name:account.21_tax_receivable
 #: model:account.account,name:account.22_account_account_us_tax_receivable
 msgid "Tax Receivable"
 msgstr "باجی وەرگیراو"
-
-#. module: account
-#: model:ir.model.fields,field_description:account.field_account_tax_group__tax_receivable_account_id
-msgid "Tax Receivable Account"
-msgstr "حسابی وەرگرتنی باج"
 
 #. module: account
 #: model:account.account,name:account.21_tax_received
@@ -17591,20 +17668,6 @@ msgstr "جۆری باج"
 #: model:ir.model.fields,field_description:account.field_account_move_line__tax_calculation_rounding_method
 #: model:ir.model.fields,field_description:account.field_res_config_settings__tax_calculation_rounding_method
 msgid "Tax calculation rounding method"
-msgstr ""
-
-#. module: account
-#: model:ir.model.fields,help:account.field_account_tax_group__tax_payable_account_id
-msgid ""
-"Tax current account used as a counterpart to the Tax Closing Entry when in "
-"favor of the authorities."
-msgstr ""
-
-#. module: account
-#: model:ir.model.fields,help:account.field_account_tax_group__tax_receivable_account_id
-msgid ""
-"Tax current account used as a counterpart to the Tax Closing Entry when in "
-"favor of the company."
 msgstr ""
 
 #. module: account
@@ -18569,10 +18632,22 @@ msgid "The payment that created this entry"
 msgstr ""
 
 #. module: account
+#. odoo-python
+#: code:addons/account/models/account_reconcile_model.py:0
+msgid "The payment tolerance must be positive."
+msgstr ""
+
+#. module: account
 #: model:ir.model.fields,help:account.field_account_payment__currency_id
 #: model:ir.model.fields,help:account.field_account_payment_register__currency_id
 msgid "The payment's currency."
 msgstr "دراوی پارەدانەکە."
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_reconcile_model.py:0
+msgid "The percentage tolerance must be between 0 and 100."
+msgstr ""
 
 #. module: account
 #. odoo-python
@@ -18815,6 +18890,14 @@ msgstr ""
 msgid ""
 "The sequences of this journal are different for Payments and non-Payments "
 "but you selected some of both types."
+msgstr ""
+
+#. module: account
+#: model:ir.model.fields,help:account.field_account_move_line__deductible_percentage
+msgid ""
+"The share of this expense used for business purposes. VAT is only deductible "
+"on this portion; the rest is treated as a private expense. Use this for "
+"mixed-use costs (e.g. a home office, a car used partly for personal trips)."
 msgstr ""
 
 #. module: account
@@ -19306,6 +19389,13 @@ msgid ""
 msgstr ""
 
 #. module: account
+#: model_terms:ir.actions.act_window,help:account.action_account_matching_rules
+msgid ""
+"Those can be used to automatically match journal items with your statement "
+"lines."
+msgstr ""
+
+#. module: account
 #: model_terms:ir.actions.act_window,help:account.action_account_reconcile_model
 msgid ""
 "Those can be used to quickly create a journal items when reconciling\n"
@@ -19444,6 +19534,7 @@ msgstr "چالاکییەکانی ئەمڕۆ"
 #: model:ir.model.fields,field_description:account.field_account_move__amount_total
 #: model:ir.model.fields,field_description:account.field_account_move_line__price_total
 #: model_terms:ir.ui.view,arch_db:account.account_invoice_report_view_tree
+#: model_terms:ir.ui.view,arch_db:account.account_move_view_list_stock_closing
 #: model_terms:ir.ui.view,arch_db:account.view_account_payment_tree
 #: model_terms:ir.ui.view,arch_db:account.view_invoice_tree
 #: model_terms:ir.ui.view,arch_db:account.view_move_tree
@@ -19483,12 +19574,6 @@ msgstr "کۆی گشتی قەرز"
 #: model_terms:ir.ui.view,arch_db:account.view_move_line_tree
 msgid "Total Debit"
 msgstr "کۆی گشتی قەرز"
-
-#. module: account
-#. odoo-python
-#: code:addons/account/report/account_stock_valuation_report.py:0
-msgid "Total Inventory Valuation"
-msgstr ""
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_res_partner__total_invoiced
@@ -20500,6 +20585,12 @@ msgid "View Partner(s)"
 msgstr "بینینی هاوبەش(ەکان)"
 
 #. module: account
+#. odoo-python
+#: code:addons/account/wizard/account_payment_register.py:0
+msgid "View payments"
+msgstr ""
+
+#. module: account
 #: model_terms:ir.ui.view,arch_db:account.rounding_form_view
 #: model_terms:ir.ui.view,arch_db:account.view_payment_term_form
 msgid "Visible to all"
@@ -21410,27 +21501,9 @@ msgstr ""
 
 #. module: account
 #. odoo-python
-#: code:addons/account/models/account_tax.py:0
-msgid "You must select a payable account for 'Tax Payable Account'."
-msgstr ""
-
-#. module: account
-#. odoo-python
-#: code:addons/account/models/account_tax.py:0
-msgid "You must select a receivable account for 'Tax Receivable Account'."
-msgstr ""
-
-#. module: account
-#. odoo-python
 #: code:addons/account/wizard/account_merge_wizard.py:0
 msgid "You must select at least 2 accounts."
 msgstr "پێویستە بەلایەنی کەمەوە 2 ئەکاونت هەڵبژێریت."
-
-#. module: account
-#. odoo-python
-#: code:addons/account/models/account_tax.py:0
-msgid "You must use non-trade accounts for tax groups."
-msgstr ""
 
 #. module: account
 #. odoo-python
@@ -21565,6 +21638,12 @@ msgid "amounts for"
 msgstr "بڕە پارەکان بۆ"
 
 #. module: account
+#. odoo-javascript
+#: code:addons/account/static/src/components/invoice_guide/invoice_guide.xml:0
+msgid "and"
+msgstr ""
+
+#. module: account
 #: model_terms:ir.ui.view,arch_db:account.validate_account_move_view
 msgid "and will not be posted automatically."
 msgstr ""
@@ -21641,6 +21720,12 @@ msgstr "ئەگەر پێشتر پارە بدرێت"
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.view_partner_property_form
 msgid "e-Invoicing & Email"
+msgstr ""
+
+#. module: account
+#. odoo-javascript
+#: code:addons/account/static/src/components/invoice_guide/invoice_guide.xml:0
+msgid "e-invoicing"
 msgstr ""
 
 #. module: account
@@ -22066,6 +22151,21 @@ msgid ""
 "{{ object.company_id.name }} {{ object.payment_receipt_title }} (Ref "
 "{{ object.name or 'n/a' }})"
 msgstr ""
+
+#~ msgid "Foreign tax account advance payment (%s)"
+#~ msgstr "پارەی پێشوەختەی حسابی باجی بیانی (%s)"
+
+#~ msgid "Foreign tax account payable (%s)"
+#~ msgstr "حسابی باجی بیانی دەدرێت (%s)"
+
+#~ msgid "Foreign tax account receivable (%s)"
+#~ msgstr "وەرگرتنی حسابی باجی بیانی (%s)"
+
+#~ msgid "Tax Advance Account"
+#~ msgstr "حسابی پێشوەختەی باج"
+
+#~ msgid "Tax Receivable Account"
+#~ msgstr "حسابی وەرگرتنی باج"
 
 #~ msgid ""
 #~ "%(order)s - %(order_line)s; %(quantity_billed)s Billed, %"

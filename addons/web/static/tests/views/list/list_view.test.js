@@ -217,9 +217,7 @@ defineModels([Foo, Bar, Currency, ResCompany, ResPartner, ResUsers]);
 
 async function clickControlPanelAction(buttonName) {
     if (isSmall()) {
-        await contains(
-            ".o_control_panel_breadcrumbs .o_cp_action_menus [data-icon='more_vert']"
-        ).click();
+        await contains(".o_cp_action_menus [data-icon='more_vert']").click();
         await contains(`.o-dropdown-item button[name="${buttonName}"]`).click();
     } else {
         await contains(`.o_control_panel_actions button[name="${buttonName}"]`).click();
@@ -1448,14 +1446,10 @@ test(`list view: action button in controlPanel basic rendering on mobile`, async
         `,
     });
     expect(`.o_control_panel_actions > *`).toHaveCount(0);
-    await contains(
-        ".o_control_panel_breadcrumbs .o_cp_action_menus [data-icon='more_vert']"
-    ).click();
+    await contains(".o_cp_action_menus [data-icon='more_vert']").click();
     expect(queryAllTexts(`.o-dropdown--menu .o-dropdown-item`)).toEqual(["Export"]);
     await clickRecordSelector();
-    await contains(
-        ".o_control_panel_breadcrumbs .o_cp_action_menus [data-icon='more_vert']"
-    ).click();
+    await contains(".o_cp_action_menus [data-icon='more_vert']").click();
     expect(queryAllTexts(`.o-dropdown--menu .o-dropdown-item`)).toEqual([
         "plaf",
         "Export",
@@ -1463,9 +1457,7 @@ test(`list view: action button in controlPanel basic rendering on mobile`, async
         "Delete",
     ]);
     await clickRecordSelector();
-    await contains(
-        ".o_control_panel_breadcrumbs .o_cp_action_menus [data-icon='more_vert']"
-    ).click();
+    await contains(".o_cp_action_menus [data-icon='more_vert']").click();
     expect(queryAllTexts(`.o-dropdown--menu .o-dropdown-item`)).toEqual(["Export"]);
 });
 
@@ -1541,14 +1533,11 @@ test(`list view: action button in controlPanel with display='always' on mobile`,
     ).toEqual([
         "New",
         "display",
-        "", // mobile dropdown
-        "", // default selection
+        "", // the caret of the split button
     ]);
 
     await clickRecordSelector();
-    await contains(
-        ".o_control_panel_breadcrumbs .o_cp_action_menus [data-icon='more_vert']"
-    ).click();
+    await contains(".o_cp_action_menus [data-icon='more_vert']").click();
     expect(queryAllTexts(`.o-dropdown--menu .o-dropdown-item`)).toEqual([
         "",
         "default-selection",
@@ -1563,8 +1552,7 @@ test(`list view: action button in controlPanel with display='always' on mobile`,
     ).toEqual([
         "New",
         "display",
-        "", // mobile dropdown
-        "",
+        "", // the caret of the split button
     ]);
 });
 
@@ -2267,7 +2255,9 @@ test(`discard a new record in editable="top" list with less than 4 records`, asy
     expect(`tbody tr:eq(0)`).toHaveClass("o_selected_row");
 
     if (isSmall()) {
-        await contains(".o_control_panel_main_buttons button > [data-icon='more_vert']").click();
+        await contains(
+            ".o_control_panel_main_buttons button.o-control-panel-adaptive-dropdown"
+        ).click();
         expect(`.o_list_button_discard`).toHaveCount(0);
         expect(`.o_control_panel .o_list_button_add`).toHaveCount(1);
     } else {
@@ -4762,12 +4752,12 @@ test(`selection box: grouped list, all groups folded`, async () => {
     expect(`.o_data_row`).toHaveCount(0);
     expect(`.o_searchview`).toHaveCount(1);
     expect(`.o_control_panel_actions .o_selection_box`).toHaveCount(0);
-    expect(`.o_control_panel_breadcrumbs_actions .o_cp_action_menus`).toHaveCount(1);
+    expect(`.o_cp_action_menus`).toHaveCount(1);
 
     // click on the checkbox in the thead
     await contains(`thead .o_list_record_selector input`).click();
     expect(`.o_control_panel_actions .o_selection_box`).toHaveCount(1);
-    expect(`.o_control_panel_breadcrumbs_actions .o_cp_action_menus`).toHaveCount(0);
+    expect(`.o_cp_action_menus`).toHaveCount(0);
     expect(`.o_searchview`).toHaveCount(0);
     expect(`.o_selection_box`).toHaveText("All 4 selected");
 
@@ -7803,9 +7793,8 @@ test(`display a tooltip on a field`, async () => {
 
     await hover(`th[data-name="foo"] div`);
     await runAllTimers();
-    expect(`.o-tooltip .o-tooltip--technical`).toHaveCount(0);
-    expect(`.o-tooltip`).toHaveCount(1);
-    expect(`.o-tooltip`).toHaveText("Foo");
+    // the label is entirely displayed, so the tooltip would only repeat it
+    expect(`.o-tooltip`).toHaveCount(0);
 
     serverState.debug = "1";
 
@@ -7834,6 +7823,66 @@ test("field (with help) tooltip in non debug mode", async function () {
     await runAllTimers();
     expect(`.o-tooltip`).toHaveCount(1);
     expect(`.o-tooltip`).toHaveText("Foo\nThis is a foo field");
+});
+
+test.tags("desktop");
+test("field (with help) tooltip displays the label of the arch", async function () {
+    Foo._fields.foo.help = "This is a foo field";
+    await mountView({
+        type: "list",
+        resModel: "foo",
+        arch: `<list><field name="foo" string="Custom"/></list>`,
+    });
+    await hover(`th[data-name="foo"] div`);
+    await runAllTimers();
+    expect(`.o-tooltip`).toHaveCount(1);
+    expect(`.o-tooltip`).toHaveText("Custom\nThis is a foo field");
+});
+
+test.tags("desktop");
+test(`no tooltip on a column header if its label is entirely displayed`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `<list><field name="foo"/></list>`,
+    });
+
+    const labelEl = queryOne(`th[data-name="foo"] div span`);
+    expect(labelEl.scrollWidth).toBe(labelEl.clientWidth); // the label isn't truncated
+
+    await hover(`th[data-name="foo"] div`);
+    await runAllTimers();
+    expect(`.o-tooltip`).toHaveCount(0);
+});
+
+test.tags("desktop");
+test(`tooltip on a column header if its label is truncated`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
+            <list>
+                <field name="foo" string="A very long column label that certainly does not fit in the space available for that column"/>
+                <field name="bar"/>
+                <field name="int_field"/>
+                <field name="m2o"/>
+                <field name="qux"/>
+                <field name="date"/>
+                <field name="datetime"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+            </list>`,
+    });
+
+    const labelEl = queryOne(`th[data-name="foo"] div span`);
+    expect(labelEl.scrollWidth).toBeGreaterThan(labelEl.clientWidth); // the label is truncated
+
+    await hover(`th[data-name="foo"] div`);
+    await runAllTimers();
+    expect(`.o-tooltip`).toHaveCount(1);
+    expect(`.o-tooltip`).toHaveText(
+        "A very long column label that certainly does not fit in the space available for that column"
+    );
 });
 
 test(`support row decoration`, async () => {
@@ -21564,6 +21613,34 @@ test(`column tag: stacks multiple fields in a single cell`, async () => {
     ).toHaveCount(2, { message: "Both sub-fields appear in the second cell" });
 });
 
+test(`column tag: empty value in a stacked cell`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
+            <list>
+                <field name="foo"/>
+                <column>
+                    <field name="int_field"/>
+                    <field name="date"/>
+                </column>
+            </list>
+        `,
+    });
+
+    // only the first record has a date
+    const dates = queryAll(`tbody .o_column_group_field[data-field-name='date']`);
+    expect(dates).toHaveLength(4);
+    expect(dates[0]).toHaveText("Jan 25, 2017");
+    expect(dates[1]).toHaveText("\u00a0", {
+        raw: true,
+        message: "an empty stacked value is rendered as a non-breaking space",
+    });
+    expect(queryRect(dates[1]).height).toBe(queryRect(dates[0]).height, {
+        message: "an empty stacked value is as tall as a filled one, keeping stacks aligned",
+    });
+});
+
 test(`column tag: uses string attribute as header label`, async () => {
     await mountView({
         resModel: "foo",
@@ -22016,8 +22093,12 @@ test(`column tag: required styling is applied to the required sub-field`, async 
     const groupFields = queryAll(`.o_selected_row td[name='foo'] .o_column_group_field`);
     expect(groupFields[0]).toHaveClass("o_required_modifier");
     expect(groupFields[1]).not.toHaveClass("o_required_modifier");
-    expect(groupFields[0]).toHaveStyle({ "border-bottom-width": "1px" });
-    expect(groupFields[1]).toHaveStyle({ "border-bottom-width": "0px" });
+    expect(groupFields[0]).toHaveStyle({ "border-bottom-width": "0px" });
+    expect(`.o_selected_row td[name='foo']`).toHaveStyle({ "border-bottom-width": "0px" });
+    // the cell stacks several fields, so the underline is carried by the input
+    expect(`.o_selected_row .o_field_widget[name='foo'] .o_input`).toHaveStyle({
+        "border-bottom-width": "1px",
+    });
 });
 
 test.tags("desktop");
@@ -22044,7 +22125,7 @@ test(`column tag: invalid styling is applied to the invalid sub-field`, async ()
     expect(groupFields[0]).toHaveClass("o_invalid_cell");
     expect(groupFields[1]).not.toHaveClass("o_invalid_cell");
     expect(`.o_selected_row td.o_invalid_cell`).toHaveCount(0, {
-        message: "the cell itself is never marked, only its sub-fields",
+        message: "a cell stacking several fields is not marked, only its sub-fields",
     });
 
     await contains(`.o_selected_row [name='foo'] input`).edit("abc");
@@ -22075,8 +22156,39 @@ test(`column tag: readonly styling is applied to the readonly sub-field`, async 
     expect(groupFields[1]).not.toHaveClass("o_readonly_modifier");
     expect(groupFields[1]).not.toHaveClass("text-muted");
     expect(`.o_selected_row td.o_readonly_modifier`).toHaveCount(0, {
-        message: "the cell itself is never marked, only its sub-fields",
+        message: "a cell stacking several fields is not marked, only its sub-fields",
     });
+});
+
+test.tags("desktop");
+test(`column tag: a lone visible field is styled on the cell only`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
+            <list editable="bottom">
+                <field name="date"/>
+                <column>
+                    <field name="int_field" readonly="1" decoration-danger="1"/>
+                    <field name="foo" invisible="1"/>
+                </column>
+            </list>
+        `,
+    });
+
+    expect(`.o_data_row:eq(1) td[name='int_field']`).toHaveClass("text-danger");
+    expect(`.o_data_row:eq(1) .o_column_group_field`).not.toHaveClass("text-danger");
+
+    await contains(`.o_data_row:eq(0) td[name='date']`).click();
+    expect(`.o_data_row:eq(0)`).toHaveClass("o_selected_row");
+    expect(`.o_selected_row td[name='int_field']`).toHaveClass([
+        "o_readonly_modifier",
+        "text-muted",
+    ]);
+    expect(`.o_selected_row td[name='int_field']`).not.toHaveClass("o_stacked_fields");
+    expect(`.o_selected_row .o_column_group_field`).toHaveCount(1);
+    expect(`.o_selected_row .o_column_group_field`).not.toHaveClass("o_readonly_modifier");
+    expect(`.o_selected_row .o_column_group_field`).not.toHaveClass("text-muted");
 });
 
 test.tags("desktop");
@@ -22107,6 +22219,36 @@ test(`column tag: Tab navigation skips a column group only if all its fields are
     await animationFrame();
     expect(`.o_data_row:eq(0)`).toHaveClass("o_selected_row");
     expect(`.o_selected_row td[name='date'] [name='int_field'] input`).toBeFocused();
+});
+
+test.tags("desktop");
+test(`column tag: Tab navigation skips a lone readonly many2one of a column group`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
+            <list editable="bottom">
+                <field name="foo"/>
+                <column>
+                    <field name="m2o" readonly="1"/>
+                    <field name="bar" invisible="1"/>
+                </column>
+                <field name="int_field"/>
+            </list>
+        `,
+    });
+
+    await contains(`.o_data_row:eq(0) td[name='foo']`).click();
+    expect(`.o_selected_row [name='foo'] input`).toBeFocused();
+
+    // the readonly many2one renders a tabable link
+    await press("Tab");
+    await animationFrame();
+    expect(`.o_selected_row [name='int_field'] input`).toBeFocused();
+
+    await press("shift+Tab");
+    await animationFrame();
+    expect(`.o_selected_row [name='foo'] input`).toBeFocused();
 });
 
 test.tags("desktop");

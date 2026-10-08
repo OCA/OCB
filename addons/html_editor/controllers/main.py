@@ -18,12 +18,12 @@ from odoo.http.stream import STATIC_CACHE_LONG
 from odoo.tools.image import image_process
 from odoo.tools.mimetypes import guess_mimetype
 
-from odoo.addons.web.icons import search_icons
-
 from ..models.ir_attachment import SUPPORTED_IMAGE_MIMETYPES
+from ..tools import search_icons
 from .svg_utils import get_shape_svg, make_shaped_image, update_svg_colors
 from odoo.addons.iap.tools import iap_tools
 from odoo.addons.mail.tools import link_preview
+from odoo.addons.web.icons import ICONS
 
 DEFAULT_LIBRARY_ENDPOINT = 'https://media-api.odoo.com'
 DEFAULT_OLG_ENDPOINT = 'https://olg.api.odoo.com'
@@ -447,6 +447,12 @@ class HTML_Editor(Controller):
                 # empty record set.
                 request.env[fields['res_model']].browse(fields['res_id']).check_access('write')
 
+                mimetype_exempt = any(
+                    request.env.user.has_group(group) for group in attachment._get_mimetype_exempt_groups()
+                )
+                if not mimetype_exempt:
+                    request.env['ir.ui.view'].sudo(False).check_access('write')
+
                 # Sudo because restricted editor will not be able to copy the record
                 attachment = attachment.sudo().copy(fields).sudo(False)
                 # Override mimetype with SUPERUSER if it was forced to plain text
@@ -779,14 +785,16 @@ class HTML_Editor(Controller):
 
             record = model.browse(record_id)
 
-            result = {}
-            if 'description' in record:
-                result['description'] = html.fromstring(record.description).text_content() if record.description else ""
+            description_field = 'description' if 'description' in record else None
+            name_field = 'link_preview_name' if 'link_preview_name' in record else 'display_name'
 
-            if 'link_preview_name' in record:
-                result['link_preview_name'] = record.link_preview_name
-            elif 'display_name' in record:
-                result['display_name'] = record.display_name
+            record.read([field for field in (description_field, name_field) if field])
+
+            result = {name_field: record[name_field]}
+
+            if description_field:
+                description = record[description_field]
+                result[description_field] = html.fromstring(description).text_content() if description else ""
 
             return result
         except (MissingError) as e:
@@ -815,6 +823,6 @@ class HTML_Editor(Controller):
         :returns: a list of ``{name, has_fill}`` dicts, tags excluded.
         """
         return [
-            {'name': name, 'has_fill': has_fill}
-            for name, has_fill in search_icons(needle or '')
+            {'name': name, 'has_fill': ICONS[name]['has_fill']}
+            for name in search_icons(self.env, needle or '')
         ]

@@ -80,24 +80,21 @@ export class ProductTemplateAccounting extends Base {
         const standardPrice = variant ? variant.standard_price : this.standard_price;
         const basePrice = variant ? variant.lst_price : this.list_price;
         let price = basePrice + (price_extra || 0);
+        const variantExtraPrice = variant ? variant.lst_price - productTmpl.list_price : 0;
+        const attributesExtraPrice = variantExtraPrice + (price_extra || 0);
 
         if (!pricelist) {
             return price;
         }
 
-        if (original_line && original_line.isLotTracked() && product) {
-            related_lines.push(
-                ...original_line.order_id.lines.filter((line) => line.product_id.id == product.id)
-            );
-            quantity = related_lines.reduce((sum, line) => sum + line.getQuantity(), 0);
-        }
-
         let rule = null;
+        let isVariantSpecificRule = false;
 
         // 1. Variant Rules
         if (product) {
             const productRules = pricelist.getRulesByProductId(product.id);
             rule = pricelist.findBestRule(productRules, quantity);
+            isVariantSpecificRule = Boolean(rule);
         }
 
         // 2. Template Rules
@@ -148,6 +145,14 @@ export class ProductTemplateAccounting extends Base {
 
         if (rule.compute_price === "fixed") {
             price = rule.fixed_price;
+            const fixedPriceExtraPrice = isVariantSpecificRule
+                ? price_extra || 0
+                : attributesExtraPrice;
+            if (fixedPriceExtraPrice) {
+                price += needsCurrencyConversion
+                    ? fixedPriceExtraPrice * (pricelistCurrency.rate / posCurrency.rate)
+                    : fixedPriceExtraPrice;
+            }
         } else {
             var price_limit = price;
             price -= price * ((rule.price_discount || 0) / 100);

@@ -9,6 +9,7 @@ import {
     listGroupToTable,
     normalizeColors,
     normalizeRem,
+    toInline,
 } from "@mail/views/web/fields/html_mail_field/convert_inline";
 import { beforeEach, describe, expect, getFixture, test } from "@odoo/hoot";
 import { enableTransitions } from "@odoo/hoot-mock";
@@ -22,6 +23,9 @@ import {
 
 const TEST_WIDTH = 800;
 const TEST_HEIGHT = 600;
+
+const base64Img =
+    "data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA\n        AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO\n            9TXL0Y4OHwAAAABJRU5ErkJggg==";
 
 let editable;
 function testConvertGrid({ before, after, title, stepFunction }) {
@@ -1342,6 +1346,21 @@ describe("Convert classes to inline styles", () => {
             { message: "should have removed all specific flex styles" }
         );
         styleSheet.deleteRule(0);
+        styleSheet.insertRule(
+            `
+            .test-inline-flex {
+                display: inline-flex;
+            }
+        `,
+            0
+        );
+        editable.innerHTML = `<div class="test-inline-flex"></div>`;
+        classToStyle(editable, getCSSRules(editable.ownerDocument));
+        expect(editable).toHaveInnerHTML(
+            `<div class="test-inline-flex" style="box-sizing:border-box;display:inline-block;"></div>`,
+            { message: "should have replaced the inline-flex display with inline-block" }
+        );
+        styleSheet.deleteRule(0);
 
         // @todo to adapt when hoot has a better way to remove it
     });
@@ -1568,5 +1587,12 @@ describe("Should not convert blacklisted class to inline styles", () => {
                     "should ignore styles from lower specificity class in favor of blacklisted class",
             }
         );
+    });
+
+    test("should set display block on mx-auto and ms-auto images", async () => {
+        editable.innerHTML = `<img class="mx-auto" src="${base64Img}"/><img class="ms-auto" src="${base64Img}"/>`;
+        await toInline(editable, []);
+        expect(editable.querySelector("img.mx-auto").style.display).toBe("block");
+        expect(editable.querySelector("img.ms-auto").style.display).toBe("block");
     });
 });

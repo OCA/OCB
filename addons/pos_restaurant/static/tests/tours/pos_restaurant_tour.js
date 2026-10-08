@@ -25,6 +25,26 @@ import {
 const ProductScreen = { ...ProductScreenPos, ...ProductScreenResto };
 import * as Notification from "@point_of_sale/../tests/generic_helpers/notification_util";
 
+registry.category("web_tour.tours").add("test_release_table_clears_timer_badge", {
+    steps: () =>
+        Chrome.withTimeFreeze(1786792500000, [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            {
+                content: "Check that the timer badge shows 15 minutes on table 4",
+                trigger:
+                    '.o_fp_table:has(.o_fp_table_number:contains("4")) .table-timer-badge:contains("15\'")',
+            },
+            FloorScreen.clickTable("4"),
+            ProductScreen.releaseTable(),
+            FloorScreen.isShown(),
+            negateStep({
+                content: "Check that the timer badge is cleared on table 4",
+                trigger: '.o_fp_table:has(.o_fp_table_number:contains("4")) .table-timer-badge',
+            }),
+        ]).flat(),
+});
+
 registry.category("web_tour.tours").add("pos_restaurant_sync", {
     steps: () =>
         [
@@ -784,6 +804,7 @@ registry.category("web_tour.tours").add("test_combo_synchronisation", {
                 content: "Check if there still has combo lines",
                 trigger: ".orderline-combo",
             },
+            ProductScreen.clickDisplayedProduct("Coca-Cola"), // fake product to prevent course from being cleaned up
             ProductScreen.addCourse(),
             ProductScreen.clickOrderline("Combo Product 2"),
             ProductScreen.transferCourseTo("Course 2"),
@@ -791,11 +812,11 @@ registry.category("web_tour.tours").add("test_combo_synchronisation", {
                 content: "Check if entire combo is transfered to course 2",
                 trigger: ".pos", // dummy trigger
                 run: function () {
-                    const onlyCourse2 = window.posmodel
+                    const comboLines = window.posmodel
                         .getOrder()
-                        .lines.every((x) => x.course_id.name === "Course 2");
+                        .lines.filter((x) => x.combo_parent_id || x.combo_line_ids?.length);
 
-                    if (!onlyCourse2) {
+                    if (!comboLines.every((x) => x.course_id.name === "Course 2")) {
                         throw new Error("The entire combo must be transferred to Course 2.");
                     }
                 },

@@ -756,8 +756,11 @@ describe("pos_store.js", () => {
         const store = await setupPosEnv();
         const order = await getFilledOrder(store);
 
-        const fastPM = store.config.payment_method_ids[0];
+        const fastPM = store.config.paymentMethods[0];
         const card = store.models["pos.payment.method"].get(2);
+        // Card comes first in payment_method_ids but Cash has the lowest sequence
+        expect(store.config.payment_method_ids[0]).toBe(card);
+        expect(fastPM.name).toBe("Cash");
         const payLaterMethod = store.models["pos.payment.method"].find(
             (pm) => pm.type === "pay_later"
         );
@@ -966,6 +969,46 @@ describe("pos_store.js", () => {
                 title: "Custom",
                 qrCode: "data:image/png;base64,explicit",
             });
+        });
+    });
+
+    describe("reloadData", () => {
+        test("keeps a paid order that could not be synced", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+            order.state = "paid";
+            store.data.network.offline = true;
+            patchWithCleanup(store.data, {
+                async resetIndexedDB() {
+                    expect.step("resetIndexedDB");
+                    throw new Error("stop before leaving the page");
+                },
+            });
+            patchWithCleanup(store.dialog, {
+                add(component, props) {
+                    expect.step(props.title);
+                },
+            });
+
+            await store.reloadData().catch(() => {});
+            expect.verifySteps(["Reload Data"]);
+            expect(store.models["pos.order"].get(order.id)).toBe(order);
+            expect(order.isSynced).toBe(false);
+        });
+
+        test("syncs a paid order before wiping local data", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+            order.state = "paid";
+            patchWithCleanup(store.data, {
+                async resetIndexedDB() {
+                    expect.step(`resetIndexedDB, synced: ${order.isSynced}`);
+                    throw new Error("stop before leaving the page");
+                },
+            });
+
+            await expect(store.reloadData()).rejects.toThrow("stop before leaving the page");
+            expect.verifySteps(["resetIndexedDB, synced: true"]);
         });
     });
 });

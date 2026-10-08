@@ -206,14 +206,16 @@ class ProductProduct(models.Model):
             record.can_image_variant_1024_be_zoomed = record.image_variant_1920 and is_image_size_above(record.image_variant_1920, record.image_variant_1024)
 
     def _set_template_field(self, template_field, variant_field):
-        for record in self:
+        # read all values first: writing on a template invalidates the variants' cache
+        values = [(record, record[template_field]) for record in self]
+        for record, value in values:
             if (
                 # We are trying to remove a field from the variant even though it is already
                 # not set on the variant, remove it from the template instead.
-                (not record[template_field] and not record[variant_field])
+                (not value and not record[variant_field])
                 # We are trying to add a field to the variant, but the template field is
                 # not set, write on the template instead.
-                or (record[template_field] and not record.product_tmpl_id[template_field])
+                or (value and not record.product_tmpl_id[template_field])
                 # There is only one variant, always write on the template.
                 or self.search_count([
                     ('product_tmpl_id', '=', record.product_tmpl_id.id),
@@ -221,9 +223,9 @@ class ProductProduct(models.Model):
                 ]) <= 1
             ):
                 record[variant_field] = False
-                record.product_tmpl_id[template_field] = record[template_field]
+                record.product_tmpl_id[template_field] = value
             else:
-                record[variant_field] = record[template_field]
+                record[variant_field] = value
 
     @api.depends('product_tmpl_id.pricelist_rule_ids')
     def _compute_pricelist_rule_ids(self):
@@ -461,6 +463,7 @@ class ProductProduct(models.Model):
             template = product.product_tmpl_id
             if len(template.with_context(active_test=False).product_variant_ids) == 1 and not template.has_configurable_attributes:
                 template.list_price = product.lst_price
+                product.invalidate_recordset(['list_price'])
 
     @api.depends_context('partner_id')
     def _compute_product_code(self):
@@ -1291,7 +1294,11 @@ class ProductProduct(models.Model):
             }
             return [vals.get(key, record[key]) for key in sort_key]
         sellers = self._get_filtered_sellers(partner_id=partner_id, quantity=quantity, date=date, uom_id=uom_id, params=params)
-        return sellers.sorted(sort_function)[:1]._get_seller_info()
+        res = self.env['product.supplierinfo']
+        for seller in sellers:
+            if not res or res.partner_id == seller.partner_id:
+                res |= seller
+        return res.sorted(sort_function)[:1]._get_seller_info()
 
     def _get_product_price_context(self, combination):
         self.ensure_one()

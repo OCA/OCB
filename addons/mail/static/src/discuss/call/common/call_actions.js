@@ -13,8 +13,8 @@ import { QuickVoiceSettings } from "@mail/discuss/call/common/quick_voice_settin
 import { QuickVideoSettings } from "@mail/discuss/call/common/quick_video_settings";
 import { RecordingDialog } from "@mail/discuss/call/common/recording_dialog";
 import { attClassObjectToString } from "@mail/utils/common/format";
-import { CALL_PROMOTE_FULLSCREEN } from "@mail/discuss/call/common/discuss_channel_model_patch";
 import { MicrophoneWarning } from "@mail/discuss/call/common/microphone_warning";
+import { TalkingAudioBars } from "@mail/discuss/call/common/talking_audio_bars";
 import { Component, useEffect } from "@odoo/owl";
 import { usePopover } from "@web/core/popover/popover_hook";
 
@@ -91,6 +91,8 @@ export const muteAction = {
 registerCallAction("mute", muteAction);
 /** @type {CallActionDefinition} */
 export const quickActionSettings = {
+    // Self's talking bars stand in for the chevron until hovered, as in the call menu.
+    btnClass: "o-discuss-quickVoiceSettings",
     condition: ({ owner, channel }) => !owner.env.inCallMenu && channel?.isSelfInCall,
     dropdownComponent: QuickVoiceSettings,
     dropdownMenuClass: ({ owner }) =>
@@ -99,7 +101,13 @@ export const quickActionSettings = {
             : "p-1 overflow-x-hidden",
     dropdownPosition: "top-end",
     dropdownTrigger: true,
+    extraContentComponent: TalkingAudioBars,
+    // Only self's session in this very call: the call preview shows the button before joining.
+    extraContentComponentProps: ({ channel, store }) => ({
+        session: channel?.eq(store.rtc.channel) ? store.rtc.selfSession : undefined,
+    }),
     icon: "keyboard_arrow_up",
+    iconClass: "o-discuss-quickVoiceSettings-chevron",
     name: _t("Voice Settings"),
     sequence: 15,
     sequenceGroup: 100,
@@ -172,16 +180,24 @@ export const quickVideoSettings = {
     sequenceGroup: 120,
 };
 registerCallAction("quick-video-settings", quickVideoSettings);
-/** @type {CallActionDefinition} */
+/**
+ * Everywhere the quick video settings are reachable, switching camera lives in there with the rest
+ * of the camera settings. The call menu has no such dropdown, so it keeps the standalone button.
+ *
+ * @type {CallActionDefinition}
+ */
 export const switchCameraAction = {
-    condition: ({ channel, store }) =>
-        channel?.isSelfInCall && isMobileOS() && store.rtc.selfSession?.is_camera_on,
+    condition: ({ owner, channel, store }) =>
+        channel?.isSelfInCall &&
+        isMobileOS() &&
+        store.rtc.selfSession?.is_camera_on &&
+        owner.env.inCallMenu,
     name: _t("Switch Camera"),
     isActive: false,
     icon: "refresh",
     onSelected: ({ store }) => store.rtc.toggleCameraFacingMode(),
     sequence: 40,
-    sequenceGroup: 100,
+    sequenceGroup: 120,
 };
 registerCallAction("switch-camera", switchCameraAction);
 registerCallAction("raise-hand", {
@@ -219,9 +235,7 @@ registerCallAction("share-screen", {
 });
 registerCallAction("record-call", {
     condition: ({ channel, store }) =>
-        Boolean(store.rtc?.channel) &&
-        channel?.eq(store.rtc.channel) &&
-        store.rtc.canRecord(),
+        Boolean(store.rtc?.channel) && channel?.eq(store.rtc.channel) && store.rtc.canRecord(),
     name: ({ store }) => (store.rtc.isRecording() ? _t("Stop recording") : _t("Start recording")),
     disabledCondition: ({ store }) => store.rtc?.recordingRequest,
     isActive: ({ store }) => store.rtc?.isRecording(),
@@ -241,7 +255,6 @@ registerCallAction("fullscreen", {
     name: _t("Fullscreen"),
     icon: "expand_content",
     onSelected: ({ channel, store }) => {
-        channel.promoteFullscreen = CALL_PROMOTE_FULLSCREEN.DISCARDED;
         store.rtc.closePip();
         store.rtc.enterFullscreen(undefined, { browserFullscreen: true });
     },
@@ -256,7 +269,6 @@ registerCallAction("wide-view", {
     name: _t("Wide View"),
     icon: "fullscreen",
     onSelected: ({ channel, store }) => {
-        channel.promoteFullscreen = CALL_PROMOTE_FULLSCREEN.DISCARDED;
         store.rtc.closePip();
         store.rtc.enterFullscreen();
     },
@@ -274,14 +286,13 @@ registerCallAction("minimize", {
 });
 registerCallAction("picture-in-picture", {
     condition: ({ owner, channel, store }) =>
-        channel?.isSelfInCall && !store.env?.isSmall && !owner.env.pipWindow,
+        channel?.isSelfInCall && !store.env.services.ui.isSmall && !owner.env.pipWindow,
     disabledCondition: ({ store }) => store.rtc?.isRemote,
     name: ({ store }) =>
         store.rtc?.isPipMode ? _t("Exit Picture in Picture") : _t("Picture in Picture"),
     isActive: ({ store }) => store.rtc?.isPipMode,
     icon: "open_in_browser",
     onSelected: ({ owner, channel, store }) => {
-        channel.promoteFullscreen = CALL_PROMOTE_FULLSCREEN.DISCARDED;
         const isPipMode = store.rtc?.isPipMode;
         if (isPipMode) {
             store.rtc.closePip();

@@ -3,7 +3,6 @@
 
 <t t-name="mail.ChatWindow">
     <t t-if="this.props.chatWindow.exists() and this.channel.exists()">
-    <t t-set="partitionedActions" t-value="this.threadActions.partition"/>
     <div class="o-mail-ChatWindow fixed-bottom overflow-hidden d-flex flex-column shadow-sm bg-100"
         t-att-style="this.style"
         t-att-class="this.attClass"
@@ -75,7 +74,7 @@
                     <Thread autofocus="this.autofocusThread" thread="this.channel.thread" t-key="this.channel.thread.localId" jumpPresent="this.state.jumpThreadPresent" jumpToNewMessage="this.props.chatWindow.jumpToNewMessage"/>
                     <t t-call="mail.ChatWindow.memberTyping"/>
                     <Composer t-if="!this.channel.composerHidden" composer="this.channel.composer" autofocus="this.autofocusComposer" mode="'compact'" onPostCallback.bind="() => this.state.jumpThreadPresent++" dropzoneRef="this.chatWindowContentRef" disabled="this.channel.composerDisabled"/>
-                    <div t-elif="this.channel.composerHiddenText" class="bg-200 py-1 text-center d-flex fst-italic fw-bold text-muted" t-ref="this.composerHiddenContainerRef">
+                    <div t-elif="this.channel.composerHiddenText" class="bg-200 py-1 text-center d-flex fst-italic fw-bold text-muted border-top" t-ref="this.composerHiddenContainerRef">
                         <span t-if="this.showBlankBeforeComposerHiddenText" class="flex-grow-1"/>
                         <span t-out="this.channel.composerHiddenText"/>
                         <span class="flex-grow-1"/>
@@ -95,7 +94,11 @@
         <i class="oi o-xsmaller ms-1 mt-1 text-muted opacity-75" data-icon="chevron_right"/>
     </t>
     <CountryFlag t-if="this.channel.showCorrespondentCountry" country="this.channel.correspondentCountry" class="'o-mail-ChatWindow-country border shadow-sm'"/>
-    <div t-if="!this.editingName()" class="o-mail-ChatWindow-displayName text-truncate fw-bold border border-transparent o-mx-0_5 my-0 py-1" t-att-title="this.props.chatWindow.channel.displayName" t-out="this.props.chatWindow.channel.displayName" t-att-class="{ 'fs-4': this.ui.isSmall, 'fs-5': !this.ui.isSmall }"/>
+    <div t-if="!this.editingName()" class="o-mail-ChatWindow-nameBox d-flex flex-column min-w-0 o-mx-0_5 text-start" t-att-class="{ 'lh-sm': this.hasNameSubline, 'py-1': !this.hasNameSubline }">
+        <div class="d-flex align-items-baseline min-w-0">
+            <div class="o-mail-ChatWindow-displayName text-truncate fw-bold border border-transparent my-0" t-att-title="this.props.chatWindow.channel.displayName" t-out="this.props.chatWindow.channel.displayName" t-att-class="this.displayNameFontSizeClass"/>
+        </div>
+    </div>
 </t>
 
 <t t-name="mail.ChatWindow.memberTyping">

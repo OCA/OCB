@@ -1061,7 +1061,7 @@ export class SearchModel extends EventBus {
         if (searchItem.type !== "dateFilter" && searchItem.type !== "parentFilter") {
             return;
         }
-        const generatorIds = generatorId ? [generatorId] : searchItem.defaultGeneratorIds;
+        const generatorIds = generatorId ? [generatorId] : searchItem.defaultGeneratorIds || [];
         for (const generatorId of generatorIds) {
             const index = this.query.findIndex(
                 (queryElem) =>
@@ -1687,6 +1687,8 @@ export class SearchModel extends EventBus {
                 type: "relativeFilter",
                 fieldName: dateFilterItem.fieldName,
                 fieldType: dateFilterItem.fieldType,
+                endFieldName: dateFilterItem.endFieldName,
+                endFieldType: dateFilterItem.endFieldType,
                 description: dateFilterItem.description,
                 options: getRelativeFilterOptions(),
                 groupNumber: dateFilterItem.groupNumber,
@@ -2253,8 +2255,8 @@ export class SearchModel extends EventBus {
         const groupBy = groupBys.length
             ? groupBys
             : this.globalGroupBy.length
-              ? this.globalGroupBy.slice()
-              : (fallbackOnDefault && this.defaultGroupBy?.slice()) || [];
+            ? this.globalGroupBy.slice()
+            : (fallbackOnDefault && this.defaultGroupBy?.slice()) || [];
         return typeof groupBy === "string" ? [groupBy] : groupBy;
     }
 

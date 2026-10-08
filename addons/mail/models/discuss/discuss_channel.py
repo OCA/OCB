@@ -337,30 +337,17 @@ class DiscussChannel(models.Model):
 
         The generated content depends on the conversation kind:
 
-        - a chat shows the correspondent's first and last name initials, and
-          falls back to the correspondent's own avatar (``False`` here) when that
-          partner has a real uploaded photo;
         - a meeting (a group meant to be displayed as a full screen video) shows
           the day of month of its creation date;
         - a regular group shows a group glyph;
         - a channel shows the first initial of its name.
+        - other conversation kinds defer to the correspondent's avatar.
 
         :return: the SVG avatar bytes, or ``False`` to defer to another avatar.
         :rtype: odoo.tools.BinaryBytes | bool
         """
-        if self.channel_type == "chat":
-            channel_member_ids_sudo = (
-                # sudo: discuss.channel.member - it is acceptable to show the correspondent's
-                # generated avatar to the current user
-                self.channel_member_ids.sudo() if self.env.user.share else self.channel_member_ids
-            )
-            correspondent = (
-                channel_member_ids_sudo.filtered(lambda member: not member.is_self)
-                or channel_member_ids_sudo
-            ).partner_id[:1]
-            if not correspondent or correspondent.image_128:
-                return False
-            return generate_text_avatar_svg(avatar_initials(correspondent.name), str(correspondent.id))
+        if self.channel_type not in ("channel", "group"):
+            return False
         if self.channel_type == "group":
             if self.default_display_mode == "video_full_screen":
                 return generate_text_avatar_svg(str(self.create_date.day) if self.create_date else "", str(self.id))
@@ -638,6 +625,23 @@ class DiscussChannel(models.Model):
                 self.env._(
                     "Cannot change the member combination of: %(channel_names)s",
                     channel_names=failing_channels.mapped("display_name"),
+                ),
+            )
+        if (
+            {"name", "description", "image_128"} & set(vals)
+            and not self.env.is_admin()
+            and (
+                failing_channels := self.filtered(
+                    lambda channel: (
+                        channel.is_readonly and not channel.can_self_edit_readonly_channel
+                    ),
+                )
+            )
+        ):
+            raise UserError(
+                self.env._(
+                    "You do not have the rights to change the name, description or avatar as a regular member of these read-only channels: %(channels)s.",
+                    channels=failing_channels.mapped("display_name"),
                 ),
             )
         if {"from_message_id", "parent_channel_id"} & set(vals):
@@ -941,7 +945,8 @@ class DiscussChannel(models.Model):
                 stores[channel].add(channel, ["member_count"])
                 stores[channel].add(new_members, "_store_member_fields")
                 if channel.channel_type == "channel":
-                    devices, private_key, public_key = channel._web_push_get_partners_parameters(new_members.partner_id.ids)
+                    invited_partner_ids = new_members.filtered(lambda m: not m.is_self).partner_id.ids
+                    devices, private_key, public_key = channel._web_push_get_partners_parameters(invited_partner_ids)
                     if devices:
                         icon = f"/web/image/discuss.channel/{channel.id}/avatar_128"
                         languages = set(devices.partner_id.mapped("lang"))

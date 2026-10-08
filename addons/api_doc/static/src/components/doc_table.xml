@@ -54,13 +54,13 @@
                             t-on-mouseleave="(ev) => this.scheduleHide(ev)"
                         ></i>
                     </t>
-                    <t t-else="" t-tag="this.getTag(row)" t-att-class="this.getClass(row)" t-out="this.getValue(row)"/>
+                    <span t-else="" t-att-class="this.getClass(row)" t-out="this.getValue(row)"/>
 
                     <a
                         t-if="row.relation"
                         class="cursor-pointer text-muted ms-1"
-                        href="#"
-                        t-on-click="() => this.goToModel(row.relation)"
+                        t-attf-href="/doc/{{row.relation}}"
+                        t-on-click.prevent="() => this.goToModel(row.relation)"
                     >
                         <t t-out="row.relation"/>
                         <i

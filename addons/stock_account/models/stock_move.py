@@ -107,10 +107,10 @@ class StockMove(models.Model):
                 continue
             move.is_dropship = move._is_dropshipped() or move._is_dropshipped_returned()
 
-    @api.depends('is_in', 'is_out', 'is_dropship')
+    @api.depends('state', 'move_line_ids')
     def _compute_is_valued(self):
         for move in self:
-            move.is_valued = move.is_in or move.is_out or move.is_dropship
+            move.is_valued = move.is_in or move.is_out
 
     def _compute_origin_company_id(self):
         self.origin_company_id = False
@@ -352,7 +352,9 @@ class StockMove(models.Model):
             from ``recompute_date`` (the earliest impacted date among the moves) through
         :param skip_check: internal flag set while replaying, to only refresh in-move
             values without re-triggering the replay detection below (which would loop).
+        :return: the outgoing moves whose value changed during a valuation replay.
         """
+        changed_moves = self.env['stock.move']
         moves_already_sold = self.filtered(lambda m: m.is_in and m.remaining_qty != m._get_valued_qty())
         if not recompute_date and not skip_check and moves_already_sold:
             recompute_date = min(self.mapped('date'))
@@ -365,12 +367,11 @@ class StockMove(models.Model):
                 if oversold_moves:
                     recompute_date = min(recompute_date, *oversold_moves.mapped('date'))
             self._set_value(recompute_date=recompute_date)
-            return
+            return changed_moves
 
         if recompute_date and any(m.remaining_qty != m._get_valued_qty() or m.is_out for m in self):
             self.filtered(lambda m: m.is_in)._set_value(skip_check=True)
-            self.product_id._correct_inventory_valuation(recompute_date)
-            return
+            return self.product_id._correct_inventory_valuation(recompute_date)
 
         self = self.sorted(key=lambda m: (m.date, m.id))  # noqa: PLW0642
         products_to_recompute = set()
@@ -388,7 +389,7 @@ class StockMove(models.Model):
 
         for move in self:
             move = move.with_company(move.company_id)
-            if move.is_dropship or move.is_in:
+            if move.is_in:
                 products_to_recompute.add(move.product_id.id)
                 if move.product_id.lot_valuated:
                     if any(not ml.lot_id for ml in move.move_line_ids):
@@ -396,7 +397,6 @@ class StockMove(models.Model):
                             "A lot/serial number is required for product '%s' as it has lot valuation enabled.",
                             move.product_id.display_name))
                     lots_to_recompute.update(move.move_line_ids.lot_id.ids)
-            if move.is_in or move.is_dropship:
                 move.value = move.sudo()._get_value()
                 continue
             # Outgoing moves
@@ -435,6 +435,7 @@ class StockMove(models.Model):
         # Recompute the standard price
         self.env['product.product'].browse(products_to_recompute)._update_standard_price()
         self.env['stock.lot'].browse(lots_to_recompute)._update_standard_price()
+        return changed_moves
 
     def _get_value(self, forced_std_price=False, ignore_manual_update=False):
         return self._get_value_data(forced_std_price, ignore_manual_update)['value']
@@ -537,9 +538,9 @@ class StockMove(models.Model):
         stays consistent with `value` (also negative for out moves) and value/qty
         ratios stay positive without needing abs(). """
         self.ensure_one()
-        if self._is_in():
+        if (self.state == 'done' and self.is_in) or (self.state != 'done' and self._is_in()):
             return sum(self._get_in_move_lines(lot).mapped('quantity_product_uom'))
-        if self._is_out():
+        if (self.state == 'done' and self.is_out) or (self.state != 'done' and self._is_out()):
             qty = sum(self._get_out_move_lines(lot).mapped('quantity_product_uom'))
             return -qty if signed else qty
         if self.is_dropship:
@@ -805,3 +806,24 @@ class StockMove(models.Model):
         """ Overriden in `sale_stock` & `purchase_stock`
         """
         return []
+
+    def _get_price_unit_delivery(self, product=None):
+        """ Computes the unit price for a set of moves, using a weighted average between
+        dropshipped and non dropshipped moves.
+        """
+        dropship_moves = self.filtered(lambda m: m._is_dropshipped() or m._is_dropshipped_returned())
+        dropship_quantity = sum(m._get_valued_qty() for m in dropship_moves)
+        dropship_price_unit = dropship_moves._get_price_unit_dropshipped()
+        regular_moves = self - dropship_moves
+        regular_quantity = sum(m._get_valued_qty() for m in regular_moves)
+        regular_price_unit = regular_moves._get_price_unit(product=product)
+        total_quantity = dropship_quantity + regular_quantity
+        if not total_quantity:
+            return self._get_price_unit(product=product)
+        return (dropship_quantity * dropship_price_unit + regular_quantity * regular_price_unit) / total_quantity
+
+    def _get_price_unit_dropshipped(self):
+        """ Returns the unit price to value the dropshipped moves."""
+        total_value = sum(m._get_value() for m in self)
+        total_qty = sum(m._get_valued_qty() for m in self)
+        return total_value / total_qty if total_qty else 0

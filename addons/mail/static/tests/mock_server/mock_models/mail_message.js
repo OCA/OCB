@@ -11,9 +11,9 @@ const { DateTime } = luxon;
 export class MailMessage extends models.ServerModel {
     _name = "mail.message";
 
-    author_id = fields.Generic({ default: () => serverState.partnerId });
+    author_id = fields.Many2one({ default: () => serverState.partnerId });
     date = fields.Datetime({ default: () => serializeDateTime(DateTime.now()) });
-    pinned_at = fields.Generic({ default: false });
+    pinned_at = fields.Datetime({ default: false });
 
     /** @type {typeof models.Model["prototype"]["create"]} */
     create(vals) {
@@ -74,10 +74,7 @@ export class MailMessage extends models.ServerModel {
         return messageIds;
     }
 
-    _store_message_fields(
-        res,
-        { format_reply = true, chatter_fields, inbox_fields = false, followers } = {}
-    ) {
+    _store_message_fields(res, { format_reply = true, inbox_fields = false } = {}) {
         /** @type {import("mock_models").MailFollowers} */
         const MailFollowers = this.env["mail.followers"];
         /** @type {import("mock_models").MailThread} */
@@ -538,7 +535,7 @@ export class MailMessage extends models.ServerModel {
      * @param {number} [limit=30]
      * @returns {Object[]}
      */
-    _message_fetch(domain, thread, search_term, is_notification, before, after, around, limit) {
+    _message_fetch(domain, thread, search_term, search_filter, before, after, around, limit) {
         /** @type {import("mock_models").IrAttachment} */
         const IrAttachment = this.env["ir.attachment"];
         /** @type {import("mock_models").MailMessageSubtype} */
@@ -547,7 +544,7 @@ export class MailMessage extends models.ServerModel {
             domain,
             thread,
             search_term,
-            is_notification,
+            search_filter,
             before,
             after,
             around,
@@ -557,7 +554,7 @@ export class MailMessage extends models.ServerModel {
             "domain",
             "thread",
             "search_term",
-            "is_notification",
+            "search_filter",
             "before",
             "after",
             "around",
@@ -571,39 +568,59 @@ export class MailMessage extends models.ServerModel {
                 ["message_type", "!=", "user_notification"],
             ]);
         }
-        if (is_notification === true) {
-            domain.push(["message_type", "=", "notification"]);
-        } else if (is_notification === false) {
-            domain.push(["message_type", "!=", "notification"]);
+        // keep in sync with `MESSAGE_SEARCH_FILTERS` in `mail/models/mail_message.py`
+        const isFiltered = ["messages", "notes", "activities", "changes"].includes(search_filter);
+        if (search_filter === "messages") {
+            domain.push(
+                [
+                    "subtype_id",
+                    "=",
+                    MailMessageSubtype._filter([["subtype_xmlid", "=", "mail.mt_comment"]])[0].id,
+                ],
+                ["message_type", "in", ["comment", "email"]]
+            );
+        } else if (search_filter === "notes") {
+            domain.push(
+                [
+                    "subtype_id",
+                    "=",
+                    MailMessageSubtype._filter([["subtype_xmlid", "=", "mail.mt_note"]])[0].id,
+                ],
+                ["message_type", "=", "comment"]
+            );
+        } else if (search_filter === "activities") {
+            domain.push([
+                "subtype_id",
+                "=",
+                MailMessageSubtype._filter([["subtype_xmlid", "=", "mail.mt_activities"]])[0].id,
+            ]);
+        } else if (search_filter === "changes") {
+            domain.push(["message_type", "=", "tracking"]);
         }
         if (search_term) {
             domain = new Domain(domain || []);
             search_term = search_term.replace(" ", "%");
+            // Escape <, >, and & for body search to match html_sanitize storage
+            // Equivalent to Python's html.escape(searchTerm, quote=False)
+            const html_search_term = search_term
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
             const subtypeIds = MailMessageSubtype.search([["description", "ilike", search_term]]);
             const irAttachmentIds = IrAttachment.search([["name", "ilike", search_term]]);
             const authorIds = this.env["res.partner"].search([["name", "ilike", search_term]]);
             const guestIds = this.env["mail.guest"].search([["name", "ilike", search_term]]);
-            let message_domain = Domain.or([
-                [["body", "ilike", search_term]],
+            const message_domain = Domain.or([
+                [["body", "ilike", html_search_term]],
                 [["attachment_ids", "in", irAttachmentIds]],
                 [["author_id", "in", authorIds]],
                 [["author_guest_id", "in", guestIds]],
                 [["subject", "ilike", search_term]],
                 [["subtype_ids", "in", subtypeIds]],
             ]);
-            if (thread && is_notification !== false) {
-                const messageIds = this.search([
-                    ["res_id", "=", parseInt(thread[0].id)],
-                    ["model", "=", thread._name],
-                ]);
-                message_domain = Domain.or([
-                    message_domain,
-                    new Domain([["id", "in", messageIds]]),
-                ]);
-            }
             domain = Domain.and([domain, message_domain]).toList();
         }
-        if (search_term || is_notification !== undefined) {
+        if (search_term || isFiltered) {
             res.count = this.search_count(domain);
         }
         if (around !== undefined) {

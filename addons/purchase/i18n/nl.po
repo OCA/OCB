@@ -13,11 +13,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 17:41+0000\n"
-"PO-Revision-Date: 2026-09-09 14:11+0000\n"
+"POT-Creation-Date: 2026-10-02 17:39+0000\n"
+"PO-Revision-Date: 2026-09-29 12:11+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-master/"
-"purchase/nl/>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-20/purchase/"
+"nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -62,14 +62,6 @@ msgstr ""
 msgid ""
 "%(matched_lines_count)s bill lines matched, %(unmatched_lines_count)s "
 "unmatched remaining."
-msgstr ""
-
-#. module: purchase
-#. odoo-python
-#: code:addons/purchase/wizard/accrued_orders.py:0
-msgid ""
-"%(order)s - %(order_line)s; %(qty_billed)s billed, %(qty_received)s received "
-"at %(unit_price)s"
 msgstr ""
 
 #. module: purchase
@@ -646,7 +638,7 @@ msgstr "Een waarschuwing kan worden ingesteld op een product of klant (inkoop)"
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_groups
 msgid "Access Groups"
-msgstr ""
+msgstr "Toegangsgroepen"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__access_warning
@@ -1460,7 +1452,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__name
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_search
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
 msgid "Description"
 msgstr "Omschrijving"
@@ -1594,6 +1585,11 @@ msgid "Duplicated Order"
 msgstr "Dubbele order"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "Enter a Description..."
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_planned
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_planned
 msgid "Expected Arrival"
@@ -1693,18 +1689,6 @@ msgstr "Krijg 2 niveaus van goedkeuring om een inkooporder te bevestigen"
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Get warnings in orders for products or vendors"
 msgstr "Krijg waarschuwingen in orders voor producten of leveranciers"
-
-#. module: purchase
-#. odoo-python
-#: code:addons/purchase/wizard/accrued_orders.py:0
-msgid "Goods Billed not Received (perpetual valuation)"
-msgstr ""
-
-#. module: purchase
-#. odoo-python
-#: code:addons/purchase/wizard/accrued_orders.py:0
-msgid "Goods Received not Billed (perpetual valuation)"
-msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__product_type
@@ -2078,7 +2062,7 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__activity_type_icon
 msgid "Material Symbols icon e.g. checklist"
-msgstr ""
+msgstr "Material Symbols icoon, bv. checklist"
 
 #. module: purchase
 #: model:ir.actions.server,name:purchase.action_merger
@@ -3370,6 +3354,11 @@ msgstr "Veiligheidstoken"
 msgid "Select Vendor Bill lines to add to a Purchase Order"
 msgstr ""
 "Selecteer factuurregels van leveranciers om toe te voegen aan een inkooporder"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "Select a Product"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_move_form_inherit_purchase

@@ -1,16 +1,17 @@
-import { ImStatus } from "@mail/core/common/im_status";
+import { getImStatusData, ImStatus } from "@mail/core/common/im_status";
 import { ThreadIcon } from "@mail/core/common/thread_icon";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, Portal, t, useProps } from "@odoo/owl";
 
 import { isBrowserSafari } from "@web/core/browser/feature_detection";
+import { localization } from "@web/core/l10n/localization";
 import { useService } from "@web/core/utils/hooks";
 
 let nextId = 0;
 
 export class DiscussAvatar extends Component {
     static template = "mail.DiscussAvatar";
-    static components = { ImStatus, ThreadIcon };
+    static components = { ImStatus, Portal, ThreadIcon };
 
     setup() {
         super.setup();
@@ -32,6 +33,7 @@ export class DiscussAvatar extends Component {
         });
         this.isBrowserSafari = isBrowserSafari;
         this.uniqueId = `mail.DiscussAvatar.${nextId++}`;
+        this.isRtl = localization.direction === "rtl";
     }
 
     /** @returns {DiscussChannel|undefined} */
@@ -104,6 +106,18 @@ export class DiscussAvatar extends Component {
 
     get showIconMask() {
         return this.showIcon;
+    }
+
+    get imStatusData() {
+        if (this.isTyping || (this.thread && !this.channel?.showImStatus)) {
+            return undefined;
+        }
+        const member = this.channelMember || this.channel?.correspondent;
+        const persona = member?.persona || this.persona;
+        if (!persona) {
+            return undefined;
+        }
+        return getImStatusData({ member, persona, user: this.user || persona.main_user_id });
     }
 
     /** @returns {ResUsers|undefined} */

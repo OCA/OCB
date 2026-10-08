@@ -99,7 +99,12 @@ export const useVivaApp = (validateCallback) => {
      * @param {Boolean} isRefund
      */
     const start = async (paymentMethod, isRefund = false) => {
-        const line = order.addPaymentline(paymentMethod).data;
+        const addResult = order.addPaymentline(paymentMethod);
+        if (!addResult.status) {
+            dialog.add(AlertDialog, { title: _t("Oh snap !"), body: addResult.data });
+            return;
+        }
+        const line = addResult.data;
         try {
             line.viva_com_session_id = `${order.uuid}-${uuidv4()}`;
             const result = await pos.syncAllOrders({ orders: [order] });
@@ -167,6 +172,12 @@ export const useVivaApp = (validateCallback) => {
         abort(line);
     };
 
+    const hasRefused = () => window.localStorage.getItem("vivawallet_app_answer") === "false";
+
+    const forgetIntegration = () => {
+        window.localStorage.removeItem("vivawallet_app_answer");
+    };
+
     return {
         use,
         process,
@@ -174,5 +185,7 @@ export const useVivaApp = (validateCallback) => {
         abort,
         isIntegrated,
         resetIntegration,
+        hasRefused,
+        forgetIntegration,
     };
 };

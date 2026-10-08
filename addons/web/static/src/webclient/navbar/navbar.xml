@@ -56,6 +56,7 @@
         </ul>
     </li>
     <li t-else="" t-on-click="() => this._onMenuClicked(section)"  t-att-data-menu-xmlid="section.xmlid"
+        class="cursor-pointer"
         t-att-class="{
             'fw-bold text-900 py-3': !isNested,
             'border-top': !isNested &amp;&amp; subMenu_index != 0,
@@ -240,7 +241,7 @@
             </t>
             <t t-else="">
               <div
-                class="o_more_dropdown_section o_more_dropdown_section_group dropdown-header bg-100"
+                class="o_more_dropdown_section o_more_dropdown_section_group dropdown-header mb-1 py-1 bg-100"
                 t-out="section.name"
               />
               <t t-call="web.NavBar.SectionsMenu.Dropdown.MenuSlot"

@@ -9,6 +9,7 @@ import {
     queryFirst,
     queryOne,
     queryRect,
+    resize,
     runAllTimers,
 } from "@odoo/hoot-dom";
 import { mockDate, mockTimeZone, mockTouch } from "@odoo/hoot-mock";
@@ -1041,7 +1042,7 @@ test(`add a filter with the search more dialog on mobile`, async () => {
         "foo partner 13",
         "foo partner 14",
     ]);
-    await contains(`[data-icon='west']`).click();
+    await contains(`[data-icon='arrow_back']`).click();
     expect(`.modal`).toHaveCount(0);
     expect(`${section} .o_calendar_filter_item`).toHaveCount(4);
     expect(queryAllTexts`.o_calendar_filter_item`).toEqual([
@@ -5335,6 +5336,38 @@ test(`calendar sidepanel can be collapsed by default if it was set in local stor
         arch: `<calendar date_start="start" mode="week"/>`,
     });
     expect(`.o_calendar_sidepanel`).toHaveCount(0);
+});
+
+test.tags("desktop");
+test("calendar sidebar reacts to isSmall changes", async () => {
+    await mountView({
+        resModel: "event",
+        type: "calendar",
+        arch: `<calendar date_start="start" mode="week"/>`,
+    });
+    expect(".o_calendar_renderer").toHaveCount(1);
+    expect(".o_calendar_sidepanel").toHaveCount(1);
+    expect(".o_calendar_sidebar").toHaveCount(0);
+    expect(".o_other_calendar_panel").toHaveCount(0);
+
+    // Reduce the viewport to a mobile size (isSmall = true)
+    // The sidepanel (which is expanded by default) should be hidden without interaction,
+    // and swapped for the mobile filter panel's toggle bar instead of the desktop sidepanel.
+    await resize({ width: 500 });
+    await animationFrame();
+    expect(".o_calendar_renderer").toHaveCount(1);
+    expect(".o_calendar_sidepanel").toHaveCount(0);
+    expect(".o_calendar_sidebar").toHaveCount(0);
+    expect(".o_other_calendar_panel").toHaveCount(1);
+
+    // Expand the viewport to desktop size, the sidepanel should show again,
+    // and the mobile filter panel should be removed.
+    await resize({ width: 1200 });
+    await animationFrame();
+    expect(".o_calendar_renderer").toHaveCount(1);
+    expect(".o_calendar_sidepanel").toHaveCount(1);
+    expect(".o_calendar_sidebar").toHaveCount(0);
+    expect(".o_other_calendar_panel").toHaveCount(0);
 });
 
 test(`calendar should show date information on header`, async () => {

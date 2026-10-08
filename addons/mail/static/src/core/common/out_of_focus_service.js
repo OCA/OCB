@@ -36,16 +36,26 @@ export class OutOfFocusService {
             return;
         }
         this.contributingMessageLocalIds.add(message.localId);
-        const modelsHandleByPush = ["mail.thread", "discuss.channel"];
+        // Message types the server sends via web push, excluding the author.
+        // Keep in sync with mail.thread._notify_get_recipients_for_extra_notifications.
+        const messageTypesHandledByPush = [
+            "comment",
+            "email",
+            "notification",
+            "tracking",
+            "user_notification",
+            "whatsapp_message",
+        ];
         if (
-            modelsHandleByPush.includes(message.thread?.model) &&
+            messageTypesHandledByPush.includes(message.message_type) &&
+            !message.isSelfAuthored &&
             (await this.hasServiceWorkInstalledAndPushSubscriptionActive())
         ) {
             return;
         }
         const author = message.author;
         let notificationTitle;
-        let icon = "/mail/static/src/img/odoobot_transparent.png";
+        let icon = "/mail/static/src/img/odoobot_transparent.webp";
         if (!author) {
             notificationTitle = _t("New message");
         } else {

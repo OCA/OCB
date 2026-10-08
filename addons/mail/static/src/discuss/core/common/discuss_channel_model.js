@@ -142,7 +142,7 @@ export class DiscussChannel extends Record {
         return this.allowDescriptionTypes.includes(this.channel_type);
     }
     get allowEditDescription() {
-        return this.thread.is_editable;
+        return this.thread.is_editable && this.canSelfInteractWithChannel;
     }
     get allowedToLeaveChannelTypes() {
         return ["channel", "group"];
@@ -160,7 +160,9 @@ export class DiscussChannel extends Record {
     }
     get isAllowedToRename() {
         return (
-            this.allowedToRenameChannelTypes.includes(this.channel_type) && this.thread.is_editable
+            this.allowedToRenameChannelTypes.includes(this.channel_type) &&
+            this.thread.is_editable &&
+            this.canSelfInteractWithChannel
         );
     }
 
@@ -344,6 +346,7 @@ export class DiscussChannel extends Record {
         return Boolean(this.self_member_id);
     }
     last_interest_dt = fields.Datetime();
+    last_message_fetched = false;
     meeting_start_dt = fields.Datetime();
     meeting_stop_dt = fields.Datetime();
     lastInterestDt = this.computed(() =>

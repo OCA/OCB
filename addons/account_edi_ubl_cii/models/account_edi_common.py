@@ -6,6 +6,7 @@ from collections import defaultdict
 from copy import deepcopy
 from markupsafe import Markup
 from lxml import etree
+from datetime import datetime
 
 from odoo import _, api, fields, models, Command
 from odoo.addons.account.tools import dict_to_xml
@@ -261,6 +262,9 @@ class AccountEdiCommon(models.AbstractModel):
             if base_line['price_unit'] < 0.0:
                 base_line['quantity'] *= -1
                 base_line['price_unit'] *= -1
+
+    def _get_document_type_code_vals(self, invoice, invoice_data):
+        return {'attrs': {}, 'value': None}
 
     # -------------------------------------------------------------------------
     # TAXES
@@ -885,11 +889,28 @@ class AccountEdiCommon(models.AbstractModel):
         return lines_values, logs
 
     def _retrieve_invoice_line_vals(self, record, tree, document_type=False, qty_factor=1):
+        # Start and End date (enterprise fields)
+        xpath_dict = self._get_invoice_line_xpaths(document_type, qty_factor)
+        deferred_values = {}
+        start_date = end_date = None
+        if self.env['account.move.line']._fields.get('deferred_start_date'):
+            start_date_node = tree.find(xpath_dict['deferred_start_date'])
+            end_date_node = tree.find(xpath_dict['deferred_end_date'])
+            if start_date_node is not None and end_date_node is not None:  # there is a constraint forcing none or the two to be set
+                start_date = datetime.strptime(start_date_node.text.strip(), xpath_dict['date_format'])
+                end_date = datetime.strptime(end_date_node.text.strip(), xpath_dict['date_format'])
+        deferred_values = {
+            'deferred_start_date': start_date,
+            'deferred_end_date': end_date,
+        }
         line_vals = self._retrieve_line_vals(record, tree, document_type, qty_factor)
         if not line_vals.get('price_subtotal'):
             return None
 
-        return line_vals
+        return {
+            **line_vals,
+            **deferred_values,
+        }
 
     @api.model
     def _retrieve_rebate_val(self, tree, xpath_dict, quantity):
@@ -1497,7 +1518,7 @@ class AccountEdiCommon(models.AbstractModel):
 
         partner_bank_values['partner_banks'] = partner_banks
         if partner_banks:
-            collected_values['to_write']['partner_bank_id'] = partner_banks[:1].id
+            collected_values['to_write']['partner_bank_id'] = partner_banks.sorted(lambda bank: not bank.allow_out_payment)[:1].id
 
     def _import_invoice_predict_values(self, collected_values):
         if (
@@ -1508,11 +1529,17 @@ class AccountEdiCommon(models.AbstractModel):
                 taxes_values = line_collected_values['taxes_values']
                 line_domain = []
                 if len(taxes_values) == 1:
-                    line_domain = [('tax_ids', 'any', [
-                        ('amount', '=', taxes_values[0]['amount']),
+                    tax_domain = [
                         ('amount_type', '=', taxes_values[0]['amount_type']),
                         ('type_tax_use', '=', taxes_values[0]['type_tax_use']),
-                    ])]
+                    ]
+                    if taxes_values[0]['amount'] or taxes_values[0].get('ubl_cii_tax_category_code') != 'AE':
+                        tax_domain.append(('amount', '=', taxes_values[0]['amount']))
+                    else:
+                        # Reverse charge taxes can be reported as 0% in the document even though
+                        # the tax itself isn't, so ignore the amount and rely on the category code.
+                        tax_domain.append(('ubl_cii_tax_category_code', '=', 'AE'))
+                    line_domain = [('tax_ids', 'any', tax_domain)]
 
                 line_collected_values['predicted_vals'] = self.env['account.move.line']._get_predicted_values(
                     name=line_collected_values['name'],
@@ -1597,12 +1624,20 @@ class AccountEdiCommon(models.AbstractModel):
             if account := line_collected_values.get('predicted_vals', {}).get('account_id'):
                 account_values['account'] = account
 
+    def _import_invoice_retrieve_analytic_distribution(self, collected_values):
+        lines_collected_values = collected_values['lines_collected_values']
+        for line_collected_values in lines_collected_values:
+            to_write = line_collected_values['to_write']
+            if analytic_distribution := line_collected_values.get('predicted_vals', {}).get('analytic_distribution'):
+                to_write['analytic_distribution'] = analytic_distribution
+
     def _import_retrieve_taxes_search_plan(self, collected_values):
         AccountTax = self.env['account.tax']
         return [
             AccountTax._import_retrieve_tax_from_account_default_tax,
             AccountTax._import_retrieve_tax_from_predicted_tax,
             AccountTax._import_retrieve_tax_from_price_include_exclude,
+            AccountTax._import_retrieve_tax_from_fixed_allowance_charge,
         ]
 
     def _import_invoice_retrieve_taxes(self, collected_values):
@@ -1764,8 +1799,14 @@ class AccountEdiCommon(models.AbstractModel):
 
         if name := to_write.get('name'):
             base_line_kwargs['_create_values']['name'] = name
+        if analytic_distribution := to_write.get('analytic_distribution'):
+            base_line_kwargs['_create_values']['analytic_distribution'] = analytic_distribution
         if vehicle_id := to_write.get('vehicle_id'):
             base_line_kwargs['_create_values']['vehicle_id'] = vehicle_id
+        if deferred_start_date := to_write.get('deferred_start_date'):
+            base_line_kwargs['_create_values']['deferred_start_date'] = deferred_start_date
+        if deferred_end_date := to_write.get('deferred_end_date'):
+            base_line_kwargs['_create_values']['deferred_end_date'] = deferred_end_date
 
         base_line_kwargs['_create_values'] = {
             **base_line_kwargs['_create_values'],
@@ -1912,7 +1953,11 @@ class AccountEdiCommon(models.AbstractModel):
             if not taxes:
                 continue
 
-            target_tax_amount_currency = taxes_to_tax_amount_currency[taxes]
+            delta_tax_amount_currency = taxes_to_tax_amount_currency[taxes] - sum(
+                tax_data['tax_amount_currency']
+                for _base_line, taxes_data in values['base_line_x_taxes_data']
+                for tax_data in taxes_data
+            )
             target_factors = [
                 {
                     'factor': tax_data['raw_tax_amount_currency'],
@@ -1923,12 +1968,13 @@ class AccountEdiCommon(models.AbstractModel):
             ]
             amounts_to_distribute = AccountTax._distribute_delta_amount_smoothly(
                 precision_digits=currency.decimal_places,
-                delta_amount=target_tax_amount_currency,
+                delta_amount=delta_tax_amount_currency,
                 target_factors=target_factors,
+                allow_negative_factors=True,
             )
             for target_factor, amount_to_distribute in zip(target_factors, amounts_to_distribute):
                 tax_data = target_factor['tax_data']
-                tax_data['tax_amount_currency'] = amount_to_distribute
+                tax_data['tax_amount_currency'] += amount_to_distribute
 
         AccountTax._add_accounting_data_in_base_lines_tax_details(base_lines, invoice.company_id, include_caba_tags=invoice.always_tax_exigible)
         tax_results = AccountTax._prepare_tax_lines(base_lines, invoice.company_id, tax_lines=tax_lines)

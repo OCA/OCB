@@ -85,18 +85,28 @@ $o-call-menu-item-padding: 9px 12px;
     }
 }
 
-.o-discuss-CallActionList-pulse {
-    --pulse-spread-radius: 1.5rem;
-    animation: pulseFullScreen 1s cubic-bezier(0.4, 1, 0.6, 1) 10;
-}
-
-@keyframes pulseFullScreen {
-    from {
-        box-shadow: 0 0 0 0 var(--pulse-color-from, #{$primary});
-        border-radius: 50%;
+.o-discuss-quickVoiceSettings:has(.o-discuss-TalkingAudioBars) {
+    .o-discuss-TalkingAudioBars {
+        position: absolute;
+        inset: 0;
+        height: auto;
+        pointer-events: none;
     }
-    to {
-        box-shadow: 0 0 7px var(--pulse-spread-radius, 2em) var(--pulse-color-to, #{rgba($primary, 0.2)});
-        border-radius: 50%;
+
+    .o-discuss-TalkingAudioBars-audioBar {
+        background-color: currentColor !important;
+    }
+
+    .o-discuss-quickVoiceSettings-chevron {
+        opacity: 0;
+    }
+
+    &:hover, &.show {
+        .o-discuss-quickVoiceSettings-chevron {
+            opacity: 1;
+        }
+        .o-discuss-TalkingAudioBars {
+            opacity: 0;
+        }
     }
 }

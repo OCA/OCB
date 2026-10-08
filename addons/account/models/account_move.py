@@ -1206,6 +1206,7 @@ class AccountMove(models.Model):
         'line_ids.amount_residual_currency',
         'line_ids.payment_id.state',
         'line_ids.full_reconcile_id',
+        'tax_totals',
         'state')
     def _compute_amount(self):
         self.line_ids.fetch([
@@ -1220,7 +1221,7 @@ class AccountMove(models.Model):
         for move in self:
             total_untaxed, total_untaxed_currency = 0.0, 0.0
             total_tax, total_tax_currency = 0.0, 0.0
-            total_residual, total_residual_currency = 0.0, 0.0
+            total_reconciled, total_reconciled_currency = 0.0, 0.0
             total, total_currency = 0.0, 0.0
 
             for line in move.line_ids:
@@ -1239,9 +1240,9 @@ class AccountMove(models.Model):
                         total += line.balance
                         total_currency += line.amount_currency
                     elif line.display_type == 'payment_term':
-                        # Residual amount.
-                        total_residual += line.amount_residual
-                        total_residual_currency += line.amount_residual_currency
+                        # Reconciled amount.
+                        total_reconciled += line.balance - line.amount_residual
+                        total_reconciled_currency += line.amount_currency - line.amount_residual_currency
                 else:
                     # === Miscellaneous journal entry ===
                     if line.debit:
@@ -1249,15 +1250,16 @@ class AccountMove(models.Model):
                         total_currency += line.amount_currency
 
             sign = move.direction_sign
+            tax_totals = move.tax_totals or {}
             move.amount_untaxed = sign * total_untaxed_currency
             move.amount_tax = sign * total_tax_currency
             move.amount_total = sign * total_currency
-            move.amount_residual = -sign * total_residual_currency
+            move.amount_residual = tax_totals.get('total_amount_currency', 0.0) + sign * total_reconciled_currency
             move.amount_untaxed_signed = -total_untaxed
             move.amount_untaxed_in_currency_signed = -total_untaxed_currency
             move.amount_tax_signed = -total_tax
             move.amount_total_signed = abs(total) if move.move_type == 'entry' else -total
-            move.amount_residual_signed = total_residual
+            move.amount_residual_signed = -sign * tax_totals.get('total_amount', 0.0) - total_reconciled
             move.amount_total_in_currency_signed = abs(move.amount_total) if move.move_type == 'entry' else -(sign * move.amount_total)
 
     @api.depends('amount_residual', 'move_type', 'state', 'company_id', 'reconciled_payment_ids.state')
@@ -2796,7 +2798,8 @@ class AccountMove(models.Model):
                 copied_vals = line.copy_data()[0]
                 self.invoice_line_ids += self.env['account.move.line'].new(copied_vals)
 
-            self.currency_id = self.invoice_vendor_bill_id.currency_id
+            if self.currency_id != self.invoice_vendor_bill_id.currency_id:
+                self.currency_id = self.invoice_vendor_bill_id.currency_id
             self.fiscal_position_id = self.invoice_vendor_bill_id.fiscal_position_id
 
             # Reset
@@ -2891,6 +2894,15 @@ class AccountMove(models.Model):
         if not self.document_sequence_editable:
             self.name = False
             self._compute_name()
+
+    @api.onchange('document_tax_mode')
+    def _onchange_document_tax_mode(self):
+        for move in self:
+            # Managed here due to limitations of the account.move.line model in
+            # handling related fields: the lines being edited keep the mode of
+            # the previous value, so their totals are not recomputed.
+            for line in move.invoice_line_ids:
+                line.document_tax_mode = move.document_tax_mode
 
     @api.onchange('invoice_cash_rounding_id', 'tax_totals')
     def _onchange_ineffective_cash_rounding(self):
@@ -3350,7 +3362,7 @@ class AccountMove(models.Model):
         def get_base_line_tracked_fields(line):
             grouping_key = AccountTax._prepare_base_line_grouping_key(fake_base_line)
             if line.move_id.is_invoice(include_receipts=True):
-                extra_fields = ['price_unit', 'quantity', 'discount', 'deductible_percentage']
+                extra_fields = ['price_unit', 'quantity', 'discount', 'deductible_percentage', 'extra_tax_data']
             else:
                 extra_fields = ['amount_currency']
             return list(grouping_key.keys()) + extra_fields
@@ -5253,6 +5265,9 @@ class AccountMove(models.Model):
             {
                 **self._prepare_product_base_line_for_taxes_computation(line),
                 'is_refund': True,
+                'manual_total_excluded_currency': None,
+                'manual_total_excluded': None,
+                'manual_tax_amounts': {},
             }
             for line in invoice_lines
         ]
@@ -5916,6 +5931,9 @@ class AccountMove(models.Model):
 
     def _can_be_unlinked(self):
         self.ensure_one()
+        if not self.posted_before:
+            # an entry that was never posted is deleted, reversing it would post amounts that never were posted
+            return True
         tax_lock_date = self.company_id._get_user_lock_date('tax_lock_date')
         fiscal_lock_date = self.company_id._get_user_fiscal_lock_date(self.journal_id)
         posted_caba_entry = self.state == 'posted' and (self.tax_cash_basis_rec_id or self.tax_cash_basis_origin_move_id)
@@ -6649,7 +6667,6 @@ class AccountMove(models.Model):
             'type': 'ir.actions.act_window',
             'res_model': 'account.move.line',
             'target': 'current',
-            'context': dict(self.env.context),
             'views': [(False, 'list')],
             'domain': [('move_id', '=', self.id), ('display_type', 'not in', ('line_section', 'line_subsection', 'line_note'))],
         }
@@ -6881,15 +6898,30 @@ class AccountMove(models.Model):
         '''
         self.ensure_one()
         partial = self.env['account.partial.reconcile'].browse(partial_id)
-        (partial.credit_move_id + partial.debit_move_id).remove_move_reconcile()
+        (partial.credit_move_id + partial.debit_move_id).move_id._remove_reconciliation_between_moves()
+
+    def _remove_reconciliation_between_moves(self):
+        """ Undo the reconciliation between the journal entries in self, on every account, while keeping the
+        reconciliation of these entries with any other journal entry.
+        """
+        self.env['account.partial.reconcile'].search([
+            ('debit_move_id.move_id', 'in', self.ids),
+            ('credit_move_id.move_id', 'in', self.ids),
+        ]).unlink()
 
     def set_moves_checked(self, is_checked=True):
         for move in self.filtered(lambda m: m.state == 'posted'):
             move.review_state = 'reviewed' if is_checked else 'todo'
 
+    def _is_draft_disabled(self):
+        self.ensure_one()
+        return self.need_cancel_request
+
     def button_draft(self):
         if any(move.state not in ('cancel', 'posted') for move in self):
             raise UserError(_("Only posted/cancelled journal entries can be reset to draft."))
+        if any(move._is_draft_disabled() for move in self):
+            raise UserError(_("You can't reset to draft those journal entries. You need to request a cancellation instead."))
 
         self._check_draftable()
         # We delete next auto_post move if draft
@@ -7194,7 +7226,7 @@ class AccountMove(models.Model):
             domain,
             order='date asc, invoice_date asc, sequence_number asc, id asc',
             limit=job_count)
-        to_process.try_lock_for_update()
+        to_process = to_process.try_lock_for_update()
         if not to_process:
             return
 
@@ -8184,7 +8216,7 @@ class AccountMove(models.Model):
             return
 
         original_invoice = self.filtered(lambda inv: inv.move_type == 'out_invoice'
-                                         and credit_note.invoice_line_ids.sale_line_ids in inv.invoice_line_ids.sale_line_ids)
+                                         and credit_note.invoice_line_ids.sale_line_ids <= inv.invoice_line_ids.sale_line_ids)
         if len(original_invoice) == 1 and original_invoice._refunds_origin_required():
             credit_note.reversed_entry_id = original_invoice.id
 

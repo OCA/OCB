@@ -1132,6 +1132,14 @@ class SaleOrder(models.Model):
         """
         return bool(self.order_line.product_id) and not self.only_services
 
+    def _get_checkout_delivery_address(self):
+        """Return the address to select in the delivery address list of the checkout.
+
+        :return: The delivery address to select.
+        :rtype: res.partner
+        """
+        return self.partner_shipping_id
+
     def _get_preferred_delivery_method(self, available_delivery_methods):
         """Get the preferred delivery method based on available delivery methods for the order.
 
@@ -1174,10 +1182,14 @@ class SaleOrder(models.Model):
         if rate.get("success"):
             self.set_delivery_line(delivery_method, rate["price"])
 
-            if delivery_method.enable_delivery_estimate and (
-                estimated_delivery_date := delivery_method._get_estimate_delivery_days()
-            ):
-                self.commitment_date = estimated_delivery_date[0]
+            if not delivery_method.enable_delivery_estimate:
+                return
+            if estimated_delivery_days := delivery_method._get_estimate_delivery_days():
+                if (
+                    not self.commitment_date
+                    or self.commitment_date.date().isoformat() not in estimated_delivery_days
+                ):
+                    self.commitment_date = estimated_delivery_days[0]
             else:
                 # reset `commitment_date` if it doesn't have an estimated delivery date set
                 self.commitment_date = None

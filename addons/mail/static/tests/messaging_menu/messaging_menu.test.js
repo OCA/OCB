@@ -22,7 +22,7 @@ import { makeRecordFieldLocalId } from "@mail/model/misc";
 import { Store as StoreModel } from "@mail/model/store";
 import { toRawValue } from "@mail/utils/common/local_storage";
 
-import { describe, expect, mockPermission, test } from "@odoo/hoot";
+import { describe, expect, mockPermission, queryOne, test } from "@odoo/hoot";
 import { animationFrame, mockUserAgent } from "@odoo/hoot-mock";
 import {
     Command,
@@ -503,6 +503,20 @@ test("open chat window from preview", async () => {
     await contains(".o-mail-ChatWindow");
 });
 
+test("context menu anchor does not cover messaging menu items", async () => {
+    const pyEnv = await startServer();
+    pyEnv["discuss.channel"].create({ name: "test" });
+    await start();
+    await openMessagingMenu(MENU_ACTIVE_IDS.CHANNEL);
+    await contains(".o-mail-MessagingMenu .o-mail-MessagingMenuItem-contextMenuAnchor");
+    const contextMenuAnchorRect = queryOne(
+        ".o-mail-MessagingMenuItem-contextMenuAnchor"
+    ).getBoundingClientRect();
+    // A sized anchor can overflow the item and intercept clicks intended for the item.
+    expect(contextMenuAnchorRect.width).toBe(0);
+    expect(contextMenuAnchorRect.height).toBe(0);
+});
+
 test("Counter is updated when receiving new message", async () => {
     const pyEnv = await startServer();
     const partnerId = pyEnv["res.partner"].create({ name: "Albert" });
@@ -706,6 +720,53 @@ test("Messaging menu notification body of chat should show author name once", as
     await openMessagingMenu();
     await contains(".o-mail-NotificationItem-name:text('Demo User')");
     await contains(".o-mail-NotificationItem-text", { textContent: "Hey!" });
+});
+
+test("OdooBot chat added at init messaging still shows its last message", async () => {
+    // `init_messaging` adds the OdooBot chat to the store without its last message, so the
+    // messaging menu has to fetch it rather than consider the channel already loaded.
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({
+        channel_type: "chat",
+        channel_member_ids: [
+            Command.create({ partner_id: serverState.partnerId }),
+            Command.create({ partner_id: serverState.odoobotId }),
+        ],
+    });
+    pyEnv["mail.message"].create({
+        author_id: serverState.odoobotId,
+        body: "<p>Welcome!</p>",
+        message_type: "comment",
+        model: "discuss.channel",
+        res_id: channelId,
+    });
+    await start();
+    await openMessagingMenu();
+    await contains(".o-mail-NotificationItem-text", { textContent: "Welcome!" });
+});
+
+test("fetching the bottom of a channel marks its last message as fetched", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ channel_type: "channel" });
+    const messageIds = pyEnv["mail.message"].create(
+        ["First message", "Second message", "Latest message"].map((body) => ({
+            body,
+            message_type: "comment",
+            model: "discuss.channel",
+            res_id: channelId,
+        }))
+    );
+    await start();
+    const store = getService("mail.store");
+    const channel = store["discuss.channel"].insert({ id: channelId });
+    expect(channel.last_message_fetched).toBe(false);
+    await store.fetchStoreData("/discuss/channel/messages", {
+        channel_id: channelId,
+        fetch_params: { around: messageIds[0], limit: 2 },
+    });
+    expect(channel.last_message_fetched).toBe(false);
+    await store.fetchStoreData("/discuss/channel/messages", { channel_id: channelId });
+    expect(channel.last_message_fetched).toBe(true);
 });
 
 test("Group chat should be displayed inside the chat section of the messaging menu", async () => {
@@ -1110,7 +1171,7 @@ test("Can quick search when more than 20 items", async () => {
     await insertText(".o-mail-MessagingMenu input", "nice");
     await contains(".o-mail-NotificationItem", { count: 1 });
     await contains(".o-mail-NotificationItem-name:text('Nice channel')");
-    await click("[title='Clear search']");
+    await click(".o-mail-MessagingMenu .o-mail-SearchInput [title='Clear']");
     await insertText(".o-mail-MessagingMenu input", "cool", { replace: true });
     await contains(".o-mail-NotificationItem", { count: 1 });
     await contains(".o-mail-NotificationItem-name:text('Cool channel')");

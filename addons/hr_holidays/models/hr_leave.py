@@ -71,7 +71,7 @@ class HrLeave(models.Model):
     _name = 'hr.leave'
     _description = "Time Off"
     _order = "date_from desc"
-    _inherit = ['mail.thread.main.attachment', 'mail.activity.mixin', 'hr.time.rule.source.mixin']
+    _inherit = ['mail.thread.main.attachment', 'mail.activity.mixin', 'hr.leave.display.name.mixin', 'hr.time.rule.source.mixin']
     _mail_post_access = 'read'
 
     _time_rule_source_field = 'source_leave_id'
@@ -320,13 +320,18 @@ class HrLeave(models.Model):
 
     @api.depends('company_id')
     def _compute_allowed_work_entry_type_ids(self):
+        selectable_domain = (
+            Domain.TRUE
+            if self.env.user.has_group('hr_holidays.group_hr_holidays_manager')
+            else Domain('time_off_selectable', '=', True)
+        )
         for leave in self:
             country = leave.company_id.country_id
             if not country or not self.env['hr.work.entry.type'].search_count([('country_id', '=', country.id)], limit=1):
                 domain = [('country_id', '=', False)]
             else:
                 domain = [('country_id', '=', country.id)]
-            leave.allowed_work_entry_type_ids = self.env['hr.work.entry.type'].search(domain)
+            leave.allowed_work_entry_type_ids = self.env['hr.work.entry.type'].search(Domain.AND([selectable_domain, domain]))
 
     @api.onchange('request_hour_from', 'request_hour_to')
     def _onchange_hours(self):
@@ -350,7 +355,7 @@ class HrLeave(models.Model):
     @api.depends(
         'virtual_remaining_leaves', 'number_of_days', 'number_of_hours',
         'work_entry_type_id', 'employee_id', 'request_date_from', 'request_date_to',
-        'work_entry_type_request_unit'
+        'work_entry_type_id.unit_of_measure'
     )
     @api.depends_context('default_is_multi_employee')
     def _compute_allocation_warning(self):
@@ -362,7 +367,7 @@ class HrLeave(models.Model):
                 continue
 
             remaining = leave.virtual_remaining_leaves
-            is_hour = leave.work_entry_type_request_unit == 'hour'
+            is_hour = leave.work_entry_type_id.unit_of_measure == 'hour'
             request_amount = leave.number_of_hours if is_hour else leave.number_of_days
             max_excess = leave.work_entry_type_id.max_allowed_negative if leave.work_entry_type_id.allows_negative else 0
 
@@ -1094,9 +1099,9 @@ class HrLeave(models.Model):
     @api.depends('number_of_hours', 'number_of_days')
     def _compute_duration_display(self):
         for leave in self:
-            duration = leave.number_of_days
-            unit = _('days')
-            display = "%g %s" % (float_round(duration, precision_digits=2), unit)
+            duration = float_round(leave.number_of_days, precision_digits=2)
+            unit = _('day') if duration == 1 else _('days')
+            display = "%g %s" % (duration, unit)
             if leave.work_entry_type_request_unit == "hour" \
                     or (leave.work_entry_type_request_unit in ('day', 'half_day')
                         and (leave.is_time_rule_trimmed or leave.source_leave_id)
@@ -1309,11 +1314,10 @@ class HrLeave(models.Model):
             holiday.supported_attachment_ids_count = len(holiday.attachment_ids.ids)
 
     @api.depends_context('uid')
-    @api.depends('work_entry_type_support_document')
     def _compute_attachment_is_visible(self):
         is_privileged_user = self.env.user.has_groups('hr_holidays.group_hr_holidays_user,hr_holidays.group_hr_holidays_manager')
         for leave in self:
-            if leave.work_entry_type_support_document and (is_privileged_user or self.env.uid in (leave.user_id.id, leave.create_uid.id)):
+            if (is_privileged_user or self.env.uid in (leave.user_id.id, leave.create_uid.id)):
                 leave.attachment_is_visible = True
             else:
                 leave.attachment_is_visible = False
@@ -1485,60 +1489,19 @@ class HrLeave(models.Model):
         'work_entry_type_id', 'number_of_hours',
         'work_entry_type_request_unit', 'number_of_days', 'department_id',
     )
-    @api.depends_context('short_name', 'hide_employee_name', 'groupby')
+    @api.depends_context('short_name', 'hide_employee_name', 'groupby', 'scale')
     def _compute_display_name(self):
         for leave in self:
-            user_tz = ZoneInfo(leave.tz)
-            date_from_utc = leave.date_from and leave.date_from.astimezone(user_tz).date()
-            date_to_utc = leave.date_to and leave.date_to.astimezone(user_tz).date()
-            time_off_type_display = leave.work_entry_type_id.display_code or leave.work_entry_type_id.name
-            if leave.work_entry_type_request_unit == "hour":
-                base_duration = format_duration(leave.number_of_hours)
-                hours_str, minutes_str = base_duration.split(":")
-                hours = int(hours_str)
-                minutes = int(minutes_str)
-                if minutes > 0:
-                    custom_duration = self.env._("%(hours)dh%(minutes)02d", hours=hours, minutes=minutes)
-                else:
-                    custom_duration = self.env._("%(hours)dh", hours=hours)
-            else:
-                days = float_round(leave.number_of_days, precision_digits=2)
-                custom_duration = self.env._("%(days)gd", days=days)
-            if self.env.context.get('short_name'):
-                short_leave_name = leave.name or time_off_type_display or self.env._('Time Off')
-                leave.display_name = self.env._("%(name)s: %(duration)s", name=short_leave_name,
-                                                duration=leave.duration_display)
-            else:
-                target = leave.employee_id.name or ""
-                display_date = format_date(self.env, date_from_utc) or ""
-                if leave.number_of_days > 1 and date_from_utc and date_to_utc:
-                    display_date += self.env._(' to %(date_to_utc)s',
-                        date_to_utc=format_date(self.env, date_to_utc) or ""
-                    )
-                if not target or self.env.context.get('hide_employee_name') and 'employee_id' in self.env.context.get('group_by', []):
-                    if self.env.user.has_group('hr_holidays.group_hr_holidays_user'):
-                        leave.display_name = self.env._("%(work_entry_type)s %(duration)s",
-                            work_entry_type=time_off_type_display,
-                            duration=custom_duration,
-                        )
-                    else:
-                        leave.display_name = self.env._("%(duration)s (%(start)s)",
-                            duration=leave.duration_display,
-                            start=display_date,
-                        )
-                elif not time_off_type_display:
-                    leave.display_name = self.env._("%(person)s: %(duration)s (%(start)s)",
-                        person=target,
-                        duration=leave.duration_display,
-                        start=display_date,
-                    )
-                else:
-                    leave.display_name = self.env._("%(person)s on %(work_entry_type)s: %(duration)s (%(start)s)",
-                        person=target,
-                        work_entry_type=time_off_type_display,
-                        duration=leave.duration_display,
-                        start=display_date,
-                    )
+            leave.display_name = self._build_leave_display_name(
+                tz=leave.tz,
+                leave=leave,
+                employee_name=leave.employee_id.name or "",
+                work_entry_type_display=(
+                    leave.work_entry_type_id.display_code
+                    or leave.work_entry_type_id.name
+                ),
+                duration_display=leave.duration_display,
+            )
 
     def onchange(self, values, field_names, fields_spec):
         # Try to force the work_entry_type display_name when creating new records
@@ -1629,7 +1592,7 @@ class HrLeave(models.Model):
         holiday_sudo.add_follower(self.employee_id.id)
         if self.validation_type == 'manager':
             holiday_sudo.message_subscribe(partner_ids=self.employee_id.leave_manager_id.partner_id.ids)
-        if self.validation_type == 'no_validation' or self.env.user.has_group('hr_holidays.group_hr_holidays_user'):
+        if self.validation_type == 'no_validation' or (self.env.user.has_group('hr_holidays.group_hr_holidays_user') and self.employee_id != self.env.user.employee_id):
             # Automatic validation should be done in sudo, because user might not have the rights to do it by himself
             # skip_time_rules: bulk trigger below, once resource.calendar.leaves exist for all auto-approved leaves
             holiday_sudo.with_context(skip_time_rules=True).action_approve()
@@ -1928,7 +1891,7 @@ class HrLeave(models.Model):
 
             meeting_values = {
                 'name': meeting_name,
-                'duration': holiday.number_of_days * (holiday.resource_calendar_id.hours_per_day or HOURS_PER_DAY),
+                'duration': self.env['calendar.event']._get_duration(start_value, stop_value),
                 'description': holiday.notes,
                 'user_id': user.id,
                 'start': start_value,

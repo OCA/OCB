@@ -7,6 +7,7 @@ from odoo.fields import Command
 from datetime import datetime, timedelta
 from odoo.addons.point_of_sale.tests.common import CommonPosTest
 from odoo.exceptions import ValidationError
+from odoo.tests import Form
 
 
 @odoo.tests.tagged('post_install', '-at_install')
@@ -137,6 +138,29 @@ class TestPointOfSaleFlow(CommonPosTest):
         self.assertEqual(len(order_2), 1, "Expected 1 order directly on child partner")
         self.assertEqual(parent_partner.pos_order_count, 2, "Parent partner should see 2 orders including child’s")
         self.assertEqual(child_partner.pos_order_count, 1, "Child partner should see only their own order")
+
+    def test_backend_order_refund_flow(self):
+        """ The purpose of this test is to test the basic flow of
+        refunding orders from the backend. More precisely making sure:
+        - We do not refund more than the initial order's quantity"""
+        self.pos_config_usd.open_ui()
+
+        order, _ = self.create_backend_pos_order({
+            'line_data': [
+                {'product_id': self.ten_dollars_with_10_incl.product_variant_id.id},
+            ],
+            'payment_data': [
+                {'payment_method_id': self.cash_payment_method.id, 'amount': 10},
+            ]
+        })
+
+        refund_action = order.refund()
+        refund = self.env['pos.order'].browse(refund_action['res_id'])
+
+        with Form(refund) as refund_form:
+            with refund_form.lines.edit(0) as line:
+                with self.assertRaises(ValidationError, msg="You cannot refund more than the original order."):
+                    line.qty = -3
 
     def test_order_to_invoice_no_tax(self):
         order, _ = self.create_backend_pos_order({
@@ -1072,6 +1096,16 @@ class TestPointOfSaleFlow(CommonPosTest):
         order = self.env['pos.order'].search([])
         self.assertEqual(order.name, f"/AA - {order.pos_reference.split('-')[-1]} - 1.B")
 
+    def test_create_journal_and_payment_methods_bank_journal_explicit_company_currency(self):
+        """A bank journal whose currency is explicitly set to the company currency
+        (instead of left empty) must still be found and used, not treated as a
+        foreign-currency journal."""
+        self.env['pos.payment.method'].search([]).write({'active': False})
+        self.company_data['default_journal_bank'].currency_id = self.company.currency_id
+        _, pm_ids = self.pos_config_usd._create_journal_and_payment_methods()
+        bank_pm = self.env['pos.payment.method'].browse(pm_ids).filtered(lambda pm: pm.name == 'Card')
+        self.assertEqual(bank_pm.journal_id, self.company_data['default_journal_bank'])
+
     def test_payment_method_sequence(self):
         self.env['pos.payment.method'].search([]).write({'active': False})
         _, pm_ids = self.pos_config_usd._create_journal_and_payment_methods()
@@ -1410,3 +1444,65 @@ class TestPointOfSaleFlow(CommonPosTest):
         self.assertEqual(len(logged_messages), 2)
         self.assertIn('Twenty dollars no tax: Deleted line (quantity: 1.0)', logged_messages[0])
         self.assertIn('Ten dollars no tax: Ordered quantity: 2.0 → 1', logged_messages[1])
+
+    def test_cash_in_out_has_no_partner(self):
+        """The cashier is not the counterpart of a cash move: it must not be set as
+        partner on the statement line nor on its journal items."""
+        self.pos_config_usd.open_ui()
+        session = self.pos_config_usd.current_session_id
+        session.set_opening_control(0, False)
+        session.try_cash_in_out('in', 10, 'Float', self.env.user.partner_id.id)
+
+        cash_move = session.bank_statement_line_ids
+        self.assertFalse(cash_move.partner_id)
+        self.assertFalse(cash_move.move_id.line_ids.partner_id)
+        self.assertEqual(session.get_cash_in_out_list()[0]['cashier_name'], self.env.user.name)
+
+    def test_refund_of_a_global_discount(self):
+        """ The global discount line pins in 'extra_tax_data' base and tax amounts that cannot be
+        recomputed from its price. The UI does not refund that line, it applies the discount again
+        on the refund order, where the refunded lines are negative and the discount is therefore
+        positive. Those pinned amounts have to be used as they are on both orders, otherwise the
+        totals of an order and of its refund do not cancel each other.
+        """
+        AccountTax = self.env['account.tax']
+        company = self.env.company
+        tax = AccountTax.create({'name': 'Tax 20%', 'amount': 20})
+        product = self.env['product.product'].create({
+            'name': 'Product 2.12',
+            'available_in_pos': True,
+            'lst_price': 2.12,
+            'taxes_id': [Command.set(tax.ids)],
+        })
+
+        def discount_line(quantity):
+            """ The values the UI stores for a 10% global discount on 'quantity' x that product. """
+            base_lines = [AccountTax._prepare_base_line_for_taxes_computation(
+                None, product_id=product, tax_ids=product.taxes_id, price_unit=product.lst_price,
+                quantity=quantity, currency_id=company.currency_id, rate=1.0,
+            )]
+            AccountTax._add_tax_details_in_base_lines(base_lines, company)
+            AccountTax._round_base_lines_tax_details(base_lines, company)
+            line = AccountTax._prepare_global_discount_lines(base_lines, company, 'percent', 10.0)[0]
+            return {
+                'product_id': product.id,
+                'qty': line['quantity'],
+                'price_unit': company.currency_id.round(line['price_unit']),
+                'extra_tax_data': AccountTax._export_base_line_extra_tax_data(line),
+            }
+
+        order, refund = (
+            self.create_backend_pos_order({
+                'order_data': {'is_refund': quantity < 0},
+                'line_data': [{'product_id': product.id, 'qty': quantity}, discount_line(quantity)],
+            })[0]
+            for quantity in (2, -2)
+        )
+        self.assertAlmostEqual(
+            order.amount_tax + refund.amount_tax, 0.0,
+            msg="The taxes of an order and of its refund should cancel each other.",
+        )
+        self.assertAlmostEqual(
+            order.amount_total + refund.amount_total, 0.0,
+            msg="The totals of an order and of its refund should cancel each other.",
+        )

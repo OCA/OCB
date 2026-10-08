@@ -13,8 +13,8 @@ export const CARD_COLORS_MAPPING = {
 
 export const CARD_FILTERS_MAPPING = {
     to_confirm: ["to_confirm"],
-    to_fulfill: ["to_fulfill", "sales"],
-    to_invoice: ["to_invoice", "sales"],
+    to_fulfill: ["to_fulfill"],
+    to_invoice: ["to_invoice"],
     to_upsell: ["to_upsell", "sales"],
 };
 
@@ -76,6 +76,7 @@ export class Dashboard extends Component {
             }
             this.state.selectedCard = "";
         });
+        useBus(this.env.bus, "reload", () => this.loadDashboardData());
 
         onWillStart(async () => {
             await this.loadDashboardData();
@@ -161,7 +162,7 @@ export class Dashboard extends Component {
     getDashboardCardAdditionalClass(cardName) {
         const dashboardCardClasses = [];
         if (this.isCardDisabled(cardName)) {
-            dashboardCardClasses.push("bg-secondary text-secondary-emphasis disabled");
+            dashboardCardClasses.push("bg-300 text-700 disabled");
         } else {
             dashboardCardClasses.push(`o_dashboard_card_${CARD_COLORS_MAPPING[cardName]}`);
         }

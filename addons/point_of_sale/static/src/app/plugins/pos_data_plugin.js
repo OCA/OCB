@@ -147,7 +147,25 @@ export class PosDataPlugin extends Plugin {
         return await this.indexedDB.delete(model, ids);
     }
 
+    requestPersistentStorage() {
+        // Ask the browser to exempt this origin's storage (incl. indexedDB) from
+        // automatic eviction under disk pressure. Best-effort: the browser may
+        // deny (or prompt, on Firefox), so don't await it in the startup path.
+        if (navigator.storage?.persist) {
+            navigator.storage.persisted().then(async (persisted) => {
+                const granted = persisted || (await navigator.storage.persist());
+                logPosMessage(
+                    "DataService",
+                    "requestPersistentStorage",
+                    `Persistent storage ${granted ? "granted" : "denied by the browser"}`,
+                    CONSOLE_COLOR
+                );
+            });
+        }
+    }
+
     async initIndexedDB(relations) {
+        this.requestPersistentStorage();
         // This method initializes indexedDB with all models loaded into the PoS. The default key is ID.
         // But some models have another key configured in data_service_options.js. These models are
         // generally those that can be created in the frontend.
@@ -993,6 +1011,9 @@ export class PosDataPlugin extends Plugin {
     }
 
     async loadServerOrders(domain) {
+        const finalizedStates = new Map(
+            this.models["pos.order"].filter((o) => o.finalized).map((o) => [o.uuid, o.state])
+        );
         const result = await this.callRelated(
             "pos.order",
             "read_pos_orders",
@@ -1005,6 +1026,10 @@ export class PosDataPlugin extends Plugin {
         const session = this.models["pos.session"].get(odoo.pos_session_id);
         const orders = result["pos.order"] || [];
         for (const order of orders) {
+            // A read started before the payment was committed must not reopen the order
+            if (finalizedStates.has(order.uuid) && !order.finalized) {
+                order.state = finalizedStates.get(order.uuid);
+            }
             // Clear commands
             order.serializeForORM();
             order.config_id = config;

@@ -10,6 +10,7 @@ import {
     waitStoreFetch,
 } from "@mail/../tests/mail_test_helpers";
 import { animationFrame, describe, expect, test } from "@odoo/hoot";
+import { rightClick } from "@odoo/hoot-dom";
 import { mockDate } from "@odoo/hoot-mock";
 
 import { Command, getService, onRpc, serverState, withUser } from "@web/../tests/web_test_helpers";
@@ -216,7 +217,7 @@ test("Channel member count update after user joined", async () => {
     await contains(".o-discuss-ChannelMemberList h6:text('Online - 1')");
     await click("[title='Add People']");
     await click(".o-discuss-ChannelInvitation-selectable:has(:text('Harry'))");
-    await click(".o-discuss-ChannelInvitation [title='Invite']:enabled");
+    await click(".o-discuss-ChannelInvitation button:text('Invite'):enabled");
     await contains(".o-discuss-ChannelInvitation", { count: 0 });
     await contains(".o-discuss-ChannelMemberList h6:text('Online - 2')");
 });
@@ -456,6 +457,14 @@ test("Shows owner / admin in members panel + member actions for channel owner", 
     await click(".o-discuss-ChannelMember:text('Mario') [title='Member Actions']");
     await contains(".o-dropdown-item", { count: 1 });
     await contains(".o-dropdown-item:has(:text(Remove Member))");
+    await click(".o-mail-Thread");
+    await contains(".o-dropdown-item", { count: 0 });
+    // can right-click to open member actions dropdown
+    await rightClick(".o-discuss-ChannelMember:text('Owner')");
+    await contains(".o-discuss-ChannelMember:text('Owner')[data-right-clicking]");
+    await contains(".o-dropdown-item", { count: 2 });
+    await contains(".o-dropdown-item:eq(0):has(:text(Set Admin))");
+    await contains(".o-dropdown-item:eq(1):has(:text(Set Member))");
 });
 
 test("Can send the invitation again to a member who has not joined yet", async () => {

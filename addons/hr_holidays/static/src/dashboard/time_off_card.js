@@ -1,6 +1,8 @@
+import { cookie } from "@web/core/browser/cookie";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { user } from "@web/core/user";
 import { formatNumber } from "@hr_holidays/views/hooks";
+import { formatDuration } from "@web/views/fields/formatters";
 import { useService } from "@web/core/utils/hooks";
 import { Component, computed, t, useProps } from "@odoo/owl";
 export class TimeOffCardPopover extends Component {
@@ -115,6 +117,7 @@ export class TimeOffCard extends Component {
         });
         this.actionService = useService("action");
         this.lang = user.lang;
+        this.isDarkTheme = cookie.get("color_scheme") === "dark";
         this.formatNumber = formatNumber;
         const { data } = this.props;
         this.errorLeaves = Object.values(data.virtual_excess_data).map((data) => data.leave_id);
@@ -126,20 +129,9 @@ export class TimeOffCard extends Component {
 
     warning = computed(() => this.updateWarning());
 
-    // e.g.: Input: 9.5 Output: 9:30
-    formatHour(hoursFloat) {
-        const sign = hoursFloat < 0 ? "-" : "";
-        const absValue = Math.abs(hoursFloat);
-        const hours = Math.floor(absValue);
-        const minutes = Math.round((absValue - hours) * 60);
-        // Pad minutes with leading zero if needed
-        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-        return `${sign}${hours}:${formattedMinutes}`;
-    }
-
     formatDuration(duration) {
         if (this.props.data.unit_of_measure === "hour") {
-            return this.formatHour(duration);
+            return formatDuration({ hours: duration });
         }
         return formatNumber(this.lang, duration);
     }
@@ -215,19 +207,20 @@ export class TimeOffCard extends Component {
         openLeaveWindow(this.actionService, resModel, name, domain, context);
     }
 
+    /**
+     * Background utility matching the color configured on the time off type
+     * The color picker is 0-indexed over `$o-colors`
+     * while the `bg-color-x` classes are 1-indexed, hence the shift.
+     */
     getColor() {
-        if (!this.props.index) {
-            return "4";
+        const { color } = this.props.data;
+        if (!Number.isInteger(color)) {
+            return "bg-color-4-light";
         }
-        const colorMap = {
-            0: "4",
-            1: "5",
-            2: "6",
-            3: "7",
-            4: "8",
-            5: "9",
-        };
-        return colorMap[this.props.index % 6];
+        if (color === 0) {
+            return "no-bg-color";
+        }
+        return `bg-color-${color + 1}-light`;
     }
 }
 

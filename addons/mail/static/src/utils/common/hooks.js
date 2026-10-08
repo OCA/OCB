@@ -22,6 +22,7 @@ import { monitorAudio } from "@mail/utils/common/media_monitoring";
 import { browser } from "@web/core/browser/browser";
 import { makeDraggableHook } from "@web/core/utils/draggable_hook_builder_owl";
 import { useService } from "@web/core/utils/hooks";
+import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";
 
 /**
  * Version of usePlugin() where the plugin is allowed to not be provided by any parented component.
@@ -572,7 +573,15 @@ export function useSelection({ ref, model, preserveOnClickAwayPredicate = () => 
  * the current bookmark; call `reset()` to drop it (e.g. on context change).
  */
 export class SearchState extends Reactive {
-    searchTerm = "";
+    /**
+     * Backing store of {@link searchTerm}, a local signal unless the parent
+     * passed one through the `searchTerm` option.
+     *
+     * @type {import("@odoo/owl").Signal<string>}
+     */
+    _searchTerm = signal("");
+    /** Whether {@link _searchTerm} is ours to clear, i.e. not the parent's. */
+    ownsSearchTerm = true;
     searching = false;
     loading = false;
     /** @type {any} */
@@ -606,9 +615,17 @@ export class SearchState extends Reactive {
      *  search is active. Defaults to "term is non-empty". Override when a
      *  non-empty term is not the right signal (e.g. a mention popover stays
      *  active for an empty term as long as a delimiter is set).
+     * @param {import("@odoo/owl").Signal<string>} [options.searchTerm] Signal
+     *  holding the term when it is owned elsewhere (e.g. a field of a record
+     *  the rest of the UI reads). Reads and writes go straight through to it,
+     *  so there is no second copy to keep in sync. Defaults to a local signal.
      */
-    constructor({ initialResults = [], fetch, filter, isActive, deps } = {}) {
+    constructor({ initialResults = [], fetch, filter, isActive, deps, searchTerm } = {}) {
         super();
+        if (searchTerm) {
+            this._searchTerm = searchTerm;
+            this.ownsSearchTerm = false;
+        }
         this.initialResults = initialResults;
         this.results = initialResults;
         if (fetch) {
@@ -640,6 +657,14 @@ export class SearchState extends Reactive {
         onWillUnmount(() => this.reset());
     }
 
+    get searchTerm() {
+        return this._searchTerm();
+    }
+
+    set searchTerm(value) {
+        this._searchTerm.set(value);
+    }
+
     get isActive() {
         return this.isActiveGetter ? this.isActiveGetter() : !!this.searchTerm;
     }
@@ -649,7 +674,9 @@ export class SearchState extends Reactive {
     }
 
     reset() {
-        this.searchTerm = "";
+        if (this.ownsSearchTerm) {
+            this.searchTerm = "";
+        }
         this.searching = false;
         this.loading = false;
         this.results = this.initialResults;
@@ -954,4 +981,87 @@ export function propComputed(name, shape) {
 export function propSignal(name, shape, { optional = false } = {}) {
     const type = t.signal(shape);
     return useProps.static(name, optional ? type.optional() : type);
+}
+
+/**
+ * This hook makes it easier to enable right-click to open a dropdown at position of cursor
+ *
+ * @param {import("@odoo/owl").Signal<Element>} rootRef - The root ref of the element that has right-click.
+ *   This rootRef defines the node where the right-click should work.
+ * @param {Object} param1
+ * @param {() => Object} [param1.extraMenuProps={}] - Optional object of extra props provided to the context menu component.
+ * @param {() => void} [param1.onClose] - Optional function invoked when the dropdown closes.
+ * @param {() => void} [param1.onContextMenu] when set, provides a custom handler when right-clicking.
+ * @param {() => boolean} [param1.predicate] - Optional guard to decide whether right-click should
+ *   proceed at all, whether that opens the menu or calls `onContextMenu`.
+ */
+export function useRightClickMenu(
+    rootRef,
+    {
+        extraMenuProps = () => ({}),
+        onClose: onCloseParam,
+        onContextMenu,
+        predicate = () => true,
+    } = {}
+) {
+    /**
+     * @type {boolean} Whether the right-click dropdown is being closed.
+     * Useful to detect when close comes from another right-click on the same element,
+     * in order to show the browser right-click instead.
+     */
+    let isOngoingClose = false;
+    const anchor = signal.ref();
+    const dropdownState = useDropdownState({
+        onClose: async () => {
+            if (isOngoingClose) {
+                return; // onClose can be called more than once. Limiting to a single onClose to prevent race-condition in tests.
+            }
+            onCloseParam?.();
+            isOngoingClose = true;
+            await new Promise((resolve) => setTimeout(() => requestAnimationFrame(resolve)));
+            isOngoingClose = false;
+            delete rootRef()?.dataset.rightClicking;
+        },
+    });
+    const res = {
+        get menuProps() {
+            return {
+                anchorRef: anchor,
+                dropdownState,
+                ...extraMenuProps(),
+            };
+        },
+        /**
+         * @param {Event} ev
+         * @returns {Boolean} whether the open of right-click menu happens or not.
+         */
+        open(ev) {
+            if (
+                !rootRef() ||
+                dropdownState.isOpen ||
+                isOngoingClose ||
+                !document.getSelection()?.isCollapsed // some text selected
+            ) {
+                return false;
+            }
+            rootRef().dataset.rightClicking = true;
+            const el = anchor();
+            el.style.left = ev.clientX + "px";
+            el.style.top = ev.clientY + "px";
+            dropdownState.open();
+            ev.preventDefault();
+            return true;
+        },
+    };
+    useListener(rootRef, "contextmenu", (ev) => {
+        if (!predicate()) {
+            return;
+        }
+        if (onContextMenu) {
+            onContextMenu(ev);
+        } else {
+            res.open(ev);
+        }
+    });
+    return res;
 }

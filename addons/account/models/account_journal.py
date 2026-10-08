@@ -85,7 +85,6 @@ class AccountJournal(models.Model):
     name_placeholder = fields.Char(compute='_compute_name_placeholder')
     code = fields.Char(
         string='Sequence Prefix',
-        size=7,
         compute='_compute_code', readonly=False, store=True,
         required=True, precompute=True,
         help="Shorter name used for display. "
@@ -469,19 +468,15 @@ class AccountJournal(models.Model):
             if journal.type in ('bank', 'cash', 'credit'):
                 existing_method_lines = journal.inbound_payment_method_line_ids
                 default_methods = journal._default_inbound_payment_methods()
-                for pay_method in default_methods:
-                    payment_account = existing_method_lines.filtered(lambda m: m.payment_method_id == pay_method)[:1].payment_account_id
-                    pay_method_line_ids_commands += [
-                        Command.create({
-                            'name': pay_method.name,
-                            'payment_method_id': pay_method.id,
-                            'payment_account_id': (
-                                payment_account.id
-                                if not payment_account.currency_id or payment_account.currency_id == journal.currency_id
-                                else False
-                            ),
-                        })
-                    ]
+                pay_method_line_ids_commands += [Command.create({
+                    'name': pay_method_line.name,
+                    'payment_method_id': pay_method_line.payment_method_id.id,
+                    'payment_account_id': pay_method_line.payment_account_id.id,
+                }) for pay_method_line in existing_method_lines]
+                pay_method_line_ids_commands += [Command.create({
+                    'name': pay_method.name,
+                    'payment_method_id': pay_method.id,
+                }) for pay_method in default_methods if pay_method not in existing_method_lines.payment_method_id]
             journal.inbound_payment_method_line_ids = pay_method_line_ids_commands
 
     @api.depends('type', 'currency_id')
@@ -491,19 +486,15 @@ class AccountJournal(models.Model):
             if journal.type in ('bank', 'cash', 'credit'):
                 existing_method_lines = journal.outbound_payment_method_line_ids
                 default_methods = journal._default_outbound_payment_methods()
-                for pay_method in default_methods:
-                    payment_account = existing_method_lines.filtered(lambda m: m.payment_method_id == pay_method)[:1].payment_account_id
-                    pay_method_line_ids_commands += [
-                        Command.create({
-                            'name': pay_method.name,
-                            'payment_method_id': pay_method.id,
-                            'payment_account_id': (
-                                payment_account.id
-                                if not payment_account.currency_id or payment_account.currency_id == journal.currency_id
-                                else False
-                            ),
-                        })
-                    ]
+                pay_method_line_ids_commands += [Command.create({
+                    'name': pay_method_line.name,
+                    'payment_method_id': pay_method_line.payment_method_id.id,
+                    'payment_account_id': pay_method_line.payment_account_id.id,
+                }) for pay_method_line in existing_method_lines]
+                pay_method_line_ids_commands += [Command.create({
+                    'name': pay_method.name,
+                    'payment_method_id': pay_method.id,
+                }) for pay_method in default_methods if pay_method not in existing_method_lines.payment_method_id]
             journal.outbound_payment_method_line_ids = pay_method_line_ids_commands
 
     @api.depends('outbound_payment_method_line_ids', 'inbound_payment_method_line_ids')
@@ -769,9 +760,7 @@ class AccountJournal(models.Model):
             code_prefix = re.sub(r'\d+', '', copy_code).strip()
             counter = 1
             while counter <= len(all_journal_codes) and copy_code in all_journal_codes:
-                counter_str = str(counter)
-                copy_prefix = code_prefix[:journal._fields['code'].size - len(counter_str)]
-                copy_code = "%s%s" % (copy_prefix, counter_str)
+                copy_code = "%s%s" % (code_prefix, counter)
                 counter += 1
 
             if counter > len(all_journal_codes):
@@ -955,6 +944,7 @@ class AccountJournal(models.Model):
         random_account = self.env['account.account'].with_company(company).search(
             self.env['account.account']._check_company_domain(company),
             limit=1,
+            order='id',
         )
         digits = len(random_account.code or '') if random_account else 6
 
@@ -1041,7 +1031,11 @@ class AccountJournal(models.Model):
                 vals['default_account_id'] = default_account_id
 
         if is_import and not vals.get('code'):
-            code = vals['name'][:self._fields['code'].size]
+            code, name = self.env['account.account']._split_code_name(vals['name'])
+            if code and name:
+                vals['name'] = name
+            else:
+                code = vals['name']
             vals['code'] = code if not protected_codes or code not in protected_codes else self._get_next_journal_default_code(journal_type, company, protected_codes)
             if not vals['code']:
                 raise UserError(_("Cannot generate an unused journal code. Please change the name for journal %s.", vals['name']))

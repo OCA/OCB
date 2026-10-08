@@ -307,6 +307,7 @@
                 mode="week"
                 quick_create="0"
                 event_open_popup="true"
+                show_unusual_days="True"
                 color="wet_color"
                 form_view_id="%(hr_attendance.hr_attendance_my_form_view)d">
                 <field name="wet_color" invisible="1"/>
@@ -409,8 +410,7 @@
                     <filter string="Department" name="department" context="{'group_by': 'department_id'}"/>
                     <filter string="Manager" name="manager" context="{'group_by': 'manager_id'}"/>
                     <filter string="Method" name="groupby_mode_in" context="{'group_by': 'in_mode'}"/>
-                    <filter string="Week" name="groupby_week" context="{'group_by': 'check_in:week'}"/>
-                    <filter string="Date" name="groupby_name" context="{'group_by': 'check_in:month'}"/>
+                    <filter string="Date" name="groupby_month" context="{'group_by': 'check_in:month'}"/>
                 </group>
             </search>
         </field>
@@ -440,7 +440,7 @@
         <field name="view_mode">list,form</field>
         <field name="context">
             {
-                "search_default_groupby_name": 1,
+                "search_default_groupby_month": 1,
                 "search_default_employee": 2
             }
         </field>
@@ -608,8 +608,6 @@
     <menuitem id="menu_hr_attendance_view_attendances_management" name="Management" parent="menu_hr_attendance_root" sequence="6" groups="hr_attendance.group_hr_attendance_user"/>
 
     <menuitem id="menu_hr_attendance_view_dashboard" name="Dashboard" action="hr_attendance_action" parent="menu_hr_attendance_view_attendances_management" sequence="1" groups="hr_attendance.group_hr_attendance_user"/>
-
-    <menuitem id="menu_hr_attendance_employee" name="Employees" parent="menu_hr_attendance_view_attendances_management" action="hr.open_view_employee_list_my" groups="hr_attendance.group_hr_attendance_officer" sequence="2"/>
 
     <menuitem id="menu_hr_attendance_management_list" name="Attendances" parent="menu_hr_attendance_view_attendances_management" action="hr_attendance_management_action" sequence="3"/>
 

@@ -94,7 +94,7 @@ class HrEmployee(models.Model):
     def _get_hr_responsible_domain(self):
         return "[('share', '=', False), ('company_ids', 'in', company_id), ('all_group_ids', 'in', %s)]" % self.env.ref('hr.group_hr_user').id
 
-    hr_responsible_id = fields.Many2one(related='version_id.hr_responsible_id', readonly=False, inherited=True, domain=_get_hr_responsible_domain, groups="hr.group_hr_user")
+    hr_responsible_id = fields.Many2one(related='version_id.hr_responsible_id', readonly=False, inherited=True, domain=lambda self: self.env['hr.version']._get_hr_responsible_domain(), groups="hr.group_hr_user")
 
     @api.model
     def _lang_get(self):
@@ -1078,7 +1078,10 @@ class HrEmployee(models.Model):
                 employees_without_work_contact += employee
             else:
                 if len(employee.work_contact_id.employee_ids) <= 1:
-                    employee.work_contact_id.sudo().write({
+                    partner = employee.work_contact_id
+                    if not employee.user_id:
+                        partner = partner.sudo()
+                    partner.write({
                         'email': employee.work_email or employee.private_email,
                         'phone': employee.work_phone,
                     })
@@ -1606,8 +1609,10 @@ class HrEmployee(models.Model):
     def _verify_barcode(self):
         for employee in self:
             if employee.barcode:
-                if not (re.match(r'^[A-Za-z0-9]+$', employee.barcode) and len(employee.barcode) <= 18):
-                    raise ValidationError(self.env._("The Badge ID must be alphanumeric without any accents and no longer than 18 characters."))
+                # [!-~] matches every printable ASCII character except the space,
+                # which is excluded because leading or trailing spaces are invisible
+                if not re.fullmatch(r'[!-~]{1,18}', employee.barcode):
+                    raise ValidationError(self.env._("The Badge ID must contain only printable ASCII characters, without spaces, and be no longer than 18 characters."))
 
     @api.onchange('user_id')
     def _onchange_user(self):
@@ -2270,7 +2275,7 @@ class HrEmployee(models.Model):
                 date_to,
                 resources_per_tz=resources_per_tz,
                 compute_leaves=True,
-                domain=[('company_id', 'in', [False, self.company_id.id])])[self.resource_id.id]
+                domain=[('company_id', 'in', [False, self.company_id.id]), ('count_as', '=', 'leave')])[self.resource_id.id]
             return calendar_intervals
         duration_data = Intervals()
         version_prev = datetime.combine(valid_versions[0].date_start, time.min, employee_tz)
@@ -2383,10 +2388,8 @@ class HrEmployee(models.Model):
         }
 
     def _store_avatar_card_fields(self, res: Store.FieldList):
-        res.one("department_id", ["name"])
         res.attr("resource_id", "_store_avatar_card_fields")
         res.one("user_id", "_store_avatar_card_fields")
-        res.one("work_location_id", ["location_type", "name"])
         res.extend([
             "active",
             "company_id",

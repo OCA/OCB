@@ -318,7 +318,7 @@ class AccountTax(models.Model):
     @api.depends('company_id', 'company_id.domestic_fiscal_position_id', 'fiscal_position_ids')
     def _compute_is_domestic(self):
         for tax in self:
-            tax.is_domestic = not tax.fiscal_position_ids or tax.company_id.domestic_fiscal_position_id in tax.fiscal_position_ids
+            tax.is_domestic = not tax.fiscal_position_ids or tax.company_id.domestic_fiscal_position_id in tax.fiscal_position_ids._origin
 
     @api.depends('fiscal_position_ids')
     def _compute_display_alternative_taxes_field(self):
@@ -1463,7 +1463,8 @@ class AccountTax(models.Model):
     def _reverse_quantity_base_line_extra_tax_data(self, extra_tax_data):
         """ Reverse all sign in extra_tax_data using the quantity.
 
-        [!] Only added python-side.
+        [!] Mirror of the same method in account_tax.js.
+        PLZ KEEP BOTH METHODS CONSISTENT WITH EACH OTHERS.
 
         :param extra_tax_data: The manual taxes data stored on records.
         :return: The extra_tax_data but reversed.
@@ -5056,6 +5057,53 @@ class AccountTax(models.Model):
         return {'criteria': criteria}
 
     @api.model
+    def _import_retrieve_tax_from_fixed_allowance_charge(self, tax_values):
+        if tax_values.get('amount_type') != 'fixed':
+            return
+
+        invoice = tax_values.get('invoice_predictive', {}).get('invoice')
+        company_id = invoice.company_id.id if invoice else self.env.company.id
+        calculated_amount = tax_values.get('amount', 0.0)
+        reason = (tax_values.get('name') or '').strip().lower()
+        type_tax_use = tax_values.get('type_tax_use')
+
+        # ignore values param as it has a flawed static_domain, but we have to use it in the function signature
+        def search_fixed_tax_fuzzy(values):
+            candidate_taxes = self.search([
+                ('company_id', 'in', [company_id, False]),
+                ('amount_type', '=', 'fixed'),
+                ('type_tax_use', '=', type_tax_use),
+                ('amount', '>=', calculated_amount - 0.01),
+                ('amount', '<=', calculated_amount + 0.01),
+            ])
+
+            if not candidate_taxes:
+                return self
+
+            if len(candidate_taxes) == 1:
+                return candidate_taxes[0]
+
+            for tax in candidate_taxes:
+                tax_name = tax.name.strip().lower()
+                if reason in tax_name or tax_name in reason:
+                    return tax
+            return self
+
+        cache_key = (
+            company_id,
+            type_tax_use,
+            calculated_amount,
+            reason,
+        )
+
+        return {
+            'criteria': [{
+                'search_method': search_fixed_tax_fuzzy,
+                'cache_key': cache_key,
+            }],
+        }
+
+    @api.model
     def _import_retrieve_tax(self, search_plan, company, tax_values_list):
         cache = self.env.cr.cache.setdefault('retrieved_tax_map', {}).setdefault(company.id, {})
 
@@ -5066,17 +5114,20 @@ class AccountTax(models.Model):
             tax_domain = (
                Domain('amount_type', '=', tax_values['amount_type'])
                & Domain('type_tax_use', '=', tax_values['type_tax_use'])
-               & Domain('amount', '=', tax_values['amount'])
             )
+            ubl_cii_tax_category_code = 'ubl_cii_tax_category_code' in self._fields and tax_values.get('ubl_cii_tax_category_code')
+            if tax_values['amount'] or ubl_cii_tax_category_code != 'AE':
+                tax_domain &= Domain('amount', '=', tax_values['amount'])
+            else:
+                # Reverse charge taxes can be reported as 0% in the document even though the
+                # tax itself isn't, so ignore the amount and rely on the category code instead.
+                tax_domain &= Domain('ubl_cii_tax_category_code', '=', 'AE')
             orders = ['sequence', 'id']
             if name := tax_values.get('name'):
                 tax_domain &= Domain('name', '=', name)
             if tax_exigibility := tax_values.get('tax_exigibility'):
                 tax_domain &= Domain('tax_exigibility', '=', tax_exigibility)
-            if (
-                (ubl_cii_tax_category_code := tax_values.get('ubl_cii_tax_category_code'))
-                and 'ubl_cii_tax_category_code' in self._fields
-            ):
+            if ubl_cii_tax_category_code:
                 allowed_tax_category_codes = [ubl_cii_tax_category_code, False]
                 if company.vat_disabled and ubl_cii_tax_category_code != 'O':
                     allowed_tax_category_codes.append('O')

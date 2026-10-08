@@ -547,6 +547,7 @@ class AccountEdiCii(models.AbstractModel):
     def _cii_get_buyer_trade_party_node(self, vals):
         customer = vals['customer']
         commercial_partner = customer.commercial_partner_id
+        name = customer.display_name if customer.name else commercial_partner.display_name
         scheme_id = None
         legal_organization_val = False
         if siret := commercial_partner._get_additional_identifier('FR_SIRET'):
@@ -554,11 +555,11 @@ class AccountEdiCii(models.AbstractModel):
             legal_organization_val = siret[:9]
         return self._cii_get_partner_trade_party_node(vals, {
             'gln': False,
-            'name': customer.name,
+            'name': name,
             'partner_specified_legal_organization': legal_organization_val,
             'partner_specified_legal_organization_scheme': scheme_id,
             'contact_values': {
-                'name': customer.name,
+                'name': name,
                 'phone': customer.phone,
                 'email': customer.email,
             },
@@ -1435,6 +1436,9 @@ class AccountEdiCii(models.AbstractModel):
     def _import_cii_invoice_retrieve_accounts(self, collected_values):
         self._import_invoice_retrieve_accounts(collected_values)
 
+    def _import_cii_invoice_retrieve_analytic_distribution(self, collected_values):
+        self._import_invoice_retrieve_analytic_distribution(collected_values)
+
     def _import_cii_invoice_retrieve_taxes(self, collected_values):
         self._import_invoice_retrieve_taxes(collected_values)
 
@@ -1534,6 +1538,7 @@ class AccountEdiCii(models.AbstractModel):
         self._import_cii_invoice_retrieve_products(collected_values)
         self._import_cii_invoice_retrieve_product_uoms(collected_values)
         self._import_cii_invoice_retrieve_accounts(collected_values)
+        self._import_cii_invoice_retrieve_analytic_distribution(collected_values)
         self._import_cii_invoice_retrieve_taxes(collected_values)
         self._import_cii_invoice_add_base_lines(collected_values)
 

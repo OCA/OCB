@@ -133,9 +133,24 @@ class Cart(PaymentPortal):
                 )
             )
         if not product or not product._is_add_to_cart_allowed():
-            raise UserError(
-                self.env._("The given product does not exist therefore it cannot be added to cart.")
-            )
+            raise UserError(self._get_product_user_error(product))
+
+        if product.sudo().type == 'combo':
+            combo_item_products = [
+                product for product in linked_products or [] if product.get('combo_item_id')
+            ]
+            combos_sudo = product.sudo().product_tmpl_id.combo_ids
+            selected_combos_sudo = request.env['product.combo.item'].sudo().browse([
+                combo_item['combo_item_id'] for combo_item in combo_item_products
+            ]).combo_id
+            if (
+                len(combo_item_products) != len(combos_sudo)
+                or set(selected_combos_sudo.ids) != set(combos_sudo.ids)
+            ):
+                raise UserError(self.env._(
+                    "The number of selected combo items must match the number of available"
+                    " combo choices."
+                ))
 
         added_qty_per_line = {}
         values = order_sudo.with_context(skip_cart_verification=True)._cart_add(
@@ -169,11 +184,7 @@ class Cart(PaymentPortal):
                         and not product_data.get("combo_item_id")
                     )
                 ):
-                    raise UserError(
-                        self.env._(
-                            "The given product does not exist therefore it cannot be added to cart."
-                        )
-                    )
+                    raise UserError(self._get_product_user_error(product_sudo))
 
                 product_values = order_sudo.with_context(skip_cart_verification=True)._cart_add(
                     product_id=product_data["product_id"],
@@ -253,6 +264,9 @@ class Cart(PaymentPortal):
             "currency": order_sudo.currency_id.name,
         }
 
+    def _get_product_user_error(self, product):
+        return self.env._("The given product does not exist therefore it cannot be added to cart.")
+
     @route(
         route="/shop/cart/quick_add", type="jsonrpc", auth="user", methods=["POST"], website=True
     )
@@ -326,8 +340,8 @@ class Cart(PaymentPortal):
             is falsy
         :params dict kwargs: additional parameters given to _cart_update_line_quantity calls.
         """
-        order_sudo = request.cart
-        order_sudo._check_not_partially_paid()  # Prevent modifying the cart if it's partially paid
+        if order_sudo := request.cart:
+            order_sudo._check_not_partially_paid()  # Prevent modifying the cart if it's partially paid
         quantity = int(quantity)  # Do not allow float values in ecommerce by default
 
         # This method must be only called from the cart page BUT in some advanced logic
@@ -361,8 +375,11 @@ class Cart(PaymentPortal):
             "cart_quantity": order_sudo.cart_quantity,
             "currency": order_sudo.currency_id.name,
             "amount": order_sudo.amount_total,
-            "minor_amount": payment_utils.to_minor_currency_units(
-                order_sudo.amount_total, order_sudo.currency_id
+            "minor_amount": (
+                order_sudo.amount_total
+                and payment_utils.to_minor_currency_units(
+                    order_sudo.amount_total, order_sudo.currency_id
+                )
             ),
             "website_sale.cart_lines": IrUiView._render_template(
                 "website_sale.cart_lines",

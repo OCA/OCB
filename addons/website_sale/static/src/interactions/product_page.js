@@ -801,7 +801,9 @@ export class ProductPage extends Interaction {
             }
         });
 
-        this._updateMinimumQuantity(parent, combination);
+        if (parent.querySelector('input[name="add_qty"]')) {
+            this._updateMinimumQuantity(parent, combination);
+        }
         this._toggleDisable(parent, isCombinationPossible && this.el.dataset.hasAvailableUoms);
 
         // Only update the images, tags and packaging selector if the product has changed.
@@ -1051,16 +1053,7 @@ export class ProductPage extends Interaction {
     _displayErrorMessage(message, stockNotificationEl) {
         const incorrectIconEl = stockNotificationEl.querySelector('#stock_notification_input_incorrect');
         incorrectIconEl.classList.remove('d-none');
-
-        const errorMessageEl = stockNotificationEl.querySelector('#stock_notification_error_message');
-        if (errorMessageEl) {
-            errorMessageEl.textContent = message;
-        } else {
-            const span = document.createElement('span');
-            span.id = 'stock_notification_error_message';
-            span.textContent = message;
-            incorrectIconEl.appendChild(span);
-        }
+        incorrectIconEl.textContent = message;
     }
 
     onClickWishlistStockNotificationMessage(ev) {

@@ -124,7 +124,7 @@ export class Many2One extends Component {
                 fieldString: this.props.string,
                 isToMany: false,
                 onClose: () => {
-                    this.input.focus();
+                    this.input?.focus();
                 },
                 onRecordSaved: this.props.onRecordSaved,
                 onRecordDiscarded: () => {},
@@ -214,12 +214,6 @@ export class Many2One extends Component {
             ? this.props.relation
             : `m-${this.props.relation}`;
         return `/odoo/${relation}/${this.props.value.id}`;
-    }
-
-    onExtraLinesClick() {
-        this.rootRef()
-            ?.querySelector(this.props.readonly ? ".o_form_uri" : "input")
-            .click();
     }
 
     async openBarcodeScanner() {

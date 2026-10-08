@@ -19,7 +19,8 @@ import {
     waitStoreFetch,
     MENU_ACTIVE_IDS,
 } from "@mail/../tests/mail_test_helpers";
-import { describe, expect, mockUserAgent, test } from "@odoo/hoot";
+import { Message } from "@mail/core/common/message";
+import { describe, expect, mockUserAgent, rightClick, test } from "@odoo/hoot";
 import { advanceTime } from "@odoo/hoot-mock";
 
 import { range } from "@web/core/utils/numbers";
@@ -28,6 +29,8 @@ import {
     defineActions,
     getService,
     mockService,
+    onRpc,
+    patchWithCleanup,
     serverState,
 } from "@web/../tests/web_test_helpers";
 
@@ -160,6 +163,32 @@ test("can post a note on a record thread", async () => {
     await contains(".o-mail-Message", { count: 0 });
     await click(".o-mail-Composer button:enabled:text('Log')");
     await contains(".o-mail-Message");
+    await expect.waitForSteps(["/mail/message/post"]);
+});
+
+test("post with reload_on_post keeps the changes of an invalid record", async () => {
+    const pyEnv = await startServer();
+    const partnerId = pyEnv["res.partner"].create({ name: "John Doe" });
+    onRpcBefore("/mail/message/post", () => expect.step("/mail/message/post"));
+    onRpc("res.partner", "web_read", () => expect.step("web_read"));
+    await start();
+    await openFormView("res.partner", partnerId, {
+        arch: `
+            <form>
+                <sheet>
+                    <field name="name" required="1"/>
+                </sheet>
+                <chatter reload_on_post="True"/>
+            </form>`,
+    });
+    await expect.waitForSteps(["web_read"]);
+    await insertText(".o_field_widget[name=name] input", "", { replace: true });
+    await click("button:text('Log note')");
+    await insertText(".o-mail-Composer-input", "hey");
+    await click(".o-mail-Composer button:enabled:text('Log')");
+    await contains(".o-mail-Message");
+    await contains(".o_notification:text('Missing required fields')");
+    await contains(".o_field_invalid[name=name] input:value(/^$/)");
     await expect.waitForSteps(["/mail/message/post"]);
 });
 
@@ -693,15 +722,30 @@ test("chatter updating", async () => {
 });
 
 test("chatter message actions appear only after saving the form", async () => {
+    patchWithCleanup(Message.prototype, {
+        onContextMenu() {
+            expect.step("Message.onContextMenu");
+            super.onContextMenu(...arguments);
+        },
+        onOpenRightClickMenu() {
+            expect.step("Message.onOpenRightClickMenu");
+            super.onOpenRightClickMenu(...arguments);
+        },
+    });
     await start();
     await openFormView("res.partner");
     await contains(".o-mail-Message");
     await contains(".o-mail-Message-actions", { count: 0 });
+    await rightClick(".o-mail-Message");
+    await expect.waitForSteps(["Message.onContextMenu"]);
     await click(".o_form_button_save");
     await click("button:text('Send message')");
     await insertText(".o-mail-Composer-input", "hey");
     await click(".o-mail-Composer-send:enabled");
     await contains(".o-mail-Message-actions");
+    await rightClick(".o-mail-Message");
+    await contains(".o_popover .o-mail-ActionList");
+    await expect.waitForSteps(["Message.onContextMenu", "Message.onOpenRightClickMenu"]);
 });
 
 test("post message on draft record", async () => {

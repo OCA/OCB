@@ -37,12 +37,12 @@ export class DiscussChannel extends models.ServerModel {
         relation: "discuss.channel.member",
         compute: "_compute_channel_name_member_ids",
     });
-    channel_type = fields.Generic({ default: "channel" });
+    channel_type = fields.Selection({ default: "channel" });
     discuss_category_id = fields.Many2one({
         relation: "discuss.category",
         string: "Discuss Category",
     });
-    group_public_id = fields.Generic({
+    group_public_id = fields.Many2one({
         default: () => serverState.groupId,
     });
     invited_member_ids = fields.One2many({
@@ -55,7 +55,7 @@ export class DiscussChannel extends models.ServerModel {
         relation: "discuss.channel.member",
         compute: "_compute_self_member_id",
     });
-    uuid = fields.Generic({
+    uuid = fields.Char({
         default: () => uniqueId("discuss.channel_uuid-"),
     });
     last_interest_dt = fields.Datetime({ string: "Last Interest" });
@@ -829,29 +829,6 @@ export class DiscussChannel extends models.ServerModel {
         }
     }
 
-    get_channels_as_member() {
-        /** @type {import("mock_models").DiscussChannelMember} */
-        const DiscussChannelMember = this.env["discuss.channel.member"];
-        /** @type {import("mock_models").MailGuest} */
-        const MailGuest = this.env["mail.guest"];
-
-        const guest = MailGuest._get_guest_from_context();
-        const memberDomain = guest
-            ? [["guest_id", "=", guest.id]]
-            : [["partner_id", "=", this.env.user.partner_id]];
-        const members = DiscussChannelMember._filter(memberDomain);
-        const pinnedMembers = members.filter((member) => member.is_pinned);
-        const channels = this._filter([
-            ["channel_type", "in", ["channel", "group"]],
-            ["channel_member_ids", "in", members.map((member) => member.id)],
-        ]);
-        const pinnedChannels = this._filter([
-            ["channel_type", "not in", ["channel", "group"]],
-            ["channel_member_ids", "in", pinnedMembers.map((member) => member.id)],
-        ]);
-        return [...channels, ...pinnedChannels];
-    }
-
     /** @param {number} id */
     message_post(id) {
         const kwargs = getKwArgs(arguments, "id");
@@ -1025,23 +1002,6 @@ export class DiscussChannel extends models.ServerModel {
 
     _types_allowing_seen_infos() {
         return ["chat", "group"];
-    }
-
-    _get_channels_as_member() {
-        /** @type {import("mock_models").DiscussChannelMember} */
-        const DiscussChannelMember = this.env["discuss.channel.member"];
-        /** @type {import("mock_models").MailGuest} */
-        const MailGuest = this.env["mail.guest"];
-
-        const guest = MailGuest._get_guest_from_context();
-        const memberDomain = guest
-            ? [["guest_id", "=", guest.id]]
-            : [["partner_id", "=", this.env.user.partner_id]];
-        const members = DiscussChannelMember._filter(memberDomain);
-        const pinnedMembers = members.filter((member) => member.is_pinned);
-        return this._filter([
-            ["channel_member_ids", "in", pinnedMembers.map((member) => member.id)],
-        ]);
     }
 
     /**

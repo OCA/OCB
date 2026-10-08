@@ -311,8 +311,10 @@ class StockMove(models.Model):
                 move.picked = False
 
     def _inverse_picked(self):
-        for move in self:
-            move.move_line_ids.picked = move.picked
+        picked_moves = self.filtered('picked')
+        not_picked_moves = self - picked_moves
+        picked_moves.move_line_ids.picked = True
+        not_picked_moves.move_line_ids.picked = False
 
     @api.depends('picking_id.priority')
     def _compute_priority(self):
@@ -742,7 +744,9 @@ Please change the quantity done or the rounding precision in your settings.""",
                     new_ml_quantity = product.uom_id._compute_quantity(quantity_to_reserve, move_line.uom_id)
                     move_lines_commands.append(Command.create(move_line.copy_data({'quantity': new_ml_quantity, 'picked': move_line.picked})[0]))
                     extra_uom_qty -= quantity_to_reserve
+            existing_move_lines = move.move_line_ids
             move.write({'move_line_ids': move_lines_commands})
+            (move.move_line_ids - existing_move_lines)._apply_putaway_strategy()
             # When `quantity` is written in the same call as `lot_ids`, the
             # user-set value is kept and the recompute triggered by this
             # inverse rewriting `move_line_ids` does not override it. Force
@@ -784,7 +788,8 @@ Please change the quantity done or the rounding precision in your settings.""",
     def _compute_show_info(self):
         for move in self:
             move.show_quant = move.picking_code != 'incoming'\
-                           and move.product_id.is_storable
+                           and move.product_id.is_storable\
+                           and not (move.product_id.tracking in ['lot', 'serial'] and move.picking_type_id.use_create_lots and not move.picking_type_id.use_existing_lots)
             move.show_lots_text = move.product_id.tracking in ['lot', 'serial']\
                 and move.picking_type_id.use_create_lots\
                 and not move.picking_type_id.use_existing_lots\
@@ -1115,7 +1120,7 @@ Please change the quantity done or the rounding precision in your settings.""",
         count = next_serial_count or self.next_serial_count
         if not count:
             raise ValidationError(_("The number of Serial Numbers to generate must be greater than zero."))
-        lot_names = self.env['stock.lot'].generate_lot_names(next_serial, count)
+        lot_names = self.env['stock.lot'].generate_lot_names(next_serial, count, self.product_id.lot_sequence_id)
         field_data = [{'lot_name': lot_name['lot_name'], 'quantity': 1} for lot_name in lot_names]
         if self._can_create_lot():
             self._create_lot_ids_from_move_line_vals(field_data, self.product_id.id, self.company_id.id)
@@ -1218,15 +1223,15 @@ Please change the quantity done or the rounding precision in your settings.""",
         else:
             lot_qties = [1] * count
 
+        product = self.env['product.product'].browse(default_vals['product_id'])
         if mode == 'generate':
-            lot_names = self.env['stock.lot'].generate_lot_names(first_lot, len(lot_qties))
+            lot_names = self.env['stock.lot'].generate_lot_names(first_lot, len(lot_qties), product.lot_sequence_id)
         elif mode == 'import':
             lot_names = self.split_lots(lot_text)
             lot_qties = [1] * len(lot_names)
 
         vals_list = []
         loc_dest = self.env['stock.location'].browse(default_vals['location_dest_id'])
-        product = self.env['product.product'].browse(default_vals['product_id'])
         for lot, qty in zip(lot_names, lot_qties):
             if not lot.get('quantity'):
                 lot['quantity'] = qty
@@ -1323,7 +1328,7 @@ Please change the quantity done or the rounding precision in your settings.""",
         for move in moves_auto:
             move.write({'location_dest_id': move.move_line_ids[0].location_dest_id})
 
-        new_moves = new_moves._action_confirm()
+        new_moves = new_moves.sudo()._action_confirm()
         return new_moves
 
     def _merge_moves_fields(self):
@@ -1604,7 +1609,7 @@ Please change the quantity done or the rounding precision in your settings.""",
             ('state', 'in', ['draft', 'confirmed', 'waiting', 'partially_available', 'assigned']),
         ])
         if self.partner_id:
-            picking_partner_id = self.env.context.get('move_picking_partner_id', self.partner_id).id
+            picking_partner_id = self._get_picking_partner().id
             domain = Domain.AND([domain, [('partner_id', '=', picking_partner_id)]])
         if self.env.user.has_group('stock.group_stock_picking_batch'):
             domain = Domain.AND([
@@ -1727,6 +1732,10 @@ Please change the quantity done or the rounding precision in your settings.""",
 
     def _get_formating_options(self, strings):
         return {}
+
+    def _get_picking_partner(self):
+        self.ensure_one()
+        return self.picking_id.partner_id or self.env.context.get('move_picking_partner_id') or self.partner_id
 
     def _get_new_picking_values(self):
         """ return create values for new picking that will be linked with group

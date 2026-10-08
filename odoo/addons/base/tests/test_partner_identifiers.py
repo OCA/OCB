@@ -64,6 +64,17 @@ class TestPartnerIdentifiers(TransactionCase):
             "BE_EN should be deduced from BE VAT by stripping the country prefix",
         )
 
+    def test_vat_change_updates_be_en(self):
+        """Changing a Belgian VAT must update the existing BE_EN (BCE/KBO) to match."""
+        partner = self.env['res.partner'].create({
+            'name': 'BE Partner',
+            'country_id': self.env.ref('base.be').id,
+            'vat': 'BE0477472701',
+        })
+        self.assertEqual((partner.additional_identifiers or {}).get('BE_EN'), '0477472701')
+        partner.vat = 'BE0428759497'
+        self.assertEqual((partner.additional_identifiers or {}).get('BE_EN'), '0428759497')
+
     def test_vat_deduces_dk_cvr(self):
         """Setting a Danish VAT should automatically deduce DK_CVR."""
         partner = self.env['res.partner'].create({
@@ -100,6 +111,29 @@ class TestPartnerIdentifiers(TransactionCase):
 
         self.assertNotIn('UNKNOWN_KEY', partner.additional_identifiers or {})
         self.assertIn('BE_EN', partner.additional_identifiers or {})
+
+    def test_display_name_falls_back_on_enterprise_number(self):
+        """Without a VAT, the display name shows the preferred legal entity identifier."""
+        self.partner.additional_identifiers = {'FR_SIRET': '33417522101010'}
+        self.assertEqual(
+            self.partner.with_context(show_identifier=True).display_name,
+            'Test Partner Identifiers - 33417522101010',
+        )
+
+    def test_display_name_falls_back_on_citizen_number(self):
+        self.partner.additional_identifiers = {'FR_CN': '295109912611193'}
+        self.assertEqual(
+            self.partner.with_context(show_identifier=True).display_name,
+            'Test Partner Identifiers - 295109912611193',
+        )
+
+    def test_display_name_ignores_category_less_identifier(self):
+        """Without a VAT, DUNS should not be shown since it is not a legal identifier."""
+        self.partner.additional_identifiers = {'DUNS': '372441183'}
+        self.assertEqual(
+            self.partner.with_context(show_identifier=True).display_name,
+            'Test Partner Identifiers',
+        )
 
     def test_tin_metadata(self):
         # Please, set a category on the Tax ID.

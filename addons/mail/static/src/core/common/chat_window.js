@@ -114,7 +114,7 @@ export class ChatWindow extends Component {
     get attClass() {
         return {
             "w-100 h-100 o-mobile": this.ui.isSmall,
-            "rounded-4 border border-dark mb-2": !this.ui.isSmall,
+            "border border-dark mb-2": !this.ui.isSmall,
             "o-highlighted": this.props.chatWindow.highlighted,
         };
     }
@@ -125,6 +125,18 @@ export class ChatWindow extends Component {
             "py-2": this.threadActions.actions.length <= 3,
             "ps-2": !this.hasActionsMenu,
         };
+    }
+
+    /** Whether an extra line is shown below the display name in the header. */
+    get hasNameSubline() {
+        return false;
+    }
+
+    get displayNameFontSizeClass() {
+        if (this.hasNameSubline) {
+            return this.ui.isSmall ? "fs-5" : "fs-6";
+        }
+        return this.ui.isSmall ? "fs-4" : "fs-5";
     }
 
     get style() {

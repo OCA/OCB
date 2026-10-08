@@ -92,7 +92,9 @@ class TestProjectCommon(TransactionCase):
             'name': 'Pigs',
             'privacy_visibility': 'employees',
             'alias_name': 'project+pigs',
-            'partner_id': cls.partner_1.id})
+            'partner_id': cls.partner_1.id,
+            'type_ids': [Command.set([])],
+        })
         # Already-existing tasks in Pigs
         cls.task_1 = cls.env['project.task'].with_context({'mail_create_nolog': True}).create({
             'name': 'Pigs UserTask',
@@ -146,6 +148,19 @@ class TestProjectBase(TestProjectCommon):
 
         project_unlink.unlink()
         self.assertNotEqual(task_count, 0, "The all tasks linked to project should be deleted when user delete the project")
+
+    def test_delete_project_analytic_account(self):
+        """ The analytic account is kept when deleting a project if another project uses it. """
+        project_plan, _other_plans = self.env['account.analytic.plan']._get_all_plans()
+        account = self.env['account.analytic.account'].create({'name': 'Shared', 'plan_id': project_plan.id})
+        project_1, project_2 = self.env['project.project'].create([
+            {'name': 'Project 1', 'account_id': account.id},
+            {'name': 'Project 2', 'account_id': account.id},
+        ])
+
+        project_1.unlink()
+        self.assertTrue(account.exists(), "The analytic account shouldn't be deleted if another project uses it.")
+        self.assertEqual(project_2.account_id, account)
 
     def test_auto_assign_stages_when_importing_tasks(self):
         self.assertFalse(self.project_pigs.type_ids)

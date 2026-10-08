@@ -117,6 +117,23 @@ class ResPartner(models.Model):
     def _commercial_fields(self):
         return super()._commercial_fields() + ['l10n_ar_afip_responsibility_type_id']
 
+    def write(self, vals):
+        if 'l10n_ar_afip_responsibility_type_id' in vals:
+            # sudo: user may not have access to every company
+            companies_sudo = self.filtered(
+                lambda p: p.l10n_ar_afip_responsibility_type_id.id != vals['l10n_ar_afip_responsibility_type_id']
+            ).sudo().ref_company_ids
+            if any(company_sudo._existing_accounting() for company_sudo in companies_sudo):
+                raise UserError(_('Could not change the ARCA Responsibility of this company because there are already accounting entries.'))
+
+        return super().write(vals)
+
+    def _create_parent_from_name(self, parent_name, additional_values=None):
+        parent_company = super()._create_parent_from_name(parent_name, additional_values=additional_values)
+        if parent_company and self.l10n_ar_afip_responsibility_type_id:
+            parent_company.l10n_ar_afip_responsibility_type_id = self.l10n_ar_afip_responsibility_type_id
+        return parent_company
+
     def ensure_vat(self):
         """ This method is a helper that returns the VAT number is this one is defined if not raise an UserError.
 

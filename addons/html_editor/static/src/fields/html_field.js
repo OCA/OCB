@@ -193,7 +193,7 @@ export class HtmlField extends Component {
     }
 
     get isTranslatable() {
-        return this.props.record.fields[this.props.name].translate;
+        return this.props.record.isFieldTranslatable(this.props.name);
     }
 
     clearElementToCompare(element) {
@@ -299,6 +299,7 @@ export class HtmlField extends Component {
         this.state.showCodeView = this.state.forceCodeView || !this.state.showCodeView;
         if (!this.state.showCodeView && this.editor) {
             this.editor.editable.innerHTML = this.value;
+            this.editor.processThrough("html_compatibility_processors", this.editor.editable);
             this.editor.shared.history.commit();
         }
     }

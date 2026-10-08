@@ -943,6 +943,11 @@ class One2many(_RelationalMulti):
     def setup_inverses(self, registry, inverses):
         if self.inverse_name:
             # link self to its inverse field and vice-versa
+            if self.manual and self.inverse_name not in registry[self.comodel_name]._fields:
+                # ignore manual fields (e.g. from Studio) that may reference a
+                # non-existent inverse field in the registry to avoid crashing
+                _logger.warning("%s: ignoring manual field with invalid inverse name %r", self, self.inverse_name)
+                return
             invf = registry[self.comodel_name]._fields[self.inverse_name]
             if isinstance(invf, (Many2one, Many2oneReference)):
                 # setting one2many fields only invalidates many2one inverses;
@@ -1291,8 +1296,15 @@ class Many2many(_RelationalMulti):
             **kwargs
         )
 
-    def setup_nonrelated(self, model: BaseModel) -> None:
+    def setup_related(self, model):
+        super().setup_related(model)
+        self._setup_relation(model)
+
+    def setup_nonrelated(self, model):
         super().setup_nonrelated(model)
+        self._setup_relation(model)
+
+    def _setup_relation(self, model: BaseModel):
         # 2 cases:
         # 1) The ondelete attribute is defined and its definition makes sense
         # 2) The ondelete attribute is explicitly defined as 'set null' for a m2m,

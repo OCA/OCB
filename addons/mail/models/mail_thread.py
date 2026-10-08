@@ -294,7 +294,12 @@ class MailThread(models.AbstractModel):
 
     @api.model
     def _search_message_needaction(self, operator, operand):
-        return [('message_ids.needaction', operator, operand)]
+        if operator in Domain.NEGATIVE_OPERATORS:
+            return NotImplemented
+        domain = Domain('message_ids.needaction', operator, operand)
+        if operator == 'in' and False in operand:  # relation may be falsy
+            domain |= Domain('message_ids', '=', False)
+        return domain
 
     def _compute_message_has_error(self):
         res = {}
@@ -4864,6 +4869,8 @@ class MailThread(models.AbstractModel):
         adding_current = set(partner_ids) == set([self.env.user.partner_id.id])
         customer_ids = [] if adding_current else None
 
+        if adding_current and self.env.user._is_public():
+            return False
         if partner_ids and adding_current:
             try:
                 self.check_access('read')

@@ -471,6 +471,8 @@ class ProductTemplate(models.Model):
         self._set_product_variant_field('standard_price')
 
     def _search_standard_price(self, operator, value):
+        if operator in Domain.NEGATIVE_OPERATORS:
+            return NotImplemented
         return [('product_variant_ids.standard_price', operator, value)]
 
     @api.depends('type')
@@ -503,6 +505,8 @@ class ProductTemplate(models.Model):
         return prod_available
 
     def _search_qty_available(self, operator, value):
+        if operator in Domain.NEGATIVE_OPERATORS:
+            return NotImplemented
         return [('product_variant_ids.qty_available', operator, value)]
 
     def _set_qty_available(self):
@@ -906,12 +910,11 @@ class ProductTemplate(models.Model):
             if variant_specific_pricings:
                 def get_combination_key(variant, attribute_line_ids):
                     return frozenset(
-                        variant.product_template_variant_value_ids.mapped(
-                            lambda v: (
-                                attribute_line_ids.index(v.attribute_line_id.id),
-                                v.product_attribute_value_id.id,
-                            )
+                        (
+                            attribute_line_ids.index(ptav.attribute_line_id.id),
+                            ptav.product_attribute_value_id.id,
                         )
+                        for ptav in variant.product_template_variant_value_ids
                     )
 
                 template_copy_line_ids = template_copy.attribute_line_ids.ids

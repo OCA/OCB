@@ -417,7 +417,10 @@
                 <t t-set="mobile_has_to_be_signed" t-value="sale_order._has_to_be_signed() and not payment_amount"/>
                 <t t-set="mobile_has_to_be_paid" t-value="sale_order._has_to_be_paid() or (payment_amount and sale_order.amount_paid &lt; sale_order.amount_total and sale_order.state != 'cancel')"/>
                 <t t-set="mobile_can_reorder" t-value="'website_id' in env['sale.order']._fields and sale_order.with_user(env.user).sudo()._is_reorder_allowed()"/>
-                <t t-if="mobile_has_to_be_signed or mobile_has_to_be_paid or mobile_can_reorder">
+                <!-- Set by the modules contributing an action to the bar, e.g. `sale_stock` for the returns. -->
+                <t t-set="mobile_additional_action" t-value="False"/>
+                <t t-set="mobile_has_primary_action" t-value="mobile_has_to_be_signed or mobile_has_to_be_paid or mobile_can_reorder"/>
+                <t t-if="mobile_has_primary_action or mobile_additional_action">
                     <div id="mobile_action_bar" class="o_portal_mobile_action_bar d-flex d-lg-none flex-column position-fixed bottom-0 start-0 end-0 pt-1 bg-white border-top shadow d-print-none" t-att-style="'z-index: 1029;'">
 
                         <!-- Price row -->
@@ -471,7 +474,7 @@
                                 t-elif="mobile_can_reorder"
                                 class="btn btn-secondary flex-grow-1 o_wsale_reorder_button oe_website_sale"
                                 t-att-data-sale-order-id="sale_order.id">
-                                <i class="oi me-1" data-icon="refresh"/>Order Again
+                                <i class="oi me-1" data-icon="redo"/>Order Again
                             </button>
                             <a role="button"
                                 t-if="mobile_has_to_be_signed"
@@ -482,6 +485,7 @@
                                 Reject
                             </a>
                             <a role="button"
+                                id="mobile_feedback_button"
                                 class="btn btn-light"
                                 href="#provide_feedback"
                                 aria-label="Provide feedback">
@@ -742,7 +746,7 @@
                                 <!-- Section / Subsection header -->
                                 <div t-if="is_section_m or is_subsection_m"
                                      t-attf-class="d-flex justify-content-between align-items-center py-2 px-3 fw-bold border-bottom {{ 'bg-200' if is_section_m else 'bg-100' }}">
-                                    <span t-field="line.name"/>
+                                    <span t-field="line.label"/>
                                     <span t-if="is_section_m or not line.parent_id.collapse_prices"
                                           class="text-nowrap ms-2"
                                           t-out="line._get_section_totals(price_field_m)"
@@ -751,13 +755,13 @@
 
                                 <!-- Note -->
                                 <div t-elif="is_note_m" class="fst-italic py-2 px-3 border-bottom text-muted small">
-                                    <span t-field="line.name"/>
+                                    <span t-field="line.label"/>
                                 </div>
 
                                 <!-- Combo header -->
                                 <div t-elif="is_combo_m" class="d-flex justify-content-between align-items-start py-3 px-3 border-bottom fw-bold">
                                     <div>
-                                        <span t-field="line.name"/>
+                                        <span t-field="line.label"/>
                                         <div class="fw-normal text-muted small mt-1">
                                             <span t-field="line.product_uom_qty" t-options="{'min_precision': 0}"/>
                                             <span class="ms-1" t-field="line.product_uom_id"/>
@@ -825,15 +829,16 @@
                                 <t t-foreach="line._get_grouped_section_summary(display_taxes)" t-as="section_line">
                                     <div class="py-3 px-3 border-bottom">
                                         <div class="d-flex justify-content-between align-items-start gap-2">
-                                            <span t-field="line.name"/>
+                                            <span t-field="line.label"/>
                                             <span t-out="section_line[price_field_m]"
                                                 t-options="{'widget': 'monetary', 'display_currency': sale_order.currency_id}"
                                                 class="text-nowrap"/>
                                         </div>
                                         <div class="d-flex flex-wrap align-items-center gap-2 mt-1 small text-muted">
-                                            <span>1 Units</span>
+                                            <span t-field="line.section_qty" t-options="{'min_precision': 0}"/>
+                                            <span t-field="line.section_uom_id"/>
                                             <span>×</span>
-                                            <span t-out="section_line['price_subtotal']"
+                                            <span t-out="section_line['price_subtotal']/line.section_qty"
                                                 t-options="{'widget': 'monetary', 'display_currency': sale_order.currency_id}"/>
                                         </div>
                                         <div t-if="display_taxes and section_line.get('tax_labels')"
@@ -1181,14 +1186,14 @@
                                             </span>
                                         </td>
                                         <td name="td_section_group_quantity" class="text-end text-nowrap">
-                                            <span t-field="line.section_qty"/>
+                                            <span t-field="line.section_qty" t-options="{'min_precision': 0}"/>
                                             <span t-field="line.section_uom_id"/>
                                         </td>
                                         <td t-if="display_discount" name="td_section_group_discount" class="d-none d-sm-table-cell"/>
                                         <td name="td_section_group_priceunit" class="d-none d-sm-table-cell text-end text-nowrap">
                                             <span
                                                 t-if="show_section_total"
-                                                t-out="section_line['price_subtotal']"
+                                                t-out="section_line['price_subtotal']/line.section_qty"
                                                 t-options="{'widget': 'monetary', 'display_currency': sale_order.currency_id}"
                                             />
                                         </td>

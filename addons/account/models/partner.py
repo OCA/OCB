@@ -33,7 +33,7 @@ SQL_OPERATORS = {
 class AccountFiscalPosition(models.Model):
     _name = 'account.fiscal.position'
     _description = 'Fiscal Position'
-    _order = 'sequence'
+    _order = 'sequence, id'
     _check_company_auto = True
     _check_company_domain = models.check_company_domain_parent_of
 
@@ -828,6 +828,14 @@ class ResPartner(models.Model):
                     individual=str(partner._get_identifier_label(individual) or individual),
                     company=str(partner._get_identifier_label(company) or company),
                 ))
+
+    @api.model
+    def _get_portal_additional_identifiers_whitelist(self, company=None, country=None):
+        """ Returns the additional identifier keys that should be
+        exposed on the portal and eCommerce checkout address forms.
+        TO BE OVERRIDDEN
+        """
+        return set()
 
     def write(self, vals):
         parent_write = self.env["res.partner"]

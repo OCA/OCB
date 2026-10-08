@@ -141,7 +141,7 @@
                 <field name="is_storable" invisible="1"/>
                 <progressbar field="activity_state" colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
                 <templates>
-                    <t t-name="card" class="flex-row">
+                    <t t-name="card" class="o_card_product_record flex-row">
                         <main class="pe-2">
                             <div class="mb-1">
                                 <div class="d-flex gap-1 mb-0 h5">
@@ -155,8 +155,8 @@
                                     <field name="product_variant_count"/> Variants
                                 </strong>
                             </div>
-                            <div class="d-flex align-items-start gap-2">
-                                <div class="d-flex flex-column">
+                            <div class="d-flex align-items-start gap-2 mb-1">
+                                <div class="d-flex flex-column flex-shrink-0">
                                     <strong invisible="not context.get('show_lst_price', True)">
                                         <field name="list_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     </strong>
@@ -164,7 +164,7 @@
                                         <field name="standard_price" widget="monetary" options="{'currency_field': 'cost_currency_id', 'field_digits': True}"/>
                                     </strong>
                                 </div>
-                                <span t-if="record.default_code.value" class="text-muted">
+                                <span t-if="record.default_code.value" class="text-muted text-break min-w-0">
                                     <field name="default_code"/>
                                 </span>
                             </div>
@@ -184,6 +184,7 @@
                                 alt="Product"
                                 options="{'img_class': 'w-100 object-fit-contain'}"
                                 invisible="not image_128"
+                                class="rounded"
                             />
                         </aside>
                     </t>

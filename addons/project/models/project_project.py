@@ -39,7 +39,7 @@ class ProjectProject(models.Model):
         count_fields = {fname for fname in self._fields if 'count' in fname}
         if count_field not in count_fields:
             raise ValueError(f"Parameter 'count_field' can only be one of {count_fields}, got {count_field} instead.")
-        domain = Domain('project_id', 'in', self.ids) & Domain('is_template', '=', False)
+        domain = Domain('project_id', 'in', self.ids) & Domain('has_template_ancestor', '=', False)
         if additional_domain:
             domain &= Domain(additional_domain)
         ProjectTask = self.env['project.task'].with_context(active_test=any(project.active for project in self))
@@ -53,10 +53,7 @@ class ProjectProject(models.Model):
     def _compute_open_task_count(self):
         self.__compute_task_count(
             count_field='open_task_count',
-            additional_domain=Domain.AND([
-                [('state', 'in', self.env['project.task'].OPEN_STATES)],
-                ['|', ('parent_id.is_template', '=', False), ('parent_id', '=', False)],
-            ]),
+            additional_domain=[('state', 'in', self.env['project.task'].OPEN_STATES)],
         )
 
     def _compute_closed_task_count(self):
@@ -68,6 +65,17 @@ class ProjectProject(models.Model):
     def _default_stage_id(self):
         # Since project stages are order by sequence first, this should fetch the one with the lowest sequence number.
         return self.env['project.project.stage'].search([], limit=1)
+
+    def _default_type_ids(self):
+        return [
+            Command.create({'name': name, 'sequence': sequence * 5, 'fold': fold})
+            for sequence, (name, fold) in enumerate([
+                (self.env._('New'), False),
+                (self.env._('In Progress'), False),
+                (self.env._('Done'), False),
+                (self.env._('Cancelled'), True),
+            ], start=1)
+        ]
 
     @api.model
     def _search_is_favorite(self, operator, value):
@@ -115,7 +123,8 @@ class ProjectProject(models.Model):
     tasks = fields.One2many('project.task', 'project_id', string="Task Activities")
     resource_calendar_id = fields.Many2one(
         'resource.calendar', string='Working Time', compute='_compute_resource_calendar_id', export_string_translation=False)
-    type_ids = fields.Many2many('project.task.type', 'project_task_type_rel', 'project_id', 'type_id', string='Tasks Stages', export_string_translation=False)
+    type_ids = fields.Many2many('project.task.type', 'project_task_type_rel', 'project_id', 'type_id', string='Tasks Stages',
+        default=lambda self: self._default_type_ids(), export_string_translation=False)
     task_count = fields.Integer(compute='_compute_task_count', string="Task Count", export_string_translation=False)
     open_task_count = fields.Integer(compute='_compute_open_task_count', string="Open Task Count", export_string_translation=False)
     task_ids = fields.One2many('project.task', 'project_id', string='Tasks', export_string_translation=False,
@@ -250,17 +259,12 @@ class ProjectProject(models.Model):
 
     @api.depends('milestone_ids', 'milestone_ids.is_reached', 'milestone_ids.deadline')
     def _compute_next_milestone_id(self):
-        milestones_per_project_id = {
-            project.id: milestones
-            for project, milestones in self.env['project.milestone']._read_group(
-                [('project_id', 'in', self.ids), ('is_reached', '=', False)],
-                ['project_id'],
-                ['id:recordset'],
-            )
-        }
-        milestones = self.env['project.milestone'].concat(milestones_per_project_id.values())
+        milestones_per_project_id = self.env['project.milestone'].search([
+            ('project_id', 'in', self.ids),
+            ('is_reached', '=', False),
+        ]).grouped(lambda milestone: milestone.project_id.id)
         task_read_group = self.env['project.task']._read_group(
-            [('milestone_id', 'in', milestones.ids)],
+            [('milestone_id.project_id', 'in', self.ids), ('milestone_id.is_reached', '=', False)],
             ['milestone_id', 'state'],
             ['__count'],
         )
@@ -642,13 +646,6 @@ class ProjectProject(models.Model):
             ('stage_id.fold', '=', False),
         ])
 
-    @api.model
-    def name_create(self, name):
-        res = super().name_create(name)
-        # We create a default stage `new` for projects created on the fly.
-        self.browse(res[0]).type_ids += self.env['project.task.type'].sudo().create({'name': _('New')})
-        return res
-
     @api.model_create_multi
     def create(self, vals_list):
         # Prevent double project creation
@@ -807,8 +804,9 @@ class ProjectProject(models.Model):
         # Delete the empty related analytic account
         analytic_accounts_to_delete = self.env['account.analytic.account']
         for project in self:
-            if project.account_id and not project.account_id.line_ids:
-                analytic_accounts_to_delete |= project.account_id
+            account = project.account_id
+            if account and not account.line_ids and not (account.with_context(active_test=False).project_ids - self):
+                analytic_accounts_to_delete |= account
         self.with_context(active_test=False).tasks.unlink()
         result = super().unlink()
         analytic_accounts_to_delete.unlink()
@@ -1243,10 +1241,10 @@ class ProjectProject(models.Model):
         if "followers" in request_list:
             res.many("collaborator_ids", [], value=lambda p: p.sudo().collaborator_ids.partner_id)
 
-    @api.depends('task_count', 'open_task_count')
+    @api.depends('task_count', 'closed_task_count')
     def _compute_task_completion_percentage(self):
         for task in self:
-            task.task_completion_percentage = task.task_count and 1 - task.open_task_count / task.task_count
+            task.task_completion_percentage = task.task_count and task.closed_task_count / task.task_count
 
     def _get_share_url(self, redirect=False, signup_partner=False, pid=None, share_token=True):
         self.ensure_one()

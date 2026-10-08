@@ -134,7 +134,7 @@ patch(PosStore.prototype, {
                     product_id: line.product_id,
                     qty: line.product_uom_qty,
                     price_unit: line.price_unit,
-                    price_type: "manual",
+                    price_type: "automatic",
                     tax_ids: taxes.map((tax) => ["link", tax]),
                     sale_order_origin_id: sale_order,
                     sale_order_line_id: line,
@@ -173,6 +173,12 @@ patch(PosStore.prototype, {
                     continue;
                 }
 
+                if (line.is_downpayment) {
+                    newLineValues.extra_tax_data =
+                        accountTaxHelpers.reverse_quantity_base_line_extra_tax_data(
+                            line.extra_tax_data
+                        );
+                }
                 const newLine = await this.addLineToCurrentOrder(newLineValues, {}, false);
                 previousProductLine = newLine;
                 await this.updateSOLines(line, converted_line, newLine, newLineValues, state);
@@ -184,9 +190,6 @@ patch(PosStore.prototype, {
         const paidDiff = this.getOrder().amount_total - sale_order.amount_unpaid;
         const currency = sale_order.currency_id || this.currency;
         if (currency.isPositive(sale_order.amount_paid) && !currency.isZero(paidDiff)) {
-            if (!(await this.loadDownPaymentProduct())) {
-                return;
-            }
             this.addDownPaymentProductOrderlineToOrder(sale_order, -paidDiff, false);
         }
     },
@@ -238,18 +241,6 @@ patch(PosStore.prototype, {
     },
 
     async downPaymentSO(saleOrder, isPercentage) {
-        if (!this.config.down_payment_product_id && this.config.raw.down_payment_product_id) {
-            await this.data.read("product.product", [this.config.raw.down_payment_product_id]);
-        }
-        if (!this.config.down_payment_product_id) {
-            this.dialog.add(AlertDialog, {
-                title: _t("No down payment product"),
-                body: _t(
-                    "It seems that you didn't configure a down payment product in your point of sale. You can go to your point of sale settings to choose one."
-                ),
-            });
-            return;
-        }
         const colorClassMap = {
             [DECIMAL.value]: "o_colorlist_item_numpad_color_6",
             Backspace: "o_colorlist_item_numpad_color_1",
@@ -282,26 +273,11 @@ patch(PosStore.prototype, {
         const amount = parseFloat(payload);
         this.addDownPaymentProductOrderlineToOrder(saleOrder, amount, isPercentage);
     },
-    async loadDownPaymentProduct() {
-        if (!this.config.down_payment_product_id && this.config.raw.down_payment_product_id) {
-            await this.data.read("product.product", [this.config.raw.down_payment_product_id]);
-        }
-        if (!this.config.down_payment_product_id) {
-            this.dialog.add(AlertDialog, {
-                title: _t("No down payment product"),
-                body: _t(
-                    "It seems that you didn't configure a down payment product in your point of sale. You can go to your point of sale configuration to choose one."
-                ),
-            });
-            return;
-        }
-    },
     addDownPaymentProductOrderlineToOrder(saleOrder, amount, isPercentage) {
         let percentage_value = 0;
         if (isPercentage) {
             percentage_value = amount;
         }
-        this.loadDownPaymentProduct();
         const saleOrderLines = saleOrder.order_line.filter((soLine) => !soLine.display_type);
         const baseLines = [];
         for (const saleOrderLine of saleOrderLines) {

@@ -3270,17 +3270,17 @@ class TestStockValuation(TestStockValuationCommon):
         # Make dropship move, where the quantity stay in negative
         self._make_dropship_move(self.product_avco, 5, unit_cost=15)
         self.assertEqual(self.product_avco.qty_available, -10)
-        self.assertEqual(self.product_avco.standard_price, 15)
+        self.assertEqual(self.product_avco.standard_price, 10)
 
         # Make dropship move, where the quantity reach 0
         self._make_dropship_move(self.product_avco, 10, unit_cost=15)
         self.assertEqual(self.product_avco.qty_available, -10)
-        self.assertEqual(self.product_avco.standard_price, 15)
+        self.assertEqual(self.product_avco.standard_price, 10)
 
         # Make dropship move, where the quantity do not go in positive
         self._make_dropship_move(self.product_avco, 15, unit_cost=15)
         self.assertEqual(self.product_avco.qty_available, -10)
-        self.assertEqual(self.product_avco.standard_price, 15)
+        self.assertEqual(self.product_avco.standard_price, 10)
 
     def test_avco_adjusted_valuation_updates_unit_cost_correctly(self):
         """Ensure that for AVCO products, adjusting the total valuation recomputes
@@ -3324,6 +3324,17 @@ class TestStockValuation(TestStockValuationCommon):
         recs[-2:].sudo()._compute_cumulative_fields()
         self.assertEqual(recs[-1].total_quantity, 3)
         self.assertEqual(recs[-1].total_value, 30)
+
+    def test_avco_report_quantity_uses_product_uom(self):
+        """Ensure the AVCO report quantity is expressed in the product UoM."""
+        product = self.product_avco
+        product.company_id = self.company.id
+        product.uom_id = self.uom_pack_of_6
+        self._make_in_move(product, 18, uom_id=self.uom.id)
+
+        report_lines = self.env['stock.avco.report'].search([('product_id', '=', product.id)]).sorted('date, id')
+        self.assertEqual(report_lines[-1].quantity, 3)
+        self.assertEqual(report_lines[-1].added_value, 30)
 
     def test_avco_report_after_cost_method_change(self):
         """Ensure that the AVCO justification report for a product is accurate at all steps, even if
@@ -3784,3 +3795,29 @@ class TestStockValuation(TestStockValuationCommon):
         initial_balance = report_data['initial_balance']
         self.assertEqual(initial_balance['lines_by_account_id'][account_b.id]['value'], 100,
                          "Account B should show its 100 balance in the report data")
+
+    def test_multi_company_fifo_costing_isolation(self):
+        """
+        Test that an outgoing move in Company B does not use the incoming
+        move cost (get_last_in) from Company A for a FIFO product.
+        """
+        self.product_fifo.company_id = False
+        self.product_fifo.categ_id.with_company(self.other_company).property_cost_method = 'fifo'
+
+        self.product_fifo.with_company(self.other_company).standard_price = 0.0
+
+        move_in_a = self._make_in_move(
+            product=self.product_fifo,
+            quantity=10.0,
+            unit_cost=50.0,
+            company=self.company
+        )
+        self.assertEqual(move_in_a.price_unit, 50.0)
+
+        # Make sure only one company is in the allowed_company_ids
+        product = self.product_fifo.with_company(self.other_company).with_context(allowed_company_ids=[self.other_company.id])
+
+        product._update_standard_price()
+
+        # Company B should not have the cost from Company A, so the standard_price should remain 0.0
+        self.assertEqual(product.standard_price, 0.0)

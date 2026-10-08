@@ -812,6 +812,47 @@ class TestStockMove(TestStockCommon):
         # check if the putaway was rightly applied
         self.assertEqual(move1.move_line_ids.location_dest_id.id, self.shelf_1.id)
 
+    def test_putaway_rules_smart_button(self):
+        """Check that the putaway rule smart button returns exactly the set of putaway rules that could be applied to the product"""
+        parent_category = self.env['product.category'].create({'name': 'Parent Category'})
+        category = self.env['product.category'].create({
+            'name': 'Test Category',
+            'parent_id': parent_category.id,
+        })
+        categorized_product = self.env['product.product'].create({
+            'name': 'Categorized Product',
+            'categ_id': category.id,
+        })
+        rule_a, rule_parent, rule_category, rule_categorized = self.env['stock.putaway.rule'].create([{
+            'product_id': self.productA.id,
+            'location_in_id': self.stock_location.id,
+            'location_out_id': self.shelf_1.id,
+        }, {
+            'category_id': parent_category.id,
+            'location_in_id': self.stock_location.id,
+            'location_out_id': self.shelf_1.id,
+        }, {
+            'category_id': category.id,
+            'location_in_id': self.stock_location.id,
+            'location_out_id': self.shelf_1.id,
+        }, {
+            'product_id': categorized_product.id,
+            'location_in_id': self.stock_location.id,
+            'location_out_id': self.shelf_2.id,
+        }])
+
+        # productA has no category: only its own rule, no leaking of other category-less rules
+        self.assertFalse(self.productA.categ_id)
+        action = self.productA.product_tmpl_id.action_view_related_putaway_rules()
+        self.assertEqual(self.env['stock.putaway.rule'].search(action['domain']), rule_a)
+
+        # a categorized product also lists its category's and parent categories' rules
+        action = categorized_product.product_tmpl_id.action_view_related_putaway_rules()
+        self.assertEqual(
+            self.env['stock.putaway.rule'].search(action['domain']),
+            rule_parent | rule_category | rule_categorized,
+        )
+
     def test_putaway_3(self):
         """ Receive products from a supplier. Check that putaway rules are rightly applied on
         the receipt move line.
@@ -6916,6 +6957,47 @@ class TestStockMove(TestStockCommon):
         Form.from_action(self.env, scrap.action_scrap()).save().action_cancel()
         self.assertFalse(scrap.exists(), "The scrap move should have been deleted after discarding the warning.")
 
+    def test_delivery_slip_quantity_aggregation_across_move_lines(self):
+        """ A receipt for a fractional quantity that is over-received in two operations should
+        report the expected and received quantities on a single line, both in the product's unit
+        and in the vendor's packaging unit.
+        """
+        pack_of_6 = self.env.ref('uom.product_uom_pack_6')
+        receipt = self.env['stock.picking'].create({
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'picking_type_id': self.picking_type_in.id,
+            'move_ids': [Command.create({
+                'product_id': self.productA.id,
+                'uom_id': self.uom_unit.id,
+                'product_uom_qty': 11.1,
+            })],
+        })
+        receipt.move_ids.packaging_uom_id = pack_of_6
+        receipt.action_confirm()
+        # Receiving more than expected adds a second move line for the excess.
+        receipt.move_ids.quantity = 13.9
+        self.assertEqual(len(receipt.move_ids.move_line_ids), 2)
+        receipt.move_ids.picked = True
+        receipt.button_validate()
+
+        aggregated_lines = receipt.move_line_ids._get_aggregated_product_quantities()
+        self.assertEqual(len(aggregated_lines), 1)
+        aggregate_val = next(iter(aggregated_lines.values()))
+        self.assertDictEqual({
+            'name': aggregate_val['name'],
+            'qty_ordered': aggregate_val['qty_ordered'],
+            'quantity': aggregate_val['quantity'],
+            'packaging_qty_ordered': aggregate_val['packaging_qty_ordered'],
+            'packaging_quantity': aggregate_val['packaging_quantity'],
+        }, {
+            'name': self.productA.name,
+            'qty_ordered': 11.1,
+            'quantity': 13.9,
+            'packaging_qty_ordered': 1.86,
+            'packaging_quantity': 2.32,
+        })
+
     def test_modifying_lots_id_in_outgoing_picking(self):
         """ Ensure that after setting the quantity of the move to zero, manually add serial
         number will not add unexpected serial number to the lots_id field and cause a mismatch
@@ -7000,3 +7082,22 @@ class TestStockMove(TestStockCommon):
         self.assertEqual(picking.date_deadline, move1.date_deadline, 'Picking deadline should be the earliest move deadline')
         move1._action_cancel()
         self.assertEqual(picking.date_deadline, move2.date_deadline, 'Picking deadline should update to the remaining move after cancellation')
+
+    def test_show_quant_create_lots_only(self):
+        """
+        On a create-lots-only delivery, `show_quant` is False for a
+        lot-tracked product and True for a non-tracked one.
+        """
+        picking_type_out = self.picking_type_out
+        picking_type_out.use_create_lots = True
+        picking_type_out.use_existing_lots = False
+        untracked_move, tracked_move = self.env['stock.move'].create([{
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': product.id,
+            'uom_id': self.uom_unit.id,
+            'product_uom_qty': 1.0,
+            'picking_type_id': picking_type_out.id,
+        } for product in (self.productA, self.product_lot)])
+        self.assertTrue(untracked_move.show_quant)
+        self.assertFalse(tracked_move.show_quant)

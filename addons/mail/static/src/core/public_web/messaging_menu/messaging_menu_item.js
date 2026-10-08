@@ -1,8 +1,9 @@
 import { ActionList } from "@mail/core/common/action_list";
 import { useMessageActions } from "@mail/core/common/message_actions";
 import { Priority } from "@mail/core/common/priority";
+import { MessagingMenuItemContextMenu } from "@mail/core/public_web/messaging_menu/messaging_menu_item_context_menu";
 import { NotificationItem } from "@mail/core/public_web/notification_item";
-import { propSignal, useLongPress } from "@mail/utils/common/hooks";
+import { propSignal, useLongPress, useRightClickMenu } from "@mail/utils/common/hooks";
 
 import { Component, computed, signal, types, useProps } from "@odoo/owl";
 
@@ -21,6 +22,7 @@ export class MessagingMenuItem extends Component {
     static components = {
         ActionList,
         Dropdown,
+        MessagingMenuItemContextMenu,
         NotificationItem,
         Priority,
     };
@@ -28,6 +30,9 @@ export class MessagingMenuItem extends Component {
 
     isMobileOS = isMobileOS;
     root = signal();
+
+    // needed for thread actions (owner.props.chatWindow).
+    props = useProps();
 
     setup() {
         super.setup();
@@ -60,10 +65,15 @@ export class MessagingMenuItem extends Component {
         if (isMobileOS()) {
             useLongPress(this.root, {
                 action: () => {
-                    if (this.message) {
-                        this.messageDropdownState.open();
+                    if (this.hasActions()) {
+                        this.actionsDropdownState.open();
                     }
                 },
+            });
+        } else {
+            this.rightClickMenu = useRightClickMenu(this.root, {
+                predicate: () => Boolean(this.hasActions()),
+                extraMenuProps: () => ({ actionsList: this.actionsList }),
             });
         }
     }
@@ -92,6 +102,10 @@ export class MessagingMenuItem extends Component {
     // getter override)
     actionsPartition = computed(() => this._computeActionsPartition());
 
+    hasActions() {
+        return this.messageActions.actionsComputed().length;
+    }
+
     _computeActionsPartition() {
         const { quick, other, group, actionPanels } = this.messageActions.partition;
         const isBookmarkTab = this.activeTab().eq(this.store.messagingMenu.bookmarkTab);
@@ -117,7 +131,9 @@ export class MessagingMenuItem extends Component {
     }
 
     get attClass() {
-        return {};
+        return {
+            "o-disable-safari-native-long-press": isMobileOS(),
+        };
     }
 
     get itemName() {

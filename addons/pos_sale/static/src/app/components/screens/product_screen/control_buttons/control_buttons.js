@@ -1,6 +1,7 @@
 import { patch } from "@web/core/utils/patch";
 import { ControlButtons } from "@point_of_sale/app/screens/product_screen/control_buttons/control_buttons";
 import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
+import { _t } from "@web/core/l10n/translation";
 
 patch(ControlButtons.prototype, {
     onClickQuotation() {
@@ -15,12 +16,7 @@ patch(ControlButtons.prototype, {
             ["currency_id", "=", this.pos.currency.id],
             ["amount_unpaid", ">", 0],
         ];
-        if (this.pos.getOrder()?.getPartner()) {
-            domain = [
-                ...domain,
-                ["partner_id", "any", [["id", "child_of", [this.pos.getOrder().getPartner().id]]]],
-            ];
-        }
+
         const saleOrderIds = this.pos
             .getOrder()
             ?.lines?.map((l) => l.sale_order_origin_id?.id)
@@ -30,6 +26,7 @@ patch(ControlButtons.prototype, {
         }
 
         this.dialog.add(SelectCreateDialog, {
+            title: _t("Quotation / Order"),
             resModel: "sale.order",
             noCreate: true,
             multiSelect: false,

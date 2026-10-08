@@ -11,7 +11,7 @@ from markupsafe import Markup
 from odoo import Command, _, api, fields, models
 from odoo.http import request
 from odoo.exceptions import LockError, UserError, ValidationError
-from odoo.tools import BinaryBytes, formatLang, float_round, float_repr, cleanup_xml_node, groupby
+from odoo.tools import BinaryBytes, formatLang, float_compare, float_is_zero, float_round, float_repr, cleanup_xml_node, groupby
 from odoo.tools.misc import split_every
 from odoo.tools.bank_account_number import normalize_account_number
 from odoo.addons.l10n_hu_edi.models.l10n_hu_edi_connection import format_bool, L10nHuEdiConnection, L10nHuEdiConnectionError
@@ -917,7 +917,7 @@ class AccountMove(models.Model):
             if line.display_type == 'product':
                 vat_tax = line.tax_ids.filtered(lambda t: t.l10n_hu_tax_type)
 
-                if line.quantity == 0.0 or line.discount == 100.0:
+                if float_is_zero(line.quantity, precision_digits=2) or float_compare(line.discount, 100.0, precision_digits=2) == 0:
                     price_unit_signed = 0.0
                 else:
                     price_unit_signed = sign * line.price_subtotal / (1 - line.discount / 100) / line.quantity

@@ -63,7 +63,11 @@ $o-bubble-colors: (
     $_bg-ratio: if($type == 'o-orange', 80%, 90%);
     $_border-ratio: if($type == 'o-orange', 65%, 80%);
     --o-bubble-bg: #{mix($o-view-background-color, $_color, $_bg-ratio)};
-    --o-bubble-bg-muted: #{$o-view-background-color};
+    --o-bubble-bg-muted: #{color-mix(
+        in srgb,
+        #{$o-view-background-color} 97.5%,
+        var(--o-bubble-color-base) 2.5%
+    )};
     --o-bubble-border-color: #{mix($o-view-background-color, $_border-base, $_border-ratio)};
     --o-bubble-color-base: #{$_color};
 }
@@ -432,6 +436,13 @@ a.o-discuss-mention {
     border-radius: 0 !important;
 }
 
+.o-disable-safari-native-long-press {
+    // Prevent user selection so that this isn't accidentally triggered with long-press.
+    -webkit-touch-callout: none; // disable iOS Safari native selection UI
+    -webkit-user-select: none; // disable iOS Safari native selection UI
+    user-select: none;
+}
+
 .o-visible-short-delay {
     animation: o-visible-short-delay-animation 0s ease-in 0.25s forwards;
     display: none;
@@ -456,3 +467,16 @@ a.o-discuss-mention {
     filter: drop-shadow(1px 1px 0px #000000b0);
 }
 
+.o_popover_card {
+    --card-bg: #{$popover-bg};
+    --card-border-color: #{$popover-border-color};
+    --card-border-radius: #{$popover-border-radius};
+    --card-border-width: 0;
+
+    overflow: hidden;
+
+    max-width: 380px;
+    @media screen  and (max-width: 480px) {
+        max-width: 90vw;
+    }
+}

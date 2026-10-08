@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 17:41+0000\n"
+"POT-Creation-Date: 2026-10-02 17:39+0000\n"
 "PO-Revision-Date: 2026-08-31 13:50+0000\n"
 "Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
 "Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-4/"
@@ -2777,6 +2777,7 @@ msgstr "Dispositivi connessi"
 
 #. module: point_of_sale
 #. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.js:0
 #: code:addons/point_of_sale/static/src/app/utils/error_handlers.js:0
 msgid "Connection Lost"
 msgstr "Connessione persa"
@@ -2908,12 +2909,6 @@ msgstr "Numero ordini collegati"
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
 msgid "Counted"
 msgstr "Calcolati"
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_order.py:0
-msgid "Counterpart for invoice payment %s"
-msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_res_country
@@ -6364,6 +6359,12 @@ msgid "Online reservation for Point of Sale"
 msgstr "Prenotazione online per Punto vendita"
 
 #. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_config.py:0
+msgid "Only Point of Sale managers can modify a Point of Sale configuration."
+msgstr ""
+
+#. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/models/pos_order_line.js:0
 msgid ""
@@ -8745,12 +8746,6 @@ msgstr "Registrazioni contabili di storno"
 
 #. module: point_of_sale
 #. odoo-python
-#: code:addons/point_of_sale/models/pos_order.py:0
-msgid "Reversal for %s"
-msgstr ""
-
-#. module: point_of_sale
-#. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Reversal of %s"
 msgstr ""
@@ -9963,6 +9958,12 @@ msgstr "Test"
 
 #. module: point_of_sale
 #. odoo-python
+#: code:addons/point_of_sale/controllers/main.py:0
+msgid "The %s must be filled in your details."
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-python
 #: code:addons/point_of_sale/models/pos_category.py:0
 msgid "The Availability After must be set between 00:00 and 24:00"
 msgstr "La \"Disponibilità dopo\" deve essere impostata tra 00:00 e 24:00"
@@ -10377,6 +10378,12 @@ msgstr ""
 msgid "The receipt will automatically be printed at the end of each order."
 msgstr ""
 "Alla chiusura di ciascun ordine verrà stampata automaticamente la ricevuta."
+
+#. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.js:0
+msgid "The register cannot be opened while offline. Please try again."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11828,6 +11835,25 @@ msgstr "Non è possibile modificare il pagamento di un ordine registrato."
 msgid ""
 "You cannot have more than one cash payment method on a point of sale "
 "configuration."
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_order_line.py:0
+msgid "You cannot refund more than the outstanding quantity for this product."
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_config.py:0
+msgid "You cannot remove %(pms)s from %(config)s while it has an open session."
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_payment_method.py:0
+msgid ""
+"You cannot remove '%(pm)s' from %(configs)s while it has an open session."
 msgstr ""
 
 #. module: point_of_sale

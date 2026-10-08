@@ -19,6 +19,7 @@ import {
 import { DIRECTIONS } from "../utils/position";
 import { isHtmlContentSupported } from "./selection_plugin";
 import { getRowIndex } from "@html_editor/utils/table";
+import { EMAIL_REGEX } from "@html_editor/main/link/utils";
 
 /**
  * @typedef { import("./selection_plugin").EditorSelection } EditorSelection
@@ -103,7 +104,10 @@ export const CLIPBOARD_WHITELISTS = {
     styledTags: ["SPAN", "B", "STRONG", "I", "S", "U", "FONT", "TD", "COL", "TR", "TH"],
 };
 
-const ONLY_LINK_REGEX = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i;
+const ONLY_LINK_REGEX = new RegExp(
+    `^(https?:\\/\\/)?([\\w-]+\\.)+[\\w-]+(\\/[\\w-./?%&=]*)?$|${EMAIL_REGEX.source}`,
+    "i"
+);
 
 /**
  * @typedef {Object} ClipboardShared
@@ -253,7 +257,11 @@ export class ClipboardPlugin extends Plugin {
                 return true;
             }
             if (fragment.hasChildNodes()) {
-                this.dependencies.dom.insert(fragment);
+                const processedFragment = this.processThrough(
+                    "paste_odoo_editor_html_processors",
+                    fragment
+                );
+                this.dependencies.dom.insert(processedFragment);
             }
             return true;
         }

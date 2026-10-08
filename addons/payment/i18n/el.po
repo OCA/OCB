@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-04 17:45+0000\n"
+"POT-Creation-Date: 2026-10-02 17:40+0000\n"
 "PO-Revision-Date: 2026-08-31 20:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.odoo.com/projects/odoo-s19-4/payment/"
@@ -72,6 +72,11 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.method_form
 msgid "<small class=\"text-600\">Save my payment details</small>"
+msgstr ""
+
+#. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.amount_input
+msgid "<small>Amount</small>"
 msgstr ""
 
 #. module: payment
@@ -228,6 +233,11 @@ msgid "Allow Saving Payment Methods"
 msgstr ""
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_payment_method__allow_amount_selection
+msgid "Allow splitting payments across several payment methods."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_capture_wizard__captured_amount
 msgid "Already Captured"
 msgstr ""
@@ -250,6 +260,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_status
 msgid "Amount"
 msgstr "Ποσό"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_method__allow_amount_selection
+msgid "Amount Selection"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_capture_wizard__amount_to_capture
@@ -1326,8 +1341,8 @@ msgid ""
 msgstr ""
 
 #. module: payment
-#: model:ir.actions.server,name:payment.cron_post_process_payment_tx_ir_actions_server
-msgid "Payment: Post-process transactions"
+#: model:ir.actions.server,name:payment.post_processing_cron_ir_actions_server
+msgid "Payment: Run Post-processing"
 msgstr ""
 
 #. module: payment
@@ -2254,11 +2269,6 @@ msgid ""
 msgstr ""
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.payment_status
-msgid "Your order is being processed."
-msgstr ""
-
-#. module: payment
 #: model_terms:payment.provider,done_msg:payment.payment_provider_pay_on_invoice
 msgid "Your order is confirmed, you will receive your invoice shortly."
 msgstr ""
@@ -2434,8 +2444,8 @@ msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_zip
-msgid "Zip"
-msgstr "Τ.Κ."
+msgid "Zip Code"
+msgstr ""
 
 #. module: payment
 #. odoo-python
@@ -2477,34 +2487,38 @@ msgstr ""
 msgid "websocket message handling"
 msgstr ""
 
-msgid "Activate"
-msgstr "Ενεργοποίηση"
+#~ msgid "Zip"
+#~ msgstr "Τ.Κ."
 
-msgid "Availability"
-msgstr "Διαθεσιμότητα"
+#~ msgid "Activate"
+#~ msgstr "Ενεργοποίηση"
 
-msgid "Bank Account"
-msgstr "Τραπεζικός Λογαριασμός"
+#~ msgid "Availability"
+#~ msgstr "Διαθεσιμότητα"
 
-msgid "Bank Transfer"
-msgstr "Τραπεζική Μεταφορά"
+#~ msgid "Bank Account"
+#~ msgstr "Τραπεζικός Λογαριασμός"
 
-msgid "Color"
-msgstr "Χρώμα"
+#~ msgid "Bank Transfer"
+#~ msgstr "Τραπεζική Μεταφορά"
 
-msgid ""
-"In test mode, a fake payment is processed through a test payment interface.\n"
-"This mode is advised when setting up the provider."
-msgstr ""
-"Στη λειτουργία δοκιμής, επεξεργάζεται μια ψεύτικη πληρωμή μέσω διεπαφής "
-"δοκιμής πληρωμής.\n"
-"Αυτή η λειτουργία συνιστάται κατά την ρύθμιση του παρόχου."
+#~ msgid "Color"
+#~ msgstr "Χρώμα"
 
-msgid "Paypal"
-msgstr "Paypal"
+#~ msgid ""
+#~ "In test mode, a fake payment is processed through a test payment "
+#~ "interface.\n"
+#~ "This mode is advised when setting up the provider."
+#~ msgstr ""
+#~ "Στη λειτουργία δοκιμής, επεξεργάζεται μια ψεύτικη πληρωμή μέσω διεπαφής "
+#~ "δοκιμής πληρωμής.\n"
+#~ "Αυτή η λειτουργία συνιστάται κατά την ρύθμιση του παρόχου."
 
-msgid "Providers"
-msgstr "Πάροχοι"
+#~ msgid "Paypal"
+#~ msgstr "Paypal"
 
-msgid "Reason:"
-msgstr "Αιτία:"
+#~ msgid "Providers"
+#~ msgstr "Πάροχοι"
+
+#~ msgid "Reason:"
+#~ msgstr "Αιτία:"

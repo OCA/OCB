@@ -3432,7 +3432,7 @@ test(`buttons should be in .o_statusbar_buttons in form view header on mobile`, 
     });
 
     expect(`.o_statusbar_buttons > button:eq(0)`).toHaveAttribute("name", "0");
-    await contains(".o_statusbar_buttons .dropdown-toggle:has([data-icon='more_vert'])").click();
+    await contains(".o_statusbar_buttons button.dropdown-toggle-split").click();
     expect(`.o-dropdown--menu div.o_field_widget`).toHaveAttribute("name", "foo");
 });
 
@@ -8663,7 +8663,7 @@ test(`support anchor tags with action type`, async () => {
         type: "form",
         arch: `
             <form>
-                <a type="action" name="42" class="btn-primary"><i class="oi" data-icon="east"/> Click me !</a>
+                <a type="action" name="42" class="btn-primary"><i class="oi" data-icon="arrow_forward"/> Click me !</a>
             </form>
         `,
         resId: 1,
@@ -10051,7 +10051,7 @@ test("support header button as widgets in submenu on form statusbar on mobile", 
         </header></form>`,
     });
 
-    await contains(".o_statusbar_buttons button:has([data-icon='more_vert'])").click();
+    await contains(".o_statusbar_buttons button.dropdown-toggle-split").click();
     expect(".o-dropdown--menu button:contains(Upload Test)").toHaveCount(1);
     await contains(".o-dropdown--menu button:contains(Upload Test)").click();
     expect(".o-dropdown--menu button:contains(Upload Test)").toHaveCount(1);
@@ -11811,7 +11811,7 @@ test(`setting : boolean field`, async () => {
             <form>
                 <setting help="this is bar" documentation="/applications/technical/web/settings/this_is_a_test.html">
                     <field name="bar"/>
-                    <button name="buttonName" icon="east" type="action" string="Manage Users" class="btn-link"/>
+                    <button name="buttonName" icon="arrow_forward" type="action" string="Manage Users" class="btn-link"/>
                 </setting>
             </form>
         `,
@@ -13033,7 +13033,7 @@ test(`statusbar buttons are correctly rendered in mobile`, async () => {
 
     expect(".o_statusbar_buttons button:eq(0)").toHaveText("Confirm");
     // open the dropdown
-    await contains(".o_statusbar_buttons button:has([data-icon='more_vert'])").click();
+    await contains(".o_statusbar_buttons button.dropdown-toggle-split").click();
     await animationFrame();
     expect(".o-dropdown--menu:visible").toHaveCount(1, { message: "dropdown should be visible" });
     expect(".o-dropdown--menu button").toHaveCount(1, {
@@ -13064,11 +13064,11 @@ test(`statusbar widgets should appear in the CogMenu dropdown`, async () => {
 
     expect(".o_statusbar_buttons button:eq(0)").toHaveText("Attach document");
     // Now there should an action dropdown, because there are two visible buttons
-    expect(".o_statusbar_buttons button:has([data-icon='more_vert'])").toHaveCount(1, {
+    expect(".o_statusbar_buttons button.dropdown-toggle-split").toHaveCount(1, {
         message: "should have 'More' dropdown",
     });
 
-    await contains(".o_statusbar_buttons button:has([data-icon='more_vert'])").click();
+    await contains(".o_statusbar_buttons button.dropdown-toggle-split").click();
     expect(".o-dropdown--menu button").toHaveCount(1, {
         message: "should have 1 button in the dropdown",
     });
@@ -13076,7 +13076,7 @@ test(`statusbar widgets should appear in the CogMenu dropdown`, async () => {
     // change display_name to update buttons modifiers and make one button visible
     await contains(".o_field_widget[name=name] input").edit("first record");
     expect(".o_statusbar_buttons button:eq(0)").toHaveText("Attach document");
-    expect(".o_statusbar_buttons button:has([data-icon='more_vert'])").toHaveCount(0, {
+    expect(".o_statusbar_buttons button.dropdown-toggle-split").toHaveCount(0, {
         message: "shouldn't have 'More' dropdown",
     });
 });
@@ -13250,7 +13250,7 @@ test(`preserve current scroll position on form view while closing dialog`, async
     });
 
     // click on back button
-    await contains(".modal .modal-header [data-icon='west']").click();
+    await contains(".modal .modal-header [data-icon='arrow_back']").click();
 
     expect(window.scrollY).toBe(265, { message: "Should have scrolled 265 px vertically" });
     expect(window.scrollX).toBe(0, { message: "Should be 0 px from left as it is" });
@@ -13294,7 +13294,7 @@ test("attach_document widget also works inside a dropdown", async () => {
         `,
     });
 
-    await contains(".o_statusbar_buttons button:has([data-icon='more_vert'])").click();
+    await contains(".o_statusbar_buttons button.dropdown-toggle-split").click();
     await contains(".o_attach_document").click();
     await manuallyDispatchProgrammaticEvent(fileInput, "change");
     await animationFrame();

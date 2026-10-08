@@ -652,12 +652,16 @@ export class Thread extends Record {
         this.isLoaded = false;
         this.scrollTop = undefined;
         const limit = !messageId && messageId !== 0 ? this.moreFetchLimit : this.moreFetchLimit * 2;
+        let receivedMessages;
         try {
             this.phantomMessages = this.messages;
-            this.messages = await this.fetchMessages({
+            const knownMessages = [...this.messages];
+            const fetched = await this.fetchMessages({
                 fetchParams: { around: messageId, limit },
                 routeParams,
             });
+            receivedMessages = this.messages.filter((message) => message.notIn(knownMessages));
+            this.messages = fetched;
             this.phantomMessages = [];
         } catch {
             this.isLoaded = true;
@@ -677,6 +681,12 @@ export class Thread extends Record {
             }
         }
         this._enrichMessagesWithTransient();
+        if (!this.loadNewer) {
+            const missingMessages = receivedMessages.filter((message) =>
+                message.notIn(this.messages)
+            );
+            this.messages.push(...missingMessages);
+        }
     }
 
     async markAllMessagesAsRead() {

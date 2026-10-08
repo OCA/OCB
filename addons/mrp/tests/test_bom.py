@@ -2134,6 +2134,24 @@ class TestBoM(TestMrpCommon):
         with self.assertRaises(exceptions.ValidationError):
             self.bom_1.active = True
 
+    def test_search_archived_bom_by_archived_product_name(self):
+        """An archived BoM must still be found when searching by the name of its
+        (also archived) product
+        """
+        self.product_4.action_archive()
+        self.assertFalse(self.bom_1.active, "archiving the product should cascade-archive its BoM")
+
+        found = self.env['mrp.bom'].search([
+            ('active', '=', False),
+            ('product_tmpl_id', 'ilike', self.product_4.name),
+        ])
+        self.assertIn(self.bom_1.id, found.ids)
+
+        still_hidden = self.env['product.template'].search([
+            ('display_name', 'ilike', self.product_4.name),
+        ])
+        self.assertFalse(still_hidden)
+
     def test_cycle_on_bom_creation(self):
         finished_product = self.bom_4.product_id
         component = self.bom_4.bom_line_ids.product_id
@@ -2974,6 +2992,18 @@ class TestBoM(TestMrpCommon):
             [p1_bom.bom_line_ids[2].id, p2_bom.bom_line_ids[1].id],
             "Filtering the exploded BoM list should return only the matching BoM line.",
         )
+
+    def test_bom_cycle_on_component_change(self):
+        """
+        Test that changing a BoM component to a product that creates a BoM cycle
+        raises a ValidationError when saving the BoM.
+        """
+        # bom_2 is already created in setUp for product_5 with product_4 as component
+        bom_form = Form(self.bom_1)
+        with self.assertRaises(exceptions.ValidationError):
+            with bom_form.bom_line_ids.edit(0) as bom_line:
+                bom_line.product_id = self.product_5
+            bom_form.save()
 
 
 class TestTourBoM(HttpCase):

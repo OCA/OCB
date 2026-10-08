@@ -43,9 +43,10 @@
                     />
                 </div>
             </div>
-            <div t-ref="this.tabContentRef" class="o-mail-MessagingMenu-tabContent d-flex flex-column overflow-auto o-scrollbar-thin flex-grow-1 o-px-1_5">
+            <div t-ref="this.tabContentRef" class="o-mail-MessagingMenu-tabContent d-flex flex-column overflow-auto o-scrollbar-thin flex-grow-1 o-px-1_5 o-gap-0_5">
                 <NotificationItem
                     t-if="this.showPushPermissionRequest"
+                    className="'bg-info o-my-0_5'"
                     important="1"
                     onClick="() => this.notification.requestPermission()"
                     persona="this.notificationRequest.partner"
@@ -54,7 +55,7 @@
                     <t t-set-slot="name"><t t-out="this.notificationRequest.displayName"/></t>
                     <t t-set-slot="sideContent">
                         <div class="d-flex align-items-center justify-content-center o-gap-1_5">
-                            <a class="btn btn-outline-info btn-sm rounded-pill px-2 py-0">Enable</a>
+                            <a class="btn btn-info btn-sm rounded-pill px-2 py-0">Enable</a>
                             <span t-if="!this.hasTouch()" t-on-click.stop="() => this.store.isNotificationPermissionDismissed = true" class="oi text-dark bg-transparent opacity-50 opacity-100-hover" data-icon="close_small" title="Dismiss"></span>
                         </div>
                     </t>
@@ -85,17 +86,17 @@
 <t t-name="mail.MessagingMenu-action">
     <t t-set="togglesDropdown" t-value="action.subActions?.length"/>
     <button
-        class="btn btn-sm btn-primary rounded-2 py-1 d-flex align-items-center justify-content-center"
+        class="btn btn-sm btn-primary rounded-3 py-1 o-my-0_5 d-flex align-items-center justify-content-center"
         t-att-class="togglesDropdown ? 'w-100 position-relative pe-4' : 'flex-shrink-0'"
         t-att-disabled="action.isDisabled?.()"
         t-att-title="action.title"
         t-on-click="() => togglesDropdown ? undefined : this.onClickAction(action)"
     >
         <span t-if="action.icon" class="d-flex align-items-center flex-shrink-0" t-att-class="{'me-1': action.text}">
-            <i class="oi" t-att-class="action.iconClass" t-att-data-icon="action.icon"/>
+            <i class="oi oi-fw" t-att-class="action.iconClass" t-att-data-icon="action.icon"/>
         </span>
         <span t-if="action.text" class="text-truncate" t-out="action.text"/>
-        <span t-if="togglesDropdown" class="oi position-absolute end-0 me-1" data-icon="keyboard_arrow_down" aria-hidden="true"/>
+        <span t-if="togglesDropdown" class="oi oi-fw position-absolute end-0 me-1" data-icon="keyboard_arrow_down" aria-hidden="true"/>
     </button>
 </t>
 

@@ -361,6 +361,14 @@ class HrExpense(models.Model):
             if len(expense.account_move_id.origin_payment_id.expense_ids) > 1:
                 raise ValidationError(_("Only one expense can be linked to a particular payment"))
 
+    @api.constrains('existing_bill_id')
+    def _check_existing_bill_is_set(self):
+        # case where an expense has an existing bill, but it's not filled in. We cannot add this condition
+        # in can_approve as can_approve is used at submission (see action_submit)
+        for expense in self:
+            if not expense.existing_bill_id and expense.has_existing_bill and expense.state not in ['draft', 'submitted', 'refused']:
+                raise ValidationError(self.env._("The existing bill must be set."))
+
     # --------------------------------------------
     # Compute methods
     # --------------------------------------------
@@ -1193,7 +1201,7 @@ class HrExpense(models.Model):
         match self.state:
             case 'draft':
                 return self.env.ref('hr_expense.mt_expense_reset')
-            case 'cancel':
+            case 'refused':
                 return self.env.ref('hr_expense.mt_expense_refused')
             case 'paid':
                 return self.env.ref('hr_expense.mt_expense_paid')
@@ -1401,7 +1409,11 @@ class HrExpense(models.Model):
     def _can_be_autovalidated(self):
         """ Check whether the given expenses can be auto-validated (no approver) """
         self.ensure_one()
-        return (not self.manager_id and not self.employee_id.expense_manager_id) or self.manager_id == self.employee_id.user_id
+        has_rights = (not self.manager_id and not self.employee_id.expense_manager_id) or self.manager_id == self.employee_id.user_id
+        # In case the expense is linked to an existing bill, the existing_bill_id must be set to be autovalidated
+        # If it's not linked to an existing bill, then the field is not required
+        existing_bill_is_set = self.existing_bill_id or not self.has_existing_bill
+        return has_rights and existing_bill_is_set
 
     def action_approve(self):
         """ Approve an expense, pops a wizard if a duplicated expense is found to confirm they are all valid expenses """
@@ -1560,18 +1572,18 @@ class HrExpense(models.Model):
         # Counting the expenses to display in the dashboard:
         # - To Submit: contains the expenses paid either by the employee or by the company, and that are draft or reported
         # - Waiting approval: contains expenses paid by the employee or paid by the company, and that have been submitted but still need to be approved/refused
-        # - To be reimbursed: contains ONLY expenses paid by the employee that are approved, the payment has not yet been made
+        # - To be reimbursed: contains ONLY expenses paid by the employee that are approved or posted, the payment has not yet been made
         base_domain = [
             ('employee_id', 'child_of', self.env.user.employee_ids.ids),
             '|', ('state', 'in', ('draft', 'submitted')),
-            '&', ('payment_mode', '=', 'own_account'), ('state', '=', 'approved')
+            '&', ('payment_mode', '=', 'own_account'), ('state', 'in', {'approved', 'posted'})
         ]
         if domain:
             base_domain = Domain.AND([base_domain, domain])
 
         fetched_expenses = self._read_group(base_domain, ['state'], ['total_amount:sum'])
         for state, total_amount_sum in fetched_expenses:
-            expense_state[state]['amount'] += total_amount_sum
+            expense_state['approved' if state == 'posted' else state]['amount'] += total_amount_sum
         return expense_state
 
     def action_approve_duplicates(self):
@@ -1688,7 +1700,7 @@ class HrExpense(models.Model):
 
     def _check_can_refuse(self):
         if not all(self.mapped('can_approve')):
-            reasons = _("You cannot refuse:\n %(reasons)s", reasons="\n".join(self._get_cannot_approve_reason().values()))
+            reasons = _("You cannot refuse:\n%(reasons)s", reasons="\n".join(filter(None, self._get_cannot_approve_reason().values())))
             raise UserError(reasons)
 
     def _check_can_reset_approval(self):
@@ -1706,6 +1718,9 @@ class HrExpense(models.Model):
 
     def _do_approve(self):
         expenses_to_approve = self.filtered(lambda s: s.state in {'submitted', 'draft'})
+        if any(expense.has_existing_bill and not expense.existing_bill_id for expense in expenses_to_approve):
+            raise UserError(self.env._("The existing bill must be set."))
+
         for expense in expenses_to_approve:
             expense.write({
                 'approval_state': 'approved',

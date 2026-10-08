@@ -96,6 +96,8 @@
         </field>
     </record>
 
+    <menuitem id="menu_hr_attendance_employee" name="Employees" parent="hr_attendance.menu_hr_attendance_view_attendances_management" action="hr_employee_attendance_action_kanban" groups="hr_attendance.group_hr_attendance_officer" sequence="2"/>
+
     <record id="view_employee_tree_inherit_leave" model="ir.ui.view">
         <field name="name">hr.employee.list.leave</field>
         <field name="model">hr.employee</field>
@@ -115,6 +117,7 @@
                 js_class="attendance_calendar_view"
                 date_start="check_in"
                 date_stop="check_out"
+                show_unusual_days="True"
                 quick_create_view_id="%(hr_attendance.hr_attendance_create_view_form)d"
                 mode="month"
                 color="wet_color">

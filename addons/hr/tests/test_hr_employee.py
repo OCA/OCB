@@ -13,6 +13,10 @@ from odoo.tools import mute_logger
 from odoo.exceptions import UserError, ValidationError
 from psycopg2.errors import NotNullViolation
 
+# 1x1 px pictures, to tell an employee's own photo from its user's avatar.
+IMG_1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC'
+IMG_2 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNgYPgPAAEDAQAIicLsAAAAAElFTkSuQmCC'
+
 
 @tagged('at_install', '-post_install')  # LEGACY at_install, fails post install
 class TestHrEmployee(TestHrCommon):
@@ -499,25 +503,45 @@ class TestHrEmployee(TestHrCommon):
         self.assertEqual(employee_norbert.image_1920.content, user_norbert.image_1920.content)
         self.assertEqual(employee_norbert.avatar_1920.content, user_norbert.avatar_1920.content)
 
+    def test_avatar_own_picture_kept_on_user_write(self):
+        # check employee's picture stays when user's avatar changes
+        user = self.env['res.users'].create({'name': 'Solal Meyer', 'login': 'solal5321'})
+        employee = self.env['hr.employee'].create({
+            'user_id': user.id,
+            'image_1920': IMG_1,
+        })
+        own_picture = employee.image_1920.content
+        self.assertNotEqual(own_picture, user.image_1920.content)
+
+        user.write({
+            'image_1920': IMG_2,
+        })
+        self.assertEqual(employee.image_1920.content, own_picture)
+
+    def test_avatar_missing_picture_set_on_user_write(self):
+        # check employee without picture still follows the user's avatar.
+        # the employee took its user's generated avatar on creation
+        self.employee_without_image.image_1920 = False
+
+        self.user_without_image.write({'image_1920': IMG_2})
+        self.assertEqual(self.employee_without_image.image_1920.content, self.user_without_image.image_1920.content)
+
     def test_badge_validation(self):
-        # check employee's barcode should be a sequence of digits and alphabets
+        # check employee's barcode should be printable ASCII characters except spaces
         employee = self.env['hr.employee'].create({
             'name': 'Badge Employee',
         })
 
         employee_form = Form(employee)
-        employee_form.barcode = 'Test@badge1'
-        with self.assertRaises(ValidationError):
-            employee_form.save()
-
-        employee_form.barcode = 'Testàë@badge'
-        with self.assertRaises(ValidationError):
-            employee_form.save()
-
-        employee_form.barcode = 'Testbadge2'
+        employee_form.barcode = 'Test@badge_1'
         employee_form.save()
 
-        self.assertEqual(employee_form.barcode, 'Testbadge2')
+        self.assertEqual(employee_form.barcode, 'Test@badge_1')
+
+        for invalid_barcode in ('Testàë@badge', 'Test badge', ' Testbadge', 'Testbadge ', 'Testbadge\n', 'A' * 19):
+            with self.subTest(barcode=invalid_barcode), self.assertRaises(ValidationError):
+                employee_form.barcode = invalid_barcode
+                employee_form.save()
 
     def test_search_hr_employee_no_access(self):
         new_user = new_test_user(self.env, 'employee')

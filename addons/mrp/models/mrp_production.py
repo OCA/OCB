@@ -934,7 +934,7 @@ class MrpProduction(models.Model):
             return NotImplemented
         delayed_productions = (
             Domain([
-                ('state', 'in', ['confirmed', 'progress', 'to_close']),
+                ('state', 'in', ['confirmed', 'progress', 'to_close', 'draft']),
                 ('date_deadline', '!=', False),
             ])
             & (
@@ -2088,9 +2088,9 @@ class MrpProduction(models.Model):
                     or any(not ml.lot_id for ml in move.move_line_ids)
                 ):
                     move.lot_ids = order.lot_producing_ids.ids
-                    if move.product_id.tracking == 'lot' and order.lot_producing_ids:
-                        lines_without_lot = move.move_line_ids.filtered(lambda ml: not ml.lot_id)
-                        lines_without_lot.lot_id = order.lot_producing_ids[:1]
+                if move.product_id.tracking == 'lot' and order.lot_producing_ids:
+                    lines_without_lot = move.move_line_ids.filtered(lambda ml: not ml.lot_id and not ml.lot_name)
+                    lines_without_lot.lot_id = order.lot_producing_ids[:1]
                 # Distribute the produced qty across the finished moves (there can be several, exemple: after a split/merge)
                 move.quantity = order.uom_id.round((order.qty_producing - order.qty_produced) * move.unit_factor, rounding_method='HALF-UP')
                 extra_vals = order._prepare_finished_extra_vals()
@@ -2413,7 +2413,7 @@ class MrpProduction(models.Model):
         backorders = backorders - productions_to_backorder
 
         self.workorder_ids.button_finish()
-        for production in self.filtered(lambda p: not p.uom_id.is_zero(production.qty_producing)):
+        for production in self.filtered(lambda p: not p.uom_id.is_zero(p.qty_producing)):
             production.move_raw_ids.filtered(lambda m: not m.picked).picked = True
         productions_not_to_backorder._post_inventory(cancel_backorder=True)
         productions_to_backorder._post_inventory(cancel_backorder=True)

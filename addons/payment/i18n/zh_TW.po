@@ -12,11 +12,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-04 17:45+0000\n"
-"PO-Revision-Date: 2026-09-09 14:11+0000\n"
+"POT-Creation-Date: 2026-10-02 17:40+0000\n"
+"PO-Revision-Date: 2026-10-02 02:21+0000\n"
 "Last-Translator: \"Tony Ng (ngto)\" <ngto@odoo.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
-"projects/odoo-master/payment/zh_Hant/>\n"
+"projects/odoo-20/payment/zh_Hant/>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -83,6 +83,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.method_form
 msgid "<small class=\"text-600\">Save my payment details</small>"
 msgstr "<small class=\"text-600\">儲存我的付款資訊</small>"
+
+#. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.amount_input
+msgid "<small>Amount</small>"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
@@ -252,6 +257,11 @@ msgid "Allow Saving Payment Methods"
 msgstr "允許儲存付款方式"
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_payment_method__allow_amount_selection
+msgid "Allow splitting payments across several payment methods."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_capture_wizard__captured_amount
 msgid "Already Captured"
 msgstr "已捕獲"
@@ -274,6 +284,11 @@ msgstr "Amazon 付款服務"
 #: model_terms:ir.ui.view,arch_db:payment.payment_status
 msgid "Amount"
 msgstr "金額"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_method__allow_amount_selection
+msgid "Amount Selection"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_capture_wizard__amount_to_capture
@@ -1151,7 +1166,7 @@ msgstr ""
 #. module: payment
 #: model:payment.provider,name:payment.payment_provider_pay_on_invoice
 msgid "Pay on Invoice"
-msgstr ""
+msgstr "發票付款"
 
 #. module: payment
 #: model:payment.provider,name:payment.payment_provider_paypal
@@ -1352,9 +1367,9 @@ msgid ""
 msgstr ""
 
 #. module: payment
-#: model:ir.actions.server,name:payment.cron_post_process_payment_tx_ir_actions_server
-msgid "Payment: Post-process transactions"
-msgstr "付款：後處理交易"
+#: model:ir.actions.server,name:payment.post_processing_cron_ir_actions_server
+msgid "Payment: Run Post-processing"
+msgstr ""
 
 #. module: payment
 #: model:ir.actions.server,name:payment.processing_cron_ir_actions_server
@@ -2296,11 +2311,6 @@ msgstr ""
 "                                    電子郵件。"
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.payment_status
-msgid "Your order is being processed."
-msgstr ""
-
-#. module: payment
 #: model_terms:payment.provider,done_msg:payment.payment_provider_pay_on_invoice
 msgid "Your order is confirmed, you will receive your invoice shortly."
 msgstr ""
@@ -2476,8 +2486,8 @@ msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_zip
-msgid "Zip"
-msgstr "郵遞區號"
+msgid "Zip Code"
+msgstr ""
 
 #. module: payment
 #. odoo-python
@@ -2520,3 +2530,9 @@ msgstr ""
 #: model:ir.model,name:payment.model_ir_websocket
 msgid "websocket message handling"
 msgstr ""
+
+#~ msgid "Zip"
+#~ msgstr "郵遞區號"
+
+#~ msgid "Payment: Post-process transactions"
+#~ msgstr "付款：後處理交易"

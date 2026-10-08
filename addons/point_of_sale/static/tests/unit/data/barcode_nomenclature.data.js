@@ -11,8 +11,8 @@ export class BarcodeNomenclature extends models.ServerModel {
         {
             id: 1,
             name: "Default Nomenclature",
-            rule_ids: [1, 2, 3, 4, 5, 6],
-            upc_ean_conv: true,
+            rule_ids: [1, 2, 3, 4, 6],
+            upc_ean_conv: "always",
         },
     ];
 }

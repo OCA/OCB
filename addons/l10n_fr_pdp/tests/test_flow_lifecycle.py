@@ -597,6 +597,57 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
             invoice._get_l10n_fr_pdp_errors(),
         )
 
+    def test_oss_b2c_transaction_excludes_foreign_vat(self):
+        """OSS VAT remains on the invoice but is not reported as French VAT."""
+        oss_tag = self.env.ref('l10n_eu_oss.tag_oss', raise_if_not_found=False)
+        if not oss_tag:
+            oss_tag = self.env['account.account.tag'].create({'name': 'OSS'})
+            self.env['ir.model.data'].create({
+                'module': 'l10n_eu_oss',
+                'name': 'tag_oss',
+                'model': 'account.account.tag',
+                'res_id': oss_tag.id,
+            })
+        # Reuse a fully configured cash-basis tax and only customize its OSS rate and tag.
+        oss_tax = self._get_tax_on_payment_20().copy({
+            'name': '21% BE VAT',
+            'amount': 21,
+        })
+        (oss_tax.invoice_repartition_line_ids | oss_tax.refund_repartition_line_ids).write({
+            'tag_ids': [Command.link(oss_tag.id)],
+        })
+        self.assertTrue(oss_tax._l10n_fr_pdp_is_oss())
+        oss_partner = self.env['res.partner'].create({
+            'name': 'OSS B2C Belgium',
+            'country_id': self.env.ref('base.be').id,
+        })
+
+        invoice = self._create_reporting_invoice(partner=oss_partner, tax_ids=oss_tax)
+
+        self.assertRecordValues(invoice, [{
+            'amount_untaxed': 100.0,
+            'amount_tax': 21.0,
+            'l10n_fr_pdp_has_error': False,
+            'l10n_fr_pdp_status': 'pending',
+        }])
+        transaction = self._build_flow_xml(invoice.l10n_fr_pdp_last_flow_id).find(
+            './TransactionsReport/Transactions'
+        )
+        self.assertEqual(transaction.findtext('CategoryCode'), 'TNT1')
+        self.assertEqual(float(transaction.findtext('TaxExclusiveAmount')), 100.0)
+        self.assertEqual(float(transaction.findtext('TaxTotal')), 0.0)
+        self.assertEqual(float(transaction.findtext('TaxSubtotal/TaxPercent')), 0.0)
+        self.assertEqual(float(transaction.findtext('TaxSubtotal/TaxableAmount')), 100.0)
+        self.assertEqual(float(transaction.findtext('TaxSubtotal/TaxTotal')), 0.0)
+
+        invalid_oss_tax = oss_tax.copy({'name': 'Invalid OSS tax', 'amount': 150})
+        self.assertTrue(invalid_oss_tax._l10n_fr_pdp_is_oss())
+        invalid_invoice = self._create_reporting_invoice(partner=oss_partner, tax_ids=invalid_oss_tax)
+        self.assertRecordValues(invalid_invoice, [{
+            'l10n_fr_pdp_has_error': True,
+            'l10n_fr_pdp_status': 'error',
+        }])
+
     def test_b2bi_invoice_creates_transaction_flow_payload(self):
         invoice = self._create_reporting_invoice(partner=self.b2bi_customer)
 
@@ -1399,6 +1450,95 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
         }])
         xml = self._build_flow_xml(rectificative_flow)
         self.assertEqual(xml.findtext('./ReportDocument/TypeCode'), 'RE')
+
+    def test_invoice_sent_by_pdp_is_removed_from_open_e_reporting_flow(self):
+        invoice = self._create_reporting_invoice(
+            partner=self.b2c_customer,
+            invoice_date='2025-09-03',
+        )
+        initial_flow = invoice.l10n_fr_pdp_last_flow_id
+
+        # A failed PDP attempt is not proof of e-invoicing, so the existing Flow 10 scope must stay.
+        invoice.peppol_move_state = 'error'
+        self.env.flush_all()
+        self.assertFalse(invoice.pdp_is_sent)
+        self.assertEqual(invoice.l10n_fr_pdp_flow_10_report_type, 'transaction')
+        self.assertIn(invoice, initial_flow._get_moves())
+
+        # A successful PDP send proves that this is an e-invoice, even though the missing VAT
+        # initially made it look B2C. The still-open report can simply forget the invoice.
+        invoice.peppol_move_state = 'done'
+        self.env.flush_all()
+        initial_flow.invalidate_recordset(['rectificative_flow_ids'])
+
+        self.assertTrue(invoice.pdp_is_sent)
+        self.assertFalse(invoice.l10n_fr_pdp_flow_10_report_type)
+        self.assertEqual(invoice.l10n_fr_pdp_status, 'out_of_scope')
+        self.assertNotIn(invoice, initial_flow._get_moves())
+        # Nothing reached the administration yet, so creating a corrective report would be wrong.
+        self.assertFalse(initial_flow.rectificative_flow_ids)
+
+    def test_invoice_sent_by_pdp_rectifies_sent_transaction_and_payment_flows(self):
+        invoice = self._create_reporting_invoice(
+            partner=self.b2c_customer,
+            amount=120.0,
+            invoice_date='2025-09-03',
+            tax_ids=self._get_tax_on_payment_20_tax_included(),
+        )
+        payment = self._register_payment(invoice, '2025-09-09')
+        payment_move = payment.move_id
+        transaction_flow = invoice.l10n_fr_pdp_last_flow_id
+        payment_flow = payment_move.l10n_fr_pdp_last_flow_id
+
+        self._run_send_cron('2025-09-20', identifier='TRANSACTION-BEFORE-PDP-SEND')
+        self._run_send_cron('2025-10-10', identifier='PAYMENT-BEFORE-PDP-SEND')
+        (transaction_flow | payment_flow).invalidate_recordset(['state'])
+        self.assertEqual(transaction_flow.state, 'sent')
+        self.assertEqual(payment_flow.state, 'sent')
+
+        # The initial reports already reached the administration. Create their RE while the old
+        # scopes are still known, then remove both the e-invoice and its cash-accounting payment.
+        invoice.peppol_move_state = 'done'
+        self.env.flush_all()
+        (transaction_flow | payment_flow).invalidate_recordset(['rectificative_flow_ids'])
+        transaction_rectificative = transaction_flow.rectificative_flow_ids
+        payment_rectificative = payment_flow.rectificative_flow_ids
+
+        self.assertFalse(invoice.l10n_fr_pdp_flow_10_report_type)
+        self.assertFalse(payment_move.l10n_fr_pdp_flow_10_report_type)
+        self.assertRecordValues(transaction_rectificative | payment_rectificative, [
+            {
+                'report_type': 'transaction',
+                'operation_type': 'sale',
+                'state': 'ready',
+                'transmission_type': 'rectificative',
+                'initial_flow_id': transaction_flow.id,
+            },
+            {
+                'report_type': 'payment',
+                'operation_type': 'sale',
+                'state': 'ready',
+                'transmission_type': 'rectificative',
+                'initial_flow_id': payment_flow.id,
+            },
+        ])
+        # RE flows are full replacements: neither the e-invoice nor its payment remains in scope.
+        self.assertNotIn(invoice, transaction_rectificative._get_moves())
+        self.assertNotIn(payment_move, payment_rectificative._get_moves())
+
+        # Rectificative flows have no deadline window: the cron must transmit both removals now.
+        self._run_send_cron('2025-10-10', identifier='REMOVE-E-INVOICE-FROM-FLOW-10')
+        (transaction_rectificative | payment_rectificative).invalidate_recordset(['state', 'payload_id'])
+        self.assertEqual(transaction_rectificative.state, 'sent')
+        self.assertEqual(payment_rectificative.state, 'sent')
+        self.assertEqual(
+            etree.fromstring(transaction_rectificative.payload_id.raw.content).findtext('./ReportDocument/TypeCode'),
+            'RE',
+        )
+        self.assertEqual(
+            etree.fromstring(payment_rectificative.payload_id.raw.content).findtext('./ReportDocument/TypeCode'),
+            'RE',
+        )
 
     def test_error_moves_are_moved_to_rectificative_flow_when_initial_is_sent(self):
         valid_invoice = self._create_reporting_invoice(

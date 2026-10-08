@@ -23,11 +23,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 17:42+0000\n"
-"PO-Revision-Date: 2026-09-09 13:53+0000\n"
+"POT-Creation-Date: 2026-09-18 17:39+0000\n"
+"PO-Revision-Date: 2026-09-28 12:33+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-master/"
-"delivery/ca/>\n"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-20/delivery/"
+"ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,6 +43,10 @@ msgid ""
 "object.name)\n"
 "        "
 msgstr ""
+"\n"
+"            \"Albarà - %s - %s\" % (object.partner_id.name or \"\", "
+"object.name)\n"
+"        "
 
 #. module: delivery
 #: model:ir.module.module,description:base.module_delivery
@@ -178,7 +182,7 @@ msgstr ""
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_delivery_note
 msgid "<span>Delivery Note</span>"
-msgstr ""
+msgstr "<span>Albarà</span>"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_delivery_note
@@ -249,11 +253,6 @@ msgstr "Afegir"
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
 msgid "Add a delivery method"
 msgstr ""
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
-msgid "Add shipping"
-msgstr "Afegeix un enviament"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -513,23 +512,23 @@ msgstr "Mètodes lliurament"
 #: model:ir.actions.report,name:delivery.action_report_delivery_note
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_note_form_view
 msgid "Delivery Note"
-msgstr ""
+msgstr "Albarà"
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_delivery_note_wizard_line
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_note_list_view
 msgid "Delivery Note Line"
-msgstr ""
+msgstr "Línia de l'albarà"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_note_wizard_line__note_id
 msgid "Delivery Note Reference"
-msgstr ""
+msgstr "Referència de l'albarà"
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_delivery_note_wizard
 msgid "Delivery Note Wizard"
-msgstr ""
+msgstr "Assistent per albarans"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__delivery_price
@@ -722,7 +721,7 @@ msgstr "Obtenir tarifes i crear enviaments"
 
 #. module: delivery
 #. odoo-javascript
-#: code:addons/delivery/static/src/widgets/carrier_rates_loader.xml:0
+#: code:addons/delivery/static/src/backend/widgets/carrier_rates_loader.xml:0
 msgid "Get all rates"
 msgstr ""
 
@@ -840,7 +839,7 @@ msgstr "Última actualització el"
 
 #. module: delivery
 #. odoo-javascript
-#: code:addons/delivery/static/src/widgets/carrier_rates_loader.xml:0
+#: code:addons/delivery/static/src/backend/widgets/carrier_rates_loader.xml:0
 msgid "Loading Rates"
 msgstr ""
 
@@ -1105,6 +1104,11 @@ msgstr ""
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_delivery_note
 msgid "Shipped"
+msgstr ""
+
+#. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
+msgid "Shipping"
 msgstr ""
 
 #. module: delivery
@@ -1393,6 +1397,9 @@ msgid ""
 "{{ object.so_id.company_id.name }} Shipping Confirmation (Ref "
 "{{ object.so_id.name or 'n/a' }})"
 msgstr ""
+
+#~ msgid "Add shipping"
+#~ msgstr "Afegeix un enviament"
 
 #~ msgid "<i class=\"oi me-1\" data-icon=\"east\"/>Get rate"
 #~ msgstr "<i class=\"oi me-1\" data-icon=\"east\"/>Obtindre tarifa"

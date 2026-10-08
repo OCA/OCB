@@ -5,7 +5,7 @@ from uuid import uuid4
 from markupsafe import Markup
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command
 from odoo.tools import float_is_zero
 
@@ -193,6 +193,14 @@ class PosOrderLine(models.Model):
 
     @api.onchange('qty', 'discount', 'price_unit', 'tax_ids')
     def _onchange_qty(self):
+        if self.refunded_orderline_id:
+            line_id = self.ids[0]  # do not just use `id` in case of NewId
+            already_refunded_qty = sum(self.refunded_orderline_id.refund_orderline_ids
+                                       .filtered(lambda l: l.id != line_id and l.order_id.state != 'cancel')
+                                       .mapped('qty'))
+            total_refunded_qty = abs(already_refunded_qty) + abs(self.qty)
+            if abs(self.refunded_orderline_id.qty) - total_refunded_qty < 0:
+                raise ValidationError(_("You cannot refund more than the outstanding quantity for this product."))
         if self.product_id:
             price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
             self.price_subtotal = self.price_subtotal_incl = price * self.qty
@@ -299,6 +307,11 @@ class PosOrderLine(models.Model):
             if fiscal_position:
                 account = fiscal_position.map_account(account)
 
+            quantity = line.qty * (-1 if is_refund_document else 1)
+            extra_tax_data = line.extra_tax_data
+            if extra_tax_data and quantity * extra_tax_data.get('quantity', quantity) < 0:
+                extra_tax_data = self.env['account.tax']._reverse_quantity_base_line_extra_tax_data(extra_tax_data)
+
             base_lines.append({
                 **record.env['account.tax']._prepare_base_line_for_taxes_computation(
                     line,
@@ -308,11 +321,12 @@ class PosOrderLine(models.Model):
                     product_id=line.product_id,
                     tax_ids=line.tax_ids_after_fiscal_position,
                     price_unit=line.price_unit,
-                    quantity=line.qty * (-1 if is_refund_document else 1),
+                    quantity=quantity,
                     discount=line.discount,
                     account_id=account,
                     is_refund=is_refund_document,
                     sign=-1 if is_refund_document else 1,
+                    extra_tax_data=extra_tax_data,
                 ),
                 'uom_id': line.product_uom_id,
                 'name': product_name,

@@ -1,12 +1,24 @@
 .o-mail-NotificationItem {
+    --mail-NotificationItem-lineHeight: 1.15rem;
     --list-group-bg: transparent;
     outline: 1px solid transparent;
     outline-offset: -1px;
     --border-opacity: 0;
 
-    &:hover, &.o-active {
-        --border-opacity: var(--mail-NotificationItem-activeBorderOpacity, .075);
-        backdrop-filter: contrast(var(--mail-NotificationItem-activeBackdropFilterContrast, .85));
+    &:not(.o-interest) {
+        opacity: var(--mail-NotificationItem-notInterestOpacity, .875);
+    }
+    &:hover, &.o-active, .o-mail-MessagingMenuItem[data-right-clicking] & {
+
+        &:not(:has(.o-mail-MessagingMenu-actions button:hover)), &.o-active {
+            --border-opacity: var(--mail-NotificationItem-activeBorderOpacity, .075);
+            backdrop-filter: contrast(var(--mail-NotificationItem-activeBackdropFilterContrast, .85));
+        }
+
+    }
+
+    &.bg-warning, &.bg-info {
+        --bg-opacity: .2;
     }
 }
 
@@ -42,7 +54,7 @@
 }
 
 .o-mail-NotificationItem-line {
-    line-height: 1.15rem;
+    line-height: var(--mail-NotificationItem-lineHeight);
 }
 
 .o-mail-NotificationItem-markAsRead {
