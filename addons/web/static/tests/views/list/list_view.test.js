@@ -2282,6 +2282,19 @@ test(`basic grouped list rendering`, async () => {
     expect(`th.o_group_name`).toHaveCount(2, { message: "should have 2 .o_group_name" });
 });
 
+test(`removing the default group by facet reloads the list without groups`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `<list default_group_by="bar"><field name="foo"/><field name="bar"/></list>`,
+    });
+    expect(`tr.o_group_header`).toHaveCount(2);
+
+    await removeFacet("Bar");
+    expect(`tr.o_group_header`).toHaveCount(0);
+    expect(`tr.o_data_row`).toHaveCount(4);
+});
+
 test(`basic grouped list rendering with widget="handle" col`, async () => {
     await mountView({
         resModel: "foo",
@@ -5293,6 +5306,50 @@ test(`monetary aggregates in grouped list (!= currencies in same group)`, async 
     await contains(`.o_group_header:last`).click();
     expect(`.o_group_header:first`).toHaveText("No 1 record $ 0.00", { inline: true });
     expect(`.o_group_header:last`).toHaveText("Yes 3 records $ 2,000.00?", { inline: true });
+    expect(`.o_list_footer .o_list_number span`).toHaveText("$ 2,000.00?");
+});
+
+test(`monetary aggregates in grouped list (aggregate that is not a sum)`, async () => {
+    Foo._fields.amount = fields.Monetary({ currency_field: "currency_id", aggregator: "max" });
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
+            <list>
+                <field name="foo"/>
+                <field name="amount" max="Max"/>
+                <field name="currency_id"/>
+            </list>
+        `,
+        groupBy: ["bar"],
+    });
+    expect(`.o_group_header`).toHaveCount(2);
+    expect(`.o_group_header:first`).toHaveText("No 1 record $ 0.00", { inline: true });
+    expect(`.o_group_header:last`).toHaveText("Yes 3 records 1,200.00", { inline: true });
+    // the maximum of the "Yes" group can't be converted, so the total has no currency
+    expect(`.o_list_footer .o_list_number span`).toHaveText("1,200.00");
+});
+
+test(`monetary aggregates in grouped list (sum_currency aggregator)`, async () => {
+    Foo._fields.amount = fields.Monetary({
+        currency_field: "currency_id",
+        aggregator: "sum_currency",
+    });
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
+            <list>
+                <field name="foo"/>
+                <field name="amount" sum="Sum"/>
+                <field name="currency_id"/>
+            </list>
+        `,
+        groupBy: ["currency_id"],
+    });
+    // aggregates are already in the company currency, the total doesn't convert them again
+    expect(`.o_group_header:first`).toHaveText("USD 3 records $ 800.00", { inline: true });
+    expect(`.o_group_header:last`).toHaveText("EUR 1 record $ 1,200.00", { inline: true });
     expect(`.o_list_footer .o_list_number span`).toHaveText("$ 2,000.00?");
 });
 
@@ -21211,6 +21268,8 @@ test(`multi_edit: edit field with operator with localization`, async () => {
     await checkFieldValue("amount", "*=1.4", "Amount * 1.4");
     await checkFieldValue("amount", "- =1.4", "Amount - 1.4");
     await checkFieldValue("amount", "+= 1.4", "Amount + 1.4");
+    await checkFieldValue("amount", "*=(1+0.4)", "Amount * 1.4");
+    await checkFieldValue("amount", "-= 2*0.7", "Amount - 1.4");
 
     let field = "amount";
     await contains(`.o_data_cell[name=${field}]`).click();
@@ -22614,4 +22673,32 @@ test("Empty Groups: filter out empty groups", async () => {
     await contains(".modal-footer .btn-primary").click();
 
     expect(".o_group_header").toHaveCount(1);
+});
+
+test("handles empty column node", async () => {
+    await mountView({
+        type: "list",
+        resModel: "foo",
+        arch: `
+            <list>
+                <column/>
+                <field name="display_name" />
+            </list>
+        `,
+    });
+    expect(".o_list_view th:not(.o_list_record_selector)").toHaveCount(1);
+});
+
+test("handles column node with untolerrated content", async () => {
+    await mountView({
+        type: "list",
+        resModel: "foo",
+        arch: `
+            <list>
+                <column><button name="a" type="obj" string="button"/></column>
+                <field name="display_name" />
+            </list>
+        `,
+    });
+    expect(".o_list_view th:not(.o_list_record_selector)").toHaveCount(1);
 });

@@ -121,7 +121,9 @@ class MailActivity(models.Model):
     user_id = fields.Many2one(
         'res.users', 'Assigned to',
         index=True, required=False, ondelete='cascade',
-        compute='_compute_user_id', precompute=True, store=True, readonly=False)
+        compute='_compute_user_id', precompute=True, store=True, readonly=False,
+        domain=lambda self: [('share', '=', False), ('role', '!=', 'light_user')],
+    )
     role_id = fields.Many2one(
         'res.role', 'Role',
         index='btree_not_null', required=False, ondelete='set null',
@@ -732,9 +734,9 @@ class MailActivity(models.Model):
                     activities_to_remove += activity
 
                 message_attachments = activity_attachments.get(activity.id) or self.env['ir.attachment']
-                attachment_ids = (attachment_ids or []) + message_attachments.ids
-                if attachment_ids:
-                    activity.attachment_ids = attachment_ids
+                activity_attachment_ids = (attachment_ids or []) + message_attachments.ids
+                if activity_attachment_ids:
+                    activity.attachment_ids = activity_attachment_ids
 
                 # Moving the attachments in the message
                 # TODO: Fix void res_id on attachment when you create an activity with an image

@@ -767,6 +767,7 @@ class AccountJournal(models.Model):
                 # Should never happen, but put there just in case.
                 raise UserError(_("Could not compute any code for the copy automatically. Please create it manually."))
 
+            all_journal_codes.add(copy_code)
             vals.update(
                 code=copy_code,
             )
@@ -1043,9 +1044,9 @@ class AccountJournal(models.Model):
         # === Fill missing alias name for sale / purchase / bank / credit / cash, to force alias creation ===
         if journal_type in {'sale', 'purchase', 'bank', 'credit', 'cash'}:
             if 'alias_name' not in vals:
-                val_name = vals.get('name', self.name)
+                val_name = vals.get('name') or ''
                 if isinstance(val_name, dict):
-                    val_name = val_name.get(self.env.lang or 'en_US', self.name)
+                    val_name = val_name.get(self.env.lang or 'en_US') or ''
                 vals['alias_name'] = self._alias_prepare_alias_name(
                 False, val_name, vals.get('code'), journal_type, company
             )

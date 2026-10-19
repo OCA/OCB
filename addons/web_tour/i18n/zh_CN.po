@@ -8,15 +8,17 @@
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
+# 张飞虎 <feihu.zhang@live.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~14.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 17:43+0000\n"
-"PO-Revision-Date: 2026-09-09 13:59+0000\n"
-"Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
+"POT-Creation-Date: 2026-10-09 17:40+0000\n"
+"PO-Revision-Date: 2026-10-11 06:34+0000\n"
+"Last-Translator: 张飞虎 <feihu.zhang@live.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-master/web_tour/zh_Hans/>\n"
+"projects/odoo-20/web_tour/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,6 +34,10 @@ msgid ""
 "========================\n"
 "\n"
 msgstr ""
+"\n"
+"Odoo 网页导览。\n"
+"========================\n"
+"\n"
 
 #. module: web_tour
 #. odoo-javascript
@@ -48,8 +54,9 @@ msgstr "(录音键盘)"
 #. module: web_tour
 #. odoo-javascript
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder.xml:0
+#, fuzzy
 msgid "(run:"
-msgstr ""
+msgstr "(运行:"
 
 #. module: web_tour
 #: model:ir.model.constraint,message:web_tour.constraint_web_tour_tour_uniq_name
@@ -59,7 +66,7 @@ msgstr "已经存在一个与此名称相同的Tour。名称必须是唯一的�
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__active
 msgid "Active"
-msgstr ""
+msgstr "有效"
 
 #. module: web_tour
 #. odoo-javascript
@@ -96,8 +103,9 @@ msgstr "取消"
 #. odoo-javascript
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder.js:0
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder.xml:0
+#, fuzzy
 msgid "Clear"
-msgstr ""
+msgstr "清除"
 
 #. module: web_tour
 #. odoo-javascript
@@ -121,13 +129,13 @@ msgstr "关闭"
 #. odoo-javascript
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder.js:0
 msgid "Close recorder"
-msgstr ""
+msgstr "关闭录制器"
 
 #. module: web_tour
 #. odoo-javascript
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder.js:0
 msgid "Close tour recorder?"
-msgstr ""
+msgstr "关闭导览录制器？"
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__content
@@ -136,15 +144,21 @@ msgstr "内容"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/tour_utils.js:0
-msgid "Create and edit the %s."
-msgstr ""
+#: code:addons/web_tour/static/src/tour_scenarios.js:0
+msgid "Create a new %s."
+msgstr "新建%s。"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/tour_utils.js:0
+#: code:addons/web_tour/static/src/tour_scenarios.js:0
+msgid "Create and edit the %s."
+msgstr "创建并编辑%s。"
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/tour_scenarios.js:0
 msgid "Create the %s."
-msgstr ""
+msgstr "创建%s。"
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__create_uid
@@ -181,13 +195,13 @@ msgstr "显示名称"
 #. odoo-javascript
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder_command_provider.js:0
 msgid "Enable the tour recorder"
-msgstr ""
+msgstr "启用导览录制器"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/tour_utils.js:0
+#: code:addons/web_tour/static/src/tour_scenarios.js:0
 msgid "Enter the %s."
-msgstr ""
+msgstr "输入%s。"
 
 #. module: web_tour
 #: model:ir.actions.server,name:web_tour.tour_export_js_action
@@ -253,8 +267,9 @@ msgstr "彩虹人信息..."
 #. odoo-javascript
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder.xml:0
 #: code:addons/web_tour/static/src/views/tour_controller.xml:0
+#, fuzzy
 msgid "Record"
-msgstr ""
+msgstr "记录"
 
 #. module: web_tour
 #. odoo-javascript
@@ -280,9 +295,9 @@ msgstr "保存"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/tour_utils.js:0
+#: code:addons/web_tour/static/src/tour_scenarios.js:0
 msgid "Save the %s."
-msgstr ""
+msgstr "保存%s。"
 
 #. module: web_tour
 #. odoo-javascript
@@ -310,15 +325,15 @@ msgstr "向上滚动，进入下一步骤。"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/tour_utils.js:0
+#: code:addons/web_tour/static/src/tour_scenarios.js:0
 msgid "Search or create %s."
-msgstr ""
+msgstr "搜索或创建%s。"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/tour_utils.js:0
+#: code:addons/web_tour/static/src/tour_scenarios.js:0
 msgid "Select this %s."
-msgstr ""
+msgstr "选择此%s。"
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__sequence
@@ -371,8 +386,9 @@ msgstr "测试游览"
 #. module: web_tour
 #. odoo-javascript
 #: code:addons/web_tour/static/src/widgets/tour_start.xml:0
+#, fuzzy
 msgid "Testing"
-msgstr ""
+msgstr "测试"
 
 #. module: web_tour
 #: model_terms:ir.ui.view,arch_db:web_tour.tour_search
@@ -428,7 +444,7 @@ msgstr "用户已消耗"
 #. odoo-javascript
 #: code:addons/web_tour/static/src/tour_recorder/tour_recorder.js:0
 msgid "View tour"
-msgstr ""
+msgstr "查看导览"
 
 #. module: web_tour
 #: model_terms:ir.ui.view,arch_db:web_tour.tour_form

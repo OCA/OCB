@@ -5,7 +5,7 @@ import { Component, proxy, onMounted, useProps, t } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { parseFloat } from "@web/views/fields/parsers";
 import { Dialog } from "@web/core/dialog/dialog";
-import { ConnectionLostError, RPCError } from "@web/core/network/rpc";
+import { ConnectionLostError } from "@web/core/network/rpc";
 import { CashInput } from "@point_of_sale/app/components/inputs/input/cash_input/cash_input";
 import { useTrackedAsync } from "@point_of_sale/app/hooks/hooks";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -55,7 +55,7 @@ export class OpeningControlPopup extends Component {
         // queue only when known offline, so the reconnect loop is sure to replay it
         const queue = this.pos.data.network.offline;
         try {
-            await this.pos.data.call(
+            await this.pos.data.callRelated(
                 "pos.session",
                 "set_opening_control",
                 [this.pos.session.id, parseFloat(this.state.openingCash), this.state.notes],
@@ -71,14 +71,7 @@ export class OpeningControlPopup extends Component {
                 });
                 return;
             }
-            if (
-                error instanceof RPCError &&
-                error.data.name === "odoo.exceptions.MissingError" &&
-                (await this.pos.isSessionDeleted())
-            ) {
-                return window.location.reload();
-            }
-            throw error;
+            return this.pos.reloadIfSessionDeleted(error);
         }
         this.pos.session.state = "opened";
         this.props.close();

@@ -19,8 +19,8 @@
                                 <div t-if="attendee" class="text-center">
                                     <span
                                         t-foreach="attendee.registration_answer_choice_ids" t-as="answer"
-                                        t-if="len(answer.question_id.answer_ids) &gt; 1" t-out="answer.display_name"/>
-                                        class="px-2 py-1 d-inline-block bg-200 text-black m-1 o_event_foldable_badge_answer"
+                                        t-if="len(answer.question_id.answer_ids) &gt; 1" t-out="answer.display_name"
+                                        class="px-2 py-1 d-inline-block bg-200 text-black m-1 o_event_foldable_badge_answer"/>
                                 </div>
                                 <!-- Ticket Type -->
                                 <t t-set="first_ticket" t-value="event.event_ticket_ids[0] if event.event_ticket_ids else None"/>
@@ -405,8 +405,12 @@
     <span t-if="use_map_marker" class="oi" data-icon="location_on"/>
     <t t-if="event.address_id.contact_address.strip()">
         <t t-set="address_bits" t-value="event.address_id.contact_address.split('\n')"/>
-        <span t-if="address_bits" t-out="address_bits[0]">Rue de la Paix 123</span>
-        <t t-if="len(address_bits) > 1">
+        <t t-if="event.address_id.name and event.address_id.name.strip()">
+            <span t-out="event.address_id.name">1000 Brussels</span>
+            <br t-if="address_bits"/>
+        </t>
+        <span t-if="address_bits" class="text-muted" t-out="address_bits[0]">Rue de la Paix 123</span>
+        <t t-if="len(address_bits) > 1 and multi_line_address">
             <br/>
         </t>
         <t t-set="remaining_bits" t-value="address_bits[1:]"/>

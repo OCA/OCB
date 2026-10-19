@@ -231,8 +231,9 @@ class TestMrpOrder(TestMrpCommon, MailCase):
 
         # test tracking in case of finished date change wo state chage
         self.flush_tracking()
+        new_date_finished = datetime(2022, 6, 28, 18, 0)
         with self.mock_mail_gateway(), self.mock_mail_app():
-            mo.write({'date_finished': datetime(2022, 6, 29, 18, 0)})
+            mo.with_env(self.env).write({'date_finished': new_date_finished})
             self.flush_tracking()
         self.assertMessageFields(self._new_msgs, {
             'body': '',
@@ -240,7 +241,7 @@ class TestMrpOrder(TestMrpCommon, MailCase):
             'subject': False,
             'subtype_id': self.env.ref('mail.mt_note'),
             'tracking_values': [
-                ('date_finished', 'datetime', datetime(2022, 6, 28, 8, 0), datetime(2022, 6, 29, 18, 0)),
+                ('date_finished', 'datetime', datetime(2022, 6, 28, 8, 0), new_date_finished),
             ],
         })
 
@@ -2274,6 +2275,21 @@ class TestMrpOrder(TestMrpCommon, MailCase):
         finished_moves = sibling_mo.move_finished_ids.filtered(lambda m: m.product_id == product)
         self.assertEqual(sibling_mo.state, 'done')
         self.assertEqual(sum(finished_moves.mapped('quantity')), 15.0)
+
+    def test_qty_change_then_overproduction_no_inflated_production(self):
+        """ Test that producing more than a reduced quantity to produce records exactly the
+        produced quantity when the finished move demand is out of sync with product_qty"""
+        mo = self.env['mrp.production'].create({'bom_id': self.bom_1.id, 'product_qty': 10.0})
+        mo.action_confirm()
+        with Form(mo) as mo_form:
+            mo_form.qty_producing = 10.0
+        mo.product_qty = 2.0
+        finished_move = mo.move_finished_ids.filtered(lambda m: m.product_id == self.product_4)
+        self.assertEqual(finished_move.product_uom_qty, 10.0)
+
+        mo.with_context(skip_consumption=True, skip_backorder=True).button_mark_done()
+        self.assertEqual(mo.state, 'done')
+        self.assertEqual(finished_move.quantity, 10.0)
 
     def test_backorder_with_underconsumption(self):
         """ Check that the components of the backorder have the correct quantities

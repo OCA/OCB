@@ -27,6 +27,20 @@ describe("pos_store.js", () => {
         expect(order.lines.length).toBe(3); // 2 original lines + 1 tip line
     });
 
+    test("a popstate after clickSaveOrder does not reopen the saved order", async () => {
+        const store = await setupPosEnv();
+        const order = await getFilledOrder(store);
+        store.navigate("ProductScreen", { orderUuid: order.uuid });
+
+        store.clickSaveOrder();
+        const newOrder = store.getOrder();
+        expect(newOrder.uuid).not.toBe(order.uuid);
+        expect(store.router.currentScreenParams().orderUuid).toBe(newOrder.uuid);
+        await store.router.popStateCallback();
+
+        expect(store.getOrder().uuid).toBe(newOrder.uuid);
+    });
+
     test("orderNoteFormat", async () => {
         const str = getStrNotes("string");
         expect(str).toBeOfType("string");
@@ -90,6 +104,60 @@ describe("pos_store.js", () => {
 
         expect(printCalled).toBe(false);
         expect(order.hasChange).toBe(false);
+    });
+
+    test("sendOrderInPreparation retries only the failed preparation printer", async () => {
+        const store = await setupPosEnv();
+        const kitchen = store.models["pos.printer"].get(1);
+        kitchen.name = "Kitchen";
+        kitchen.product_categories_ids = [store.models["pos.category"].get(1)];
+        const bar = store.models["pos.printer"].create({
+            name: "Bar",
+            product_categories_ids: [store.models["pos.category"].get(2)],
+            printer_type: "epson_epos",
+        });
+        store.config.preparation_printer_ids = [kitchen, bar];
+        await store.ticketPrinter.initPrinters();
+        // 3 "TEST" for the kitchen and 2 "TEST 2" for the bar
+        const order = await getFilledOrder(store);
+
+        const printed = [];
+        let barFailures = 1;
+        let retry;
+        patchWithCleanup(store.ticketPrinter, {
+            async generateIframe(template, ticket) {
+                return ticket;
+            },
+            setIframeSizeFromPrinter() {},
+            async generateImage(ticket) {
+                return ticket;
+            },
+            async print({ printer, image }) {
+                if (printer === bar && barFailures-- > 0) {
+                    return { successful: false, message: { body: "Bar is not reachable" } };
+                }
+                const lines = image.changes.data.map(
+                    (line) => `${line.quantity} ${line.basic_name}`
+                );
+                printed.push(`${printer.name}: ${lines.join(", ")}`);
+                return { successful: true };
+            },
+            showPrinterErrorDialog(message, retryFunction) {
+                retry = retryFunction;
+            },
+        });
+
+        await store.sendOrderInPreparation(order);
+        expect(printed).toEqual(["Kitchen: 3 TEST"]);
+
+        // The kitchen must not print its lines again, and the bar must print its own lines
+        await retry();
+        expect(printed).toEqual(["Kitchen: 3 TEST", "Bar: 2 TEST 2"]);
+
+        expect(order.preparationChanges.quantity).toBe(0);
+        // The changes printed on retry must not be printed again with the next ones
+        await store.sendOrderInPreparation(order);
+        expect(printed).toEqual(["Kitchen: 3 TEST", "Bar: 2 TEST 2"]);
     });
 
     describe("syncAllOrders", () => {
@@ -659,6 +727,18 @@ describe("pos_store.js", () => {
         const deletedOrder = await store.onDeleteOrder(order);
         expect(deletedOrder).toBe(true);
         expect(store.models["pos.order"].getBy("uuid", order.uuid)).toBeEmpty();
+    });
+
+    test("onDeleteOrder keeps the router state in sync with the order it switches to", async () => {
+        const store = await setupPosEnv();
+        const order = store.addNewOrder();
+        store.navigate("ProductScreen", { orderUuid: order.uuid });
+
+        await store.onDeleteOrder(order);
+
+        const newOrder = store.getOrder();
+        expect(newOrder.uuid).not.toBe(order.uuid);
+        expect(store.router.currentScreenParams().orderUuid).toBe(newOrder.uuid);
     });
 
     test("setNextOrderRefs", async () => {

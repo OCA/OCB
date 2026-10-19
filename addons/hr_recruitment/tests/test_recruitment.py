@@ -400,35 +400,6 @@ class TestRecruitment(MailCase, TransactionCase):
         self.assertEqual(multi_action['res_model'], 'applicant.get.refuse.reason')
         self.assertEqual(set(multi_action['context']['default_applicant_ids']), {app_1.id, app_2.id})
 
-    def test_applicant_refuse_mail_from_template(self):
-        mail_template = self.env['mail.template'].create({
-            'name': 'Test template',
-            'model_id': self.env['ir.model']._get('hr.applicant').id,
-            'email_from': 'test@test.test',
-        })
-        refuse_reason = self.env['hr.applicant.refuse.reason'].create({
-            'name': 'Not good',
-        })
-        applicant = self.env['hr.applicant'].create({
-            'partner_name': 'Laurie Poiret',
-            'email_from': 'laurie.poiret@aol.ru',
-        })
-        applicant_get_refuse_reason = self.env['applicant.get.refuse.reason'].create([{
-            'refuse_reason_id': refuse_reason.id,
-            'applicant_ids': applicant.ids,
-            'duplicates': True,
-        }])
-        mail_values = applicant_get_refuse_reason._prepare_mail_values(applicant)
-        self.assertEqual(mail_values['email_from'], self.env.user.email_formatted)
-
-        refuse_reason_template = self.env['hr.applicant.refuse.reason'].create({
-            'name': 'Fired',
-            'template_id': mail_template.id,
-        })
-        applicant_get_refuse_reason.refuse_reason_id = refuse_reason_template
-        mail_values = applicant_get_refuse_reason._prepare_mail_values(applicant)
-        self.assertEqual(mail_values['email_from'], 'test@test.test')
-
     def test_copy_attachments_while_creating_employee(self):
         """
         Test that attachments are copied when creating an employee from an applicant
@@ -690,3 +661,38 @@ class TestRecruitment(MailCase, TransactionCase):
         employee = self.env['hr.employee'].browse(action['res_id'])
         self.assertFalse(employee.work_email)
         self.assertEqual(employee.work_contact_id.email, employee.private_email)
+
+    def test_applicant_refuse_single_active_test(self):
+        """
+        Test that refusing a single applicant and sending an email does not crash
+        due to the applicant being archived before the email is sent.
+        """
+        template = self.env['mail.template'].create({
+            'name': 'Refuse Template',
+            'model_id': self.env['ir.model']._get('hr.applicant').id,
+            'subject': 'Update on your application',
+            'body_html': '<p>Sorry, <t t-out="object.partner_name"/>, not this time.</p>',
+        })
+        refuse_reason = self.env['hr.applicant.refuse.reason'].create({
+            'name': 'Not a fit',
+            'template_id': template.id,
+        })
+
+        applicant = self.env['hr.applicant'].create({
+            'partner_name': 'Test Applicant',
+            'email_from': 'test@example.com',
+        })
+
+        wizard = self.env['applicant.refuse.single'].with_context(
+            default_applicant_ids=applicant.ids
+        ).create({
+            'refuse_reason_id': refuse_reason.id,
+            'send_mail': True,
+        })
+
+        with self.mock_mail_gateway():
+            wizard.action_refuse_reason_apply()
+
+        self.assertFalse(applicant.active, "Applicant should be archived.")
+        self.assertEqual(applicant.refuse_reason_id, refuse_reason, "Refuse reason should be set.")
+        self.assertTrue(applicant.message_ids, "Refusal email should be posted to chatter.")

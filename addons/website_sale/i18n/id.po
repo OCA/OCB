@@ -11,13 +11,14 @@
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 17:39+0000\n"
-"PO-Revision-Date: 2026-09-24 08:53+0000\n"
-"Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
+"POT-Creation-Date: 2026-10-16 17:41+0000\n"
+"PO-Revision-Date: 2026-10-08 09:46+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
 "Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-20/"
 "website_sale/id/>\n"
 "Language: id\n"
@@ -1085,7 +1086,8 @@ msgid ""
 "                                <td width=\"19%\" align=\"right\" "
 "style=\"max-width: 100%; vertical-align: top;\">\n"
 "                                    <t t-"
-"out=\"format_amount(object.list_price, object.currency_id)\">$ 450</t>\n"
+"out=\"format_amount(ctx.get('product_price') or 0, object.currency_id)\">$ "
+"450</t>\n"
 "                                </td>\n"
 "                            </tr>\n"
 "                        </table>\n"
@@ -2563,7 +2565,7 @@ msgstr "Dapat Dipublikasikan"
 #. odoo-javascript
 #: code:addons/website_sale/static/src/website_builder/products_design_panel.xml:0
 msgid "Cards"
-msgstr "Kartu-Kartu"
+msgstr "Kartu"
 
 #. module: website_sale
 #. odoo-javascript
@@ -3611,12 +3613,6 @@ msgstr "Produk donasi tidak ditemukan."
 #. module: website_sale
 #. odoo-python
 #: code:addons/website_sale/models/product_template.py:0
-msgid "Donation products cannot be archived."
-msgstr "Produk donasi tidak dapat diarsipkan."
-
-#. module: website_sale
-#. odoo-python
-#: code:addons/website_sale/models/product_template.py:0
 msgid "Donation products cannot be deleted."
 msgstr "Produk donasi tidak dapat dihapus."
 
@@ -3892,7 +3888,7 @@ msgstr "Label Field"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_sale_extra_field__name
 msgid "Field Name"
-msgstr "Nama Kolom"
+msgstr "Nama Field"
 
 #. module: website_sale
 #: model:product.public.category,name:website_sale.public_category_drawers_file
@@ -8444,7 +8440,7 @@ msgstr "Halaman yang Dikunjung"
 #. module: website_sale
 #: model:ir.model.fields,field_description:website_sale.field_website_visitor__product_ids
 msgid "Visited Products"
-msgstr "Produk-Produk yang Dikunjungi"
+msgstr "Produk yang Dikunjungi"
 
 #. module: website_sale
 #: model_terms:ir.ui.view,arch_db:website_sale.website_sale_visitor_page_view_graph
@@ -9214,6 +9210,9 @@ msgstr "youremail@gmail.com"
 #: model:mail.template,subject:website_sale.email_template_back_in_stock
 msgid "{{ object.name or 'Product' }} is back in stock"
 msgstr "{{ object.name or 'Product' }} kembali tersedia"
+
+#~ msgid "Donation products cannot be archived."
+#~ msgstr "Produk donasi tidak dapat diarsipkan."
 
 #~ msgid ""
 #~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" "

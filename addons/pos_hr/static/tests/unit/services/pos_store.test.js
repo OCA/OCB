@@ -1,7 +1,9 @@
 import { test, expect } from "@odoo/hoot";
 import { setupPosEnv } from "@point_of_sale/../tests/unit/utils";
 import { definePosModels } from "@point_of_sale/../tests/unit/data/generate_model_definitions";
-import { patchWithCleanup, mountWithCleanup } from "@web/../tests/web_test_helpers";
+import { makeServerError, mountWithCleanup, onRpc } from "@web/../tests/web_test_helpers";
+import { patch } from "@web/core/utils/patch";
+import { location } from "@web/core/browser/browser";
 import { OrderSummary } from "@point_of_sale/app/screens/product_screen/order_summary/order_summary";
 
 definePosModels();
@@ -17,6 +19,28 @@ test("employeeIsAdmin", async () => {
     const emp = store.models["hr.employee"].get(2);
     store.setCashier(emp);
     expect(store.accessRight.employeeIsAdmin).toBe(true);
+});
+test("price mode follows the active cashier's price rights", async () => {
+    const store = await setupPosEnv();
+    const manager = store.models["hr.employee"].get(2);
+    const cashier = store.models["hr.employee"].get(3);
+    const restrictive = store.models["hr.employee"].get(4);
+
+    store.config.restrict_price_control = true;
+    store.setCashier(manager);
+    expect(store.accessRight.disablePriceButton).toBe(false);
+    store.numpadMode = "price";
+    store.setCashier(cashier);
+    expect(store.accessRight.disablePriceButton).toBe(true);
+    expect(store.numpadMode).toBe("quantity");
+
+    store.config.restrict_price_control = false;
+    store.setCashier(cashier);
+    expect(store.accessRight.disablePriceButton).toBe(false);
+    store.numpadMode = "price";
+    store.setCashier(restrictive);
+    expect(store.accessRight.disablePriceButton).toBe(true);
+    expect(store.numpadMode).toBe("quantity");
 });
 test("_getConnectedCashier", async () => {
     const store = await setupPosEnv();
@@ -69,7 +93,7 @@ test("handleUrlParams prevents unauthorized access when POS is locked with pos_h
     store.router.currentScreenParams.set({});
 
     let navigateCalledWithLoginScreen = false;
-    patchWithCleanup(store.router, {
+    patch(store.router, {
         navigate(routeName, routeParams) {
             if (routeName === "LoginScreen") {
                 navigateCalledWithLoginScreen = true;
@@ -133,4 +157,19 @@ test("hasProductCreationAccessWithNonAdmin", async () => {
     const supervised = store.models["hr.employee"].get(4);
     store.setCashier(supervised);
     expect(store.accessRight.hasProductCreationAccess).toBe(false);
+});
+
+test("setCashier reloads the page when the session has been deleted", async () => {
+    const store = await setupPosEnv();
+    patch(location, {
+        reload: () => expect.step("reload"),
+    });
+    onRpc("pos.session", "write", () => {
+        throw makeServerError({ type: "MissingError" });
+    });
+    onRpc("pos.session", "search_count", () => 0);
+
+    store.setCashier(store.models["hr.employee"].get(3));
+
+    await expect.waitForSteps(["reload"]);
 });

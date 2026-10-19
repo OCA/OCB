@@ -236,6 +236,63 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
         imported_invoice = self._import_invoice_as_attachment_on(attachment=xml_attachment, journal=self.company_data["default_journal_sale"])
         self.assertEqual(imported_invoice.partner_id, partner)
 
+    def test_import_partner_retrieval_bank_account_number(self):
+        """Check that the bank account number is used to retieve the partner when importing a non-BIS3 UBL XML."""
+        partner_bank = self.env['res.partner.bank'].create({
+            'account_number': 'BE43200112345678',
+            'partner_id': self.partner_a.id,
+            'allow_out_payment': True,
+        })
+        # Update partner_a and link it with the bank account we created
+        self.partner_a.update({
+            'name': "Test Partner Bank Retrieval",
+            'street': "42 Maze street",
+            'city': "Berlin",
+            'zip': "6534",
+            'vat': 'BE0727720427',
+            'country_id': self.env.ref('base.be').id,
+            'bank_ids': partner_bank.ids,
+        })
+
+        invoice = self.env['account.move'].create({
+            'partner_id': self.partner_a.id,
+            'move_type': 'out_invoice',
+            'invoice_line_ids': [Command.create({'product_id': self.product_a.id})],
+            'partner_bank_id': partner_bank.id,
+        })
+        invoice.action_post()
+
+        xml_attachment = self.env['ir.attachment'].create({
+            'raw': self.env['account.edi.xml.ubl_21']._export_invoice(invoice)[0],
+            'name': 'test_invoice.xml',
+        })
+
+        # Change the partner details so it can only be retrieved through the bank account
+        self.partner_a.update({
+            'name': "Different Partner",
+            'vat': False,
+            'email': False,
+            'phone': False,
+        })
+        # partner_a should be matched through the bank account number and its VAT should be filled in from the XML
+        imported_invoice = self._import_invoice_as_attachment_on(attachment=xml_attachment, journal=self.company_data['default_journal_sale'])
+        self.assertEqual(imported_invoice.partner_id, self.partner_a)
+        self.assertEqual(imported_invoice.partner_id.vat, 'BE0727720427')
+
+        # Change the VAT to trigger the VAT mismatch logic
+        self.partner_a.vat = 'BE0403170701'
+        # A new partner should be created
+        imported_invoice = self._import_invoice_as_attachment_on(attachment=xml_attachment, journal=self.company_data["default_journal_sale"])
+        self.assertNotEqual(imported_invoice.partner_id, self.partner_a)
+        self.assertRecordValues(imported_invoice.partner_id, [{
+            'name': "Test Partner Bank Retrieval",
+            'street': "42 Maze street",
+            'city': "Berlin",
+            'zip': "6534",
+            'vat': 'BE0727720427',
+            'country_id': self.env.ref('base.be').id,
+        }])
+
     def test_actual_delivery_date_in_cii_xml(self):
 
         invoice = self.env['account.move'].create({
@@ -1014,3 +1071,71 @@ comment-->1000.0</TaxExclusiveAmount></xpath>"""
         exemption_reason_code = xml_tree.find('.//ram:ApplicableTradeTax/ram:ExemptionReasonCode', self.namespaces)
         self.assertEqual(category_code.text, 'G')
         self.assertEqual(exemption_reason_code.text, 'VATEX-EU-G')
+
+    def test_import_ubl_21_line_description(self):
+        self.place_prdct.write({'default_code': 'PLC', 'description_purchase': "Purchase description"})
+        line_template = '''
+            <cac:InvoiceLine>
+                <cbc:ID>{id}</cbc:ID>
+                <cbc:InvoicedQuantity unitCode="C62">1</cbc:InvoicedQuantity>
+                <cbc:LineExtensionAmount currencyID="USD">100.00</cbc:LineExtensionAmount>
+                <cac:Item>
+                    {description}
+                    <cbc:Name>Placement</cbc:Name>
+                    <cac:SellersItemIdentification>
+                        <cbc:ID>PLC</cbc:ID>
+                    </cac:SellersItemIdentification>
+                    <cac:ClassifiedTaxCategory>
+                        <cbc:ID>S</cbc:ID>
+                        <cbc:Percent>17.3</cbc:Percent>
+                        <cac:TaxScheme>
+                            <cbc:ID>VAT</cbc:ID>
+                        </cac:TaxScheme>
+                    </cac:ClassifiedTaxCategory>
+                </cac:Item>
+                <cac:Price>
+                    <cbc:PriceAmount currencyID="USD">100.00</cbc:PriceAmount>
+                </cac:Price>
+            </cac:InvoiceLine>
+        '''
+        lines = ''.join(
+            line_template.format(id=index, description=description)
+            for index, description in enumerate([
+                '',
+                '<cbc:Description>Custom description</cbc:Description>',
+                '<cbc:Description>Placement\nExtra description</cbc:Description>',
+            ], start=1)
+        )
+        xml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+            <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+                <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+                <cbc:ID>INV-1234</cbc:ID>
+                <cbc:IssueDate>2023-01-01</cbc:IssueDate>
+                <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+                <cbc:DocumentCurrencyCode>USD</cbc:DocumentCurrencyCode>
+                <cac:AccountingSupplierParty>
+                    <cac:Party>
+                        <cac:PartyName>
+                            <cbc:Name>My Test Partner</cbc:Name>
+                        </cac:PartyName>
+                    </cac:Party>
+                </cac:AccountingSupplierParty>
+                <cac:LegalMonetaryTotal>
+                    <cbc:LineExtensionAmount currencyID="USD">300.00</cbc:LineExtensionAmount>
+                    <cbc:PayableAmount currencyID="USD">300.00</cbc:PayableAmount>
+                </cac:LegalMonetaryTotal>
+                {lines}
+            </Invoice>
+        '''
+        xml_attachment = self.env['ir.attachment'].create({
+            'mimetype': 'application/xml',
+            'raw': xml_content.encode(),
+            'name': 'test_invoice.xml',
+        })
+
+        bill = self._import_invoice_as_attachment_on(attachment=xml_attachment)
+        self.assertRecordValues(bill.invoice_line_ids, [
+            {'product_id': self.place_prdct.id, 'name': "Purchase description", 'tax_ids': []},
+            {'product_id': self.place_prdct.id, 'name': "Custom description", 'tax_ids': []},
+            {'product_id': self.place_prdct.id, 'name': "Extra description", 'tax_ids': []},
+        ])

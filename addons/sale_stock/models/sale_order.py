@@ -76,12 +76,18 @@ class SaleOrder(models.Model):
     @api.depends('picking_ids', 'picking_ids.state')
     def _compute_delivery_status(self):
         for order in self:
-            if not order.picking_ids or all(p.state == 'cancel' for p in order.picking_ids):
+            if not order.picking_ids or \
+                (
+                    all(p.state in ['done', 'cancel'] for p in order.picking_ids) and
+                    all(line.qty_delivered_method != 'stock_move' or line.product_uom_id.is_zero(line.qty_delivered)
+                    for line in order.order_line)
+                ):
                 order.delivery_status = False
             elif all(p.state in ['done', 'cancel'] for p in order.picking_ids):
                 order.delivery_status = 'full'
             elif any(p.state == 'done' for p in order.picking_ids) and any(
-                    l.qty_delivered for l in order.order_line):
+                    line.qty_delivered_method == 'stock_move' and not line.product_uom_id.is_zero(line.qty_delivered)
+                    for line in order.order_line):
                 order.delivery_status = 'partial'
             elif any(p.state == 'done' for p in order.picking_ids):
                 order.delivery_status = 'started'
@@ -156,12 +162,12 @@ class SaleOrder(models.Model):
                 picking.partner_id = new_partner
 
         if 'commitment_date' in values:
-            # protagate commitment_date as the deadline of the related stock move.
+            # propagate commitment_date as the deadline of the related stock move.
             # TODO: Log a note on each down document
             deadline_datetime = values.get('commitment_date')
             for order in self:
                 moves = order.order_line.move_ids.filtered(
-                    lambda m: m.state not in ('done', 'cancel') and m.location_dest_id.usage == 'customer'
+                    lambda m: m.state not in ('done', 'cancel') and m.forecasted_location_id.usage == 'customer'
                 )
                 moves.date_deadline = deadline_datetime or order.expected_date
 

@@ -54,6 +54,36 @@ class TestNotifySecurityUpdate(MailCommon):
             subject='Security Update: Password Changed',
         )
 
+    @users('admin')
+    def test_security_update_recipient_lang(self):
+        self.env['res.lang']._activate_lang('fr_BE')
+        user = self.user_employee
+        user.lang = 'fr_BE'
+
+        view = self.env.ref('mail.account_security_alert')
+        # Disable inherited template to avoid error
+        inherit_views = self.env['ir.ui.view'].search([
+            ('inherit_id', '=', view.id),
+        ])
+        inherit_views.active = False
+        view.with_context(lang='en_US').arch = '<div>mail in EN</div>'
+        view.update_field_translations('arch_db', {
+           'fr_BE': {
+                'mail in EN': 'email en FR',
+            }
+        })
+
+        with self.mock_mail_gateway():
+            user.write({'password': 'newpassword'})
+
+        # Limitation for now, subject is still in the sender language
+        self.assertSentEmail(
+            '"YourTestCompany" <your.company@example.com>',
+            [user.email_formatted],
+            subject='Security Update: Password Changed',
+            body_content='<div>email en FR</div>'
+        )
+
 
 @tagged('mail_tools', 'res_users')
 class TestUser(MailCommon):
@@ -303,6 +333,31 @@ class TestUserSettings(MailCommon):
             "no_notif",
             "channel_notifications state should be updated correctly"
         )
+
+    @users("employee")
+    def test_set_volume_setting_of_guest(self):
+        settings = self.user_employee.res_users_settings_id
+        partner = self.env["res.partner"].sudo().create({"name": "Partner"})
+        with self.assertBus(
+            lambda: BusResult(
+                self.user_employee,
+                "mail.record/insert",
+                {
+                    "res.users.settings.volumes": [
+                        {
+                            "guest_id": partner.id,
+                            "id": settings.volume_settings_ids.id,
+                            "partner_id": False,
+                            "user_setting_id": settings.id,
+                            "volume": 0.7,
+                        },
+                    ],
+                },
+            ),
+        ):
+            # Simulate a guest with the id of no partner, then a guest with the id of a partner.
+            settings.set_volume_setting(False, 0.5, guest_id=partner.id + 1)
+            settings.set_volume_setting(False, 0.7, guest_id=partner.id)
 
 
 @tagged('mail_tools', 'res_users')

@@ -1061,6 +1061,17 @@ class MrpProduction(models.Model):
             if record.product_tracking == 'lot' and len(record.lot_producing_ids) > 1:
                 raise UserError(_("You cannot set more than 1 lot"))
 
+    @api.constrains('date_finished', 'date_start')
+    def _check_date_finished_not_future(self):
+        today = fields.Date.context_today(self)
+        for production in self:
+            if production.state != 'done' or not production.date_finished:
+                continue
+            if (
+                fields.Date.context_today(production, timestamp=production.date_finished) > today
+            ):
+                raise ValidationError(_("The end date cannot be set in the future."))
+
     def write(self, vals):
         if 'product_id' in vals and self.state != 'draft':
             vals.pop('product_id')
@@ -1127,7 +1138,10 @@ class MrpProduction(models.Model):
             if vals.get('date_start'):
                 production.move_raw_ids.write({'date': production.date_start, 'date_deadline': production.date_start})
             if vals.get('date_finished'):
+                if production.state == 'done' and production.date_start and production.date_finished < production.date_start:
+                    production.with_context(force_date=True).date_start = production.date_finished
                 production.move_finished_ids.write({'date': production.date_finished})
+                production.move_raw_ids.write({'date': production.date_finished, 'date_deadline': production.date_finished})
             if any(field in ['move_raw_ids', 'move_finished_ids', 'workorder_ids'] for field in vals) and production.state != 'draft':
                 production.with_context(no_procurement=True)._autoconfirm_production()
                 if production in production_to_replan:
@@ -2081,6 +2095,11 @@ class MrpProduction(models.Model):
         ])
         for order in self:
             finish_moves = order.move_finished_ids.filtered(lambda m: m.product_id == order.product_id and m.state not in ('done', 'cancel'))
+            # Total finished demand: in sync it equals the quantity to produce, so distributing
+            # the produced qty by each finished move's share of it reproduces the former behaviour
+            # while staying correct when a quantity change left a finished move's demand out of
+            # sync with product_qty.
+            total_finished_qty = sum(finish_moves.mapped('product_uom_qty'))
             # the finish move can already be completed by the workorder.
             for move in finish_moves:
                 if move.product_id.tracking in ['lot', 'serial'] and (
@@ -2092,7 +2111,9 @@ class MrpProduction(models.Model):
                     lines_without_lot = move.move_line_ids.filtered(lambda ml: not ml.lot_id and not ml.lot_name)
                     lines_without_lot.lot_id = order.lot_producing_ids[:1]
                 # Distribute the produced qty across the finished moves (there can be several, exemple: after a split/merge)
-                move.quantity = order.uom_id.round((order.qty_producing - order.qty_produced) * move.unit_factor, rounding_method='HALF-UP')
+                move.quantity = order.uom_id.round(
+                    (order.qty_producing - order.qty_produced) * move.product_uom_qty / (total_finished_qty or 1),
+                    rounding_method='HALF-UP')
                 extra_vals = order._prepare_finished_extra_vals()
                 if extra_vals:
                     move.move_line_ids.write(extra_vals)
@@ -2754,7 +2775,7 @@ class MrpProduction(models.Model):
                 move[field] = vals
 
         for move in production.move_finished_ids:
-            move.move_dest_ids = [Command.set(dests[move.byproduct_id.id])]
+            move.move_dest_ids = [Command.set(dests.get(move.byproduct_id.id, []))]
 
         self.move_dest_ids.created_production_id = production.id
 
@@ -2896,6 +2917,7 @@ class MrpProduction(models.Model):
                 bom_line.product_id,
                 bom_qty / ratio,
                 bom_line.uom_id,
+                operation_id=bom_line.operation_id.id,
                 bom_line=bom_line
             )
             raw_moves_values.append(raw_move_vals)

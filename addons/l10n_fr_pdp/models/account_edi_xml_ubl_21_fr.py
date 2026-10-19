@@ -85,6 +85,11 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
                 '_text': f"#{code}#{default_content}",
             })
 
+        # [BR-FR-MAP-18] EN16931 caps the Note (BT-22) to 1024 characters.
+        for note in document_node['cbc:Note']:
+            if isinstance(note['_text'], str):
+                note['_text'] = note['_text'][:1024]
+
         # Règles de gestion G1.52
         if vals['document_type'] == 'credit_note':
             document_node['cac:BillingReference'] = {
@@ -151,20 +156,6 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
                 'schemeID': '0002',
             },
         }
-
-        # B2G
-        customer = vals['customer'].commercial_partner_id
-        if not self._pdp_needs_b2g_fields(customer):
-            return
-
-        if siret := commercial_partner._l10n_fr_pdp_get_siret():
-            vals['party_node']['cac:PartyLegalEntity'] = [{
-                'cbc:RegistrationName': {'_text': commercial_partner.name},
-                'cbc:CompanyID': {
-                    '_text': siret,
-                    'schemeID': '0009',
-                },
-            }]
 
     def _ubl_add_line_price_node(self, vals, in_foreign_currency=True):
         # OVERRIDE

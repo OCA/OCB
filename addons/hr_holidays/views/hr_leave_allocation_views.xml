@@ -100,6 +100,7 @@
                 <field name="lastcall" invisible="1"/>
                 <field name="last_accrual" invisible="1"/>
                 <field name="nextcall" invisible="1"/>
+                <field name="yearly_accrued_days" invisible="1"/>
                 <field name="previous_carryover_number_of_days" invisible="1"/>
                 <field name="carried_over_days_expiration_date" invisible="1"/>
                 <header>
@@ -452,7 +453,7 @@
                                                 </div>
                                                 <span class="text-muted">Amount</span>
                                             </div>
-                                            <div class="col-2 o_hr_holidays_card">
+                                            <div class="col-2 o_hr_holidays_card" invisible="1">
                                                 <div class="fw-bold d-flex gap-1 me-1">
                                                     <field name="virtual_remaining_leaves" widget="float" digits="[3,2]"/>
                                                     /

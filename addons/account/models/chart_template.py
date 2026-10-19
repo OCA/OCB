@@ -246,6 +246,7 @@ class AccountChartTemplate(models.AbstractModel):
         self._load_data(data)
         self._post_load_data(template_code, company, template_data)
         self._load_translations(companies=company)
+        self.env.cr.cache.pop('account_product_accounts', None)
 
         # Install the demo data when the first localization is instanciated on the company
         if install_demo and not reload_template:
@@ -1244,7 +1245,7 @@ class AccountChartTemplate(models.AbstractModel):
     def ref(self, xmlid, raise_if_not_found=True):
         return (
             self.env.ref(self.company_xmlid(xmlid), raise_if_not_found=False)
-            or self.env.ref(self.company_xmlid(xmlid, self.env.company.parent_ids[0]), raise_if_not_found)
+            or self.env.ref(self.company_xmlid(xmlid, self.env.company.root_id), raise_if_not_found)
         )
 
     def _get_parent_template(self, code):

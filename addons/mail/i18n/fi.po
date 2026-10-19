@@ -40,12 +40,13 @@
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-25 17:37+0000\n"
-"PO-Revision-Date: 2026-10-01 07:57+0000\n"
+"POT-Creation-Date: 2026-10-09 17:39+0000\n"
+"PO-Revision-Date: 2026-10-16 15:33+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-20/mail/fi/>"
 "\n"
@@ -121,6 +122,69 @@ msgid ""
 "For more specific needs, you may also assign custom-defined actions\n"
 "(technically: Server Actions) to be triggered for each incoming mail.\n"
 msgstr ""
+"\n"
+"\n"
+"Chat, sähköpostiyhteys ja yksityinen kanava.\n"
+"=======================================\n"
+"\n"
+"Viesti kollegoiden/asiakkaiden/vieraiden kanssa Odoon sisäisesti.\n"
+"\n"
+"Keskustelu/Chat\n"
+"------------\n"
+"Käyttäjäystävälliset Viestintä-ominaisuudet, jotka mahdollistavat yksityiset "
+"sekä ryhmäkeskustelut\n"
+"(tekstikeskustelu/puhelu/videopuhelu), vieraiden kutsumisen ja asiakirjojen "
+"jakamisen,\n"
+"kaikki reaaliaikaisesti.\n"
+"\n"
+"Sähköpostiyhteys\n"
+"------------\n"
+"Tietojen ja asiakirjojen lähettäminen yksinkertaistettuna. Voit lähettää "
+"sähköposteja\n"
+"suoraan Odoosta. Suunnittele esimerkiksi\n"
+"kaunis sähköpostipohja laskuja varten ja lähetä se\n"
+"kaikille asiakkaillesi - vältä saman sähköpostin kirjoittaminen kerta "
+"toisensa jälkeen.\n"
+"\n"
+"Chatter\n"
+"-------\n"
+"Käy kaikki asiakirjaan liittyvä keskustelu yhdessä paikassa. Esimerkiksi\n"
+"rekrytoidessasi voit lähettää päivityksen suoraan hakijalle sähköpostitse,\n"
+"aikatauluttaa seuraavan haastattelupuhelun, liittä sopimuksen, lisätä HR-"
+"vastaavan\n"
+"seuraajaksi saamaan ilmoituksia tärkeistä tapahtumista (apuna voi käyttää\n"
+"alatyyppejä), jne...\n"
+"\n"
+"\n"
+"Hae saapuvat sähköpostit POP/IMAP-palvelimilta.\n"
+"============================================\n"
+"Syötä POP/IMAP-tilisi parametrit ja kaikki saapuvat sähköpostit\n"
+"näihin osoitteisiin ladataan automaattisesti Odoo-järjestelmääsi. Kaikki\n"
+"POP3/IMAP-yhteensopivat palvelimet ovat tuettuja - myös ne, jotka vaativat\n"
+"salatun SSL/TLS-yhteyden.\n"
+"Näin voit helposti luoda sähköpostipohjaisia työnkulkuja monille sähköpostia "
+"tukeville Odoo-asiakirjoille, kuten:\n"
+"\n"
+"* CRM-järjestelmän liidit/myyntimahdollisuudet\n"
+"* CRM-pyynnöt\n"
+"* Projektiasiat\n"
+"* Projektitehtävät\n"
+"* Rekrytointi (työnhakijat)\n"
+"Asenna vain oikea sovellus ja määritä mikä tahansa näistä "
+"asiakirjatyypeistä\n"
+"(liidit, projektitehtävät) saapuvien sähköpostien tileillesi. Uudet "
+"sähköpostit\n"
+"luovat automaattisesti uusia valitun tyyppisiä asiakirjoja, joten\n"
+"postilaatikon ja Odoon välisen integroiminen on helppoa. Ja mikä parasta: "
+"nämä asiakirjat toimivat suoraan pieninä\n"
+"keskusteluina, jotka synkronoidaan sähköpostitse. Voit vastata sisäisesti "
+"Odoossa ja \n"
+"kerätä vastaukset automaattisesti talteen niiden saapuessa. Sitten ne "
+"lisätään\n"
+"saman *keskustelun* asiakirjaan.\n"
+"Erityistarpeita varten voit myös määrittää mukautettuja toimintoja\n"
+"(teknisesti: palvelintoiminnot), jotka käynnistetään jokaisen saapuvan "
+"sähköpostin yhteydessä.\n"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_ir_actions_server__followers_type
@@ -1538,7 +1602,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mail.field_res_partner__activity_type_icon
 #: model:ir.model.fields,field_description:mail.field_res_users__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "Toimenpiteen ikoni"
+msgstr "Toimenpidetyypin kuvake"
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.mail_activity_type_view_kanban
@@ -3545,7 +3609,7 @@ msgstr "Kaupunki, alue, maa"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/search_input.xml:0
 msgid "Clear"
-msgstr ""
+msgstr "Tyhjennä"
 
 #. module: mail
 #. odoo-javascript
@@ -3588,6 +3652,7 @@ msgstr ""
 #: code:addons/mail/static/src/chatter/web/scheduled_message.js:0
 #: code:addons/mail/static/src/core/common/poll_votes_panel.xml:0
 #: code:addons/mail/static/src/core/common/search_message_input.xml:0
+#: code:addons/mail/static/src/core/web/mention_list.xml:0
 #: code:addons/mail/static/src/discuss/call/common/meeting_ready_banner.xml:0
 #: code:addons/mail/static/src/views/web/fields/scheduled_date_field/scheduled_date_dialog.xml:0
 #: model_terms:ir.ui.view,arch_db:mail.mail_template_preview_view_form
@@ -4228,7 +4293,7 @@ msgstr "Luonut"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity.xml:0
 msgid "Created by:"
-msgstr ""
+msgstr "Luonut:"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_discuss_call_history__create_date
@@ -4280,7 +4345,7 @@ msgstr "Luotu"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity.xml:0
 msgid "Created on:"
-msgstr ""
+msgstr "Luotu:"
 
 #. module: mail
 #. odoo-javascript
@@ -5723,6 +5788,12 @@ msgid "Error, a partner cannot follow twice the same object."
 msgstr "Virhe: kumppani ei voi olla saman tietueen seuraajan kahdesti."
 
 #. module: mail
+#. odoo-javascript
+#: code:addons/mail/static/src/core/web/mention_list.xml:0
+msgid "Esc"
+msgstr ""
+
+#. module: mail
 #: model:ir.model.fields.selection,name:mail.selection__mail_alias__alias_contact__everyone
 msgid "Everyone"
 msgstr "Näytä kaikille"
@@ -5871,8 +5942,7 @@ msgid ""
 "stored to ease the debugging of mailing issues."
 msgstr ""
 "Epäonnistumisen syy. Tämä on yleensä sähköpostipalvelimen ilmoittama "
-"poikkeusvirhe, joka on tallennettu helpottamaan postitusongelmien "
-"virheenkorjausta."
+"poikkeus, joka on tallennettu helpottamaan postitusongelmien viankorjausta."
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_mail__failure_type
@@ -6842,7 +6912,7 @@ msgstr "Kuvake"
 #: model:ir.model.fields,help:mail.field_res_partner__activity_exception_icon
 #: model:ir.model.fields,help:mail.field_res_users__activity_exception_icon
 msgid "Icon to indicate an exception activity."
-msgstr "Kuvake joka kertoo poikkeustoiminnosta."
+msgstr "Poikkeustoimenpiteeseen viittaava kuvake."
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_followers__res_id
@@ -8542,7 +8612,7 @@ msgstr "Massapostituksen mallipohja: '%(name)s' (Tunnus: %(record_id)s)"
 #: model:ir.model.fields,help:mail.field_res_partner__activity_type_icon
 #: model:ir.model.fields,help:mail.field_res_users__activity_type_icon
 msgid "Material Symbols icon e.g. checklist"
-msgstr ""
+msgstr "Material Symbols -kuvake, esim. muistilista"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_call_artifact__media_id
@@ -9174,6 +9244,12 @@ msgid "Names of the recipients"
 msgstr ""
 
 #. module: mail
+#. odoo-javascript
+#: code:addons/mail/static/src/core/web/mention_list.xml:0
+msgid "Navigate"
+msgstr ""
+
+#. module: mail
 #. odoo-python
 #: code:addons/mail/models/res_users.py:0
 msgid "Near %(city)s, %(region)s, %(country)s"
@@ -9267,7 +9343,7 @@ msgstr "Seuraavan toimenpiteen eräpäivä"
 #: model:ir.model.fields,field_description:mail.field_res_partner__activity_summary
 #: model:ir.model.fields,field_description:mail.field_res_users__activity_summary
 msgid "Next Activity Summary"
-msgstr "Seuraavan toimenpiteen kuvaus"
+msgstr "Seuraavan toimenpiteen yhteenveto"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_ir_cron__activity_type_id
@@ -10950,6 +11026,12 @@ msgid "Pop out Attachments"
 msgstr "Avaa liitteet ikkunassa"
 
 #. module: mail
+#. odoo-javascript
+#: code:addons/mail/static/src/core/common/attachment_view.js:0
+msgid "Pop out is not supported on mobile."
+msgstr ""
+
+#. module: mail
 #: model:ir.model.fields,field_description:mail.field_fetchmail_server__port
 msgid "Port"
 msgstr "Portti"
@@ -12351,6 +12433,12 @@ msgstr "Nähneet:"
 
 #. module: mail
 #. odoo-javascript
+#: code:addons/mail/static/src/core/web/mention_list.xml:0
+msgid "Select"
+msgstr ""
+
+#. module: mail
+#. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_menu.xml:0
 msgid "Select Actions"
 msgstr ""
@@ -13104,10 +13192,10 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"Tila aktiviteetin perusteella\n"
-"Myöhässä: Eräpäivä on menneisyydessä\n"
-"Tänään: Eräpäivä on tänään\n"
-"Suunniteltu: Tulevaisuudessa."
+"Tila toimenpiteiden perusteella\n"
+"Myöhässä: Eräpäivä on jo mennyt\n"
+"Tänään: Toimenpiteen päivämäärä on tänään\n"
+"Suunniteltu: Tulevat toimenpiteet."
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_tracking_duration_mixin__duration_tracking
@@ -14565,7 +14653,7 @@ msgstr ""
 #: model:ir.model.fields,help:mail.field_res_partner__activity_exception_decoration
 #: model:ir.model.fields,help:mail.field_res_users__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "Poikkeusaktiviteetin tyyppi tietueella."
+msgstr "Kirjatun poikkeustoimenpiteen tyyppi."
 
 #. module: mail
 #. odoo-javascript
@@ -16057,6 +16145,14 @@ msgid ""
 msgstr ""
 "Sinulla ei ole oikeutta poistaa sähköpostien mustaa listaa. Ota yhteyttä "
 "järjestelmänvalvojaan."
+
+#. module: mail
+#. odoo-python
+#: code:addons/mail/models/discuss/discuss_channel.py:0
+msgid ""
+"You do not have the rights to change the name, description or avatar as a "
+"regular member of these read-only channels: %(channels)s."
+msgstr ""
 
 #. module: mail
 #. odoo-python

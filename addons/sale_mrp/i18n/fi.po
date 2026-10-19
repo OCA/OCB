@@ -16,11 +16,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~15.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 17:43+0000\n"
-"PO-Revision-Date: 2026-09-09 13:59+0000\n"
+"POT-Creation-Date: 2026-10-09 17:40+0000\n"
+"PO-Revision-Date: 2026-10-15 13:35+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-master/"
-"sale_mrp/fi/>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-20/sale_mrp/"
+"fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -41,26 +41,34 @@ msgid ""
 "from sales order. It adds sales name and sales Reference on production "
 "order.\n"
 msgstr ""
+"\n"
+"Tämä moduuli tarjoaa käyttäjälle mahdollisuuden asentaa tarvelaskenta- ja "
+"myyntimoduulit kerralla.\n"
+"====================================================================================\n"
+"\n"
+"Sitä käytetään, kun halutaan seurata tuotantotilauksia, jotka on luotu\n"
+"myyntitilauksesta. Se lisää myyntinimen ja myyntiviitteen "
+"tuotantotilaukseen.\n"
 
 #. module: sale_mrp
 #: model_terms:ir.ui.view,arch_db:sale_mrp.sale_order_portal_content_inherit_sale_mrp
 msgid "<i class=\"oi oi-fw\" data-icon=\"check\"/> Manufactured"
-msgstr ""
+msgstr "<i class=\"oi oi-fw\" data-icon=\"check\"/> Valmistettu"
 
 #. module: sale_mrp
 #: model_terms:ir.ui.view,arch_db:sale_mrp.sale_order_portal_content_inherit_sale_mrp
 msgid "<i class=\"oi oi-fw\" data-icon=\"close\"/> Cancelled"
-msgstr ""
+msgstr "<i class=\"oi oi-fw\" data-icon=\"close\"/> Peruttu"
 
 #. module: sale_mrp
 #: model_terms:ir.ui.view,arch_db:sale_mrp.sale_order_portal_content_inherit_sale_mrp
 msgid "<i class=\"oi oi-fw\" data-icon=\"schedule\"/> Confirmed"
-msgstr ""
+msgstr "<i class=\"oi oi-fw\" data-icon=\"schedule\"/> Vahvistettu"
 
 #. module: sale_mrp
 #: model_terms:ir.ui.view,arch_db:sale_mrp.sale_order_portal_content_inherit_sale_mrp
 msgid "<i class=\"oi oi-fw\" data-icon=\"schedule\"/> In Progress"
-msgstr ""
+msgstr "<i class=\"oi oi-fw\" data-icon=\"schedule\"/> Käynnissä"
 
 #. module: sale_mrp
 #: model_terms:ir.ui.view,arch_db:sale_mrp.mrp_production_form_view_sale
@@ -102,6 +110,7 @@ msgstr "Lähteenä olevien myyntitilausten (SO) määrä"
 #: model:ir.model.fields,field_description:sale_mrp.field_sale_order_line__display_name
 #: model:ir.model.fields,field_description:sale_mrp.field_stock_move__display_name
 #: model:ir.model.fields,field_description:sale_mrp.field_stock_rule__display_name
+#: model:ir.model.fields,field_description:sale_mrp.field_stock_warehouse_orderpoint__display_name
 msgid "Display Name"
 msgstr "Näyttönimi"
 
@@ -112,6 +121,7 @@ msgstr "Näyttönimi"
 #: model:ir.model.fields,field_description:sale_mrp.field_sale_order_line__id
 #: model:ir.model.fields,field_description:sale_mrp.field_stock_move__id
 #: model:ir.model.fields,field_description:sale_mrp.field_stock_rule__id
+#: model:ir.model.fields,field_description:sale_mrp.field_stock_warehouse_orderpoint__id
 msgid "ID"
 msgstr "Tunnus"
 
@@ -128,7 +138,7 @@ msgstr "Tuotantotilaus"
 #. module: sale_mrp
 #: model_terms:ir.ui.view,arch_db:sale_mrp.sale_order_portal_content_inherit_sale_mrp
 msgid "Manufacturing Orders"
-msgstr ""
+msgstr "Tuotantotilaukset"
 
 #. module: sale_mrp
 #. odoo-python
@@ -140,6 +150,11 @@ msgstr "%s luomat tuotantotilaukset"
 #: model:ir.model.fields,field_description:sale_mrp.field_sale_order__mrp_production_ids
 msgid "Manufacturing orders associated with this sales order."
 msgstr "Tähän myyntitilaukseen liittyvät tuotantotilaukset."
+
+#. module: sale_mrp
+#: model:ir.model,name:sale_mrp.model_stock_warehouse_orderpoint
+msgid "Minimum Inventory Rule"
+msgstr "Minimivarastosääntö"
 
 #. module: sale_mrp
 #: model:ir.model.fields,field_description:sale_mrp.field_mrp_production__sale_line_id
@@ -159,7 +174,7 @@ msgstr "Myyntitilausrivi"
 #. module: sale_mrp
 #: model:ir.module.module,shortdesc:base.module_sale_mrp
 msgid "Sales and MRP Management"
-msgstr ""
+msgstr "Myynnin ja MRP:n hallinta"
 
 #. module: sale_mrp
 #. odoo-python

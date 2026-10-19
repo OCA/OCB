@@ -449,6 +449,10 @@ export class PosOrder extends PosOrderAccounting {
         if ((payment_method.payment_interface && !this.isRefund) || payment_method.useBankQrCode) {
             newPaymentLine.setPaymentStatus("pending");
         }
+        if (payment_method.type === "pay_later") {
+            this.setToInvoice(true);
+        }
+
         return { status: true, data: newPaymentLine };
     }
 
@@ -673,7 +677,7 @@ export class PosOrder extends PosOrderAccounting {
     }
 
     get floatingOrderName() {
-        return this.floating_order_name || this.tracking_number.toString() || "";
+        return this.floating_order_name || this.tracking_number?.toString() || "";
     }
 
     sortBySequenceAndCategory(a, b) {

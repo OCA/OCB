@@ -97,6 +97,7 @@ export class FormatPlugin extends Plugin {
         "mergeAdjacentInlines",
         "removeSelectionFormats",
         "requestFormat",
+        "getPendingIntents",
     ];
     /** @type {import("plugins").EditorResources} */
     resources = {
@@ -275,6 +276,7 @@ export class FormatPlugin extends Plugin {
     setup() {
         this.activeFormats = {};
         this.formatSpecs = this.getResource("format_specs");
+        this.orphanedZws = new Set();
     }
 
     getFormatSpec(formatName) {
@@ -606,16 +608,12 @@ export class FormatPlugin extends Plugin {
             isTextNode(unformattedNodes[0]) &&
             unformattedNodes[0].textContent === "\u200B"
         ) {
-            const [anchorNode, anchorOffset, focusNode, focusOffset] = [
-                ...leftPos(unformattedNodes[0]),
-                ...rightPos(unformattedNodes[0]),
-            ];
-            this.dependencies.selection.setSelection({
-                anchorNode,
-                anchorOffset,
-                focusNode,
-                focusOffset,
-            });
+            const zws = unformattedNodes[0];
+            this.dependencies.selection.setSelection(
+                { anchorNode: zws, anchorOffset: zws.length },
+                { normalize: false }
+            );
+            this.orphanedZws.add(zws);
         }
         if (commit) {
             this.dependencies.history.commit();
@@ -676,6 +674,18 @@ export class FormatPlugin extends Plugin {
     }
 
     normalize(root) {
+        for (const zws of this.orphanedZws) {
+            this.orphanedZws.delete(zws);
+            if (!zws.isConnected) {
+                continue;
+            }
+            const cursor = this.dependencies.selection.preserveSelection();
+            const restore = prepareUpdate(...leftPos(zws), ...rightPos(zws));
+            cleanTextNode(zws, "\u200B", cursor);
+            restore();
+            cursor.restore();
+        }
+
         for (const el of selectElements(root, "[data-oe-zws-empty-inline]")) {
             if (isVisible(el)) {
                 // The element has some meaningful text. Remove the ZWS in it.
@@ -941,6 +951,14 @@ export class FormatPlugin extends Plugin {
             return false;
         }
         return isHtmlContentSupported(selection);
+    }
+
+    /**
+     * Returns the pending format intent for a collapsed selection.
+     * @returns {{ applyStyle: boolean, formatProps?: Object }}
+     */
+    getPendingIntents() {
+        return this.activeFormats;
     }
 }
 

@@ -560,14 +560,14 @@ describe("row", () => {
                 `),
                 contentBeforeEdit: unformat(
                     `<p data-selection-placeholder=""><br></p>
-                    <table>
+                    <div class="o_table_wrapper"><table>
                         <tbody>
                             <tr>
                                 <td>[]ab</td> <td>cd</td>
                             </tr>
                         </tbody>
-                    </table>
-                    <p data-selection-placeholder=""><br></p>`
+                    </table></div>
+                    <p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>`
                 ),
                 stepFunction: removeRow(),
                 contentAfter: "<p>[]<br></p>",
@@ -1180,13 +1180,13 @@ describe("column", () => {
                 `),
                 contentBeforeEdit: unformat(
                     `<p data-selection-placeholder=""><br></p>
-                    <table>
+                    <div class="o_table_wrapper"><table>
                         <tbody>
                             <tr> <td>[]ab</td> </tr>
                             <tr> <td>cd</td> </tr>
                         </tbody>
-                    </table>
-                    <p data-selection-placeholder=""><br></p>`
+                    </table></div>
+                    <p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>`
                 ),
                 stepFunction: removeColumn(),
                 contentAfter: "<p>[]<br></p>",
@@ -1318,8 +1318,8 @@ describe("tab", () => {
 
         const expectedContent = unformat(
             `<p data-selection-placeholder=""><br></p>
-            <table>
-                <colgroup><col style="width: 20px;"></colgroup>
+            <div class="o_table_wrapper"><table>
+                <colgroup><col style="width: 20px;"><col><col></colgroup>
                 <tbody>
                     <tr style="height: 20px;">
                         <td style="">ab</td>
@@ -1332,8 +1332,8 @@ describe("tab", () => {
                         <td><p><br></p></td>
                     </tr>
                 </tbody>
-            </table>
-            <p data-selection-placeholder=""><br></p>`
+            </table></div>
+            <p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>`
         );
 
         expect(getContent(el)).toBe(expectedContent);
@@ -1343,8 +1343,8 @@ describe("tab", () => {
         expect(getContent(el)).toBe(
             unformat(`
                 <p data-selection-placeholder=""><br></p>
-                <table>
-                    <colgroup><col style="width: 20px;"></colgroup>
+                <div class="o_table_wrapper"><table>
+                    <colgroup><col style="width: 20px;"><col><col></colgroup>
                     <tbody>
                         <tr style="height: 20px;">
                             <td style="">ab</td>
@@ -1352,8 +1352,8 @@ describe("tab", () => {
                             <td>ef[]</td>
                         </tr>
                     </tbody>
-                </table>
-                <p data-selection-placeholder=""><br></p>`)
+                </table></div>
+                <p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>`)
         );
     });
 
@@ -1363,7 +1363,7 @@ describe("tab", () => {
                 '<table><tbody><tr style="height: 20px;"><td style="width: 20px;">ab</td><td>[cd]</td><td>ef</td></tr></tbody></table>',
             stepFunction: () => press("Tab"),
             contentAfter:
-                '<table><colgroup><col style="width: 20px;"></colgroup><tbody><tr style="height: 20px;"><td>ab</td><td>cd</td><td>ef[]</td></tr></tbody></table>',
+                '<table><colgroup><col style="width: 20px;"><col><col></colgroup><tbody><tr style="height: 20px;"><td>ab</td><td>cd</td><td>ef[]</td></tr></tbody></table>',
         });
     });
 });

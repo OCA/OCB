@@ -1792,6 +1792,14 @@ class TestBoM(TestMrpCommon):
             "There should be no difference between the MO and BoM")
         self.assertEqual(mo_1.move_byproduct_ids.product_uom_qty, bom.byproduct_ids.product_qty * 10)
 
+        # Updates the BoM again (add a component consumed in the operation).
+        bom.bom_line_ids = [Command.create({'product_id': component_2.id, 'product_qty': 1, 'operation_id': operation.id})]
+        mo_1.action_update_bom()
+        self.assertRecordValues(mo_1.move_raw_ids, [
+            {'product_id': component_1.id, 'operation_id': False, 'workorder_id': False},
+            {'product_id': component_2.id, 'operation_id': operation.id, 'workorder_id': mo_1.workorder_ids.id},
+        ])
+
         # Updates the BoM by multiplying all its quantities by 3.
         bom.product_qty *= 3
         bom.bom_line_ids[0].product_qty *= 3
@@ -2639,6 +2647,15 @@ class TestBoM(TestMrpCommon):
                 Command.link(tmpl_attr_line_color.product_template_value_ids[0].id),
             ],
         })
+        self.assertRecordValues(order2.move_raw_ids, [
+            {'product_id': self.product_2.id, 'product_uom_qty': 1.0},
+            {'product_id': self.product_4.id, 'product_uom_qty': 1.0},
+            ])
+
+        # any onchange on the draft MO recomputes the moves on a new record
+        mo_form = Form(order2)
+        mo_form.bom_id = bom
+        mo_form.save()
         self.assertRecordValues(order2.move_raw_ids, [
             {'product_id': self.product_2.id, 'product_uom_qty': 1.0},
             {'product_id': self.product_4.id, 'product_uom_qty': 1.0},

@@ -12,7 +12,7 @@ from odoo import _, api, fields, models, Command
 from odoo.addons.account.tools import dict_to_xml
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
-from odoo.tools import float_compare, float_is_zero, float_repr, html2plaintext, pdf, str2bool
+from odoo.tools import float_compare, float_is_zero, float_repr, html2plaintext, pdf
 from odoo.tools.float_utils import float_round
 from odoo.tools.misc import formatLang, html_escape
 from odoo.tools.translate import _lt
@@ -265,6 +265,15 @@ class AccountEdiCommon(models.AbstractModel):
 
     def _get_document_type_code_vals(self, invoice, invoice_data):
         return {'attrs': {}, 'value': None}
+
+    @api.model
+    def _vat_is_equal(self, partner_vat, other_vat, country=False):
+        partner_vat = partner_vat.replace(' ', '').upper()
+        vat_to_compare = other_vat.replace(' ', '').replace('.', '').upper()
+        if country and country.code == 'CH':
+            partner_vat = re.sub(r"(TVA|IVA|MWST)?$", "", partner_vat.replace('.', '').replace('-', ''))
+            vat_to_compare = re.sub(r"(TVA|IVA|MWST)?$", "", vat_to_compare.replace('-', ''))
+        return partner_vat == vat_to_compare
 
     # -------------------------------------------------------------------------
     # TAXES
@@ -694,6 +703,15 @@ class AccountEdiCommon(models.AbstractModel):
         if routing_identifier:
             scheme, _sep, endpoint = routing_identifier.partition(':')
             domain = [('routing_scheme', '=', scheme), ('routing_endpoint', '=', endpoint)]
+        if account_numbers := kwargs.get('bank_details'):
+            bank_domain = [
+                ('bank_ids', 'any', [
+                    '&',
+                    ('account_number', 'in', account_numbers),
+                    ('allow_out_payment', '=', True),
+                ]),
+            ]
+            domain = Domain.OR([domain, bank_domain])
         partner = self.env['res.partner'] \
             .with_company(company_id) \
             ._retrieve_partner(name=name, phone=phone, email=email, vat=vat, additional_identifiers=additional_identifiers, domain=domain)
@@ -704,6 +722,12 @@ class AccountEdiCommon(models.AbstractModel):
             [('country_id', '=', country.id), ('code', '=', state_code)],
             limit=1,
         ) if state_code and country else self.env['res.country.state']
+
+        vat_mismatch = False
+        if vat and partner.vat and not self._vat_is_equal(partner.vat, vat, country):
+            vat_mismatch = True
+            partner = self.env['res.partner']
+
         if not partner and name and vat:
             partner_vals = {'name': name, 'email': email, 'phone': phone, 'is_company': True}
             if routing_identifier:
@@ -711,12 +735,15 @@ class AccountEdiCommon(models.AbstractModel):
             if additional_identifiers:
                 partner_vals['additional_identifiers'] = additional_identifiers
             partner = self.env['res.partner'].create(partner_vals)
-            if vat:
-                partner.vat, _country_code = self.env['res.partner']._run_vat_checks(country, vat, validation='setnull')
-            logs.append(_("Could not retrieve a partner corresponding to '%s'. A new partner was created.", name))
+            if vat_mismatch:
+                logs.append(_("Could not retrieve a partner corresponding to '%s' with the same VAT. A new partner was created.", name))
+            else:
+                logs.append(_("Could not retrieve a partner corresponding to '%s'. A new partner was created.", name))
         elif not partner and not logs:
             logs.append(_("Could not retrieve partner with details: Name: %(name)s, Vat: %(vat)s, Phone: %(phone)s, Email: %(email)s",
                   name=name, vat=vat, phone=phone, email=email))
+        if vat and not partner.vat:
+            partner.vat, _country_code = self.env['res.partner']._run_vat_checks(country, vat, validation='setnull')
         if not partner.country_id and not partner.street and not partner.street2 and not partner.city and not partner.zip and not partner.state_id:
             partner.write({
                 'country_id': country.id,
@@ -845,7 +872,7 @@ class AccountEdiCommon(models.AbstractModel):
             lines_values += self._retrieve_line_charges(record, line_values, line_values['tax_ids'])
             if isinstance(record, self.env.registry['account.move']) and hasattr(self.env['account.move.line'], '_get_predicted_values'):
                 for fname, value in self.env['account.move.line']._get_predicted_values(
-                    line_values['name'],
+                    self._get_line_label(line_values),
                     move=record,
                     line_domain=[('tax_ids', '=', line_values['tax_ids'][0])] if len(line_values['tax_ids']) == 1 else [],
                 ).items():
@@ -1076,9 +1103,8 @@ class AccountEdiCommon(models.AbstractModel):
             elif delivered_qty == 0:
                 quantity = price_subtotal / price_unit
 
-        return {
+        line_vals = {
             # vals to be written on the document line
-            'name': self._find_value(xpath_dict['name'], tree),
             'product_id': product.id,
             'product_uom_id': product_uom.id,
             'price_unit': price_unit,
@@ -1088,6 +1114,19 @@ class AccountEdiCommon(models.AbstractModel):
             'charges': charges,  # see `_retrieve_line_charges`
             'price_subtotal': price_subtotal,
         }
+
+        name = self._find_value(xpath_dict['name'], tree) or ''
+        if product:
+            name = re.sub(rf"^{re.escape(product.name)}($|\n)", "", name)
+
+        if name:
+            line_vals['name'] = name
+
+        return line_vals
+
+    def _get_line_label(self, line_values):
+        product = self.env['product.product'].browse(line_values.get('product_id'))
+        return ' '.join(filter(None, [product.name, line_values.get('name')]))
 
     def _import_product(self, partner, **product_vals):
         return self.env['product.product']._retrieve_product(**product_vals)
@@ -1223,6 +1262,7 @@ class AccountEdiCommon(models.AbstractModel):
         fpos_domain = [('fiscal_position_ids', '=', record.fiscal_position_id.id)]
         if record.fiscal_position_id.is_domestic:
             fpos_domain = ['|', ('fiscal_position_ids', '=', False)] + fpos_domain
+        line_label = self._get_line_label(line_values)
         for tax_node in line_values.pop('tax_nodes'):
             amount = float(tax_node.text)
             domain = [
@@ -1233,7 +1273,7 @@ class AccountEdiCommon(models.AbstractModel):
             ]
             tax = self.env['account.tax']
             if hasattr(record, '_get_specific_tax'):
-                tax = record._get_specific_tax(line_values['name'], domain).filtered_domain(domain)[:1]
+                tax = record._get_specific_tax(line_label, domain).filtered_domain(domain)[:1]
             if tax_exigibility is not None:
                 if not tax:
                     tax = self.env['account.tax'].search(domain + fpos_domain + [('price_include', '=', False), ('tax_exigibility', '=', tax_exigibility)], limit=1)
@@ -1247,7 +1287,7 @@ class AccountEdiCommon(models.AbstractModel):
                     logs.append(
                         _("Tax with matching exigibility could not be retrieved: '%(exigibility)s' for line '%(line)s'.",
                         exigibility=tax_exigibility,
-                        line=line_values['name']),
+                        line=line_label),
                     )
             if not tax:
                 tax = self.env['account.tax'].search(domain + fpos_domain + [('price_include', '=', False)], limit=1)
@@ -1262,7 +1302,7 @@ class AccountEdiCommon(models.AbstractModel):
                 logs.append(
                     _("Could not retrieve the tax: %(amount)s %% for line '%(line)s'.",
                     amount=amount,
-                    line=line_values['name']),
+                    line=line_label),
                 )
             else:
                 taxes.append(tax.id)
@@ -1390,12 +1430,7 @@ class AccountEdiCommon(models.AbstractModel):
         Should stay consistent with `_get_country_specific_vat_variants`.
         """
         country = self._import_retrieve_country(collected_values)
-        customer_vat = customer.vat.replace(' ', '').upper()
-        vat_to_compare = vat.replace(' ', '').replace('.', '').upper()
-        if country and country.code == 'CH':
-            customer_vat = re.sub(r"(TVA|IVA|MWST)?$", "", customer_vat.replace('.', '').replace('-', ''))
-            vat_to_compare = re.sub(r"(TVA|IVA|MWST)?$", "", vat_to_compare.replace('-', ''))
-        return customer_vat == vat_to_compare
+        return self._vat_is_equal(customer.vat, vat, country)
 
     def _import_create_missing_customer(self, collected_values):
         customer_values = collected_values['customer_values']
@@ -1650,9 +1685,6 @@ class AccountEdiCommon(models.AbstractModel):
                 for tax_values in line_collected_values['taxes_values']:
                     tax_values['account'] = account
             line_tax_values_list = line_collected_values['taxes_values']
-            for charge in line_collected_values['charges']:
-                if tax_values := charge.get('attempt_tax_values'):
-                    line_tax_values_list.append(tax_values)
             if predicted_tax_ids := line_collected_values.get('predicted_vals', {}).get('tax_ids'):
                 for line_tax_values in line_tax_values_list:
                     line_tax_values['predicted_tax_ids'] = predicted_tax_ids
@@ -2024,7 +2056,7 @@ class AccountEdiCommon(models.AbstractModel):
     def _generate_pdf_attachment(self, invoice, tree):
         """ ATTEMPTS to create a PDF attachment when the XML file doesn't provide one."""
         IrConfigParam = self.env['ir.config_parameter'].sudo()
-        disable_pdf_in_xml = str2bool(IrConfigParam.get_param("account_edi_ubl_cii.disable_pdf_in_xml", 'False'))
+        disable_pdf_in_xml = IrConfigParam.get_bool("account_edi_ubl_cii.disable_pdf_in_xml")
         additional_docs = self._import_attachments(invoice, tree)
         if (
             additional_docs or
