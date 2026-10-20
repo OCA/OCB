@@ -159,7 +159,7 @@ except ImportError:
 
 import odoo
 from .exceptions import UserError, AccessError, AccessDenied
-from .modules.module import get_manifest
+from .modules.module import get_manifest, get_module_path
 from .modules.registry import Registry
 from .service import security, model as service_model
 from .tools import (config, consteq, date_utils, file_path, parse_version,
@@ -2118,6 +2118,41 @@ class JsonRPCDispatcher(Dispatcher):
         return self.request.make_json_response(response)
 
 
+class ModuleStaticPathMap:
+    def __init__(self):
+        self._static_path_map = {}
+
+    def get(self, module):
+        static_path = self._static_path_map.get(module)
+        if static_path:
+            return static_path
+        module_path = get_module_path(module)
+        if not module_path:
+            return None
+        # not passing module_path to get_manifest(), to take advantage of
+        # the cached values (in _get_manifest_cached()), as no code calls
+        # get_manifest() with a module_path.
+        manifest = get_manifest(module)
+        static_path = opj(module_path, "static")
+        if (
+            manifest
+            and (manifest["installable"] or manifest["assets"])
+            and os.path.isdir(static_path)
+        ):
+            self._static_path_map[module] = static_path
+            return static_path
+        return None
+
+    def __getitem__(self, key):
+        static_path = self.get(key)
+        if static_path is not None:
+            return static_path
+        raise KeyError(key)
+
+    def __contains__(self, value):
+        return self.get(value) is not None
+
+
 # =========================================================
 # WSGI Entry Point
 # =========================================================
@@ -2132,16 +2167,7 @@ class Application:
         Map module names to their absolute ``static`` path on the file
         system.
         """
-        mod2path = {}
-        for addons_path in odoo.addons.__path__:
-            for module in os.listdir(addons_path):
-                manifest = get_manifest(module)
-                static_path = opj(addons_path, module, 'static')
-                if (manifest
-                        and (manifest['installable'] or manifest['assets'])
-                        and os.path.isdir(static_path)):
-                    mod2path[module] = static_path
-        return mod2path
+        return ModuleStaticPathMap()
 
     def get_static_file(self, url, host=''):
         """
