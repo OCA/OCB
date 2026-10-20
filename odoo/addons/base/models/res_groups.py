@@ -5,7 +5,7 @@ from collections import defaultdict
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command, Domain
-from odoo.tools import SetDefinitions
+from odoo.tools import SetDefinitions, SQL
 
 
 REGULAR_VALUE = object()
@@ -140,22 +140,43 @@ class ResGroups(models.Model):
                 # as 'group' does not imply any of the user type groups, no user
                 # with 'group' may end up having two disjoint groups
                 continue
-            domain = (
-                # user is active
-                Domain('active', '=', True)
-                # and user has 'group', and thus also has 'user_type_group'
-                & Domain('group_ids', 'in', group.all_implied_by_ids.ids)
-                # and user has another user type group
-                & Domain('group_ids', 'in', (user_type_groups - user_type_group).all_implied_by_ids.ids)
-            )
-            user = self.env['res.users'].search(domain, order='id', limit=1)
-            if user:
+
+            group_ids = group.all_implied_by_ids.ids
+            disjoint_group_ids = (user_type_groups - user_type_group).all_implied_by_ids.ids
+
+            user_ids = self.env.execute_query(SQL(
+                """
+                SELECT group_rel.uid
+                  FROM res_groups_users_rel AS group_rel
+                  JOIN res_groups_users_rel AS disjoint_rel
+                    ON disjoint_rel.uid = group_rel.uid
+                  JOIN res_users
+                    ON res_users.id = group_rel.uid
+                   AND res_users.active
+                 WHERE group_rel.gid = ANY(%s)
+                   AND disjoint_rel.gid = ANY(%s)
+                 LIMIT 1
+                """,
+                disjoint_group_ids,
+                group_ids,
+                to_flush=(
+                    self._fields['user_ids'],
+                    self.env['res.users']._fields['active'],
+                ),
+            ))
+            if user_ids:
+                user = self.env['res.users'].browse(user_ids[0][0])
                 disjoint_groups = user.all_group_ids & user_type_groups
                 raise ValidationError(self.env._(
                     "User %(user)s cannot be at the same time in exclusive groups %(groups)s.",
                     user=repr(user.name),
                     groups=", ".join(repr(g.display_name) for g in disjoint_groups),
                 ))
+
+    @api.constrains('user_ids')
+    def _check_at_least_one_administrator(self):
+        # same check as on res.users, when users are removed from the group side
+        self.env['res.users']._check_at_least_one_administrator()
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_settings_group(self):

@@ -373,6 +373,60 @@ class TestHrVersion(TestHrCommon):
         self.assertTrue(employee._is_in_contract(date(2020, 1, 1)))
         self.assertFalse(employee._is_in_contract(date(2030, 1, 1)))
 
+    @freeze_time('2020-06-15')
+    def test_default_date_is_today(self):
+        """
+        The default date of the version helpers must be evaluated at call time,
+        not when the module is imported.
+        """
+        employee = self.env['hr.employee'].create({
+            'name': 'John Doe',
+            'date_version': '2020-01-01',
+            'contract_date_start': '2020-01-01',
+            'contract_date_end': '2020-12-31',
+        })
+        v1 = employee.version_id
+        employee.create_version({'date_version': '2020-10-01'})
+        self.assertEqual(employee._get_version(), v1)
+        self.assertTrue(v1._is_in_contract())
+
+    def test_calendar_at_date_with_amendment(self):
+        """
+        The calendar used at a given date is the one of the version in effect at
+        that date, not the one of the first version of the contract.
+        """
+        calendar_full, calendar_half = self.env['resource.calendar'].create([
+            {'name': 'Full Time'},
+            {'name': 'Half Time'},
+        ])
+        employee = self.env['hr.employee'].create({
+            'name': 'John Doe',
+            'date_version': '2020-01-01',
+            'contract_date_start': '2020-01-01',
+            'resource_calendar_id': calendar_full.id,
+        })
+        employee.create_version({
+            'date_version': '2020-06-01',
+            'resource_calendar_id': calendar_half.id,
+        })
+        self.assertEqual(employee._get_calendars(date(2020, 3, 15))[employee.id], calendar_full)
+        self.assertEqual(employee._get_calendars(date(2020, 7, 15))[employee.id], calendar_half)
+
+    def test_field_block_start_date(self):
+        job_a, job_b = self.env['hr.job'].create([{'name': 'Job A'}, {'name': 'Job B'}])
+        employee = self.env['hr.employee'].create({
+            'name': 'John Doe',
+            'date_version': '2020-01-01',
+            'contract_date_start': '2020-01-01',
+            'job_id': job_a.id,
+        })
+        v1 = employee.version_id
+        v2 = employee.create_version({'date_version': '2022-01-01'})
+        v3 = employee.create_version({'date_version': '2024-06-01', 'job_id': job_b.id})
+        self.assertEqual(v1._get_field_block_start_date('job_id'), date(2020, 1, 1))
+        self.assertEqual(v2._get_field_block_start_date('job_id'), date(2020, 1, 1))
+        self.assertEqual(v3._get_field_block_start_date('job_id'), date(2024, 6, 1))
+
     def test_cron_update_current_version(self):
         cron = self.env.ref('hr.ir_cron_data_employee_update_current_version')
 
@@ -891,3 +945,21 @@ class TestHrVersion(TestHrCommon):
         self.assertEqual(versions, v1)
         versions = self.env['hr.version'].search([('employee_id', '=', employee.id), ('date_end', '>', '2026-06-01')])
         self.assertEqual(versions, v2)
+        versions = self.env['hr.version'].search([('employee_id', '=', employee.id), ('date_end', '=', '2026-05-31')])
+        self.assertEqual(versions, v1)
+        versions = self.env['hr.version'].search([('employee_id', '=', employee.id), ('date_end', '=', False)])
+        self.assertFalse(versions)
+        versions = self.env['hr.version'].search([('employee_id', '=', employee.id), ('date_end', '!=', False)])
+        self.assertEqual(versions, v1 | v2)
+        employee.contract_date_end = False
+        versions = self.env['hr.version'].search([('employee_id', '=', employee.id), ('date_end', '=', False)])
+        self.assertEqual(versions, v2)
+        versions = self.env['hr.version'].search([('employee_id', '=', employee.id), ('date_end', 'in', [False, '2026-05-31'])])
+        self.assertEqual(versions, v1 | v2)
+        # Contract templates are not chained together
+        template_1, template_2 = self.env['hr.version'].create([
+            {'name': 'Template 1', 'date_version': '2026-01-01'},
+            {'name': 'Template 2', 'date_version': '2026-02-01'},
+        ])
+        versions = self.env['hr.version'].search([('id', 'in', (template_1 | template_2).ids), ('date_end', '=', False)])
+        self.assertEqual(versions, template_1 | template_2)

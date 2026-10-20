@@ -7,23 +7,13 @@ from babel.dates import format_date, get_date_format
 from zoneinfo import ZoneInfo
 
 from odoo import api, fields, models
+from odoo.fields import Domain
 from odoo.addons.base.models.res_partner import _tz_get
 from odoo.exceptions import ValidationError
-from odoo.tools import get_lang, babel_locale_parse
+from odoo.tools import SQL, get_lang, babel_locale_parse
 
 import logging
-import operator as py_operator
 _logger = logging.getLogger(__name__)
-
-PY_OPERATORS = {
-    '>': py_operator.gt,
-    '<': py_operator.lt,
-    '>=': py_operator.ge,
-    '<=': py_operator.le,
-    '=': py_operator.eq,
-    '!=': py_operator.ne,
-    'in': lambda elem, container: elem in container,
-}
 
 
 def format_date_abbr(env, date):
@@ -436,10 +426,12 @@ class HrVersion(models.Model):
         for version in self:
             version.is_in_contract = version._is_in_contract()
 
-    def _is_in_contract(self, date=fields.Date.today()):
-        # Return True if the employee is in contract on a given date
+    def _is_in_contract(self, date=None):
+        # Return True if the employee is in contract on a given date (today by default)
         if not self.contract_date_start:
             return False
+        if date is None:
+            date = fields.Date.context_today(self)
         return self.date_start <= date and (not self.date_end or self.date_end >= date)
 
     def _is_flexible(self):
@@ -640,42 +632,36 @@ class HrVersion(models.Model):
         return NotImplemented
 
     def _search_end_date(self, operator, value):
-
-        def _compare_dates(date_end, operator, value):
-            op = PY_OPERATORS.get(operator)
-            if not op:
-                return False
-            if not date_end and operator in ('>', '>=', '<', '<='):
-                return False
-            return op(date_end, value)
-
-        all_versions = self.search([('company_id', 'in', self.env.companies.ids)])
-        matching_ids = []
-
-        next_version_map = {}
-        prev_version_per_employee = {}
-
-        for version in all_versions:
-            emp_id = version.employee_id.id
-            if emp_id in prev_version_per_employee:
-                next_version_map[prev_version_per_employee[emp_id].id] = version
-            prev_version_per_employee[emp_id] = version
-
-        for version in all_versions:
-            next_version = next_version_map.get(version.id)
-            date_version_end = next_version.date_version + relativedelta(days=-1) if next_version else False
-
-            if date_version_end and version.contract_date_end:
-                date_end = min(date_version_end, version.contract_date_end)
-            elif date_version_end:
-                date_end = date_version_end
-            else:
-                date_end = version.contract_date_end
-
-            if _compare_dates(date_end, operator, value):
-                matching_ids.append(version.id)
-
-        return [('id', 'in', matching_ids)]
+        if operator not in ('<', '<=', '>', '>=', 'in'):
+            return NotImplemented
+        # Same logic as _compute_dates: the version ends the day before the next
+        # active version of the employee, or at the end of its contract.
+        date_end_sql = SQL("""
+            LEAST(
+                (
+                    SELECT MIN(next_version.date_version)
+                      FROM hr_version next_version
+                     WHERE next_version.employee_id = hr_version.employee_id
+                       AND next_version.active
+                       AND next_version.date_version > hr_version.date_version
+                ) - 1,
+                hr_version.contract_date_end
+            )
+        """)
+        if operator == 'in':
+            dates = [fields.Date.to_date(d) for d in value if d]
+            conditions = []
+            if dates:
+                conditions.append(SQL("%s IN %s", date_end_sql, tuple(dates)))
+            if False in value:
+                conditions.append(SQL("%s IS NULL", date_end_sql))
+            if not conditions:
+                return Domain.FALSE
+            condition = SQL(" OR ").join(conditions)
+        else:
+            sql_operator = {'<': SQL('<'), '<=': SQL('<='), '>': SQL('>'), '>=': SQL('>=')}[operator]
+            condition = SQL("%s %s %s::date", date_end_sql, sql_operator, value)
+        return [('id', 'in', SQL("(SELECT hr_version.id FROM hr_version WHERE %s)", condition))]
 
     @api.model
     def _get_marital_status_selection(self):
@@ -730,7 +716,7 @@ class HrVersion(models.Model):
 
     def _get_field_block_start_date(self, field_name):
         """
-        Return the contract_date_start of the earliest contiguous version
+        Return the date_start of the earliest contiguous version
         that shares the same value for `field_name` as the current version.
 
         Useful to determine since when a given field value has been
@@ -744,7 +730,9 @@ class HrVersion(models.Model):
         if not current_value:
             return None
 
-        versions = self.employee_id.version_ids.sorted(key=lambda v: v.contract_date_start or date.min)
+        # version_ids are ordered by date_version, which is also the date_start
+        # order as the contracts of an employee cannot overlap
+        versions = self.employee_id.version_ids
 
         try:
             idx = next(i for i, v in enumerate(versions) if v.id == self.id)
@@ -758,7 +746,7 @@ class HrVersion(models.Model):
                 break
             start_version = prev
 
-        return start_version.contract_date_start
+        return start_version.date_start
 
     def _has_work_hours_between_versions(self, version_to):
         # we consider two versions to be consecutive if no work hours are
