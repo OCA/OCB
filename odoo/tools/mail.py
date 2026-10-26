@@ -240,6 +240,8 @@ def html_normalize(src, filter_callback=None):
     # html: remove encoding attribute inside tags
     doctype = re.compile(r'(<(?=[^<>]*>)[^<>]*\s)(encoding=(["\'][^"\'<>]*?["\']|[^\s\n\r<>]+)(\s[^<>]*|/)?>)', re.IGNORECASE | re.DOTALL)
     src = doctype.sub(u"", src)
+    # html: remove charset declarations from meta tags, the source is already decoded
+    src = re.sub(r'(<meta\b[^<>]*?)\bcharset\s*=\s*(?:"[^"<>]*"|\'[^\'<>]*\'|[^\s"\'<>;]+)', r'\1', src, flags=re.IGNORECASE)
 
     try:
         # On the specific case of Outlook desktop it adds unnecessary '<o:.*></o:.*>' tags which are parsed
