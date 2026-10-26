@@ -47,6 +47,8 @@ import { setSelection } from "@html_editor/../tests/_helpers/selection";
 
 class HrJob extends models.Model {
     _name = "hr.job";
+    name = fields.Char();
+    _records = [{ id: 42, name: "Test job" }];
 }
 defineModels([HrJob]);
 
@@ -80,8 +82,7 @@ patch(webModels.IrModel.prototype, {
 
 defineWebsiteModels();
 
-test("change action of form changes available options", async () => {
-    onRpc("get_authorized_fields", () => ({}));
+describe("Form action options", () => {
     // reduced version of form_editor_actions
     function withIframeRegistry(registry) {
         registry
@@ -96,52 +97,112 @@ test("change action of form changes available options", async () => {
                 successPage: "/job-thank-you",
             })
             .add("create_customer", {
-                formFields: [{ type: "char", name: "name", fillWith: "name", string: "Your Name" }],
+                formFields: [
+                    { type: "char", name: "name", fillWith: "name", string: "Your Name" },
+                    { type: "many2many", name: "job_ids", relation: "hr.job", string: "Jobs" },
+                ],
+                fields: [
+                    {
+                        name: "job_id",
+                        type: "many2one",
+                        relation: "hr.job",
+                        string: "Preferred Job",
+                        required: true,
+                    },
+                    { name: "ref", type: "char", string: "Reference" },
+                ],
             });
     }
-    await setupWebsiteBuilderWithSnippet("s_website_form", { withIframeRegistry });
 
-    await contains(":iframe section").click();
-    await contains(".hb-row[data-label='Action'] button").click();
-    await contains("div.o-dropdown-item:contains('Apply for a Job')").click();
+    test("change action of form changes available options", async () => {
+        onRpc("get_authorized_fields", () => ({}));
+        await setupWebsiteBuilderWithSnippet("s_website_form", { withIframeRegistry });
 
-    await animationFrame();
-    expect("span:contains('Applied Job')").toHaveCount(1);
-    expect(".hb-row[data-label='URL'] input").toHaveValue("/job-thank-you");
+        await contains(":iframe section").click();
+        await contains("[data-label='Action'] button:contains('Send an E-mail')").click();
+        await contains("div.o-dropdown-item:contains('Apply for a Job')").click();
 
-    await contains(".hb-row[data-label='Action'] button").click();
-    await contains("div.o-dropdown-item:contains('Create a Customer')").click();
+        await animationFrame();
+        expect("span:contains('Applied Job')").toHaveCount(1);
+        expect("[data-label='URL'] input").toHaveValue("/job-thank-you");
 
-    expect("span:contains('Applied Job')").toHaveCount(0);
-    expect(".hb-row[data-label='URL'] input").toHaveValue("/contactus-thank-you");
-});
+        await contains("[data-label='Action'] button:contains('Apply for a Job')").click();
+        await contains("div.o-dropdown-item:contains('Create a Customer')").click();
 
-test("remove hidden many2one field from form if value is None", async () => {
-    onRpc("get_authorized_fields", () => ({}));
-    onRpc("/web/dataset/call_kw/hr.job/search_read", () => [{ id: 1, display_name: "Some Job" }]);
-    function withIframeRegistry(registry) {
-        registry.category("website.form_editor_actions").add("apply_job", {
-            formFields: [],
-            fields: [{ name: "job_id", type: "many2one", relation: "hr.job", string: "Applied Job" }],
+        expect("span:contains('Applied Job')").toHaveCount(0);
+        expect("[data-label='URL'] input").toHaveValue("/contactus-thank-you");
+    });
+
+    test("selecting a form action field record doesn't prefetch all records", async () => {
+        onRpc("hr.job", "search_read", () => {
+            expect.step("search_read"); // shouldn't be called.
         });
-    }
-    await setupWebsiteBuilderWithSnippet("s_website_form", { withIframeRegistry });
+        onRpc("hr.job", "name_search", ({ kwargs }) => {
+            expect.step(`name_search: limit ${kwargs.limit}`);
+        });
+        onRpc("get_authorized_fields", () => ({}));
 
-    await contains(":iframe section").click();
-    await contains(".hb-row[data-label='Action'] button").click();
-    await contains("div.o-dropdown-item:contains('Apply for a Job')").click();
+        await setupWebsiteBuilderWithSnippet("s_website_form", { withIframeRegistry });
 
-    await animationFrame();
-    await contains(".hb-row[data-label='Applied Job'] button").click();
-    await contains("div.o-dropdown-item:contains('Some Job')").click();
+        await contains(":iframe section").click();
+        await contains("[data-label='Action'] button:contains('Send an E-mail')").click();
+        await contains("div.o-dropdown-item:contains('Apply for a Job')").click();
 
-    await animationFrame();
-    expect(':iframe input[type="hidden"][name="job_id"][value="1"]').toHaveCount(1);
-    await contains(".hb-row[data-label='Applied Job'] button").click();
-    await contains("div.o-dropdown-item:contains('None')").click();
+        await contains("[data-label='Applied Job'] button:contains('Choose a record...')").click();
+        expect.verifySteps([`name_search: limit 6`]);
+        await contains("span.o-dropdown-item:contains('Test job')").click();
+        expect(":iframe form .s_website_form_field.s_website_form_dnone").toHaveCount(1);
+        expect(":iframe form .s_website_form_field.s_website_form_dnone input").toHaveAttribute(
+            "name",
+            "job_id"
+        );
+        expect(":iframe form .s_website_form_field.s_website_form_dnone input").toHaveValue("42");
 
-    await animationFrame();
-    expect(':iframe input[type="hidden"][name="job_id"]').toHaveCount(0);
+        await contains("[data-label='Applied Job'] button[aria-label='Unselect']").click();
+        expect(":iframe form .s_website_form_field.s_website_form_dnone").toHaveCount(0);
+    });
+
+    test("relational form fields of a form action are rendered with their records", async () => {
+        onRpc("get_authorized_fields", () => ({}));
+        await setupWebsiteBuilderWithSnippet("s_website_form", { withIframeRegistry });
+
+        await contains(":iframe section").click();
+        await contains("[data-label='Action'] button:contains('Send an E-mail')").click();
+        await contains("div.o-dropdown-item:contains('Create a Customer')").click();
+
+        expect(":iframe form [data-name='job_ids'] input[type='checkbox']").toHaveCount(1);
+        expect(":iframe form [data-name='job_ids'] input[type='checkbox']").toHaveAttribute(
+            "value",
+            "42"
+        );
+    });
+
+    test("required form action field can't be unselected", async () => {
+        onRpc("get_authorized_fields", () => ({}));
+        await setupWebsiteBuilderWithSnippet("s_website_form", { withIframeRegistry });
+
+        await contains(":iframe section").click();
+        await contains("[data-label='Action'] button:contains('Send an E-mail')").click();
+        await contains("div.o-dropdown-item:contains('Create a Customer')").click();
+
+        await contains("[data-label='Preferred Job'] button:contains('Choose a record...')").click();
+        await contains("span.o-dropdown-item:contains('Test job')").click();
+        expect(":iframe form .s_website_form_dnone input[name='job_id']").toHaveValue("42");
+        expect("[data-label='Preferred Job'] button[aria-label='Unselect']").toHaveCount(0);
+    });
+
+    test("char form action field keeps its raw value", async () => {
+        onRpc("get_authorized_fields", () => ({}));
+        await setupWebsiteBuilderWithSnippet("s_website_form", { withIframeRegistry });
+
+        await contains(":iframe section").click();
+        await contains("[data-label='Action'] button:contains('Send an E-mail')").click();
+        await contains("div.o-dropdown-item:contains('Create a Customer')").click();
+
+        await contains("[data-label='Reference'] input").edit("REF-1");
+        expect(":iframe form .s_website_form_dnone input[name='ref']").toHaveValue("REF-1");
+        expect("[data-label='Reference'] input").toHaveValue("REF-1");
+    });
 });
 
 test("'Author' field's type stays selected when you modify the option list", async () => {
@@ -902,6 +963,44 @@ test("Checkbox default value option stays visible when changing label position",
     expect("[data-attribute-action='checked']").toHaveCount(1);
 });
 
+test("Checkbox description position none persists after multiple clicks", async () => {
+    onRpc("get_authorized_fields", () => ({}));
+    await setupWebsiteBuilder(
+        `<section class="s_website_form" data-snippet="s_website_form" data-name="Form">
+            <div class="container-fluid">
+                <form action="/website/form/" method="post" class="o_mark_required" data-model_name="mail.mail">
+                    <div class="s_website_form_rows">
+                        <div data-name="Field" class="s_website_form_field s_website_form_custom" data-type="boolean">
+                            <label class="s_website_form_label" for="opftfejmju">
+                                <span class="s_website_form_label_content">My Field</span>
+                            </label>
+                            <div class="form-check">
+                                <input type="checkbox" value="Yes" class="s_website_form_input form-check-input" name="My field" id="opftfejmju">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>`,
+        { loadIframeBuilderTemplates: true }
+    );
+
+    await contains(":iframe section span:contains('My Field')").click();
+    expect("[data-label='Description'] button").toHaveText("None");
+    await contains("[data-label='Description'] button").click();
+    await contains("[data-action-value='none']").click();
+    expect("[data-label='Description'] button").toHaveText("None");
+    await contains("[data-label='Description'] button").click();
+    await contains("[data-action-value='stacked']").click();
+    expect("[data-label='Description'] button").toHaveText("Stacked");
+    await contains("[data-label='Description'] button").click();
+    await contains("[data-action-value='none']").click();
+    expect("[data-label='Description'] button").toHaveText("None");
+    await contains("[data-label='Description'] button").click();
+    await contains("[data-action-value='none']").click();
+    expect("[data-label='Description'] button").toHaveText("None");
+});
+
 test("multiple conditional visibility value for 'contains'", async () => {
     onRpc("get_authorized_fields", () => ({}));
     await setupWebsiteBuilder(
@@ -1022,7 +1121,7 @@ test("contains conditional visibility value for 'record' field", async () => {
 
 describe("Many2one Field", () => {
     const addRecordButtonSelector =
-        ".we-bg-options-container .o_select_menu button.o-hb-selectMany2X-toggle";
+        ".we-bg-options-container [title='Add a record to the list'] button.o-hb-selectMany2X-toggle";
     let records;
 
     beforeEach(async () => {
@@ -1792,4 +1891,29 @@ test("Changing field type from date to datetime removes value property (and attr
 
     expect(":iframe input#field").toHaveAttribute("value", "");
     expect(":iframe input#field").toHaveProperty("value", "");
+});
+
+test("Don't crash when current form model is not allowed", async () => {
+    onRpc("get_authorized_fields", () => ({}));
+
+    // Set one form model to still see the dropdown while not being the default
+    // current form model.
+    patchWithCleanup(webModels.IrModel.prototype, {
+        get_compatible_form_models() {
+            return [
+                {
+                    id: 687,
+                    model: "hr.applicant",
+                    name: "Applicant",
+                    website_form_label: "Apply for a Job",
+                    website_form_key: "apply_job",
+                },
+            ];
+        },
+    });
+
+    await setupWebsiteBuilderWithSnippet("s_website_form");
+    await contains(":iframe section").click();
+    await contains("[data-label='Action'] button:contains('None')").click();
+    await contains("[data-action-id='selectAction']:contains('Apply for a Job')").click();
 });
