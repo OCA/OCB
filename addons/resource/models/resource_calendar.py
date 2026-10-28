@@ -41,11 +41,17 @@ class ResourceCalendar(models.Model):
         res = super().default_get(fields)
         if not res.get('name') and res.get('company_id'):
             res['name'] = self.env._('Working Hours of %s', self.env['res.company'].browse(res['company_id']).name)
-        if 'full_time_required_hours' in fields and not res.get('full_time_required_hours'):
-            company_id = res.get('company_id', self.env.company.id)
-            company = self.env['res.company'].browse(company_id)
-            res['full_time_required_hours'] = company.resource_calendar_id.full_time_required_hours
         return res
+
+    def copy_data(self, default=None):
+        vals_list = super().copy_data(default=default)
+        for calendar, vals in zip(self, vals_list):
+            # the rates of a fixed calendar are computed from its attendances, those of the other
+            # calendars are set by the user: they are kept on the copy
+            if vals.get('calendar_type', calendar.calendar_type) != 'fixed':
+                vals.setdefault('days_per_week', calendar.days_per_week)
+                vals.setdefault('hours_per_week', calendar.hours_per_week)
+        return vals_list
 
     name = fields.Char(required=True)
     active = fields.Boolean("Active", default=True,
@@ -69,9 +75,9 @@ class ResourceCalendar(models.Model):
         compute='_compute_global_leave_ids', store=True, readonly=False,
         domain=[('resource_id', '=', False)],
     )
-    days_per_week = fields.Float("Days per Week", compute="_compute_days_per_week", store=True, digits=(10, 5), readonly=False)
+    days_per_week = fields.Float("Days per Week", compute="_compute_days_per_week", store=True, digits=(10, 5), readonly=False, copy=False)
     hours_per_day = fields.Float("Average Hour per Day", store=True, compute="_compute_hours_per_day", digits=(10, 5), readonly=False,
-        help="Average hours per day a resource is supposed to work with this calendar.")
+        help="Average hours per day a resource is supposed to work with this calendar.", copy=False)
     hours_per_week = fields.Float(
         string="Hours per Week",
         compute="_compute_hours_per_week", store=True, digits=(10, 5), readonly=False, copy=False)
@@ -93,7 +99,6 @@ class ResourceCalendar(models.Model):
         'resource.calendar',
         string="Reference Calendar",
         index='btree_not_null',
-        default=lambda self: self.env.company.resource_calendar_id,
         check_company=True,
         help="Reference working hours used to compute the full-time equivalent.")
 

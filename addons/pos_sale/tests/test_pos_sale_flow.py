@@ -861,6 +861,28 @@ class TestPoSSale(PoSSaleSyncCommon, TestPointOfSaleHttpCommon):
 
         self.assertAlmostEqual(order.amount_total, invoice.amount_total, places=2, msg="Order and Invoice amounts do not match.")
 
+    def test_full_down_payment_so_still_listed(self):
+        """
+        Tests that a Sale Order fully paid by a down payment in the PoS is still listed, so it can be settled
+        """
+        product_a = self.env['product.product'].create({
+            'name': 'Product A',
+            'lst_price': 10.0,
+        })
+        so = self.env['sale.order'].sudo().create({
+            'name': 'Full Down Payment SO',
+            'partner_id': self.env['res.partner'].create({'name': 'Test Partner'}).id,
+            'order_line': [(0, 0, {
+                'product_id': product_a.id,
+                'product_uom_qty': 1,
+                'price_unit': product_a.lst_price,
+            })]
+        })
+        so.action_confirm()
+        self.main_pos_config.down_payment_product_id = self.env.ref("pos_sale.default_downpayment_product")
+        self.main_pos_config.open_ui()
+        self.start_pos_tour('test_full_down_payment_so_still_listed', login="accountman")
+
     def test_amount_to_invoice(self):
         """
         Checks that the amount to invoice is updated correctly when paying an order in the PoS
@@ -1057,15 +1079,23 @@ class TestPoSSale(PoSSaleSyncCommon, TestPointOfSaleHttpCommon):
         self.assertEqual(converted_line['product_uom_qty'], 12.0, "quantity should be 12.0")
         self.assertEqual(round(converted_line['price_unit'], 2), 0.83, "price of product should be 0.83")
 
-        self._sync_paid_pos_order([{
+        pos_order_id = self._sync_paid_pos_order([{
             'product': product_a,
             'qty': converted_line['product_uom_qty'],
-            'price_unit': 0.83,
+            'price_unit': converted_line['price_unit'],
             'extra_values': {
                 'sale_order_line_id': sale_order.order_line.id,
                 'sale_order_origin_id': sale_order.id,
             },
         }], partner=test_partner)
+        pos_order = self.env['pos.order'].browse(pos_order_id)
+
+        self.assertEqual(pos_order.lines[0].price_unit, sale_order.order_line.price_unit / 12)
+        self.assertEqual(pos_order.amount_total, sale_order.amount_total)
+
+        session = self.main_pos_config.current_session_id
+        session.close_session_from_ui()
+        self.assertEqual(session.state, 'closed')
 
         # The quantity sold in the PoS is converted back in the unit of the sale order line.
         self.assertEqual(sale_order.order_line.qty_invoiced, 1.0, "1 dozen should be invoiced")

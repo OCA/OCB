@@ -380,7 +380,6 @@ export class GeneratePrinterData {
                 orderChange = [order.lastPrints.at(-1)];
                 reprint = true;
             } else {
-                order.pushLastPrints(orderChange);
                 orderChange = [orderChange];
             }
         }
@@ -415,6 +414,7 @@ export class GeneratePrinterData {
                         preset_time: order.presetDateTime || false,
                         // This is only used to generate a barcode on the preparation ticket.
                         prepTicketBarcode: opts.prepBarcode || false,
+                        customer: order.preset_id ? this.getPresetCustomerInfo() : false,
                     },
                     conditions: {
                         module_pos_restaurant: this.order.config_id.module_pos_restaurant,
@@ -425,5 +425,20 @@ export class GeneratePrinterData {
         }
 
         return receipts;
+    }
+    getPresetCustomerInfo() {
+        const order = this.order;
+        const partner = order.partner_id;
+        const address = partner
+            ? [partner.street, partner.street2, partner.city, partner.zip]
+                  .filter(Boolean)
+                  .join(", ") || false
+            : false;
+        const info = {
+            email: order.email || false,
+            phone: order.mobile || false,
+            address: address,
+        };
+        return Object.values(info).some(Boolean) ? info : false;
     }
 }
