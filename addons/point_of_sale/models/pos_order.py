@@ -433,12 +433,13 @@ class PosOrder(models.Model):
         self.env['account.tax']._round_base_lines_tax_details(base_lines, self.company_id)
 
         cash_rounding = None
-        only_cash = self.config_id.only_round_cash_method
-        available_type = ['cash'] if only_cash else ['cash', 'bank']
+        payment_methods = self.payment_ids
 
-        if self.payment_ids.filtered_domain([
-            ('payment_method_id.type', 'in', available_type),
-        ]):
+        if self.config_id.only_round_cash_method:
+            payment_methods = payment_methods.filtered_domain([
+                ("payment_method_id.type", "in", ["cash"])
+            ])
+        if payment_methods:
             cash_rounding = self.config_id.rounding_method
 
         return self.env['account.tax']._get_tax_totals_summary(
@@ -1146,10 +1147,9 @@ class PosOrder(models.Model):
                 ('state', '!=', 'draft'),
                 ('is_refund', '=', True),
             ])
-        order_domain = state_domain & Domain(domain) & Domain([
-            ('config_id', 'in', [config_id] + pos_config.trusted_config_ids.ids),
-            ('config_id.currency_id', '=', pos_config.currency_id.id)
-        ])
+        order_domain = state_domain & Domain(domain) & Domain(
+            'config_id.currency_id', '=', pos_config.currency_id.id
+        ) & pos_config._get_paid_orders_config_domain()
         orders = self.search(order_domain, limit=limit, offset=offset, order='create_date desc')
         PosOrderLineModel = self.env['pos.order.line']
         line_queries = [

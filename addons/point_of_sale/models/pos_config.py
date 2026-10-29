@@ -286,6 +286,11 @@ class PosConfig(models.Model):
                 'records': records,
             })
 
+    def _get_paid_orders_config_domain(self):
+        """Domain on pos.order matching configs whose paid orders are visible from this config."""
+        self.ensure_one()
+        return Domain('config_id', 'in', (self | self.trusted_config_ids).ids)
+
     def read_config_open_orders(self, domain, record_ids=[]):
         delete_record_ids = {}
         dynamic_records = {}
@@ -1483,13 +1488,10 @@ class PosConfig(models.Model):
         self.ensure_one()
         # Ensure rounding method record is set on the invoice if needed
         rounding_method = self.env['account.cash.rounding']
-        only_cash = self.only_round_cash_method
-        available_type = ['cash'] if only_cash else ['cash', 'bank']
-        use_rounding = orders.payment_ids.filtered_domain([
-            ('payment_method_id.type', 'in', available_type),
-            ('pos_order_id.amount_difference', '!=', 0),
-        ])
-        if self.cash_rounding and use_rounding:
+        domain = Domain([('pos_order_id.amount_difference', '!=', 0)])
+        if self.only_round_cash_method:
+            domain = Domain.AND([domain, [('payment_method_id.type', 'in', ['cash'])]])
+        if self.cash_rounding and orders.payment_ids.filtered_domain(domain):
             rounding_method = self.rounding_method
 
         return rounding_method

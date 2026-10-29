@@ -12,6 +12,7 @@ import {
     getDeepestPosition,
     isElement,
     isEmptyBlock,
+    isHeadingRelatedElement,
     isListElement,
     isListItemElement,
     isParagraphRelatedElement,
@@ -236,8 +237,15 @@ export class ListPlugin extends Plugin {
             }
         },
         formattable_node_providers: (node) => {
-            const li = closestElement(node, isListItem);
-            if (li && this.dependencies.selection.areNodeContentsFullySelected(li)) {
+            const li = closestElement(
+                node,
+                (node) => isListItem(node) || isHeadingRelatedElement(node)
+            );
+            if (
+                li &&
+                isListItem(li) &&
+                this.dependencies.selection.areNodeContentsFullySelected(li)
+            ) {
                 return li;
             }
         },
@@ -407,11 +415,11 @@ export class ListPlugin extends Plugin {
             // possible.
             const callingNode = element.firstChild;
             const group = getAdjacents(callingNode, (n) => !isBlock(n));
-            list = insertListAfter(this.document, callingNode, mode, group);
+            list = insertListAfter(this.document, callingNode, mode, group, cursors);
         } else {
             const parent = element.parentNode;
             const childIndex = childNodeIndex(element);
-            list = insertListAfter(this.document, element, mode, [element]);
+            list = insertListAfter(this.document, element, mode, [element], cursors);
             cursors.update((cursor) => {
                 if (cursor.node === parent) {
                     if (cursor.offset === childIndex) {
@@ -437,7 +445,13 @@ export class ListPlugin extends Plugin {
      */
     baseContainerToList(baseContainer, mode) {
         const cursors = this.dependencies.selection.preserveSelection();
-        const list = insertListAfter(this.document, baseContainer, mode, childNodes(baseContainer));
+        const list = insertListAfter(
+            this.document,
+            baseContainer,
+            mode,
+            childNodes(baseContainer),
+            cursors
+        );
         const textAlign = baseContainer.style.getPropertyValue("text-align");
         if (textAlign) {
             // Copy text-align style from base container to li.
@@ -447,14 +461,20 @@ export class ListPlugin extends Plugin {
         this.dependencies.dom.copyAttributes(baseContainer, list);
         this.adjustListPadding(list);
         baseContainer.remove();
-        cursors.remapNode(baseContainer, list.firstChild).restore();
+        cursors.restore();
         return list;
     }
 
     blockContentsToList(block, mode) {
         const cursors = this.dependencies.selection.preserveSelection();
-        const list = insertListAfter(this.document, block.lastChild, mode, [...block.childNodes]);
-        cursors.remapNode(block, list.firstChild).restore();
+        const list = insertListAfter(
+            this.document,
+            block.lastChild,
+            mode,
+            [...block.childNodes],
+            cursors
+        );
+        cursors.restore();
         return list;
     }
 
