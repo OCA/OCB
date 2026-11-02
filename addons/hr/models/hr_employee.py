@@ -14,7 +14,7 @@ from markupsafe import Markup
 from odoo import api, Command, fields, models, tools
 from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
 from odoo.fields import Domain
-from odoo.models import Query
+from odoo.models import Query, parse_read_group_spec
 from odoo.tools import SQL, convert, format_date, format_time
 from odoo.tools.float_utils import float_is_zero
 from odoo.tools.intervals import Intervals
@@ -365,13 +365,13 @@ class HrEmployee(models.Model):
     message_has_error_counter = fields.Integer(groups="hr.group_hr_user")
     message_attachment_count = fields.Integer(groups="hr.group_hr_user")
 
-    monday_location_id = fields.Many2one('hr.work.location', string='Monday')
-    tuesday_location_id = fields.Many2one('hr.work.location', string='Tuesday')
-    wednesday_location_id = fields.Many2one('hr.work.location', string='Wednesday')
-    thursday_location_id = fields.Many2one('hr.work.location', string='Thursday')
-    friday_location_id = fields.Many2one('hr.work.location', string='Friday')
-    saturday_location_id = fields.Many2one('hr.work.location', string='Saturday')
-    sunday_location_id = fields.Many2one('hr.work.location', string='Sunday')
+    monday_location_id = fields.Many2one('hr.work.location', string='Monday', index='btree_not_null')
+    tuesday_location_id = fields.Many2one('hr.work.location', string='Tuesday', index='btree_not_null')
+    wednesday_location_id = fields.Many2one('hr.work.location', string='Wednesday', index='btree_not_null')
+    thursday_location_id = fields.Many2one('hr.work.location', string='Thursday', index='btree_not_null')
+    friday_location_id = fields.Many2one('hr.work.location', string='Friday', index='btree_not_null')
+    saturday_location_id = fields.Many2one('hr.work.location', string='Saturday', index='btree_not_null')
+    sunday_location_id = fields.Many2one('hr.work.location', string='Sunday', index='btree_not_null')
     exceptional_location_id = fields.Many2one(
         'hr.work.location', string='Current',
         compute='_compute_exceptional_location_id',
@@ -602,24 +602,23 @@ class HrEmployee(models.Model):
             else:
                 employee.newly_hired = employee[new_hire_field] > new_hire_date
 
-    @api.depends(*DAYS, 'exceptional_location_id', 'resource_calendar_id', 'hr_presence_state')
+    @api.depends('work_location_type', 'resource_calendar_id', 'hr_presence_state')
     def _compute_presence_icon(self):
         """Compute ``hr_icon_display`` and ``show_hr_icon_display`` (presence icon of kanban/avatar cards).
 
         Today's work location (exceptional location, else the weekday location)
-        wins and gives ``presence_home``/``presence_office``/``presence_other``;
-        otherwise the icon is ``'presence_' + hr_presence_state``, shown only for
+        wins and gives ``presence_home``/``presence_office``/``presence_other``.
+        Custom location types use ``presence_other``.
+        Otherwise the icon is ``'presence_' + hr_presence_state``, shown only for
         employees linked to a user. Overridden by e.g. ``hr_holidays`` and
         ``hr_attendance`` to add time off / attendance based icons.
         """
-        dayfield = self._get_current_day_location_field()
         for employee in self:
-            today_employee_location_id = employee.sudo().exceptional_location_id or employee[dayfield]
-            if not today_employee_location_id:
+            if not employee.work_location_type:
                 employee.hr_icon_display = 'presence_' + employee.hr_presence_state
                 employee.show_hr_icon_display = bool(employee.user_id)
             else:
-                employee.hr_icon_display = f'presence_{today_employee_location_id.location_type}'
+                employee.hr_icon_display = f'presence_{employee.work_location_type}'
                 employee.show_hr_icon_display = True
 
     @api.depends('birthday')
@@ -822,12 +821,16 @@ class HrEmployee(models.Model):
             current_location = employee.exceptional_location_id or employee[dayfield]
             employee.work_location_name = current_location.name
 
-    @api.depends(*DAYS, "exceptional_location_id", "version_id.work_location_id.location_type")
+    @api.depends(*(f'{day}.location_type' for day in DAYS), 'exceptional_location_id', 'version_id.work_location_id.location_type')
     def _compute_work_location_type(self):
         dayfield = self.env['hr.employee']._get_current_day_location_field()
         for employee in self:
-            current_location = employee.exceptional_location_id or employee[dayfield]
-            employee.work_location_type = current_location.location_type
+            # The displayed location is public, but exceptional_location_id is HR-only.
+            current_location = employee.sudo().exceptional_location_id or employee[dayfield]
+            location_type = current_location.location_type
+            if location_type and location_type not in ('home', 'office'):
+                location_type = 'other'
+            employee.work_location_type = location_type
 
     @api.depends('version_ids.date_version', 'version_ids.active')
     def _compute_current_version_id(self):
@@ -1263,7 +1266,11 @@ class HrEmployee(models.Model):
             else:
                 if len(employee.work_contact_id.employee_ids) <= 1:
                     partner = employee.work_contact_id
-                    if not employee.user_id and not partner.user_ids:
+                    if not employee.user_id and partner.user_ids:
+                        # The partner of a user unlinked from the employee is kept (expenses, bank accounts)
+                        # but is the user's: its contact details are not the employee's to change
+                        continue
+                    if not employee.user_id:
                         partner = partner.sudo()
                     partner.write({
                         'email': employee.work_email or employee.private_email,
@@ -1844,8 +1851,22 @@ class HrEmployee(models.Model):
             ids = self.env['hr.employee.public']._search(domain, offset, limit, order, **kwargs)
         except (ValueError, KeyError) as e:
             raise AccessError(self.env._('You do not have access to this document.')) from e
-        # the result is expected from this table, so we should link tables
-        return super(HrEmployee, self.sudo())._search([('id', 'in', ids)], order=order)
+        # the result is expected from this table, so we should link tables;
+        # the query must not be bound to a sudo env: read_group builds its SQL
+        # from it and would skip the field access checks
+        return super()._search([('id', 'in', ids)], order=order, bypass_access=True)
+
+    def _read_group_groupby(self, table, groupby_spec):
+        """Restrict grouping to the fields of ``hr.employee.public`` for users without read access."""
+        if not self.browse().has_access('read'):
+            self._check_private_fields([parse_read_group_spec(groupby_spec)[0]])
+        return super()._read_group_groupby(table, groupby_spec)
+
+    def _read_group_select(self, table, aggregate_spec):
+        """Restrict aggregates to the fields of ``hr.employee.public`` for users without read access."""
+        if aggregate_spec != '__count' and not self.browse().has_access('read'):
+            self._check_private_fields([parse_read_group_spec(aggregate_spec)[0]])
+        return super()._read_group_select(table, aggregate_spec)
 
     @api.model
     def is_onboarding(self, company_ids):
