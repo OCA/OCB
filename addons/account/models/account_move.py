@@ -4689,9 +4689,14 @@ class AccountMove(models.Model):
             ('journal_id', '=', journal.id),
             ('sequence_prefix', '=', last_move_in_chain.sequence_prefix),
         ]
+
+        sequence_number_reset = last_move_in_chain._deduce_sequence_number_reset(last_move_in_chain.name)
+        date_start, date_end, _, _ = last_move_in_chain._get_sequence_date_range(sequence_number_reset)
         last_move_hashed = self.env['account.move'].search_fetch([
             *common_domain,
             ('inalterable_hash', '!=', False),
+            ('date', '>=', date_start),
+            ('date', '<=', date_end),
         ], ['sequence_number', 'inalterable_hash'], order='sequence_number desc', limit=1)
 
         domain = self.env['account.move']._get_move_hash_domain([
@@ -4902,7 +4907,10 @@ class AccountMove(models.Model):
             new_lines.is_imported = True
             if not existing_lines:
                 try:
-                    self.with_context(default_move_type=self.move_type)._link_bill_origin_to_purchase_orders(timeout=4)
+                    self.with_context(
+                        default_move_type=self.move_type,
+                        invoice_origin_from_description=any(file_data.get('invoice_origin_from_description') for file_data in files_data),
+                    )._link_bill_origin_to_purchase_orders(timeout=4)
                 except (UserError, ValueError):
                     _logger.exception("Failed to link bill to purchase order")
 
