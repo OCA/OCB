@@ -993,8 +993,8 @@ class AccountMove(models.Model):
 
     @api.depends('company_id', 'invoice_filter_type_domain')
     def _compute_suitable_journal_ids(self):
-        for m in self:
-            m.suitable_journal_ids = self._get_suitable_journal_ids(m.move_type, m.company_id)
+        for (move_type, company), moves in self.grouped(lambda m: (m.move_type, m.company_id)).items():
+            moves.suitable_journal_ids = self._get_suitable_journal_ids(move_type, company)
 
     @api.depends('posted_before', 'state', 'journal_id', 'date', 'move_type', 'origin_payment_id')
     def _compute_name(self):
@@ -4797,9 +4797,14 @@ class AccountMove(models.Model):
             ('journal_id', '=', journal.id),
             ('sequence_prefix', '=', last_move_in_chain.sequence_prefix),
         ]
+
+        sequence_number_reset = last_move_in_chain._deduce_sequence_number_reset(last_move_in_chain.name)
+        date_start, date_end, _, _ = last_move_in_chain._get_sequence_date_range(sequence_number_reset)
         last_move_hashed = self.env['account.move'].search_fetch([
             *common_domain,
             ('inalterable_hash', '!=', False),
+            ('date', '>=', date_start),
+            ('date', '<=', date_end),
         ], ['sequence_number', 'inalterable_hash'], order='sequence_number desc', limit=1)
 
         domain = self.env['account.move']._get_move_hash_domain([
@@ -5770,11 +5775,10 @@ class AccountMove(models.Model):
                 row['amount'] = row['part_amount']
                 row['currency'] = currency_ids_mapping[row['part_company_currency_id']]
 
-        return [
-            row
-            for row in rows
-            if row['is_exchange'] or not row['is_caba']
-        ]
+        return sorted(
+            (row for row in rows if row['is_exchange'] or not row['is_caba']),
+            key=lambda row: (row['aml'].date, row['aml'].id),
+        )
 
     def _get_reconciled_invoices_partials(self):
         ''' Helper to retrieve the details about reconciled invoices.
@@ -6201,7 +6205,7 @@ class AccountMove(models.Model):
                     raise RedirectWarning(
                         _(
                             "The company bank account (%(account_number)s) linked to this invoice is not trusted. "
-                            "Go to the Bank Settings, double-check that it is yours or correct the number, and click on Send Money to trust it.",
+                            "Go to the Bank Settings, double-check that it is yours or correct the number, and click on Trust Bank Account to trust it.",
                             account_number=invoice.partner_bank_id.display_name,
                         ),
                         invoice.partner_bank_id._get_records_action(),

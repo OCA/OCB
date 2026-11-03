@@ -1537,9 +1537,6 @@ class SaleOrder(models.Model):
             "proforma": self.env.context.get("proforma", False),
         }
 
-        for order in self:
-            order._portal_ensure_token()
-
         if len(self) > 1:
             ctx["default_composition_mode"] = "mass_mail"
         else:
@@ -1548,6 +1545,9 @@ class SaleOrder(models.Model):
                 mail_template = self._find_mail_template()
                 if mail_template:
                     ctx.update({"default_template_id": mail_template.id, "mark_so_as_sent": True})
+            else:
+                for order in self:
+                    order._portal_ensure_token()
 
         action = {
             "name": self.env._("Send"),
@@ -2623,10 +2623,15 @@ class SaleOrder(models.Model):
 
         Note: self.ensure_one()
 
+        If no prepayment is required, the full amount must be paid to prevent partial (e.g., split)
+        payments from confirming the order.
+
         :return: Whether `self.amount_paid` is higher than the prepayment required amount.
         :rtype: bool
         """
         self.ensure_one()
+        if not self.prepayment_percent:
+            return self._is_paid()
         amount_comparison = self.currency_id.compare_amounts(
             self._get_prepayment_required_amount(), self.amount_paid
         )
