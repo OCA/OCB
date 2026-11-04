@@ -29,7 +29,7 @@ class PurchaseOrderLine(models.Model):
     discount = fields.Float(
         string="Discount (%)",
         compute='_compute_price_unit_and_date_planned_and_name',
-        digits='Discount',
+        min_display_digits='Discount',
         store=True, readonly=False)
     tax_ids = fields.Many2many(
         comodel_name='account.tax',
@@ -384,7 +384,7 @@ class PurchaseOrderLine(models.Model):
     @api.onchange('product_id')
     def onchange_product_id(self):
         # TODO: Remove when onchanges are replaced with computes
-        if not self.product_id:
+        if not self.product_id or self.env.context.get("first_onchange_call"):
             return
         if self.env.context.get('origin_po_id') and self.product_qty:
             self._compute_tax_id()
