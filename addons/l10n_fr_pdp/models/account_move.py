@@ -599,22 +599,23 @@ class AccountMove(models.Model):
                 for tax in move.invoice_line_ids.tax_ids.flatten_taxes_hierarchy():
                     if tax.amount_type == 'fixed' and tax.amount >= 0 and not tax.price_include:
                         continue  # An additional fixed charge is an amount, not a VAT percentage.
-                    is_valid_oss_rate = (
-                        tax._l10n_fr_pdp_is_oss()
-                        and tax.amount_type == 'percent'
+                    is_valid_foreign_rate = (
+                        tax.amount_type == 'percent'
                         and 0 <= tax.amount <= 100
+                        and (
+                            tax._l10n_fr_pdp_is_oss()
+                            or move._l10n_fr_pdp_uses_foreign_vat()
+                        )
                     )
                     # Reject other fixed taxes even if their amount matches an allowed VAT rate.
-                    if tax.amount_type == 'fixed' or (tax.amount not in VALID_PDP_TAX_RATES and not is_valid_oss_rate):
+                    if tax.amount_type == 'fixed' or (tax.amount not in VALID_PDP_TAX_RATES and not is_valid_foreign_rate):
                         yield self.env._(
                             "Tax %(tax)s is not supported by French e-reporting%(ref_move)s.",
                             tax=tax.display_name,
                             ref_move=ref_move,
                         )
                 if transaction_type == 'b2bi':
-                    partner_country_code = drom_com_territories.map_country_code_for_ppf(
-                        move.commercial_partner_id.country_id.code
-                    )
+                    partner_country_code = move.commercial_partner_id.country_id.code
                     if not partner_country_code or len(partner_country_code) != 2 or not partner_country_code.isalpha():
                         yield self.env._("Partner country code must contain two letters%s.", ref_move)
 
@@ -629,9 +630,7 @@ class AccountMove(models.Model):
                     if not move.partner_shipping_id.country_id:
                         yield self.env._("Missing address country%s.", ref_move)
                     else:
-                        country_code = drom_com_territories.map_country_code_for_ppf(
-                            move.partner_shipping_id.country_id.code
-                        )
+                        country_code = move.partner_shipping_id.country_id.code
                         if not country_code or len(country_code) != 2 or not country_code.isalpha():
                             yield self.env._("Address country code must contain two letters%s.", ref_move)
 
@@ -647,6 +646,15 @@ class AccountMove(models.Model):
         if 'debit_origin_id' in self._fields:
             referenced += self.debit_origin_id
         return referenced
+
+    def _l10n_fr_pdp_uses_foreign_vat(self):
+        """Return whether this move uses the company's foreign tax registration."""
+        self.ensure_one()
+        return (
+            self._l10n_fr_pdp_is_sale()
+            and bool(self.fiscal_position_id.foreign_vat)
+            and self.tax_country_id != self.company_id.account_fiscal_country_id
+        )
 
     def _l10n_fr_pdp_get_transaction_type(self):
         """Classify invoice for PDP reporting: b2c, b2bi, or False (domestic B2B)."""
@@ -710,14 +718,21 @@ class AccountMove(models.Model):
                 and move.state == 'posted'
                 and move.l10n_fr_pdp_last_flow_id.state != 'error'
             ):
+                # Ensure the RE flow exists for the move period. This must happen before clearing
+                # l10n_fr_pdp_sent_in_flow_ids: a move that left the Flow 10 scope gets its RE scope
+                # from the last flow it was sent in.
+                self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
+                # A move out of the Flow 10 scope won't be part of the RE, even if posted again.
+                # Keep it in the sent moves of the previous flow, so the RE differs from it and
+                # its removal is transmitted.
+                if not move.l10n_fr_pdp_flow_10_report_type:
+                    continue
                 # When a flow is sent it compares the moves it sends vs the moves of the previous
                 # flow to avoid sending the data twice if it's strictly the same.
                 # Setting "l10n_fr_pdp_sent_in_flow_ids" to None will ensure the move is not already
                 # considered as sent in previous flow, and allow the current flow to be sent even if
                 # it's the only diffrence between the 2 flows.
                 move.l10n_fr_pdp_sent_in_flow_ids = False
-                # ensure RE flow exist for current move period (if move is never posted again)
-                self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
         return super().button_draft()
 
     def _get_import_file_type(self, file_data):

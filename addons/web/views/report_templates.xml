@@ -339,7 +339,7 @@
             <t t-if="information_block">
                 <t t-set="colclass" t-value="'col-5' + ('' if custom_layout_address else ' offset-1')"/>
                 <t t-set="information_block_content">
-                    <div name="information_block" class="col-6">
+                    <div name="information_block" t-att-class="'col-6' + (' offset-1' if custom_layout_address else '')">
                         <t t-out="information_block or None">
                             <div class="bg-light border-1 rounded h-100 d-flex flex-column align-items-center justify-content-center p-4 opacity-75 text-muted text-center">
                                 <strong>Information block</strong>
@@ -1013,8 +1013,22 @@
                             background-color: mix(white, <t t-out='secondary'/>, 92%);
                         }
 
-                        table:not(.o_ignore_layout_styling)::before {
-                            border-color: <t t-out='primary'/> !important;
+                        table:not(.o_ignore_layout_styling) {
+                            thead th, tbody:first-child tr:first-child td {
+                                border-top-color: <t t-out='primary'/>;
+                            }
+
+                            tbody:last-child tr:last-child td {
+                                border-bottom-color: <t t-out='primary'/>;
+                            }
+
+                            th:first-child, td:first-child {
+                                border-left-color: <t t-out='primary'/>;
+                            }
+
+                            th:last-child, td:last-child {
+                                border-right-color: <t t-out='primary'/>;
+                            }
                         }
 
                         thead th, #total .o_total td {
