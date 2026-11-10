@@ -2554,7 +2554,10 @@ class HrEmployee(models.Model):
 
         date_from = fields.Date.to_date(date_from)
         for employee_id, version in self._get_first_contract_version_at(date_from).items():
-            res[employee_id] = version.resource_calendar_id.hours_per_day
+            res[employee_id] = (
+                version.resource_calendar_id.hours_per_day
+                or version._get_reference_calendar(date_from).hours_per_day
+            )
         return res
 
     def _get_version_periods(self, start, stop, field=None, check_contract=False):
@@ -2674,9 +2677,9 @@ class HrEmployee(models.Model):
             check_contract=True,
         )
 
-        work_resources_per_calendar = defaultdict(lambda: self.env['resource.resource'])
-        attendance_resources_per_calendar = defaultdict(lambda: self.env['resource.resource'])
-        leave_resources_per_calendar = defaultdict(lambda: self.env['resource.resource'])
+        work_resources_per_calendar = defaultdict(self.env['resource.resource'].sudo)
+        attendance_resources_per_calendar = defaultdict(self.env['resource.resource'].sudo)
+        leave_resources_per_calendar = defaultdict(self.env['resource.resource'].sudo)
         for employee, calendar_periods in calendar_tz_periods_per_employee.items():
             for period_start, period_stop, (calendar, tz) in calendar_periods:
                 if calendar._is_flexible():

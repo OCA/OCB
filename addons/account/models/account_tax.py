@@ -331,14 +331,18 @@ class AccountTax(models.Model):
 
     @api.depends('account_move_line_ids', 'account_reconcile_model_line_ids')
     def _compute_is_used(self):
-        used_taxes = set(self.sudo().search([
-            ('id', 'in', self.ids),
-            '|',
+        TaxesSudo = self.env['account.tax'].sudo()
+        used_taxes = TaxesSudo.search([
+            ('id', 'in', self._origin.ids),
             ('account_move_line_ids', '!=', False),
-            ('account_reconcile_model_line_ids', '!=', False),
-        ]))
+        ])
+        if taxes_to_check := self._origin - used_taxes:
+            used_taxes |= TaxesSudo.search([
+                ('id', 'in', taxes_to_check.ids),
+                ('account_reconcile_model_line_ids', '!=', False),
+            ])
         for tax in self:
-            tax.is_used = tax in used_taxes
+            tax.is_used = tax._origin in used_taxes
 
     @api.depends('is_used', 'repartition_line_ids.account_id', 'repartition_line_ids.sequence', 'repartition_line_ids.factor_percent', 'repartition_line_ids.use_in_tax_closing', 'repartition_line_ids.tag_ids')
     def _compute_repartition_lines_str(self):
@@ -5127,6 +5131,13 @@ class AccountTax(models.Model):
                 # tax itself isn't, so ignore the amount and rely on the category code instead.
                 tax_domain &= Domain('ubl_cii_tax_category_code', '=', 'AE')
             orders = ['sequence', 'id']
+            if invoice_predictive := tax_values.get('invoice_predictive'):
+                fiscal_position = tax_values.get('fiscal_position')
+                if fiscal_position and fiscal_position.foreign_vat:
+                    country = fiscal_position.country_id
+                else:
+                    country = invoice_predictive['invoice'].tax_country_id
+                tax_domain &= Domain('country_id', '=', country.id)
             if name := tax_values.get('name'):
                 tax_domain &= Domain('name', '=', name)
             if tax_exigibility := tax_values.get('tax_exigibility'):
