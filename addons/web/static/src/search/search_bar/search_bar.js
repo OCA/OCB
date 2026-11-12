@@ -1,4 +1,4 @@
-import { Component, proxy, signal, status, t, usePlugin, useProps } from "@odoo/owl";
+import { Component, computed, proxy, signal, status, t, usePlugin, useProps } from "@odoo/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { Domain } from "@web/core/domain";
 import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";
@@ -10,6 +10,7 @@ import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { registry } from "@web/core/registry";
 import { KeepLast } from "@web/core/utils/concurrency";
 import { useAutofocus, useBus, useService } from "@web/core/utils/hooks";
+import { useDebounced } from "@web/core/utils/timing";
 import { fuzzyTest } from "@web/core/utils/search";
 import { render } from "@web/owl2/utils";
 import { SearchBarDropdown } from "@web/search/search_bar_dropdown";
@@ -64,7 +65,10 @@ export class SearchBar extends Component {
     facetContainerRef = signal.ref();
     // The input element is either owned by the parent (`inputRef` prop, e.g. so it can
     // focus it itself once mounted) or local, like `Dropdown.menuRef`.
-    inputRef = useProps.static("inputRef", t.signal(t.ref()).optional(() => signal.ref()));
+    inputRef = useProps.static(
+        "inputRef",
+        t.signal(t.ref()).optional(() => signal.ref())
+    );
 
     setup() {
         this.dialogService = useService("dialog");
@@ -72,6 +76,11 @@ export class SearchBar extends Component {
         this.fields = this.env.searchModel.searchViewFields;
         this.searchItemsFields = this.env.searchModel.getSearchItems((f) => f.type === "field");
         this.ui = useService("ui");
+        this.debouncedSearch = useDebounced(
+            this.env.searchModel.search.bind(this.env.searchModel),
+            500,
+            { immediate: true }
+        );
 
         this.visibilityState = proxy(this.props.toggler?.state || { showSearchBar: true });
 
@@ -98,8 +107,18 @@ export class SearchBar extends Component {
         this.keepLast = new KeepLast();
 
         if (!(this.env.config.disableSearchBarAutofocus || !this.props.autofocus)) {
-            // only force the focus on touch devices on small screens
-            useAutofocus({ ref: this.inputRef, mobile: this.ui.isSmall });
+            // only force the focus on touch devices on small screens, and there only
+            // once the user opened the search bar with the toggler: focusing it when
+            // it is displayed by default would open the virtual keyboard
+            const waitForToggle = this.props.toggler && this.ui.isSmall;
+            useAutofocus({
+                ref: waitForToggle
+                    ? computed(() =>
+                          this.visibilityState.manuallyToggled ? this.inputRef() : null
+                      )
+                    : this.inputRef,
+                mobile: this.ui.isSmall,
+            });
         }
 
         this.popoverWillCloseOnClickAway = (target) => {
@@ -499,7 +518,7 @@ export class SearchBar extends Component {
             hotkeys: {
                 enter: {
                     isAvailable: () => !this.inputDropdownState.isOpen,
-                    callback: () => this.env.searchModel.search() /** @todo keep this thing ?*/,
+                    callback: () => this.debouncedSearch(),
                 },
                 arrowdown: {
                     callback: () => this.env.searchModel.trigger("focus-view"),
@@ -697,7 +716,7 @@ export class SearchBar extends Component {
 
     onClickSearchIcon() {
         if (!this.state.query.length) {
-            this.env.searchModel.search();
+            this.debouncedSearch();
         } else {
             const item = this.items.find((item) => item.id === this.lastActiveItemId);
             if (item) {

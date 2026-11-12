@@ -43,6 +43,7 @@ import {
     removeFacet,
     selectGroup,
     serverState,
+    switchView,
     toggleMenuItem,
     toggleMenuItemOption,
     toggleSearchBarMenu,
@@ -305,6 +306,101 @@ test("search input is focused when being toggled", async () => {
     expect(queryFirst`.o_searchview input`).toBeFocused();
 });
 
+test.tags("mobile");
+test("search bar is displayed by default when there are default facets", async () => {
+    class Parent extends Component {
+        static template = xml`
+            <div>
+                <t t-component="this.searchBarToggler.component" t-props="this.searchBarToggler.props"/>
+                <SearchBar toggler="this.searchBarToggler"/>
+            </div>
+        `;
+        static components = { SearchBar };
+        setup() {
+            this.searchBarToggler = useSearchBarToggler();
+        }
+    }
+    await mountWithSearch(Parent, {
+        resModel: "partner",
+        searchMenuTypes: ["groupBy"],
+        searchViewId: false,
+        context: { search_default_date_group_by: 1 },
+    });
+    expect(".o_searchview .o_searchview_facet").toHaveCount(1);
+    expect(".o_searchview input").toHaveCount(1);
+    await contains(`button [data-icon="search"]`).click();
+    expect(".o_searchview input").toHaveCount(0);
+});
+
+test.tags("mobile");
+test("search input is not focused when the search bar is displayed by default", async () => {
+    mockTouch(true);
+    class Parent extends Component {
+        static template = xml`
+            <div>
+                <t t-component="this.searchBarToggler.component" t-props="this.searchBarToggler.props"/>
+                <SearchBar toggler="this.searchBarToggler"/>
+            </div>
+        `;
+        static components = { SearchBar };
+        setup() {
+            this.searchBarToggler = useSearchBarToggler();
+        }
+    }
+    await mountWithSearch(Parent, {
+        resModel: "partner",
+        searchMenuTypes: ["groupBy"],
+        searchViewId: false,
+        context: { search_default_date_group_by: 1 },
+    });
+    expect(".o_searchview input").toHaveCount(1);
+    expect(".o_searchview input").not.toBeFocused();
+
+    // closing and reopening the search bar focuses the input
+    await contains(`button [data-icon="search"]`).click();
+    expect(".o_searchview input").toHaveCount(0);
+    await contains(`button [data-icon="search"]`).click();
+    expect(".o_searchview input").toHaveCount(1);
+    expect(".o_searchview input").toBeFocused();
+});
+
+test.tags("mobile");
+test("search bar toggle state is kept when switching views", async () => {
+    Partner._views.kanban = `
+        <kanban>
+            <templates>
+                <t t-name="card"><field name="foo"/></t>
+            </templates>
+        </kanban>
+    `;
+    defineWebModels();
+    await mountWebClient();
+    await getService("action").doAction({
+        res_model: "partner",
+        type: "ir.actions.act_window",
+        views: [
+            [false, "list"],
+            [false, "kanban"],
+        ],
+    });
+    expect(".o_list_view").toHaveCount(1);
+    expect(".o_searchview input").toHaveCount(0);
+
+    await contains(`button:not(.o_searchview button) [data-icon="search"]`).click();
+    expect(".o_searchview input").toHaveCount(1);
+
+    await switchView("kanban");
+    expect(".o_kanban_view").toHaveCount(1);
+    expect(".o_searchview input").toHaveCount(1);
+
+    await contains(`button:not(.o_searchview button) [data-icon="search"]`).click();
+    expect(".o_searchview input").toHaveCount(0);
+
+    await switchView("list");
+    expect(".o_list_view").toHaveCount(1);
+    expect(".o_searchview input").toHaveCount(0);
+});
+
 test.tags("desktop");
 test("search input is not focused on larger touch devices", async () => {
     mockTouch(true);
@@ -494,6 +590,48 @@ test("no search text triggers a reload", async () => {
     await animationFrame();
     expect(`.o_searchview_facet_label`).toHaveCount(0);
     expect(updateCount).toBe(1);
+});
+
+test("search on enter/icon click is debounced", async () => {
+    let updateCount = 0;
+    class TestComponent extends Component {
+        static template = xml`<SearchBar/>`;
+        static components = { SearchBar };
+        props = useProps();
+        setup() {
+            useOnChange(
+                () => [this.props.domain],
+                () => updateCount++,
+                { initialRun: false }
+            );
+        }
+    }
+
+    await mountWithSearch(TestComponent, {
+        resModel: "partner",
+        searchMenuTypes: [],
+        searchViewId: false,
+    });
+
+    await keyDown("Enter");
+    expect(updateCount).toBe(1);
+    await keyDown("Enter");
+    expect(updateCount).toBe(1);
+    await click(".o_searchview button");
+    expect(updateCount).toBe(1);
+
+    await advanceTime(500);
+
+    await click(".o_searchview button");
+    expect(updateCount).toBe(2);
+    await queryFirst(".o_searchview_input").focus();
+    await keyDown("Enter");
+    expect(updateCount).toBe(2);
+
+    await advanceTime(500);
+
+    await keyDown("Enter");
+    expect(updateCount).toBe(3);
 });
 
 test("selecting (no result) triggers a search bar rendering", async () => {
