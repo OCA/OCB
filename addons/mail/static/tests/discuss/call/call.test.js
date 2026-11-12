@@ -28,6 +28,7 @@ import {
 
 import {
     advanceTime,
+    after,
     beforeEach,
     describe,
     expect,
@@ -37,9 +38,11 @@ import {
     manuallyDispatchProgrammaticEvent,
     mockSendBeacon,
     mockUserAgent,
+    mockWorker,
     press,
     queryFirst,
     test,
+    waitFor,
     waitUntil,
 } from "@odoo/hoot";
 import {
@@ -994,6 +997,41 @@ test("Cross tab calls: the host tab keeps its call when another tab closes the c
     await contains("[title='Disconnect']");
 });
 
+test("can start the call again after failing to join it", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    let isJoinFailing = true;
+    onRpc("/mail/rtc/channel/join_call", () => {
+        if (isJoinFailing) {
+            isJoinFailing = false;
+            throw new Error("join_call failed");
+        }
+    });
+    await start();
+    await openDiscuss(channelId);
+    expect.errors(1);
+    await click("[title='Start Call']");
+    await expect.waitForErrors(["RPC_ERROR: join_call failed"]);
+    await click("[title='Start Call']");
+    await contains(".o-discuss-Call");
+});
+
+test("disconnecting ends the call even when leaving it fails", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    onRpc("/mail/rtc/channel/leave_call", () => {
+        throw new Error("leave_call failed");
+    });
+    await start();
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await contains(".o-discuss-Call");
+    expect.errors(1);
+    await click(".o-discuss-CallActionList [title='Disconnect']");
+    await expect.waitForErrors(["RPC_ERROR: leave_call failed"]);
+    await contains("[title='Join the Call']");
+});
+
 test("automatically cancel incoming call after some time", async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "General" });
@@ -1328,6 +1366,83 @@ test("all streams are properly closed when requesting new ones and tuning the fe
     expect(screenStream.getTracks()[0].readyState).toBe("ended");
 });
 
+/** Makes screen shares carry an audio track, returned in the order of the shares. */
+function mockScreenShareWithAudio() {
+    const screenAudioTracks = [];
+    patchWithCleanup(browser.navigator.mediaDevices, {
+        getDisplayMedia() {
+            const audioContext = new AudioContext();
+            after(() => audioContext.close());
+            const stream = createVideoStream();
+            stream.addTrack(audioContext.createMediaStreamDestination().stream.getAudioTracks()[0]);
+            screenAudioTracks.push(stream.getAudioTracks()[0]);
+            return stream;
+        },
+    });
+    return screenAudioTracks;
+}
+
+test("turning the microphone on keeps sharing the screen audio", async () => {
+    let hasMicrophone = false;
+    patchWithCleanup(browser.navigator.mediaDevices, {
+        getUserMedia(constraints) {
+            if (constraints.audio && !hasMicrophone) {
+                throw new Error("Requested device not found");
+            }
+            return super.getUserMedia(constraints);
+        },
+    });
+    const screenAudioTracks = mockScreenShareWithAudio();
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    await start();
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await contains("[title='Unmute']");
+    await click("[title='More']");
+    await click("[title='Share Screen']");
+    await contains("video");
+    await triggerEvents(".o-discuss-Call-mainCards", ["mousemove"]); // show overlay
+    hasMicrophone = true;
+    await click("[title='Unmute']");
+    await contains("[title='Mute']");
+    expect(screenAudioTracks[0].readyState).toBe("live");
+});
+
+test("stopping the screen share sends the microphone alone", async () => {
+    mockScreenShareWithAudio();
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    const env = await start();
+    const rtc = env.services["discuss.rtc"];
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await contains("[title='Mute']");
+    await click("[title='More']");
+    await click("[title='Share Screen']");
+    await contains("video");
+    await triggerEvents(".o-discuss-Call-mainCards", ["mousemove"]); // show overlay
+    await click("[title='More']");
+    await click("[title='Stop Sharing Screen']");
+    expect(rtc.state.audioTrack).toBe(rtc.state.micAudioTrack);
+});
+
+test("losing the microphone keeps sharing the screen audio", async () => {
+    const screenAudioTracks = mockScreenShareWithAudio();
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    const env = await start();
+    const rtc = env.services["discuss.rtc"];
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await contains("[title='Mute']");
+    await click("[title='More']");
+    await click("[title='Share Screen']");
+    await contains("video");
+    rtc.state.micAudioTrack.dispatchEvent(new Event("ended"));
+    await waitUntil(() => rtc.state.audioTrack === screenAudioTracks[0]);
+});
+
 test("Show connecting state on cards", async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "General" });
@@ -1562,4 +1677,48 @@ test("show warning when blur hardware acceleration is not available", async () =
     expect(".o-discuss-CallDropdown-content:has(:text('Performance Warning:'))").toBeVisible();
     await click("[title='Dismiss warning']");
     await contains(".o-discuss-BlurPerformanceWarning-button", { count: 0 });
+});
+
+test("camera turns on without blur when the blur model fails", async () => {
+    patchWithCleanup(browser.navigator.mediaDevices, {
+        getUserMedia(constraints) {
+            if (!constraints.video) {
+                return super.getUserMedia(constraints);
+            }
+            const canvas = document.createElement("canvas");
+            const stream = canvas.captureStream();
+            canvas.getContext("2d").fillRect(0, 0, 1, 1);
+            return stream;
+        },
+    });
+    mockWorker((worker) => {
+        const workerSide = worker._messageChannel.port2;
+        workerSide.addEventListener("message", ({ data }) => {
+            if (worker.url.endsWith("tick_worker.js") && data.command === "start") {
+                workerSide.postMessage({ command: "tick" });
+            }
+        });
+    });
+    patchWithCleanup(window.SelfieSegmentation.prototype, {
+        close() {
+            asyncStep("blur model closed");
+            return super.close();
+        },
+        async send() {
+            throw new Error("Blur model unavailable");
+        },
+    });
+    patchWithCleanup(console, {
+        warn: (error) => asyncStep(`warn: ${error.message}`),
+    });
+    localStorage.setItem("mail_user_setting_use_blur", "true");
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    await start();
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await click("button[title='Turn camera on']");
+    await waitFor(".o_notification:has(:text('Background blur could not be loaded'))");
+    await waitFor("button[title='Stop camera']");
+    await waitForSteps(["warn: Blur model unavailable", "blur model closed"]);
 });

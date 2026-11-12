@@ -221,6 +221,10 @@ TAX_EXEMPTION_MAPPING = {
     'VATEX-FR-F': 'VATEX-FR-F - Second-hand sales',
     'VATEX-FR-I': 'VATEX-FR-I - Sales of works of art',
     'VATEX-FR-J': 'VATEX-FR-J - Sales of antiques',
+    'DL8.46.1': 'Certain financial services',
+    'DL8.46.2': 'Supply of residential units (lease or sale)',
+    'DL8.46.3': 'Bare land',
+    'DL8.46.4': 'Local passenger transport',
 }
 
 # -------------------------------------------------------------------------
@@ -1621,7 +1625,9 @@ class AccountEdiCommon(models.AbstractModel):
             'price_unit': price_unit,
             'tax_ids': tax_values.get('tax') if tax_values else None,
         }
-        base_line_kwargs['_create_values']['name'] = reason
+        base_line_kwargs['_create_values']['name'] = reason or (
+            self.env._('Charge') if charge_indicator_sign == 1 else self.env._('Discount')
+        )
         return base_line_kwargs
 
     def _import_invoice_line_get_product_base_line_kwargs(self, collected_values):
