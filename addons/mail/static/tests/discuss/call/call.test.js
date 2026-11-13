@@ -1801,6 +1801,82 @@ test("Cross tab calls: opening the fullscreen URL joins when no tab hosts the ca
     await expect.waitForSteps(["join_call"]);
 });
 
+test("Cross tab calls: rejecting an invitation to another channel keeps the hosted call", async () => {
+    const pyEnv = await startServer();
+    const [hostedChannelId, invitingChannelId] = pyEnv["discuss.channel"].create([
+        { name: "General" },
+        { name: "Sales" },
+    ]);
+    const hostedSessionId = pyEnv["discuss.channel.rtc.session"].create({
+        channel_member_id: pyEnv["discuss.channel.member"].search([
+            ["channel_id", "=", hostedChannelId],
+        ])[0],
+        channel_id: hostedChannelId,
+    });
+    const invitingMemberId = pyEnv["discuss.channel.member"].create({
+        channel_id: invitingChannelId,
+        partner_id: pyEnv["res.partner"].create({ name: "Bob" }),
+    });
+    const invitingSessionId = pyEnv["discuss.channel.rtc.session"].create({
+        channel_member_id: invitingMemberId,
+        channel_id: invitingChannelId,
+    });
+    const invitedMemberIds = pyEnv["discuss.channel.member"].search([
+        ["channel_id", "=", invitingChannelId],
+        ["partner_id", "=", serverState.partnerId],
+    ]);
+    pyEnv["discuss.channel.member"].write(invitedMemberIds, {
+        rtc_inviting_session_id: invitingSessionId,
+    });
+    onRpc("/mail/rtc/channel/leave_call", async (request) => {
+        const { params } = await request.json();
+        expect.step(`leave_call:${params.channel_id}`);
+        // the server declines the invitation, a late store fetch must not ring again
+        pyEnv["discuss.channel.member"].write(invitedMemberIds, { rtc_inviting_session_id: false });
+    });
+    const broadcastChannel = new BroadcastChannel("call_sync_state");
+    broadcastChannel.onmessage = (event) => expect.step(event.data.type);
+    await start();
+    await openDiscuss(hostedChannelId);
+    broadcastChannel.postMessage({
+        type: CROSS_TAB_HOST_MESSAGE.UPDATE_REMOTE,
+        hostedChannelId,
+        hostedSessionId,
+        changes: { [hostedSessionId]: { is_deaf: false, is_muted: false } },
+    });
+    await contains("[title='Mute']");
+    await click(".o-discuss-CallInvitation button[title='Reject']");
+    await contains(".o-discuss-CallInvitation", { count: 0 });
+    await click("[title='Mute']");
+    await expect.waitForSteps([
+        CROSS_TAB_CLIENT_MESSAGE.INIT,
+        `leave_call:${invitingChannelId}`,
+        CROSS_TAB_CLIENT_MESSAGE.REQUEST_ACTION,
+    ]);
+});
+
+test("Cross tab calls: the host tab keeps its call when another tab closes the call", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    const env = await start();
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await contains("[title='Disconnect']");
+    const broadcastChannel = new BroadcastChannel("call_sync_state");
+    broadcastChannel.onmessage = (event) => {
+        if (event.data.type === CROSS_TAB_HOST_MESSAGE.PIP_CHANGE) {
+            expect.step("pip_change");
+        }
+    };
+    broadcastChannel.postMessage({
+        type: CROSS_TAB_HOST_MESSAGE.CLOSE,
+        hostedSessionId: env.services["mail.store"].rtc.localSession.id,
+    });
+    broadcastChannel.postMessage({ type: CROSS_TAB_CLIENT_MESSAGE.INIT });
+    await expect.waitForSteps(["pip_change"]);
+    await contains("[title='Disconnect']");
+});
+
 test("automatically cancel incoming call after some time", async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "General" });
@@ -2062,6 +2138,27 @@ test("only notified of a call disconnection when the server ends the session", a
     await contains(".o-discuss-Call", { count: 0 });
     await contains(".o_notification:text('Disconnected from the call by the server')");
     await expect.waitForSteps(["notifyServerDisconnect"]);
+});
+
+test("mute and deafen hotkeys are ignored when not in a call", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    pyEnv["discuss.channel.rtc.session"].create({
+        channel_member_id: pyEnv["discuss.channel.member"].create({
+            channel_id: channelId,
+            partner_id: pyEnv["res.partner"].create({ name: "Alfred" }),
+        }),
+        channel_id: channelId,
+    });
+    await start();
+    await openDiscuss(channelId);
+    await contains(".o-discuss-CallParticipantCard[aria-label='Alfred']");
+    await contains(".o-mail-Composer-input:focus");
+    queryFirst(".o-mail-Composer-input").blur();
+    await press(["shift", "d"]);
+    await press(["shift", "m"]);
+    await click(".o-discuss-Call:not(.o-selfInCall) button[title='Join Call']");
+    await contains(".o-discuss-Call.o-selfInCall");
 });
 
 test("should not show context menu on participant card when not in a call", async () => {
@@ -2482,6 +2579,32 @@ test("Escape closes meeting UI layers sequentially", async () => {
     triggerHotkey("Escape");
     await contains(".o-mail-Meeting", { count: 0 });
     await contains(".o-discuss-Call");
+});
+
+test("call of another channel starts with its cards while being in a call", async () => {
+    const pyEnv = await startServer();
+    const [generalId, salesId] = pyEnv["discuss.channel"].create([
+        { name: "General" },
+        { name: "Sales" },
+    ]);
+    pyEnv["discuss.channel.rtc.session"].create({
+        channel_member_id: pyEnv["discuss.channel.member"].create({
+            channel_id: salesId,
+            partner_id: pyEnv["res.partner"].create({ name: "Mario" }),
+        }),
+        channel_id: salesId,
+        is_screen_sharing_on: true,
+    });
+    await start();
+    await openDiscuss(generalId);
+    await click("[title='Start Call']");
+    await contains(".o-discuss-Call.o-selfInCall");
+    await click(".o-mail-NotificationItem:has(:text('Sales'))");
+    await contains(
+        ".o-discuss-Call:not(.o-selfInCall) .o-discuss-CallParticipantCard[aria-label='Mario']"
+    );
+    await contains(".o-discuss-Call:not(.o-selfInCall) .o-discuss-Call-mainCards:first-child");
+    await contains(".o-discuss-CallPresentationBar", { count: 0 });
 });
 
 test("Access to Pinned Messages from Meeting Chat", async () => {

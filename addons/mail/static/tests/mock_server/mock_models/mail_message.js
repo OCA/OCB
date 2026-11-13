@@ -282,7 +282,9 @@ export class MailMessage extends models.ServerModel {
                 this.filter((m) => m.model === "discuss.channel").map((m) => m.res_id)
             )
                 .filter(
-                    (channel) => channel.channel_type === "channel" && !channel.parent_channel_id
+                    (channel) =>
+                        ["channel", "group"].includes(channel.channel_type) &&
+                        !channel.parent_channel_id
                 )
                 .map((channel) => channel.id);
             const channelMessageIds = this.filter(
@@ -295,9 +297,28 @@ export class MailMessage extends models.ServerModel {
                 const subChannelIdByMessageId = Object.fromEntries(
                     subChannels.map((channel) => [channel.from_message_id, channel.id])
                 );
-                res.one("linkedSubChannel", [], {
+                res.one("linkedSubChannel", ["name"], {
                     predicate: (m) => channelMessageIds.includes(m.id),
                     value: (m) => DiscussChannel.browse(subChannelIdByMessageId[m.id] ?? []),
+                });
+                /** @type {import("mock_models").MailMessage} */
+                const MailMessage = this.env["mail.message"];
+                const lastMessageIdByChannelId = {};
+                for (const message of MailMessage.browse(
+                    MailMessage.search([
+                        ["model", "=", "discuss.channel"],
+                        ["res_id", "in", subChannels.map((channel) => channel.id)],
+                    ])
+                )) {
+                    lastMessageIdByChannelId[message.res_id] = Math.max(
+                        lastMessageIdByChannelId[message.res_id] ?? 0,
+                        message.id
+                    );
+                }
+                res.many("sub_channel_last_messages", "_store_message_fields", {
+                    only_data: true,
+                    predicate: (m) => m.id === channelMessageIds[0],
+                    value: MailMessage.browse(Object.values(lastMessageIdByChannelId)),
                 });
             }
             // discuss override: parent message of channel messages
@@ -599,8 +620,6 @@ export class MailMessage extends models.ServerModel {
                 ["message_type", "!=", "user_notification"],
             ]);
         }
-        // keep in sync with `MESSAGE_SEARCH_FILTERS` in `mail/models/mail_message.py`
-        const isFiltered = ["messages", "notes", "activities", "changes"].includes(search_filter);
         if (search_filter === "messages") {
             domain.push(
                 [
@@ -650,9 +669,6 @@ export class MailMessage extends models.ServerModel {
                 [["subtype_ids", "in", subtypeIds]],
             ]);
             domain = Domain.and([domain, message_domain]).toList();
-        }
-        if (search_term || isFiltered) {
-            res.count = this.search_count(domain);
         }
         if (around !== undefined) {
             const messagesBefore = this._filter(domain.concat([["id", "<=", around]])).sort(

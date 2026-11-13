@@ -238,6 +238,27 @@ class TestMrpAccount(TestBomPriceCommon, TestMrpCommon):
         self.assertEqual(mo_data['extras']['total_mo_cost'], 5725)
         self.assertEqual(mo_data['byproducts']['summary']['mo_cost'], 1145)
 
+    def test_compute_price_from_bom_extra_cost_per_unit(self):
+        """ The BoM extra cost is a cost per manufactured unit: computing the product
+        cost from a BoM producing several units must add it once per unit, like the
+        manufacturing order valuation does. """
+        product = self._create_product('Batch Product', 0, quantity=0, category=self.category_fifo_auto)
+        bom = self.Bom.sudo().create({
+            'product_id': product.id,
+            'product_tmpl_id': product.product_tmpl_id.id,
+            'product_qty': 10,
+            'type': 'normal',
+            'extra_cost': 5,
+            'bom_line_ids': [Command.create({'product_id': self.screw.id, 'product_qty': 10})],
+        })
+        # 10 screws at 10 for 10 units + 5 of extra cost per unit -> 15 per unit
+        product.sudo().button_bom_cost()
+        self.assertEqual(product.standard_price, 15)
+
+        mo = self._create_mo(bom, 10)
+        mo.button_mark_done()
+        self.assertEqual(mo.move_finished_ids.value, 150)
+
     def test_mo_overview_comp_different_uom(self):
         """ Test that the overview takes into account the uom of the component in the price computation
         """
@@ -589,6 +610,63 @@ class TestMrpAccountWorkorder(TestBomPriceOperationCommon):
             {'account_id': self.account_stock_valuation.id, 'debit': 0.0, 'credit': 0.0},
             {'account_id': self.env.company.account_production_wip_overhead_account_id.id, 'debit': 0.0, 'credit': 0.0},
             {'account_id': self.env.company.account_production_wip_account_id.id, 'debit': 0.0, 'credit': 0.0},
+        ])
+
+    def test_wip_component_different_valuation_accounts(self):
+        """ Check that the WIP account move lines target the valuation account of the components"""
+        account_comp_valuation = self.env['account.account'].create({
+            'name': 'Component Stock Valuation',
+            'code': '100112',
+            'account_type': 'asset_current',
+        })
+        category_specific = self.category_standard_auto.copy({
+            'name': 'Standard Auto - specific valuation account',
+            'property_stock_valuation_account_id': account_comp_valuation.id,
+        })
+        finished = self._create_product('Finished', 0, quantity=0, category=self.category_standard_auto)
+        comp_1 = self._create_product('Comp 1', 10, category=category_specific)
+        comp_2 = self._create_product('Comp 2', 20, category=self.category_standard_auto)
+        bom = self.env['mrp.bom'].sudo().create({
+            'product_id': finished.id,
+            'product_tmpl_id': finished.product_tmpl_id.id,
+            'product_qty': 1,
+            'bom_line_ids': [
+                Command.create({'product_id': comp_1.id, 'product_qty': 1}),
+                Command.create({'product_id': comp_2.id, 'product_qty': 1}),
+            ],
+        })
+        # create MO, produce partially and confirm WIP wizard
+        mo = self._create_mo(bom, 10)
+        mo = self._produce(mo, quantity=4)
+        mo.move_raw_ids.picked = True
+
+        wizard = Form(self.env['mrp.account.wip.accounting'].with_context({'active_ids': [mo.id]}))
+        wizard.save().confirm()
+        wip_entry = self.env['account.move'].search([
+            ('ref', 'ilike', 'WIP - ' + mo.name),
+            ('reversed_entry_id', '=', False),
+        ])
+        # we check the WIP entry
+        self.assertEqual(len(wip_entry), 1)
+        self.assertEqual(len(wip_entry.line_ids), 4, "2 'Component Value' lines (1 per valuation account) + overhead + WIP")
+        self.assertRecordValues(wip_entry.line_ids.sorted('balance'), [
+            {'account_id': self.account_stock_valuation.id, 'debit': 0.0, 'credit': 80.0},
+            {'account_id': account_comp_valuation.id, 'debit': 0.0, 'credit': 40.0},
+            {'account_id': self.env.company.account_production_wip_overhead_account_id.id, 'debit': 0.0, 'credit': 0.0},
+            {'account_id': self.env.company.account_production_wip_account_id.id, 'debit': 120.0, 'credit': 0.0},
+        ])
+        # we also check the reverse WIP entry
+        reverse_wip_entry = self.env['account.move'].search([
+            ('ref', 'ilike', 'WIP - ' + mo.name),
+            ('reversed_entry_id', '=', wip_entry.id),
+        ])
+        self.assertEqual(len(reverse_wip_entry), 1)
+        self.assertEqual(len(reverse_wip_entry.line_ids), 4, "2 'Component Value' lines (1 per valuation account) + overhead + WIP")
+        self.assertRecordValues(reverse_wip_entry.line_ids.sorted('balance'), [
+            {'account_id': self.env.company.account_production_wip_account_id.id, 'debit': 0.0, 'credit': 120.0},
+            {'account_id': self.env.company.account_production_wip_overhead_account_id.id, 'debit': 0.0, 'credit': 0.0},
+            {'account_id': account_comp_valuation.id, 'debit': 40.0, 'credit': 0.0},
+            {'account_id': self.account_stock_valuation.id, 'debit': 80.0, 'credit': 0.0},
         ])
 
     def test_labor_cost_balancing(self):

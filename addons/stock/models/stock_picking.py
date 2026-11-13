@@ -809,7 +809,7 @@ class StockPicking(models.Model):
         # run scheduler for moves forecasted to not have enough in stock
         self.move_ids.filtered(lambda move: move.state not in ('draft', 'cancel', 'done'))._trigger_scheduler()
 
-        if self.env.user.has_group('stock.group_stock_picking_batch'):
+        if self._is_batch_feature_enabled():
             for picking in self:
                 picking._find_auto_batch()
         return True
@@ -1111,7 +1111,7 @@ class StockPicking(models.Model):
 
     def _is_single_transfer(self):
         # Overriden for batches.
-        if self.env.user.has_group('stock.group_stock_picking_batch'):
+        if self._is_batch_feature_enabled():
             return len(self) == 1 or len(self.batch_id) == 1
         return len(self) == 1
 
@@ -1259,7 +1259,7 @@ class StockPicking(models.Model):
                 to_assign_ids.update(picking.backorder_ids.ids)
 
             # If batch setting is enabled, auto-batch done pickings' backorders.
-            if self.env.user.has_group('stock.group_stock_picking_batch'):
+            if self._is_batch_feature_enabled():
                 # To avoid inconsistencies, all incorrect pickings must be removed before assigning backorder pickings
                 assignable_pickings = self.env['stock.picking'].browse(to_assign_ids)
                 for picking in assignable_pickings:
@@ -2080,6 +2080,15 @@ class StockPicking(models.Model):
             description_items.append(self.location_dest_id.display_name)
         return ', '.join(description_items)
 
+    @api.model
+    def _is_batch_feature_enabled(self):
+        """ Whether the batch/wave feature is enabled. Transfers can be created
+        or reserved on behalf of users who never get the setting's group (e.g.
+        portal or public users confirming an order), so don't only rely on the
+        current user. """
+        return self.env.user.has_group('stock.group_stock_picking_batch') or\
+            self.env['res.groups']._is_feature_enabled('stock.group_stock_picking_batch')
+
     def _find_auto_batch(self):
         self.ensure_one()
         # Check if auto_batch is enabled for this picking.
@@ -2104,12 +2113,12 @@ class StockPicking(models.Model):
             'description': self._get_auto_batch_description(),
             'user_id': self.user_id.id,
         }
+        new_batch = self.env['stock.picking.batch'].sudo().create(new_batch_data)
         possible_pickings = self.env['stock.picking'].search(self._get_possible_pickings_domain())
         for picking in possible_pickings:
-            if self._is_auto_batchable(picking):
-                # Add the picking to the new batch
-                new_batch_data['picking_ids'].append(Command.link(picking.id))
-        new_batch = self.env['stock.picking.batch'].sudo().create(new_batch_data)
+            # Add the compatible pickings to the new batch as long as it respects the batch limits
+            if self._is_auto_batchable(picking) and new_batch._is_picking_auto_mergeable(picking):
+                new_batch.picking_ids |= picking
         if self.picking_type_id.batch_auto_confirm:
             new_batch.action_confirm()
         return new_batch

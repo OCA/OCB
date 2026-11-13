@@ -259,7 +259,7 @@ class SaleOrder(models.Model):
         precompute=True,
         readonly=False,
         check_company=True,
-        domain="[('payment_type', '=', 'inbound'), ('company_id', '=', company_id)]",
+        domain=[('payment_type', '=', 'inbound')],
     )
     pricelist_id = fields.Many2one(
         comodel_name="product.pricelist",
@@ -1057,6 +1057,8 @@ class SaleOrder(models.Model):
             "state",
         ])
 
+        accessible_orders = self.env['sale.order']._search([])
+
         result = self.env.execute_query(
             SQL(
                 """
@@ -1072,10 +1074,12 @@ class SaleOrder(models.Model):
                         sale_order.origin = duplicate_order.name
                         OR sale_order.client_order_ref = duplicate_order.client_order_ref
                        )
+                   AND duplicate_order.id IN %(accessible_orders)s
                  WHERE sale_order.id IN %(orders)s
               GROUP BY sale_order.id
             """,
                 orders=tuple(orders.ids),
+                accessible_orders=accessible_orders.subselect(),
             )
         )
         return {order_id: set(duplicate_ids) for order_id, duplicate_ids in result}
@@ -1724,7 +1728,7 @@ class SaleOrder(models.Model):
             cron._trigger()
         else:  # Async emails are disabled, either by the user or we are in the cron job.
             # Send the email synchronously.
-            self.with_context(force_send=True).message_post_with_source(
+            self.with_context(mail_notify_force_send=True).message_post_with_source(
                 mail_template,
                 email_layout_xmlid="mail.mail_notification_light",
                 subtype_xmlid="mail.mt_comment",
