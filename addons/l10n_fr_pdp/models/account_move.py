@@ -220,14 +220,22 @@ class AccountMove(models.Model):
 
     def _pdp_get_paid_lifecycle_total_amount(self):
         self.ensure_one()
+        collected_amounts = self._pdp_get_paid_lifecycle_amounts()
+        return -self.direction_sign * sum(amount for _percent, amount in collected_amounts.items())
+
+    def _pdp_get_paid_lifecycle_amounts(self):
+        self.ensure_one()
         paid_responses = self.peppol_response_ids.filtered(
             lambda r: r.response_code == 'PD' and r.pdp_flow_number == '2' and r.pdp_ppf_state != 'error'
         )
-        payment_infos = [
-            payment_info for response in paid_responses for payment_info in (response.pdp_payment_info or [])
-            if payment_info.get('type_code') in PAID_CODES and payment_info.get('currency', '').upper() == 'EUR'
-        ]
-        return sum(float(info.get('amount', '0')) for info in payment_infos)
+        collected_amounts = {}
+        for response in paid_responses:
+            for payment_info in (response.pdp_payment_info or []):
+                percent_string = payment_info.get('tax_percent')
+                if percent_string and payment_info.get('type_code') in PAID_CODES and payment_info.get('currency', '').upper() == 'EUR':
+                    percent = float(percent_string)
+                    collected_amounts[percent] = float(collected_amounts.get(percent, 0)) + float(payment_info.get('amount', 0))
+        return collected_amounts
 
     def _pdp_get_response_status(self):
         """Return the PDP response status of the message"""
@@ -527,6 +535,7 @@ class AccountMove(models.Model):
                 or not move.company_id._pdp_get_flow_10_start_date()
                 or move.date < move.company_id._pdp_get_flow_10_start_date()
                 or not move._l10n_fr_pdp_get_transaction_type()  # is b2bi or b2c
+                or move._l10n_fr_pdp_is_exempt_from_reporting()
             ):
                 move.l10n_fr_pdp_flow_10_report_type = None
                 continue
@@ -578,6 +587,22 @@ class AccountMove(models.Model):
     def _l10n_fr_pdp_is_purchase(self):
         self.ensure_one()
         return self.is_purchase_document(include_receipts=False)  # Purchase receipts are not in Flow10 scope as they do not have VAT to report.
+
+    def _l10n_fr_pdp_is_exempt_from_reporting(self):
+        # CGI art. 290 I: operations exempt under art. 261 to 261 E are not reported.
+        self.ensure_one()
+        lines = self.invoice_line_ids.filtered(lambda line: line.display_type == 'product')
+        return bool(lines) and all(
+            line.tax_ids and all(
+                tax.country_code == 'FR'
+                and tax.ubl_cii_tax_category_code == 'E'
+                and (tax.ubl_cii_tax_exemption_reason_code or '').startswith(
+                    ('VATEX-FR-CGI261', 'VATEX-EU-132', 'VATEX-EU-135')
+                )
+                for tax in line.tax_ids.flatten_taxes_hierarchy()
+            )
+            for line in lines
+        )
 
     def _get_l10n_fr_pdp_errors(self, lazy=False):
         """Return the list of validation errors for this move in the context of PDP reporting."""
