@@ -2446,6 +2446,8 @@ class Form(object):
         self._changed.update(self._view['fields'])
 
     def _init_from_values(self, values):
+        self._env.flush_all()
+        self._env.clear()  # discard cache and pending recomputations
         self._values.update(
             record_to_values(self._view['fields'], values))
 
