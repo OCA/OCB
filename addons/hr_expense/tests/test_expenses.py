@@ -395,6 +395,52 @@ class TestExpenses(TestExpenseCommon):
             {'currency_id': self.currency_data['currency'].id},
         ])
 
+    def test_account_entry_company_account_jpy_company_usd_expense_tax(self):
+        """ Tax line of a USD expense paid by a JPY company must not be rounded to whole yen in USD."""
+        jpy = self.env.ref('base.JPY')
+        jpy.active = True
+        company = self.setup_company_data(
+            'JPY Company', currency_id=jpy.id, tax_calculation_rounding_method='round_globally',
+        )['company']
+        self.env['res.currency.rate'].create({
+            'name': '2022-01-01',
+            'rate': 1 / 157.24,
+            'currency_id': self.env.ref('base.USD').id,
+            'company_id': company.id,
+        })
+        self.expense_employee.company_id = company
+        tax = self.env['account.tax'].create({
+            'name': 'Tax 10% included',
+            'amount': 10,
+            'amount_type': 'percent',
+            'type_tax_use': 'purchase',
+            'price_include': True,
+            'company_id': company.id,
+        })
+        expense_sheet = self.env['hr.expense.sheet'].with_company(company).create({
+            'name': "Company expense in USD",
+            'employee_id': self.expense_employee.id,
+            'accounting_date': '2022-11-17',
+            'expense_line_ids': [Command.create({
+                'name': 'Company expense',
+                'date': '2022-11-17',
+                'total_amount': 27.5,
+                'payment_mode': 'company_account',
+                'employee_id': self.expense_employee.id,
+                'product_id': self.product_c.id,
+                'currency_id': self.env.ref('base.USD').id,
+                'tax_ids': [Command.set(tax.ids)],
+            })],
+        })
+        expense_sheet.action_submit_sheet()
+        expense_sheet.approve_expense_sheets()
+        expense_sheet.action_sheet_move_create()
+        self.assertRecordValues(expense_sheet.account_move_id.line_ids.sorted('balance'), [
+            {'balance': -4324.0, 'amount_currency': -27.5},
+            {'balance': 393.0, 'amount_currency': 2.5},
+            {'balance': 3931.0, 'amount_currency': 25.0},
+        ])
+
     def test_account_entry_mixed_multi_currency_company_account(self):
         """
             Checking accounting payment entry when payment_mode is 'Company'. With multi-currency.
