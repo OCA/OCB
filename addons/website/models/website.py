@@ -229,7 +229,7 @@ class Website(models.CachedModel):
 
     def _compute_menu(self):
         # prefetch all accessible menus at once
-        all_menus = self.env['website.menu'].search_fetch(Domain('website_id', 'in', self.ids + [False]))
+        all_menus = self.env['website.menu'].search_fetch(Domain('website_id', 'in', self.ids))
 
         # use field parent_id (1 query) to determine field child_id (2 queries by level)
         children = dict.fromkeys(all_menus, ())
@@ -241,15 +241,6 @@ class Website(models.CachedModel):
 
         for website in self:
             menus = all_menus.filtered(lambda m: m.website_id == website)
-
-            # add the child menu without contained into menu with a website
-            for menu in all_menus.filtered(lambda m: not m.website_id):
-                parent = menu.parent_id
-                while parent:
-                    if parent.website_id == website:
-                        menus += menu
-                        break
-                    parent = parent.parent_id
 
             # prefetch every website.page and ir.ui.view at once
             menus.mapped('is_visible')
@@ -2530,14 +2521,21 @@ class Website(models.CachedModel):
                         rel_table = direct_field.relation
                         rel_joinkey = direct_field.column2
                 subqueries.append(get_similarity_subquery(comodel, comodel_similarity_fields, id_column, rel_table, rel_joinkey))
+            # Rank only the records eligible for the provider domain, before the
+            # similarity LIMIT. The eligible ids are a sub-select (not fetched)
+            # to keep the domain's joins/aliases out of the similarity query.
             query = SQL("""
                 SELECT id,
                     MAX(similarity) as _best_similarity
-                FROM (%s) sub
+                FROM (%(subqueries)s) sub
+                WHERE id IN %(eligible_ids)s
                 GROUP BY id
                 ORDER BY _best_similarity DESC
                 LIMIT 1000
-            """, SQL("\nUNION ALL\n").join(subqueries))  # UNION ALL allows to hit GIST indexes in subplans.
+            """,
+                subqueries=SQL("\nUNION ALL\n").join(subqueries),  # UNION ALL allows to hit GIST indexes in subplans.
+                eligible_ids=model._search(domain).subselect(),
+            )
             ids = {row[0] for row in self.env.execute_query(query)}
             domain = Domain.AND([domain, Domain([('id', 'in', list(ids))])])
             records = model.search_read(domain, direct_fields, limit=limit)

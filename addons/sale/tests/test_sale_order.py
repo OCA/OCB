@@ -379,8 +379,8 @@ class TestSaleOrder(SaleCommon):
         self.assertEqual(order_line.product_uom_qty, 0.0)
 
     def test_discount_rounding(self):
-        """Check the discount is properly rounded and the price subtotal computed with this rounded
-        discount."""
+        """Check the discount is not rounded and the price subtotal is computed with the discount
+        as provided."""
         sale_order = self.env["sale.order"].create({
             "partner_id": self.partner.id,
             "order_line": [
@@ -398,10 +398,10 @@ class TestSaleOrder(SaleCommon):
         })
         self.assertEqual(
             sale_order.order_line.price_subtotal,
-            49.44,
-            "Subtotal should be equal to 192 * (1 - 0.7425)",
+            49.45,
+            "Subtotal should be equal to 192 * (1 - 0.74246)",
         )
-        self.assertEqual(sale_order.order_line.discount, 74.25)
+        self.assertEqual(sale_order.order_line.discount, 74.246)
 
     def test_tax_amount_rounding(self):
         """Check order amounts are rounded according to settings."""
@@ -1145,6 +1145,33 @@ class TestSalesTeam(SaleCommon):
             {str(analytic_account_super.id): 100},
             "The analytic distribution should be set to Super Account, even for confirmed orders",
         )
+
+    def test_sale_order_line_analytic_distribution_computed_once_on_create(self):
+        """The amounts of the lines are precomputed and read the analytic distribution, which should
+        be precomputed as well instead of being computed again once the lines are created."""
+        self.env.user.group_ids += self.env.ref("analytic.group_analytic_accounting")
+
+        analytic_plan = self.env["account.analytic.plan"].create({"name": "Plan Test"})
+        analytic_account = self.env["account.analytic.account"].create({
+            "name": "Super Account",
+            "plan_id": analytic_plan.id,
+        })
+        product = self.env["product.product"].create({"name": "Super Product"})
+        self.env["account.analytic.distribution.model"].create({
+            "analytic_distribution": {analytic_account.id: 100},
+            "product_id": product.id,
+        })
+
+        DistributionModel = self.registry["account.analytic.distribution.model"]
+        with patch.object(DistributionModel, "_get_distribution", autospec=True, side_effect=DistributionModel._get_distribution) as get_distribution:
+            sale_order = self.env["sale.order"].create({
+                "partner_id": self.partner.id,
+                "order_line": [Command.create({"product_id": product.id})],
+            })
+            self.env.flush_all()
+
+        self.assertEqual(get_distribution.call_count, 1, "The analytic distribution should be computed once")
+        self.assertEqual(sale_order.order_line.analytic_distribution, {str(analytic_account.id): 100})
 
     def test_cannot_assign_tax_of_mismatch_company(self):
         """Test that sol cannot have assigned tax belonging to a different company."""

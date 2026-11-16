@@ -76,6 +76,7 @@ export class WebsiteBuilderClientAction extends Component {
         this.dialog = useService("dialog");
         this.websiteService = useService("website");
         this.ui = useService("ui");
+        this.offline = useService("offline");
         this.title = useService("title");
         this.hotkeyService = useService("hotkey");
         this.websiteService.websiteRootInstance = undefined;
@@ -172,6 +173,32 @@ export class WebsiteBuilderClientAction extends Component {
             websiteSystrayRegistry.remove("website.WebsiteSystrayItem");
             this.websiteService.currentWebsiteId = null;
             websiteSystrayRegistry.trigger("EDIT-WEBSITE");
+        });
+
+        let isFrozenOffline = false;
+        let isDestroyed = false;
+        useEffect(() => {
+            if (isDestroyed) {
+                return;
+            }
+            const freeze = this.offline.offline && this.state.isEditing;
+            if (freeze === isFrozenOffline) {
+                return;
+            }
+            isFrozenOffline = freeze;
+            if (freeze) {
+                this.blockIframe();
+                this.ui.block();
+            } else {
+                this.unblockIframe();
+                this.ui.unblock();
+            }
+        });
+        onWillDestroy(() => {
+            isDestroyed = true;
+            if (isFrozenOffline) {
+                this.ui.unblock();
+            }
         });
 
         useEffect(() => {
@@ -586,6 +613,18 @@ export class WebsiteBuilderClientAction extends Component {
         this.addSystrayItems();
         if (reloadIframe) {
             await this.reloadIframe(isEditing);
+            // Pop the builder's guard entry only once the iframe has reloaded:
+            // Firefox keeps a stale entry if it is popped during the reload.
+            if (history.state?.skipRouteChange) {
+                router.skipLoad = true;
+                const popped = new Promise((resolve) =>
+                    window.addEventListener("popstate", resolve, { once: true })
+                );
+                history.back();
+                await popped;
+                // The reloaded iframe URL was written on the guard entry.
+                this.replaceBrowserUrl();
+            }
         }
     }
 
@@ -600,8 +639,8 @@ export class WebsiteBuilderClientAction extends Component {
             const pathSegments = urlObj.pathname.split("/").map(encodeURIComponent);
             const encodedPath = pathSegments.join("/");
             const newUrl = new URL(encodedPath, baseUrl);
-            if(newUrl.origin !== baseUrl.origin) {
-                console.error("Tried to change the iframe's origin. Reloading instead")
+            if (newUrl.origin !== baseUrl.origin) {
+                console.error("Tried to change the iframe's origin. Reloading instead");
                 this.websiteContent().contentWindow.location.reload();
             } else {
                 if (history.state?.skipRouteChange) {
