@@ -1560,7 +1560,9 @@ class AccountMove(models.Model):
                 move.preferred_payment_method_line_id = partner.property_outbound_payment_method_line_id
 
     @api.depends('move_type', 'line_ids.amount_residual')
+    @api.depends_context('uid')
     def _compute_payments_widget_reconciled_info(self):
+        can_read_accounting = self.env.user.has_group('account.group_account_readonly')
         for move in self:
             payments_widget_vals = {'title': _('Less Payment'), 'outstanding': False, 'content': []}
 
@@ -1593,6 +1595,10 @@ class AccountMove(models.Model):
                         'ref': reconciliation_ref,
                         # these are necessary for the views to change depending on the values
                         'is_exchange': reconciled_partial['is_exchange'],
+                        # the invoicing users only manage the invoices and the payments, the other entries are part of the accounting
+                        'can_open_move': can_read_accounting
+                            or bool(counterpart_line.move_id.origin_payment_id)
+                            or counterpart_line.move_id.is_invoice(include_receipts=True),
                         'amount_company_currency': formatLang(self.env, abs(counterpart_line.balance), currency_obj=counterpart_line.company_id.currency_id),
                         'amount_foreign_currency': foreign_currency and formatLang(self.env, abs(counterpart_line.amount_currency), currency_obj=foreign_currency)
                     })
@@ -4124,18 +4130,6 @@ class AccountMove(models.Model):
         elif 'invoice_line_ids' in field_names:
             values = {key: val for key, val in values.items() if key != 'line_ids'}
             fields_spec = {key: val for key, val in fields_spec.items() if key != 'line_ids'}
-            # When product_id and price_unit are in values, values is reordered to make sure
-            # that product_id is before price_unit because product_id is triggering an onchange
-            # of price_unit that could override the one defined here if the product_id is set
-            # after price_unit
-            invoice_line_ids = values.get('invoice_line_ids')
-            for invoice_line_idx, invoice_line in enumerate(invoice_line_ids):
-                if (len(invoice_line) == 3 and invoice_line[0] == 1 and isinstance(invoice_line[2], dict) and
-                    'product_id' in invoice_line[2] and 'price_unit' in invoice_line[2]
-                ):
-                    if isinstance(invoice_line, tuple):
-                        invoice_line_ids[invoice_line_idx] = invoice_line = list(invoice_line)
-                    invoice_line[2] = dict(sorted(invoice_line[2].items(), key=lambda item: item[0] != 'product_id'))
         return super().onchange(values, field_names, fields_spec)
 
     # -------------------------------------------------------------------------
