@@ -1020,8 +1020,9 @@ class IrActionsServer(models.Model):
 
     def _run_action_multi(self, eval_context=None):
         res = False
+        env = eval_context['env'] if eval_context else self.env
         for act in self.child_ids.sorted():
-            res = act.run() or res
+            res = act.with_env(env).run() or res
         return res
 
     def _run_action_object_write(self, eval_context=None):
@@ -1036,24 +1037,27 @@ class IrActionsServer(models.Model):
         elif self.update_path:
             starting_record = self.env[self.model_id.model].browse(self.env.context.get('active_id'))
             path = self.update_path.split('.')
-            target_records = reduce(getitem, path[:-1], starting_record)
-            if self.update_property and starting_record.get_property_definition(self.update_field_id.name + "." + self.update_property):
-                value = vals[self.id]
-                property_value = starting_record._fields[self.update_field_id.name].convert_to_export(target_records, starting_record) or {}
-                if self.value_field_to_show == 'x2many':
-                    value = property_value.get(self.update_property) or []
-                    command = vals[self.id][0]
-                    if command[0] == Command.LINK:
-                        value.append(command[1])
-                    elif command[0] == Command.UNLINK:
-                        value = list(filter(lambda e: e != command[1], value))
-                    elif command[0] == Command.SET:
-                        value = command[2]
-                    value = [] if command[0] == Command.CLEAR else value
-                res[self.update_field_id.name] = {**property_value, self.update_property: value}
-                starting_record.write(res)
+            if self.update_property:
+                # the path ends with "<properties field>.<property>": move to
+                # the record holding the properties field
+                target_records = reduce(getitem, path[:-2], starting_record)
+                if target_records.get_property_definition(self.update_field_id.name + "." + self.update_property):
+                    value = vals[self.id]
+                    property_value = target_records._fields[self.update_field_id.name].convert_to_export(target_records[path[-2]], target_records) or {}
+                    if self.value_field_to_show == 'x2many':
+                        value = property_value.get(self.update_property) or []
+                        command = vals[self.id][0]
+                        if command[0] == Command.LINK:
+                            value.append(command[1])
+                        elif command[0] == Command.UNLINK:
+                            value = list(filter(lambda e: e != command[1], value))
+                        elif command[0] == Command.SET:
+                            value = command[2]
+                        value = [] if command[0] == Command.CLEAR else value
+                    res[self.update_field_id.name] = {**property_value, self.update_property: value}
             else:
-                target_records.write(res)
+                target_records = reduce(getitem, path[:-1], starting_record)
+            target_records.write(res)
 
     def _run_action_webhook(self, eval_context=None):
         """Send a post request with a read of the selected field on active_id."""
@@ -1180,7 +1184,8 @@ class IrActionsServer(models.Model):
         active_id
             id of the current object (single mode)
         active_model
-            current model that should equal the action's model
+            model of the records in the calling context; when it differs from
+            the action's model, only Python and multi actions run
         active_ids (optional)
            ids of the current records (mass mode). If ``active_ids`` and
            ``active_id`` are present, ``active_ids`` is given precedence.
@@ -1194,7 +1199,19 @@ class IrActionsServer(models.Model):
             records = eval_context.get('record') or eval_context['model']
             records |= eval_context.get('records') or eval_context['model']
             action._can_execute_action_on_records(records)
-            res = action.sudo()._run(records, eval_context)
+
+            action_sudo = action.sudo()
+            active_model = self.env.context.get('active_model')
+            context_ids = self.env.context.get('active_id') or self.env.context.get('active_ids')
+            if active_model != action_sudo.model_name and context_ids and action_sudo.state not in ('code', 'multi'):
+                # Python and multi actions do not use the context records directly
+                _logger.warning(
+                    "Server action %r ignored: the active records are not %s records; got %s.",
+                    action_sudo.name, action_sudo.model_name, active_model,
+                )
+                continue
+
+            res = action_sudo._run(records, eval_context)
         return res
 
     def _run(self, records, eval_context):
