@@ -32,3 +32,4 @@ List of contributors:
 *  Gijs-Jan Otten gjotten@therp.nl https://github.com/gjotten
 *  Dan Kiplangat dkiplangat@therp.nl https://github.com/kiplangatdan
 *  Kevin Kahumba kkahumba@therp.nl https://github.com/kkamaa
+*  Dan Kiplangat dkiplangat@therp.nl https://github.com/Kiplangatdan
