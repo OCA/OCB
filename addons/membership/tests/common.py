@@ -12,6 +12,15 @@ class TestMembershipCommon(AccountTestInvoicingCommon):
     def setUpClass(cls):
         super().setUpClass()
 
+        cls.membership = cls.env['product.product'].create({
+            'membership': True,
+            'membership_date_from': datetime.date.today() + relativedelta(months=-1),
+            'membership_date_to': datetime.date.today() + relativedelta(days=-2),
+            'name': 'Basic Limited',
+            'type': 'service',
+            'list_price': 90.00,
+        })
+
         # Test memberships
         cls.membership_1 = cls.env['product.product'].create({
             'membership': True,
