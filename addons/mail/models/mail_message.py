@@ -606,16 +606,18 @@ class MailMessage(models.Model):
                     parent_ids_msg_ids[message['parent_id']].append(mid)
             if parent_ids_msg_ids:
                 query = SQL(
-                    """ SELECT m.id
+                    """ SELECT m.id, m.model, m.res_id
                         FROM "mail_message" m
                         JOIN "mail_message_res_partner_rel" partner_rel
                             ON partner_rel.mail_message_id = m.id AND partner_rel.res_partner_id = %s
                         WHERE m.id = ANY(%s) """,
                     self.env.user.partner_id.id, list(parent_ids_msg_ids),
                 )
-                for [parent_id] in self.env.execute_query(query):
+                for parent_id, parent_model, parent_res_id in self.env.execute_query(query):
                     for mid in parent_ids_msg_ids[parent_id]:
-                        messages_to_check.pop(mid)
+                        message = messages_to_check[mid]
+                        if (message["model"], message["res_id"]) == (parent_model, parent_res_id):
+                            messages_to_check.pop(mid)
 
             if not messages_to_check:
                 return forbidden
@@ -770,7 +772,7 @@ class MailMessage(models.Model):
         if attachments_tocheck:
             attachments_tocheck.check_access('read')
 
-        for message, values, tracking_values_cmd in zip(messages, vals_list, tracking_values_list):
+        for message, tracking_values_cmd in zip(messages, tracking_values_list):
             if tracking_values_cmd:
                 vals_lst = [dict(cmd[2], mail_message_id=message.id) for cmd in tracking_values_cmd if len(cmd) == 3 and cmd[0] == 0]
                 other_cmd = [cmd for cmd in tracking_values_cmd if len(cmd) != 3 or cmd[0] != 0]
@@ -779,8 +781,7 @@ class MailMessage(models.Model):
                 if other_cmd:
                     message.write({'tracking_value_ids': other_cmd})
 
-            if message._is_thread_message_visible(vals=values):
-                message._invalidate_documents(values.get('model'), values.get('res_id'))
+        messages.filtered(lambda message: message._is_thread_message_visible())._invalidate_documents()
 
         return messages
 
@@ -1448,11 +1449,17 @@ class MailMessage(models.Model):
         """ Invalidate the cache of the documents followed by ``self``. """
         fnames = ['message_ids', 'message_needaction', 'message_needaction_counter']
         self.flush_recordset(['model', 'res_id'])
-        for record in self:
-            model = model or record.model
-            res_id = res_id or record.res_id
-            if model in self.pool and issubclass(self.pool[model], self.pool['mail.thread']):
-                self.env[model].browse(res_id).invalidate_recordset(fnames)
+        # collect documents before invalidating: invalidating 'message_ids' also
+        # drops its inverse 'mail.message.res_id' from cache, for all messages
+        res_ids_by_model = defaultdict(set)
+        if model and res_id:
+            res_ids_by_model[model].add(res_id)
+        for message in self:
+            if message.model and message.res_id:
+                res_ids_by_model[message.model].add(message.res_id)
+        for model_name, res_ids in res_ids_by_model.items():
+            if model_name in self.pool and issubclass(self.pool[model_name], self.pool['mail.thread']):
+                self.env[model_name].browse(res_ids).invalidate_recordset(fnames)
 
     def _records_by_model_name(self):
         ids_by_model = defaultdict(OrderedSet)
