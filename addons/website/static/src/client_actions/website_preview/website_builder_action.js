@@ -20,6 +20,7 @@ import { location, browser } from "@web/core/browser/browser";
 import { isBrowserChrome, isBrowserMicrosoftEdge } from "@web/core/browser/feature_detection";
 import { router } from "@web/core/browser/router";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
+import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { getActiveHotkey } from "@web/core/hotkeys/hotkey_utils";
 import { _t } from "@web/core/l10n/translation";
 import { LazyComponent } from "@web/core/lazy_component";
@@ -68,6 +69,7 @@ export class WebsiteBuilderClientAction extends Component {
     }
 
     debugMode = usePlugin(DebugModePlugin);
+    offlinePlugin = usePlugin(OfflinePlugin);
 
     setup() {
         this.reloadContext = null;
@@ -76,7 +78,6 @@ export class WebsiteBuilderClientAction extends Component {
         this.dialog = useService("dialog");
         this.websiteService = useService("website");
         this.ui = useService("ui");
-        this.offline = useService("offline");
         this.title = useService("title");
         this.hotkeyService = useService("hotkey");
         this.websiteService.websiteRootInstance = undefined;
@@ -184,7 +185,7 @@ export class WebsiteBuilderClientAction extends Component {
             if (isDestroyed) {
                 return;
             }
-            const freeze = this.offline.offline && this.state.isEditing;
+            const freeze = this.offlinePlugin.isOffline() && this.state.isEditing;
             if (freeze === isFrozenOffline) {
                 return;
             }
@@ -605,6 +606,7 @@ export class WebsiteBuilderClientAction extends Component {
 
     async reloadEditor(url, reloadContext) {
         this.reloadContext = reloadContext || null;
+        this.newInstalledModule = undefined;
         await this.reloadIframe(this.state.isEditing, url);
         // Disable the current instance of the builder and trigger a new
         // instance of it with `t-key`
@@ -614,6 +616,8 @@ export class WebsiteBuilderClientAction extends Component {
 
     async closeEditor(reloadIframe = true) {
         this.reloadContext = null;
+        // Don't reopen the snippet dialog on the next builder mount.
+        this.newInstalledModule = undefined;
         const isEditing = false;
         this.state.isEditing = isEditing;
         this.addSystrayItems();
