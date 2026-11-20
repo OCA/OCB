@@ -1617,6 +1617,10 @@ class AccountMove(models.Model):
             'ref': reconciliation_ref,
             # these are necessary for the views to change depending on the values
             'is_exchange': partial_info['is_exchange'],
+            # the invoicing users only manage the invoices and the payments, the other entries are part of the accounting
+            'can_open_move': self.env.user.has_group('account.group_account_readonly')
+                or bool(counterpart_line.move_id.origin_payment_id)
+                or counterpart_line.move_id.is_invoice(include_receipts=True),
             'amount_company_currency': formatLang(
                 self.env,
                 abs(counterpart_line.balance),
@@ -1630,6 +1634,7 @@ class AccountMove(models.Model):
         }
 
     @api.depends('move_type', 'line_ids.amount_residual')
+    @api.depends_context('uid')
     def _compute_payments_widget_reconciled_info(self):
         for move in self:
             payments_widget_vals = {
@@ -2010,7 +2015,7 @@ class AccountMove(models.Model):
         for move in self:
             move.show_invoice_vendor_bill = move.state == 'draft' and move.move_type in ('in_invoice', 'in_refund')
 
-    @api.depends('partner_id', 'invoice_source_email', 'partner_id.display_name')
+    @api.depends('partner_id', 'invoice_source_email', 'partner_id.complete_name')
     def _compute_invoice_partner_display_info(self):
         for move in self:
             vendor_display_name = move.partner_id.with_context({'lang': self.env.lang}).display_name

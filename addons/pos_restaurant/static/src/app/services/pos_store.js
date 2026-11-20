@@ -298,6 +298,9 @@ patch(PosStore.prototype, {
             );
             orphanLine.delete();
         }
+        if (sourceOrder.pricelist_id?.id !== destOrder.pricelist_id?.id) {
+            destOrder.setPricelist(destOrder.pricelist_id);
+        }
         if (destOrder.courses) {
             // Ensure unassigned lines in destOrder are linked to the last course
             const lastCourse = destOrder.courses?.at(-1);
@@ -410,6 +413,18 @@ patch(PosStore.prototype, {
             this.navigate("FloorScreen");
         }
         return orderRemoved;
+    },
+    onDeleteOrderConfirmed(order) {
+        super.onDeleteOrderConfirmed(...arguments);
+        // Don't wait for the preparation tickets to be printed to navigate to floor screen (like when sending to the kitchen)
+        if (
+            this.config.module_pos_restaurant &&
+            this.selectedOrderUuid === order.uuid &&
+            this.router.currentScreen() === "ProductScreen"
+        ) {
+            this.navigate("FloorScreen");
+            this.setOrder(null);
+        }
     },
     removeOrderShouldRedirect(order, hasBeenRemoved) {
         const wasCurrentOrder = this.selectedOrderUuid === order?.uuid;
@@ -762,8 +777,11 @@ patch(PosStore.prototype, {
 
                 try {
                     this.ui.block();
-                    this.isOrderTransferMode = false;
                     const table = this.getTableFromElement(tableElement);
+                    if (this.isOrderDeleting(table?.getOrder())) {
+                        return;
+                    }
+                    this.isOrderTransferMode = false;
                     if (table) {
                         const order = table.getOrder();
 
@@ -787,8 +805,11 @@ patch(PosStore.prototype, {
 
                 try {
                     this.ui.block();
-                    this.isOrderTransferMode = false;
                     const order = this.getOrderFromElement(orderElement);
+                    if (this.isOrderDeleting(order)) {
+                        return;
+                    }
+                    this.isOrderTransferMode = false;
                     if (order) {
                         if (order.uuid === orderUuid) {
                             return transferToItselfNotif();

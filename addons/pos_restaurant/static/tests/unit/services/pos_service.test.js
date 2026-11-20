@@ -6,6 +6,7 @@ import { getFilledOrder, setupPosEnv } from "@point_of_sale/../tests/unit/utils"
 import { MockServer, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { waitUntil } from "@odoo/hoot-dom";
 import { FloorPlan } from "@pos_restaurant/app/screens/floor_screen/floor_plan/floor_plan";
+import { patch } from "@web/core/utils/patch";
 
 const { DateTime } = luxon;
 
@@ -657,6 +658,40 @@ describe("restaurant pos_store.js", () => {
         expect(table.getOrders().length).toBe(0);
     });
 
+    test("order cannot be cancelled while it is sent in preparation", async () => {
+        const store = await setupPosEnv();
+        store.config.preparation_printer_ids = store.models["pos.printer"].filter(
+            (printer) => printer.use_type === "preparation"
+        );
+        let resolvePrint;
+        patch(store.ticketPrinter, {
+            printOrderChanges: () => new Promise((resolve) => (resolvePrint = resolve)),
+        });
+        const table = store.models["restaurant.table"].get(2);
+        const order = store.addNewOrder({ table_id: table });
+        const cola = store.models["product.template"].get(5);
+        await store.addLineToOrder({ product_tmpl_id: cola, qty: 1 }, order);
+        store.beforeDeleteOrder = async () => true;
+        let deleteCount = 0;
+        patch(store, {
+            async deleteOrders() {
+                deleteCount++;
+                return true;
+            },
+        });
+
+        // Kitchen ticket still printing
+        const sending = store.sendOrderInPreparation(order);
+        await tick();
+        expect(await store.onDeleteOrder(order)).toBe(false);
+        expect(deleteCount).toBe(0);
+
+        resolvePrint(true);
+        await sending;
+        expect(await store.onDeleteOrder(order)).toBe(true);
+        expect(deleteCount).toBe(1);
+    });
+
     test("order has no pending line changes after sending", async () => {
         const store = await setupPosEnv();
         // Link preparation printer and fake the successful print of preparation printer
@@ -873,6 +908,29 @@ describe("restaurant pos_store.js", () => {
         const changes = destOrder.getChanges();
         expect(changes.addedQuantity.length).toBe(0);
         expect(changes.removedQuantity.length).toBe(0);
+    });
+
+    test("mergeOrders reprices moved lines with the destination pricelist", async () => {
+        const store = await setupPosEnv();
+        const models = store.models;
+        const product = models["product.template"].get(5);
+        const destOrder = store.addNewOrder({ table_id: models["restaurant.table"].get(2) });
+        destOrder.setPricelist(models["product.pricelist"].get(3)); // 90% discount
+        const sourceOrder = store.addNewOrder({ table_id: models["restaurant.table"].get(3) });
+        sourceOrder.setPricelist(models["product.pricelist"].get(1)); // no rule
+        await store.addLineToOrder({ product_tmpl_id: product, qty: 1 }, sourceOrder);
+        const manualLine = await store.addLineToOrder(
+            { product_tmpl_id: models["product.template"].get(6), qty: 1 },
+            sourceOrder
+        );
+        manualLine.price_type = "manual";
+        manualLine.setUnitPrice(42);
+        expect(sourceOrder.lines[0].price_unit).toBe(100);
+
+        await store.mergeOrders(sourceOrder, destOrder);
+        const [line, mergedManualLine] = destOrder.lines;
+        expect(line.price_unit).toBe(10);
+        expect(mergedManualLine.price_unit).toBe(42);
     });
 
     test("getCustomerCount", async () => {
