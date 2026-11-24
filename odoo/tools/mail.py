@@ -183,8 +183,10 @@ def html_sanitize(src, silent=True, sanitize_tags=True, sanitize_attributes=Fals
         return src
     src = ustr(src, errors='replace')
     # html: remove encoding attribute inside tags
-    doctype = re.compile(r'(<[^>]*\s)(encoding=(["\'][^"\']*?["\']|[^\s\n\r>]+)(\s[^>]*|/)?>)', re.IGNORECASE | re.DOTALL)
+    doctype = re.compile(r'(<(?=[^<>]*>)[^<>]*\s)(encoding=(["\'][^"\'<>]*?["\']|[^\s\n\r<>]+)(\s[^<>]*|/)?>)', re.IGNORECASE | re.DOTALL)
     src = doctype.sub(u"", src)
+    # html: remove charset declarations from meta tags, the source is already decoded
+    src = re.sub(r'(<meta\b[^<>]*?)\bcharset\s*=\s*(?:"[^"<>]*"|\'[^\'<>]*\'|[^\s"\'<>;]+)', r'\1', src, flags=re.IGNORECASE)
 
     logger = logging.getLogger(__name__ + '.html_sanitize')
 
@@ -234,8 +236,12 @@ def html_sanitize(src, silent=True, sanitize_tags=True, sanitize_attributes=Fals
 
     try:
         # some corner cases make the parser crash (such as <SCRIPT/XSS SRC=\"http://ha.ckers.org/xss.js\"></SCRIPT> in test_mail)
+        src = src.replace('--!>', '-->')
+        src = re.sub(r'(<!-->|<!--->)', '<!-- -->', src)
         cleaner = _Cleaner(**kwargs)
         cleaned = cleaner.clean_html(src)
+        cleaned = cleaned.replace('--!>', '-->')
+        cleaned = re.sub(r'(<!-->|<!--->)', '<!-- -->', cleaned)
         assert isinstance(cleaned, pycompat.text_type)
         # MAKO compatibility: $, { and } inside quotes are escaped, preventing correct mako execution
         cleaned = cleaned.replace(u'%24', u'$')
