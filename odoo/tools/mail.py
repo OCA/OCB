@@ -235,8 +235,12 @@ def html_sanitize(src, silent=True, sanitize_tags=True, sanitize_attributes=Fals
 
     try:
         # some corner cases make the parser crash (such as <SCRIPT/XSS SRC=\"http://ha.ckers.org/xss.js\"></SCRIPT> in test_mail)
+        src = src.replace('--!>', '-->')
+        src = re.sub(r'(<!-->|<!--->)', '<!-- -->', src)
         cleaner = _Cleaner(**kwargs)
         cleaned = cleaner.clean_html(src)
+        cleaned = cleaned.replace('--!>', '-->')
+        cleaned = re.sub(r'(<!-->|<!--->)', '<!-- -->', cleaned)
         assert isinstance(cleaned, pycompat.text_type)
         # MAKO compatibility: $, { and } inside quotes are escaped, preventing correct mako execution
         cleaned = cleaned.replace(u'%24', u'$')
