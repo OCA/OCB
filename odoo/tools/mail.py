@@ -170,10 +170,10 @@ def html_sanitize(src, silent=True, sanitize_tags=True, sanitize_attributes=Fals
         return src
     src = ustr(src, errors='replace')
     # html: remove encoding attribute inside tags
-    doctype = re.compile(r'(<[^>]*\s)(encoding=(["\'][^"\']*?["\']|[^\s\n\r>]+)(\s[^>]*|/)?>)', re.IGNORECASE | re.DOTALL)
+    doctype = re.compile(r'(<(?=[^<>]*>)[^<>]*\s)(encoding=(["\'][^"\'<>]*?["\']|[^\s\n\r<>]+)(\s[^<>]*|/)?>)', re.IGNORECASE | re.DOTALL)
     src = doctype.sub(u"", src)
     # html: remove charset declarations from meta tags, the source is already decoded
-    src = re.sub(r'(<meta\b[^>]*?)\bcharset\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>;]+)', r'\1', src, flags=re.IGNORECASE)
+    src = re.sub(r'(<meta\b[^<>]*?)\bcharset\s*=\s*(?:"[^"<>]*"|\'[^\'<>]*\'|[^\s"\'<>;]+)', r'\1', src, flags=re.IGNORECASE)
 
     logger = logging.getLogger(__name__ + '.html_sanitize')
 
