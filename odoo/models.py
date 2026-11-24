@@ -66,8 +66,23 @@ regex_order = re.compile('^(\s*([a-z0-9:_]+|"[a-z0-9:_]+")(\s+(desc|asc))?\s*(,|
 regex_object_name = re.compile(r'^[a-z0-9_.]+$')
 regex_pg_name = re.compile(r'^[a-z_][a-z0-9_$]*$', re.I)
 onchange_v7 = re.compile(r"^([a-zA-Z]\w+)\((.*)\)$")
+regex_field_agg = re.compile(r'(\w+)(?::(\w+)(?:\((\w+)\))?)?')
+regex_read_group_spec = re.compile(r'(\w+)(?::(\w*))?(?::\w*)*$')  # For _read_group
 
 AUTOINIT_RECALCULATE_STORED_FIELDS = 1000
+
+
+def parse_read_group_spec(spec):
+    """ Return a pair corresponding to the given groupby/aggregate specification. """
+    res_match = regex_read_group_spec.match(spec)
+    if not res_match:
+        raise ValueError(
+            f'Invalid aggregate/groupby specification {spec!r}.\n'
+            '- Valid aggregate specification looks like "<field_name>:<agg>" example: "quantity:sum".\n'
+            '- Valid groupby specification looks like "<no_datish_field_name>" or "<datish_field_name>:<granularity>" example: "date:month".'
+        )
+    return res_match.groups()
+
 
 def check_object_name(name):
     """ Check if the given name is a valid model name.
@@ -1781,6 +1796,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             Helper method to collect important information about groupbys: raw
             field name, type, time information, qualified name, ...
         """
+        parse_read_group_spec(gb)
         split = gb.split(':')
         field_type = self._fields[split[0]].type
         gb_function = split[1] if len(split) == 2 else None
