@@ -193,10 +193,10 @@ def html_sanitize(src, silent=True, sanitize_tags=True, sanitize_attributes=Fals
         return src
     src = ustr(src, errors='replace')
     # html: remove encoding attribute inside tags
-    doctype = re.compile(r'(<[^>]*\s)(encoding=(["\'][^"\']*?["\']|[^\s\n\r>]+)(\s[^>]*|/)?>)', re.IGNORECASE | re.DOTALL)
+    doctype = re.compile(r'(<(?=[^<>]*>)[^<>]*\s)(encoding=(["\'][^"\'<>]*?["\']|[^\s\n\r<>]+)(\s[^<>]*|/)?>)', re.IGNORECASE | re.DOTALL)
     src = doctype.sub(u"", src)
     # html: remove charset declarations from meta tags, the source is already decoded
-    src = re.sub(r'(<meta\b[^>]*?)\bcharset\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>;]+)', r'\1', src, flags=re.IGNORECASE)
+    src = re.sub(r'(<meta\b[^<>]*?)\bcharset\s*=\s*(?:"[^"<>]*"|\'[^\'<>]*\'|[^\s"\'<>;]+)', r'\1', src, flags=re.IGNORECASE)
 
     logger = logging.getLogger(__name__ + '.html_sanitize')
 
@@ -206,7 +206,7 @@ def html_sanitize(src, silent=True, sanitize_tags=True, sanitize_attributes=Fals
 
     # On the specific case of Outlook desktop it adds unnecessary '<o:.*></o:.*>' tags which are parsed
     # in '<p></p>' which may alter the appearance (eg. spacing) of the mail body
-    src = re.sub(r'</?o:.*?>', '', src)
+    src = re.sub(r'</?o:[^<>\n]*?>', '', src)
 
     kwargs = {
         'page_structure': True,
