@@ -209,15 +209,62 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         self._assert_export_invoice(credit_note, 'standerd_fa3_credit_note.xml')
 
     @freeze_time('2026-01-23')
-    def test_ksef_fa3_reverse_charge(self):
-        K_12_tax = self.env['account.chart.template'].ref('vs_dostu')
-        K_31_tax = self.env['account.chart.template'].ref('vs_stal')
+    def test_ksef_fa3_reverse_charge_np_ii(self):
+        """
+        Intra-EU B2B service (np II, art. 100 ust. 1 pkt 4):
+        - the invoice is flagged as reverse charge (P_18 = 1)
+        - the base is reported only in P_13_9, since P_13_8 excludes it.
+        - P_13_10 must not be present: it is reserved for domestic reverse charge.
+        """
+        partner_be = self.env['res.partner'].create({
+            'name': 'Test Customer BE',
+            'is_company': True,
+            'country_id': self.env.ref('base.be').id,
+            'vat': 'BE0477472701',
+            'street': 'Rue de la Loi 16',
+            'city': 'Brussels',
+            'zip': '1000',
+        })
+        eu_service_tax = self.env['account.chart.template'].ref('vs_dostu')
+        service_product = self._create_product(name='EU Service', type='service', taxes_id=[Command.set(eu_service_tax.ids)])
+        invoice = self._create_invoice(
+            invoice_date=fields.Date.today(),
+            partner_id=partner_be,
+            invoice_line_ids=[
+                Command.create({'product_id': service_product.id, 'quantity': 1, 'price_unit': 500.0, 'tax_ids': eu_service_tax.ids}),
+            ],
+            post=True)
+        self._assert_export_invoice(invoice, 'standard_fa3_format_invoice_reverse_charge_only_np_II.xml')
+
+    @freeze_time('2026-01-23')
+    def test_ksef_fa3_reverse_charge_domestic(self):
+        """
+        Domestic reverse charge (oo, K_31) is the only base reported in P_13_10, even when the invoice
+        also contains an np II line.
+        """
+        k_31 = self.env['account.account.tag']._get_tax_tags('K_31', self.country_pl.id)
+        domestic_reverse_charge_tax = self.env['account.tax'].create({
+            'name': '0% oo',
+            'amount': 0.0,
+            'amount_type': 'percent',
+            'type_tax_use': 'sale',
+            'country_id': self.country_pl.id,
+            'invoice_repartition_line_ids': [
+                Command.create({'repartition_type': 'base', 'tag_ids': k_31.ids}),
+                Command.create({'repartition_type': 'tax'}),
+            ],
+            'refund_repartition_line_ids': [
+                Command.create({'repartition_type': 'base', 'tag_ids': k_31.ids}),
+                Command.create({'repartition_type': 'tax'}),
+            ],
+        })
+        eu_service_tax = self.env['account.chart.template'].ref('vs_dostu')
         invoice = self._create_invoice(
             invoice_date=fields.Date.today(),
             partner_id=self.partner_pl,
             invoice_line_ids=[
-                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 1000.0, 'tax_ids': K_12_tax.ids}),
-                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 500.0, 'tax_ids': K_31_tax.ids}),
+                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 1000.0, 'tax_ids': eu_service_tax.ids}),
+                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 500.0, 'tax_ids': domestic_reverse_charge_tax.ids}),
             ],
             post=True)
         self._assert_export_invoice(invoice, 'standard_fa3_format_invoice_reverse_charge.xml')
@@ -490,6 +537,43 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         })
         invoice.action_post()
         self._assert_export_invoice(invoice, 'fa3_invoice_foreign_currency.xml')
+
+    @freeze_time('2026-01-23')
+    def test_advance_invoice_in_foreign_currency(self):
+        """
+        KursWalutyZ must be present for ZAL and KOR_ZAL invoices in a foreign
+        currency, since the FA(3) schema requires the exchange rate on both the
+        advance invoice and its correction.
+        """
+        self.env.ref('base.EUR').active = True
+
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_pl.id,
+            'invoice_date': fields.Date.today(),
+            'currency_id': self.env.ref('base.EUR').id,
+            'invoice_line_ids': [Command.create({
+                'product_id': self.product_a.id,
+                'quantity': 1,
+                'price_unit': 10.0,
+            })],
+            'invoice_currency_rate': '2',
+        })
+        invoice.action_post()
+
+        # ZAL + foreign currency: KursWalutyZ must be present.
+        # l10n_pl_edi doesn't depend on sale, so a real down-payment invoice can't be created here.
+        with patch.object(self.env.registry['account.move'], '_l10n_pl_edi_get_ksef_invoice_type', return_value='ZAL'):
+            xml_zal = invoice._l10n_pl_edi_render_xml()
+        self.assertEqual(self._get_xml_value(xml_zal, "//ns:Fa/ns:RodzajFaktury"), 'ZAL')
+        self.assertEqual(self._get_xml_value(xml_zal, "//ns:Fa/ns:KodWaluty"), 'EUR')
+        self.assertEqual(self._get_xml_value(xml_zal, "//ns:Fa/ns:KursWalutyZ"), '0.50000')
+
+        # KOR_ZAL + foreign currency: KursWalutyZ must also be present (rate after correction).
+        with patch.object(self.env.registry['account.move'], '_l10n_pl_edi_get_ksef_invoice_type', return_value='KOR_ZAL'):
+            xml_kor_zal = invoice._l10n_pl_edi_render_xml()
+        self.assertEqual(self._get_xml_value(xml_kor_zal, "//ns:Fa/ns:RodzajFaktury"), 'KOR_ZAL')
+        self.assertEqual(self._get_xml_value(xml_kor_zal, "//ns:Fa/ns:KursWalutyZ"), '0.50000')
 
     @freeze_time('2026-01-23')
     def test_prefiks_podatnika_for_eu_transactions(self):

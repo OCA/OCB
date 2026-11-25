@@ -133,7 +133,7 @@ class AccountMove(models.Model):
     # TODO: remove in master
     @api.model
     def fields_get(self, allfields=None, attributes=None):
-        self.env['res.config.settings']._pdp_ensure_selection_value('account.move', 'peppol_move_state', 'completed')
+        self.env['res.config.settings']._pdp_ensure_selection_value('account.move', 'peppol_move_state', 'endorsed')
         return super().fields_get(allfields, attributes)
 
     @api.depends(
@@ -156,6 +156,8 @@ class AccountMove(models.Model):
             amount = 0
             if is_relevant:
                 amount = move._pdp_get_paid_amount() - already_sent
+                if move.currency_id.is_zero(amount):
+                    amount = 0
             move.pdp_lifecycle_residual = amount
 
     @api.depends('peppol_response_ids', 'peppol_response_ids.peppol_state')

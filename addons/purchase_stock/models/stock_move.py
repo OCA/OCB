@@ -70,13 +70,17 @@ class StockMove(models.Model):
     def _action_synch_order(self):
         purchase_order_lines_vals = []
         for move in self:
-            purchase_order = move.picking_id.purchase_id or move.picking_id.return_id.purchase_id
             # Creates new PO line only when pickings linked to a purchase order and
             # for moves with qty. done and not already linked to a PO line.
-            if not purchase_order \
-                or (move.location_id.usage not in ['supplier', 'transit'] and not (move.location_dest_id.usage == 'supplier' and move.to_refund)) \
+            if (move.location_id.usage not in ['supplier', 'transit'] and not (move.location_dest_id.usage == 'supplier' and move.to_refund)) \
                 or move.purchase_line_id \
                 or not move.picked:
+                continue
+            picking = move.picking_id
+            purchase_order = picking.move_ids.purchase_line_id.order_id[:1] \
+                or picking.backorder_ids.move_ids.purchase_line_id.order_id[:1] \
+                or picking.return_id.purchase_id
+            if not purchase_order:
                 continue
             product = move.product_id
             if line := purchase_order.order_line.filtered(lambda l: l.product_id == product):
@@ -96,6 +100,16 @@ class StockMove(models.Model):
             if product.purchase_method == 'purchase':
                 # No unit price if the product is purchased on the ordered qty.
                 po_line_vals['price_unit'] = 0
+            elif product._select_seller(
+                partner_id=purchase_order.partner_id,
+                quantity=abs(quantity),
+                date=max(fields.Date.context_today(move, timestamp=purchase_order.date_order), fields.Date.context_today(move)),
+                uom_id=move.product_uom,
+                params={'order_id': purchase_order, 'force_uom': True},
+            ):
+                seller_vals = self.env['purchase.order.line'].with_context(procurement_values={'force_uom': True})._prepare_purchase_order_line(
+                    product, abs(quantity), move.product_uom, purchase_order.company_id, purchase_order.partner_id, purchase_order)
+                po_line_vals.update(price_unit=seller_vals['price_unit'], discount=seller_vals['discount'])
             purchase_order_lines_vals.append(po_line_vals)
         if purchase_order_lines_vals:
             self.env['purchase.order.line'].with_context(bypass_move_update=True).create(purchase_order_lines_vals)

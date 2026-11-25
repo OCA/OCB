@@ -175,18 +175,18 @@
         <!-- Net amount for domestic supply exempt from tax (based on JPK tag K_10). -->
         <P_13_7 t-if="not float_is_zero(get_amounts_from_tag('K_10'), 2)"  t-out="float_repr(get_amounts_from_tag('K_10'), 2)"/>
         <!-- P_13_8: Total value of sales for the supply of goods and provision of services outside the country. TO-CHECK -->
-          <P_13_8 t-if="not float_is_zero(get_base_amounts_from_tag('K_11'), 2)" t-out="float_repr(get_base_amounts_from_tag('K_11'), 2)"/>
+          <P_13_8 t-if="not float_is_zero(get_base_amount_outside_country(), 2)" t-out="float_repr(get_base_amount_outside_country(), 2)"/>
           <!-- P_13_9: Total value of the provision of services referred to in Article 100 sec. 1 item 4 and Article 100 sec. -->
           <P_13_9 t-if="not float_is_zero(get_base_amounts_from_tag('K_12'), 2)" t-out="float_repr(get_base_amounts_from_tag('K_12'), 2)"/>
-          <!-- P_13_10: Total value of sales under the reverse-charge procedure for which the purchaser is the taxpayer in accordance with the repealed Article 17 sec. 1.-->
-          <P_13_10 t-if="reverse_charge" t-out="float_repr(get_base_amount_reverse_charge(), 2)"/>
+          <!-- P_13_10: Total value of sales under the reverse-charge (domestic trade) procedure for which the purchaser is the taxpayer in accordance with the repealed Article 17 sec. 1.-->
+          <P_13_10 t-if="not float_is_zero(get_base_amount_reverse_charge(), 2)" t-out="float_repr(get_base_amount_reverse_charge(), 2)"/>
           <!-- P_13_11: Total value of sales under the margin scheme referred to in Article 119 and Article 120 TO-CHECK -->
 
           <!-- P_15: Total gross amount of the invoice (including all taxes). -->
         <P_15 t-out="float_repr(invoice.amount_total_in_currency_signed, 2)"/>
 
-          <!-- KursWalutyZ: Exchange rate of the currency to PLN on the invoice date. -->
-          <KursWalutyZ t-if="invoice.currency_id.name != 'PLN'" t-out="float_repr(1 / (invoice.invoice_currency_rate or 1), 5)"/>
+          <!-- KursWalutyZ: Exchange rate of the currency to PLN on the advance invoice date. -->
+          <KursWalutyZ t-if="invoice.currency_id.name != 'PLN' and invoice_type in ('ZAL', 'KOR_ZAL')" t-out="float_repr(1 / (invoice.invoice_currency_rate or 1), 5)"/>
         <!--
           ======================================================================
           Adnotacje (Annotations)

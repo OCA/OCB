@@ -891,6 +891,36 @@ class TestHrAttendanceOvertime(HttpCase):
         for att in attendances:
             self.assertEqual(att.overtime_hours, 0)
 
+    def test_overtime_flexible_resource_timezones(self):
+        """ A flexible hours employee only gets overtime for the hours worked beyond
+        their daily hours, on both sides of UTC. """
+        # A Monday per timezone, worked 07:00-12:00 and 13:00-21:00 local time (UTC below)
+        for tz, (morning, afternoon) in {
+            'America/Los_Angeles': (  # Oct 19 2026, UTC-7
+                (datetime(2026, 10, 19, 14, 0), datetime(2026, 10, 19, 19, 0)),
+                (datetime(2026, 10, 19, 20, 0), datetime(2026, 10, 20, 4, 0)),
+            ),
+            'America/New_York': (  # Oct 26 2026, UTC-4
+                (datetime(2026, 10, 26, 11, 0), datetime(2026, 10, 26, 16, 0)),
+                (datetime(2026, 10, 26, 17, 0), datetime(2026, 10, 27, 1, 0)),
+            ),
+            'Asia/Kolkata': (  # Nov 2 2026, UTC+5:30
+                (datetime(2026, 11, 2, 1, 30), datetime(2026, 11, 2, 6, 30)),
+                (datetime(2026, 11, 2, 7, 30), datetime(2026, 11, 2, 15, 30)),
+            ),
+            'Pacific/Auckland': (  # Nov 9 2026, UTC+13
+                (datetime(2026, 11, 8, 18, 0), datetime(2026, 11, 8, 23, 0)),
+                (datetime(2026, 11, 9, 0, 0), datetime(2026, 11, 9, 8, 0)),
+            ),
+        }.items():
+            with self.subTest(tz=tz):
+                self.flexible_employee.tz = tz
+                attendances = self.env['hr.attendance'].create([
+                    {'employee_id': self.flexible_employee.id, 'check_in': check_in, 'check_out': check_out}
+                    for check_in, check_out in (morning, afternoon)
+                ])
+                self.assertEqual(attendances.mapped('overtime_hours'), [0, 5])
+
     def test_expected_hours_flexible_resource_weekly_limit(self):
         calendar_flex_32h = self.env['resource.calendar'].create({
             'name': 'Flexible 32 hours/week',
@@ -1766,6 +1796,29 @@ class TestHrAttendanceOvertime(HttpCase):
         self.ruleset.action_regenerate_overtimes()
         self.assertEqual(sum(attendances.mapped('overtime_hours')), 10)
 
+    def test_regenerate_weekly_overtime_flexible_employee_schedule_changed(self):
+        """ Regenerating the weekly overtime of a past week uses the version of that
+        week, not the current one, when the working schedule changed since. """
+        self.ruleset.rule_ids.write({
+            'expected_hours_from_contract': True,
+            'quantity_period': 'week',
+        })
+        # Monday to Friday, 10 hours a day: 50 hours worked for 40 expected hours
+        attendances = self.env['hr.attendance'].create([{
+            'employee_id': self.flexible_employee.id,
+            'check_in': datetime(2026, 5, day, 8, 0),
+            'check_out': datetime(2026, 5, day, 18, 0),
+        } for day in range(4, 9)])
+        self.assertEqual(sum(attendances.mapped('overtime_hours')), 10)
+
+        # The employee leaves the flexible schedule afterwards
+        self.flexible_employee.create_version({
+            'date_version': date(2026, 6, 1),
+            'resource_calendar_id': self.company.resource_calendar_id.id,
+        })
+        self.ruleset.action_regenerate_overtimes()
+        self.assertEqual(sum(attendances.mapped('overtime_hours')), 10)
+
     def test_overtime_rule_timing_adjacent_intervals(self):
         """ Test that adjacent overtime timing rules are not prematurely merged.
             Daytime: 17:00 -> 21:00 (4h)
@@ -2076,6 +2129,30 @@ class TestHrAttendanceOvertime(HttpCase):
         self.assertEqual(len(absence), 1)
         self.assertEqual(absence.check_in, datetime(2026, 8, 9, 22, 0))
         self.assertLess(absence.overtime_hours, 0)
+
+    def test_absence_detection_employee_timezone(self):
+        """ Absences are detected on the employee's own yesterday: an attendance
+        on that day is found whenever it starts and ends in UTC, and the absence
+        is created only once, however many times the cron runs that day. """
+        (self.company | self.company_1).absence_management = True
+        self.ruleset.company_id = self.company
+        attendances = self.env['hr.attendance'].create([{
+            # Monday 10 August 2026 from 00:00 to 00:30 in Europe/Brussels
+            'employee_id': self.europe_employee.id,
+            'check_in': datetime(2026, 8, 9, 22, 0),
+            'check_out': datetime(2026, 8, 9, 22, 30),
+        }, {
+            # Sunday 9 at 08:00 to Tuesday 11 at 03:00 in Pacific/Honolulu
+            'employee_id': self.honolulu_employee.id,
+            'check_in': datetime(2026, 8, 9, 18, 0),
+            'check_out': datetime(2026, 8, 11, 13, 0),
+        }])
+        # Monday 10 is not worked in Asia/Tokyo
+        for now in ('2026-08-11 02:00:00', '2026-08-11 06:00:00'):
+            with freeze_time(now):
+                self.env['hr.attendance']._cron_absence_detection()
+        self.assertEqual((self.europe_employee | self.honolulu_employee).attendance_ids, attendances)
+        self.assertRecordValues(self.jpn_employee.attendance_ids, [{'check_in': datetime(2026, 8, 9, 15, 0), 'in_mode': 'technical'}])
 
     def test_absence_detection_weekly_rule_keeps_approved_extra_hours(self):
         """ With a weekly quantity rule, running the absence detection after a

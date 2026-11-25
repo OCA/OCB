@@ -274,9 +274,10 @@ class HrAttendanceOvertimeRule(models.Model):
             date_end = date_start + relativedelta(days=6)  # Set to Sunday
         date_start = datetime.combine(date_start, datetime.min.time())
         date_end = datetime.combine(date_end, datetime.max.time())
+        tz = timezone(version.tz)
         expected_work_time = version.employee_id._employee_attendance_intervals(
-            utc.localize(date_start),
-            utc.localize(date_end)
+            tz.localize(date_start),
+            tz.localize(date_end)
         )
         delta = sum((i[1] - i[0]).total_seconds() for i in expected_work_time)
         expected_hours = delta / 3600.0
@@ -302,8 +303,10 @@ class HrAttendanceOvertimeRule(models.Model):
 
         employee = attendances.employee_id
         if self.expected_hours_from_contract and not context_expected_duration:
-            if employee.version_id.is_flexible:
-                expected_duration = self._get_expected_hours_from_contract(start.date(), employee.version_id, period=self.quantity_period)
+            # The version of the period (its last day, as in _get_period_keys), not the current one
+            version = employee.sudo()._get_version(stop.date()) if employee else self.env['hr.version']
+            if version.is_flexible:
+                expected_duration = self._get_expected_hours_from_contract(start.date(), version, period=self.quantity_period)
             else:
                 period_schedule = (schedule['work'] - schedule['leave']) & Intervals([(start, stop, self.env['resource.calendar'])])
                 expected_duration = sum_intervals(period_schedule)

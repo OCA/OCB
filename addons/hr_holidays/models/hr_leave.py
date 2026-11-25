@@ -658,8 +658,10 @@ Versions:
                             if leave.request_date_to_period == 'am':
                                 total_days -= 0.5
                         days = max(0, total_days)
-                    else:
+                    elif leave.employee_id.sudo().is_fully_flexible or not calendar.hours_per_day:
                         days = hours / 24
+                    else:
+                        days = hours / calendar.hours_per_day
                 elif leave.leave_type_request_unit == 'day' and check_leave_type:
                     # list of tuples (day, hours)
                     work_time_per_day_list = work_time_per_day_mapped[leave.date_from, leave.date_to, leave.holiday_status_id.include_public_holidays_in_duration, calendar][leave.employee_id.id]
@@ -990,9 +992,11 @@ Versions:
         if not self.env.context.get('leave_fast_create'):
             employee = self.env['hr.employee'].browse(employee_id) or self.employee_id
             if 'date_from' in values:
-                values['request_date_from'] = datetime.date(values['date_from'].astimezone(pytz.timezone(employee.tz)))
+                date_from = fields.Datetime.to_datetime(values['date_from'])
+                values['request_date_from'] = date_from.astimezone(pytz.timezone(employee.tz)).date()
             if 'date_to' in values:
-                values['request_date_to'] = datetime.date(values['date_to'].astimezone(pytz.timezone(employee.tz)))
+                date_to = fields.Datetime.to_datetime(values['date_to'])
+                values['request_date_to'] = date_to.astimezone(pytz.timezone(employee.tz)).date()
         result = super().write(values)
 
         # If the dates of a validated leave were changed, amend the resource calendar leave dates
