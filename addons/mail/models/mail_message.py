@@ -281,6 +281,7 @@ class MailMessage(models.Model):
     # notifications
     notification_ids = fields.One2many(
         'mail.notification', 'mail_message_id', 'Notifications',
+        allow_sudo_search=True,
         bypass_search_access=True, copy=False, depends=['notified_partner_ids'])
     # user interface
     bookmarked_partner_ids = fields.Many2many(
@@ -740,7 +741,8 @@ class MailMessage(models.Model):
                                   FROM mail_message_res_partner_cc_rel
                                  WHERE res_partner_id = %s
                                    AND mail_message_id = ANY (%s)
-                               ) notified ON notified.mail_message_id = m.id """,
+                               ) notified ON notified.mail_message_id = m.id
+                         WHERE m.message_type != 'user_notification' """,
                     pid, list(parent_ids_msg_ids), pid, list(parent_ids_msg_ids),
                 )
                 for parent_id, parent_model, parent_res_id in self.env.execute_query(query):
@@ -1562,11 +1564,17 @@ class MailMessage(models.Model):
         """ Invalidate the cache of the documents followed by ``self``. """
         fnames = ['message_ids', 'message_needaction', 'message_needaction_counter']
         self.flush_recordset(['model', 'res_id'])
-        for record in self:
-            model = model or record.model
-            res_id = res_id or record.res_id
-            if model in self.pool and issubclass(self.pool[model], self.pool['mail.thread']):
-                self.env[model].browse(res_id).invalidate_recordset(fnames)
+        # collect documents before invalidating: invalidating 'message_ids' also
+        # drops its inverse 'mail.message.res_id' from cache, for all messages
+        res_ids_by_model = defaultdict(set)
+        if model and res_id:
+            res_ids_by_model[model].add(res_id)
+        for message in self:
+            if message.model and message.res_id:
+                res_ids_by_model[message.model].add(message.res_id)
+        for model_name, res_ids in res_ids_by_model.items():
+            if model_name in self.pool and issubclass(self.pool[model_name], self.pool['mail.thread']):
+                self.env[model_name].browse(res_ids).invalidate_recordset(fnames)
 
     def _records_by_model_name(self):
         ids_by_model = defaultdict(OrderedSet)

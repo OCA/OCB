@@ -325,9 +325,6 @@ class ResUsers(models.Model):
           validation method
         * return the ``auth_info``
 
-        When trying to check for credentials validity, call
-        :meth:`_check_credentials` instead.
-
         Credentials are considered to be untrusted user input, for more
         information please check :meth:`authenticate`
 
@@ -624,6 +621,12 @@ class ResUsers(models.Model):
                     raise ValidationError(
                         _('The action "%s" cannot be set as the home action because it requires a record to be selected beforehand.', action.name)
                     )
+
+    @api.constrains('email', 'share')
+    def _check_email(self):
+        for user in self:
+            if user.share and len(tools.email_normalize_all(user.email)) > 1:
+                raise ValidationError(_('The user cannot have more than one email address.'))
 
     @api.constrains('group_ids')
     def _check_disjoint_groups(self):
@@ -1695,6 +1698,7 @@ class ResUsersApikeys(models.Model):
         self._check_expiration_date(expiration_date)
         # no need to clear the LRU when *adding* a key, only when removing
         k = secrets.token_hex(API_KEY_SIZE) + API_KEY_SUFFIX
+        self.env.user.invalidate_recordset(['api_key_ids'])
         self.env.cr.execute(SQL("""
             INSERT INTO %s (name, user_id, scope, expiration_date, key, index)
             VALUES (%s, %s, %s, %s, %s, %s)

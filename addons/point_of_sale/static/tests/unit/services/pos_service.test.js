@@ -1,7 +1,8 @@
 import { test, expect, describe } from "@odoo/hoot";
+import { advanceTime } from "@odoo/hoot-mock";
 import { getFilledOrder, setupPosEnv, createPaymentLine } from "../utils";
 import { definePosModels } from "../data/generate_model_definitions";
-import { ConnectionLostError } from "@web/core/network/rpc";
+import { ConnectionLostError, rpcBus } from "@web/core/network/rpc";
 import {
     getStrNotes,
     filterChangeByCategories,
@@ -276,6 +277,124 @@ describe("pos_store.js", () => {
             expect(secondPayload.lines[0][0]).toBe(1);
         });
 
+        test("order is synced again once a lost sync request is followed by a successful heartbeat", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+
+            let syncCallCount = 0;
+            const originalCall = store.data.call.bind(store.data);
+            store.data.call = async (model, method, args, kwargs) => {
+                if (model === "pos.order" && method === "sync_from_ui") {
+                    syncCallCount += 1;
+                    if (syncCallCount === 1) {
+                        const error = new ConnectionLostError("/web/dataset/call_kw");
+                        rpcBus.trigger("RPC:RESPONSE", {
+                            data: { params: { model, method } },
+                            settings: {},
+                            error,
+                        });
+                        throw error;
+                    }
+                }
+                return originalCall(model, method, args, kwargs);
+            };
+
+            await store.syncAllOrders({ orders: [order] });
+            expect(store.data.network.offline).toBe(false);
+            expect(order.isSynced).toBe(false);
+
+            await advanceTime(1000);
+            expect(syncCallCount).toBe(1);
+
+            await advanceTime(10000);
+            await advanceTime(1000);
+
+            expect(syncCallCount).toBe(2);
+            expect(order.isSynced).toBe(true);
+            expect(store.getPendingOrder().orderToCreate).toHaveLength(0);
+        });
+
+        test("an updated order is synced again once a lost sync request is followed by a successful heartbeat", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+            await store.syncAllOrders({ orders: [order] });
+            expect(order.isSynced).toBe(true);
+            await store.addLineToOrder(
+                { product_tmpl_id: store.models["product.template"].get(5), qty: 1 },
+                order
+            );
+            expect(order.isDirty()).toBe(true);
+
+            let syncCallCount = 0;
+            const originalCall = store.data.call.bind(store.data);
+            store.data.call = async (model, method, args, kwargs) => {
+                if (model === "pos.order" && method === "sync_from_ui") {
+                    syncCallCount += 1;
+                    if (syncCallCount === 1) {
+                        const error = new ConnectionLostError("/web/dataset/call_kw");
+                        rpcBus.trigger("RPC:RESPONSE", {
+                            data: { params: { model, method } },
+                            settings: {},
+                            error,
+                        });
+                        throw error;
+                    }
+                }
+                return originalCall(model, method, args, kwargs);
+            };
+
+            await store.syncAllOrders({ orders: [order] });
+            expect(order.isDirty()).toBe(true);
+
+            await advanceTime(10000);
+            await advanceTime(1000);
+
+            expect(syncCallCount).toBe(2);
+            expect(order.isDirty()).toBe(false);
+        });
+
+        test("a pending order deletion is sent only once", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+            await store.syncAllOrders({ orders: [order] });
+            expect(order.isSynced).toBe(true);
+            const orderId = order.id;
+
+            const cancelCalls = [];
+            const originalCall = store.data.call.bind(store.data);
+            store.data.call = async (model, method, args, kwargs) => {
+                if (model === "pos.order" && method === "cancel_order_from_pos") {
+                    cancelCalls.push(args[0]);
+                }
+                return originalCall(model, method, args, kwargs);
+            };
+
+            store.removeOrder(order);
+            await advanceTime(200);
+            await store.syncAllOrders();
+
+            expect(cancelCalls).toEqual([[orderId]]);
+            expect(store.getOrderIdsToDelete()).toEqual([]);
+        });
+
+        test("a lost pending order deletion does not prevent orders from being synced", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+            store.addPendingOrder([999], true);
+
+            const originalCall = store.data.call.bind(store.data);
+            store.data.call = async (model, method, args, kwargs) => {
+                if (model === "pos.order" && method === "cancel_order_from_pos") {
+                    throw new ConnectionLostError("/web/dataset/call_kw");
+                }
+                return originalCall(model, method, args, kwargs);
+            };
+
+            await store.syncAllOrders({ orders: [order] });
+            expect(order.isSynced).toBe(true);
+            expect(store.getOrderIdsToDelete()).toEqual([999]);
+        });
+
         test("insync order should not be re-synced", async () => {
             const store = await setupPosEnv();
             const order = await getFilledOrder(store);
@@ -338,6 +457,26 @@ describe("pos_store.js", () => {
         expect(lastOrderLine.attribute_value_ids).toHaveLength(1);
         expect(lastOrderLine.attribute_value_ids[0].id).toBe(12);
         expect(lastOrderLine.attribute_value_ids[0].name).toBe("Male");
+        expect(lastOrderLine.getFullProductName()).toBe("Single attribute");
+    });
+
+    test("addLineToCurrentOrder names the line with chosen and custom attribute values", async () => {
+        const store = await setupPosEnv();
+        store.setOrder(null);
+        const cake = store.models["product.template"].get(51);
+
+        await store.addLineToCurrentOrder({
+            product_tmpl_id: cake,
+            payload: {
+                attribute_value_ids: [5, 7],
+                attribute_custom_values: { 7: "Happy birthday" },
+                price_extra: 0,
+                qty: 1,
+            },
+        });
+        expect(store.getOrder().lines[0].getFullProductName()).toBe(
+            "Cake (Chocolate, Customization: Yes: Happy birthday)"
+        );
     });
 
     test("getPreparationChangesNoPrepCateg", async () => {

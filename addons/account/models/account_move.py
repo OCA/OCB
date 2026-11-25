@@ -1201,19 +1201,10 @@ class AccountMove(models.Model):
                 invoice.direction_sign = -1
 
     @api.depends(
-        'line_ids.matched_debit_ids.debit_move_id.move_id.origin_payment_id.is_matched',
-        'line_ids.matched_debit_ids.debit_move_id.move_id.line_ids.amount_residual',
-        'line_ids.matched_debit_ids.debit_move_id.move_id.line_ids.amount_residual_currency',
-        'line_ids.matched_credit_ids.credit_move_id.move_id.origin_payment_id.is_matched',
-        'line_ids.matched_credit_ids.credit_move_id.move_id.line_ids.amount_residual',
-        'line_ids.matched_credit_ids.credit_move_id.move_id.line_ids.amount_residual_currency',
         'line_ids.balance',
-        'line_ids.currency_id',
         'line_ids.amount_currency',
         'line_ids.amount_residual',
         'line_ids.amount_residual_currency',
-        'line_ids.payment_id.state',
-        'line_ids.full_reconcile_id',
         'tax_totals',
         'state')
     def _compute_amount(self):
@@ -1510,6 +1501,7 @@ class AccountMove(models.Model):
         for move in self:
             move.reversal_move_count = len(move.reversal_move_ids)
 
+    @api.depends('commercial_partner_id')
     def _compute_payments_widget_to_reconcile_info(self):
 
         for move in self:
@@ -1517,7 +1509,8 @@ class AccountMove(models.Model):
 
             if move.state not in {'draft', 'posted'} \
                     or move.payment_state not in ('not_paid', 'partial') \
-                    or not move.is_invoice(include_receipts=True):
+                    or not move.is_invoice(include_receipts=True) \
+                    or not move._origin:  # unsaved record: no move id to reconcile with
                 continue
 
             pay_term_lines = move.line_ids\
@@ -1536,7 +1529,7 @@ class AccountMove(models.Model):
             payments_widget_vals = {
                 'outstanding': True,
                 'content': [],
-                'move_id': move.id,
+                'move_id': move._origin.id,
                 'title': _('Outstanding credits') if move.is_inbound() else _('Outstanding debits')
             }
 
@@ -1917,6 +1910,9 @@ class AccountMove(models.Model):
             base_lines += self._prepare_non_deductible_base_lines_for_taxes_computation_from_base_lines(base_amls)
             AccountTax._add_tax_details_in_base_lines(base_lines, self.company_id)
             AccountTax._round_base_lines_tax_details(base_lines, self.company_id)
+
+        # todo: modify the _order in master
+        base_lines[:len(base_amls)] = sorted(base_lines[:len(base_amls)], key=lambda base_line: (base_line['record'].sequence, base_line['record']._origin.id))
         return base_lines, tax_lines
 
     @api.depends_context('lang')
@@ -2524,7 +2520,6 @@ class AccountMove(models.Model):
     def _compute_reconciled_payment_ids(self):
         ''' Retrieve the payments reconciled to the invoices through the reconciliation (account.partial.reconcile) '''
         self.env['account.payment'].flush_model(fnames=['move_id'])
-        self.env['account.move'].flush_model(fnames=['move_type'])
         self.env['account.move.line'].flush_model(fnames=['move_id', 'account_id'])
         self.env['account.partial.reconcile'].flush_model(fnames=['debit_move_id', 'credit_move_id'])
         self.env['account.account'].flush_model(fnames=['account_type'])
@@ -2550,7 +2545,7 @@ class AccountMove(models.Model):
             WHERE account.account_type IN ('asset_receivable', 'liability_payable')
                 AND invoice.id IN %(invoice_ids)s
                 AND line.id != counterpart_line.id
-            GROUP BY invoice.id, invoice.move_type
+            GROUP BY invoice.id
             """,
             invoice_ids=tuple(self.ids),
         ))) if self.ids else {}
@@ -2632,17 +2627,27 @@ class AccountMove(models.Model):
             if self.auto_post == 'at_date':
                 alerts['account_auto_post_at_date'] = {
                     'level': 'info',
-                    'message': _("This move is configured to be posted automatically at the accounting date: %s.", self.date),
+                    'message': self.env._(
+                        "This move is configured to be posted automatically at the accounting date: %(date)s.",
+                        date=format_date(self.env, self.date),
+                    ),
                 }
             if self.auto_post in ('yearly', 'quarterly', 'monthly'):
-                message = _(
-                    "%(auto_post_name)s auto-posting enabled. Next accounting date: %(move_date)s.",
-                    auto_post_name=self.auto_post,
-                    move_date=self.date,
+                auto_post_choices = dict(self._fields['auto_post']._description_selection(self.env))
+                translated_frequency = auto_post_choices.get(self.auto_post, self.auto_post)
+
+                message = self.env._(
+                    "Auto-posting enabled: %(auto_post_name)s. Next accounting date: %(move_date)s.",
+                    auto_post_name=translated_frequency,
+                    move_date=format_date(self.env, self.date),
                 )
+
                 if self.auto_post_until:
                     message += " "
-                    message += _("The recurrence will end on %s (included).", self.auto_post_until)
+                    message += self.env._(
+                        "The recurrence will end on %(date)s (included).",
+                        date=format_date(self.env, self.auto_post_until),
+                    )
                 alerts['account_auto_post_on_period'] = {
                     'level': 'info',
                     'message': message,
@@ -2689,8 +2694,8 @@ class AccountMove(models.Model):
     def _search_reconciled_payment_ids(self, operator, value):
         if operator not in ('in', '='):
             return NotImplemented
-        payment_ids = self.env['account.payment'].browse(value).reconciled_invoice_ids.ids
-        return [('id', 'in', payment_ids)]
+        payments = self.env['account.payment'].browse(value)
+        return [('id', 'in', (payments.reconciled_invoice_ids | payments.reconciled_bill_ids).ids)]
 
     # -------------------------------------------------------------------------
     # INVERSE METHODS
@@ -4232,6 +4237,12 @@ class AccountMove(models.Model):
             _logger.info(logger_message)
         return res
 
+    def _flush(self):
+        if self._fields['move_type'] in self.env._field_dirty:
+            # `_flush` writes every dirty `move_type`, `_check_document_tax_mode_set` needs their tax mode computed first
+            self._recompute_model(['document_tax_mode'])
+        return super()._flush()
+
     @api.depends('partner_id', 'date', 'state', 'move_type')
     @api.depends_context('input_full_display_name')
     def _compute_display_name(self):
@@ -5751,9 +5762,10 @@ class AccountMove(models.Model):
         ])
         self.env['account.move.line'].flush_model(['move_id', 'company_currency_id'])
 
-        rows = self.env.execute_query_dict(
-            SQL(" UNION ALL ").join(queries)
-        )
+        rows = self.env.execute_query_dict(SQL(
+            "%s ORDER BY aml_id, partial_id",
+            SQL(" UNION ALL ").join(queries),
+        ))
 
         aml_ids = set()
         currency_ids = set()
@@ -7856,6 +7868,7 @@ class AccountMove(models.Model):
             and not self.highlight_send_button
             and self.env.user.has_group('account.group_account_basic')
             and self.amount_residual > 0
+            and self.invoice_date_due
             and self.invoice_date_due < fields.Date.context_today(self)
         )
 

@@ -506,6 +506,54 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             "Allocation-required type should appear when all employees have valid allocations")
 
     @users('Titus')
+    def test_create_group_leave_refuse_conflicting_leave_without_hr_right(self):
+        """ The group time off refuses the conflicting time off of the employees, even the ones the
+        Time Off Responsible can't refuse by themselves (validated by a Time Off Officer). """
+        leave_date = date_utils.start_of(date.today() + relativedelta(weeks=2), 'week')
+        leave = self.env['hr.leave'].sudo().create({
+            'employee_id': self.employee_emp_id,
+            'work_entry_type_id': self.holidays_type_1.id,
+            'request_date_from': leave_date,
+            'request_date_to': leave_date,
+        })
+        leave.action_approve()
+        self.assertEqual(leave.state, 'validate')
+
+        self.env['hr.leave.generate.multi.wizard'].create({
+            'work_entry_type_id': self.holidays_type_1.id,
+            'date_from': leave_date,
+            'date_to': leave_date,
+            'employee_ids': self.employee_emp.ids,
+        }).action_generate_time_off()
+
+        self.assertEqual(leave.state, 'refuse')
+        group_leave = self.env['hr.leave'].search([('employee_id', '=', self.employee_emp_id), ('id', '!=', leave.id)])
+        self.assertEqual(len(group_leave), 1)
+
+    @users('Titus')
+    def test_create_group_leave_conflicting_leave_without_write_right(self):
+        """ The group time off can't refuse a conflicting time off the Time Off Responsible isn't allowed to modify. """
+        leave_date = date_utils.start_of(date.today() + relativedelta(weeks=2), 'week')
+        leave = self.env['hr.leave'].sudo().create({
+            'employee_id': self.employee_responsible.id,
+            'work_entry_type_id': self.holidays_type_1.id,
+            'request_date_from': leave_date,
+            'request_date_to': leave_date,
+        })
+        leave.action_approve()
+        self.assertEqual(leave.state, 'validate')
+
+        leave_wizard = self.env['hr.leave.generate.multi.wizard'].create({
+            'work_entry_type_id': self.holidays_type_1.id,
+            'date_from': leave_date,
+            'date_to': leave_date,
+            'employee_ids': self.employee_responsible.ids,
+        })
+        with self.assertRaises(AccessError):
+            leave_wizard.action_generate_time_off()
+        self.assertEqual(leave.state, 'validate')
+
+    @users('Titus')
     def test_create_group_leave_form_allocation_mode_without_hr_right(self):
         employee_1, employee_2, employee_3 = self.env['hr.employee'].sudo().create([
             {
@@ -3634,3 +3682,38 @@ class TestLeaveRequests(TestHrHolidaysCommon):
                          (overtime_rule.work_entry_type_id,
                           self._utc(self._wall(self.monday, 16)), self._utc(self._wall(self.monday, 18))),
                          "the 2 hours beyond the schedule are overtime")
+
+    def test_export_reimport_time_off(self):
+        """ The file of "Export All" (hr_leave_export.js) is re-imported in place: a pending
+        request is updated instead of duplicated, and an approved one is refused with an
+        explanation."""
+        # requested by the employee himself, so that it is not approved right away
+        leaves = self.env['hr.leave'].with_user(self.user_hrmanager_id).create([{
+            'employee_id': self.employee_hrmanager_id,
+            'work_entry_type_id': self.holidays_type_1.id,
+            'request_date_from': request_date,
+            'request_date_to': request_date,
+        } for request_date in ('2026-03-02', '2026-03-09')]).with_env(self.env)
+        pending_leave, approved_leave = leaves
+        approved_leave._action_validate()
+        self.assertEqual(leaves.mapped('state'), ['confirm', 'validate'])
+
+        # same fields as TIME_OFF_EXPORT_FIELDS in hr_leave_export.js, whose "External ID"
+        # header is the one the import auto-maps to the id field
+        export_fields = ['id', 'employee_id', 'work_entry_type_id/id', 'request_date_from', 'request_date_to']
+        rows = [[str(value) for value in row] for row in leaves.export_data(export_fields)['datas']]
+
+        def import_rows(rows):
+            # what the import wizard calls, with the context it sets
+            return self.env['hr.leave'].with_context(import_file=True).load(export_fields, rows)
+
+        pending_row = [*rows[0][:3], '2026-03-03', '2026-03-03']
+        result = import_rows([pending_row])
+        self.assertFalse(result['messages'])
+        self.assertEqual(result['ids'], pending_leave.ids, "The pending request is updated, not duplicated")
+        self.assertEqual(pending_leave.request_date_from, date(2026, 3, 3))
+        self.assertEqual(self.env['hr.leave'].search_count([('employee_id', '=', self.employee_hrmanager_id)]), 2)
+
+        result = import_rows([rows[1]])
+        self.assertEqual(len(result['messages']), 1)
+        self.assertRegex(result['messages'][0]['message'], r"unapprove it first \(Bastien HrManager: .*\)\.\nTo import it as a new time off request")

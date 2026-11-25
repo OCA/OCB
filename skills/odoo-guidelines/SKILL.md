@@ -32,6 +32,8 @@ touching instead of loading whole files.
 | [Methods and extension points](guidelines/orm.md#methods-and-extension-points) | adding a model method, or one another module will override |
 | [Set a state, never flip it](guidelines/orm.md#set-a-state-never-flip-it) | adding a method or a button that changes a state (archive, publish, favorite, follow) |
 | [Transactions and exceptions](guidelines/orm.md#transactions-and-exceptions) | cursors, commits, savepoints, `try`/`except` |
+| [Call `super()` in an override, change only what differs](guidelines/overrides.md#call-super-in-an-override-change-only-what-differs) | overriding a method that another module defines |
+| [Put what every path needs in `create`, `write` or `@api.ondelete`](guidelines/overrides.md#put-what-every-path-needs-in-create-write-or-apiondelete) | adding what must happen on each creation, change or deletion of a record |
 | [Fields](guidelines/fields.md#fields) | declaring or modifying field definitions |
 | [Controllers](guidelines/controllers.md#controllers) | touching `controllers/` or `@route` |
 | [Views, actions and data records](guidelines/xml.md#views-actions-and-data-records) | touching `views/`, `data/`, or any XML records |
@@ -42,13 +44,14 @@ touching instead of loading whole files.
 | [Use search_fetch when the domain and the rules are simple](guidelines/performance.md#use-search_fetch-when-the-domain-and-the-rules-are-simple) | a `search` whose records are read afterwards |
 | [Do not read an x2many that grows without bound](guidelines/performance.md#do-not-read-an-x2many-that-grows-without-bound) | reading messages, followers, members, logs, or any x2many that can reach thousands of rows |
 | [Performance conventions](guidelines/performance.md#performance-conventions) | code that loops over records or filters query results |
-| [Tests](guidelines/tests.md#tests) | touching `tests/` |
+| [Tests](guidelines/tests.md#tests) | touching `tests/` or running tests |
 | [Freeze the cursor time with mock_datetime_and_now](guidelines/tests.md#freeze-the-cursor-time-with-mock_datetime_and_now) | a test that uses `freeze_time`, or checks `create_date`, `write_date` or a value taken from `cr.now()` |
 | [Check a JSON-RPC call by its result, never by its status](guidelines/tests.md#check-a-json-rpc-call-by-its-result-never-by-its-status) | a test that calls a route with `url_open` or `make_jsonrpc_request` |
 | [Run the postcommit hooks a test depends on](guidelines/tests.md#run-the-postcommit-hooks-a-test-depends-on) | a test of a webhook, a sync, or anything else queued on `cr.postcommit` |
 | [Clear the cache before acting as a restricted user](guidelines/tests.md#clear-the-cache-before-acting-as-a-restricted-user) | a test that calls code with `with_user`, `with_company` or `@users` |
 | [Plain ASCII punctuation in comments and messages](guidelines/comments.md#plain-ascii-punctuation-in-comments-and-messages) | writing a comment, a docstring, a user-facing string, or a commit message |
 | [Comment a deviation the requirements force](guidelines/comments.md#comment-a-deviation-the-requirements-force) | a requirement (spec, ticket, caller) makes the code break one of these guidelines |
+| [No comment unless the code cannot show why](guidelines/comments.md#no-comment-unless-the-code-cannot-show-why) | adding or editing a comment in code |
 
 A change to a released version (17.0, saas-19.4, ...) also follows the
 `odoo-stable-policy` skill, which says how to tell a released version from

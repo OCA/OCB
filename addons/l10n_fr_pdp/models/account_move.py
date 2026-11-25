@@ -121,10 +121,19 @@ class AccountMove(models.Model):
         copy=False,
     )
 
+    @api.depends('pdp_is_sent')
+    def _compute_show_reset_to_draft_button(self):
+        # EXTEND 'account' to hide the reset to draft button for sent PDP invoices
+        super()._compute_show_reset_to_draft_button()
+        relevant_moves = self.filtered(
+            lambda move: move.pdp_is_sent and move.is_sale_document(include_receipts=True)
+        )
+        relevant_moves.show_reset_to_draft_button = False
+
     # TODO: remove in master
     @api.model
     def fields_get(self, allfields=None, attributes=None):
-        self.env['res.config.settings']._pdp_ensure_selection_value('account.move', 'peppol_move_state', 'completed')
+        self.env['res.config.settings']._pdp_ensure_selection_value('account.move', 'peppol_move_state', 'endorsed')
         return super().fields_get(allfields, attributes)
 
     @api.depends(
@@ -147,6 +156,8 @@ class AccountMove(models.Model):
             amount = 0
             if is_relevant:
                 amount = move._pdp_get_paid_amount() - already_sent
+                if move.currency_id.is_zero(amount):
+                    amount = 0
             move.pdp_lifecycle_residual = amount
 
     @api.depends('peppol_response_ids', 'peppol_response_ids.peppol_state')
@@ -278,11 +289,15 @@ class AccountMove(models.Model):
         if not self.company_id._peppol_is_french_company():
             return {}
         payment_term = self.invoice_payment_term_id
-        return {
+        notes = {
             'PMT': self.env._("In the event of late payment, a flat-rate fee of €40 for collection costs will be charged (Articles L.441-10 and D.441-5 of the Code de commerce)."),
             'PMD': self.env._("Late payment penalties at an annual rate of 10% are applied if the payment is made after the due date."),
             'AAB': html2plaintext(payment_term.note) if payment_term.early_discount else self.env._("No discount for early payment."),
         }
+        # [BR-FR-CO-14] Add MEMBRE_ASSUJETTI_UNIQUE note for Single Taxpayer Groups
+        if self.env['account.edi.common']._l10n_fr_pdp_get_company_tax_unit(self.company_id):
+            notes['TXD'] = 'MEMBRE_ASSUJETTI_UNIQUE'
+        return notes
 
     @api.model
     def _get_ubl_cii_builder_from_xml_tree(self, tree):

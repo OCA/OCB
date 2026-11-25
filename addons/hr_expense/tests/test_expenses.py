@@ -217,6 +217,24 @@ class TestExpenses(TestExpenseCommon):
         # Only possible if no expense linked to the account
         self.analytic_account_1.unlink()
 
+    def test_expense_no_cost_product_zero_quantity(self):
+        """ A zero quantity on a product without cost must not zero the receipt line """
+        expense = self.create_expenses({
+            'product_id': self.product_c.id,
+            'quantity': 0,
+            'total_amount_currency': 100.0,
+            'tax_ids': [Command.clear()],
+        })
+        self.assertEqual(expense.price_unit, 100.0)
+
+        expense.action_submit()
+        expense.action_approve()
+        self.post_expenses(expense)
+        self.assertRecordValues(expense.account_move_id.invoice_line_ids, [
+            {'quantity': 1.0, 'price_unit': 100.0, 'price_total': 100.0},
+        ])
+        self.assertEqual(expense.account_move_id.amount_total, 100.0)
+
     def test_expense_split_flow(self):
         """ Check Split Expense flow. """
         # Grant Analytic Accounting rights, to be able to modify analytic_distribution from the wizard
@@ -399,6 +417,26 @@ class TestExpenses(TestExpenseCommon):
             {'amount': 1000.00, 'payment_type': 'outbound', 'currency_id': foreign_currency_1.id},
             {'amount': 1000.00, 'payment_type': 'outbound', 'currency_id': foreign_currency_2.id},
             {'amount': 1000.00, 'payment_type': 'outbound', 'currency_id': foreign_currency_2.id},
+        ])
+
+    def test_expense_multi_currencies_remove_taxes(self):
+        """
+        Check that removing the taxes of a saved expense in foreign currency keeps its total in company currency.
+        """
+        expense = self.create_expenses({
+            'currency_id': self.other_currency.id,  # rate is 1:2
+            'total_amount_currency': 1000.00,
+            'date': self.frozen_today,
+            'tax_ids': [Command.set(self.tax_purchase_a.ids)],
+        })
+        self.assertRecordValues(expense, [
+            {'total_amount': 500.00, 'total_amount_currency': 1000.00, 'currency_rate': 0.50},
+        ])
+
+        with Form(expense) as expense_form:
+            expense_form.tax_ids.clear()
+        self.assertRecordValues(expense, [
+            {'total_amount': 500.00, 'total_amount_currency': 1000.00, 'currency_rate': 0.50, 'tax_amount': 0.00},
         ])
 
     #############################################

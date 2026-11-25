@@ -17,6 +17,7 @@ import {
     deleteBackward,
     ensureDistinctHistoryCommit,
     insertText,
+    simulateArrowKeyPress,
     tripleClick,
     undo,
 } from "../_helpers/user_actions";
@@ -156,7 +157,7 @@ describe("Selection collapsed", () => {
                     '<div><p>uv</p><br><span class="style" data-oe-zws-empty-inline="">[]\u200B</span></div>' +
                     '<p data-selection-placeholder=""><br></p>',
                 contentAfter:
-                    '<div><p>uv</p><br><span class="style" data-oe-zws-empty-inline="">[]\u200B</span></div>',
+                    '<div><p>uv</p><br><span class="style" data-oe-zws-empty-inline="">[]</span></div>',
             });
         });
 
@@ -247,7 +248,7 @@ describe("Selection collapsed", () => {
                 contentAfterEdit:
                     '<p>ab<span class="style" data-oe-zws-empty-inline="">[]\u200B</span>ef</p>',
                 contentAfter:
-                    '<p>ab<span class="style" data-oe-zws-empty-inline="">[]\u200B</span>ef</p>',
+                    '<p>ab<span class="style" data-oe-zws-empty-inline="">[]</span>ef</p>',
             });
         });
 
@@ -267,6 +268,8 @@ describe("Selection collapsed", () => {
         test("should ignore ZWS and merge (1)", async () => {
             await testEditor({
                 contentBefore:
+                    '<p><b>ab</b><span class="removeme" data-oe-zws-empty-inline="">[]</span></p>',
+                contentBeforeEdit:
                     '<p><b>ab</b><span class="removeme" data-oe-zws-empty-inline="">[]\u200B</span></p>',
                 stepFunction: async (editor) => {
                     deleteBackward(editor);
@@ -279,6 +282,8 @@ describe("Selection collapsed", () => {
         test("should ignore ZWS and merge (2)", async () => {
             await testEditor({
                 contentBefore:
+                    '<p><span class="a">cd</span><span class="removeme" data-oe-zws-empty-inline="">[]</span></p>',
+                contentBeforeEdit:
                     '<p><span class="a">cd</span><span class="removeme" data-oe-zws-empty-inline="">[]\u200B</span></p>',
                 stepFunction: async (editor) => {
                     deleteBackward(editor);
@@ -291,6 +296,8 @@ describe("Selection collapsed", () => {
         test("should ignore ZWS and merge (3)", async () => {
             await testEditor({
                 contentBefore:
+                    '<p><b>ef</b><br><span class="removeme" data-oe-zws-empty-inline="">[]</span></p>',
+                contentBeforeEdit:
                     '<p><b>ef</b><br><span class="removeme" data-oe-zws-empty-inline="">[]\u200B</span></p>',
                 stepFunction: async (editor) => {
                     deleteBackward(editor);
@@ -1759,7 +1766,7 @@ describe("Selection not collapsed", () => {
                 '<div><p>ab <span class="style" data-oe-zws-empty-inline="">[]\u200B</span> d</p></div>' +
                 '<p data-selection-placeholder=""><br></p>',
             contentAfter:
-                '<div><p>ab <span class="style" data-oe-zws-empty-inline="">[]\u200B</span> d</p></div>',
+                '<div><p>ab <span class="style" data-oe-zws-empty-inline="">[]</span> d</p></div>',
         });
     });
 
@@ -2238,8 +2245,9 @@ describe("Selection not collapsed", () => {
         await testEditor({
             contentBefore: '<p>ab<b class="oe_unremovable">[cd]</b>ef</p>',
             stepFunction: deleteBackward,
-            contentAfter:
+            contentAfterEdit:
                 '<p>ab<b class="oe_unremovable" data-oe-zws-empty-inline="">[]\u200B</b>ef</p>',
+            contentAfter: '<p>ab<b class="oe_unremovable" data-oe-zws-empty-inline="">[]</b>ef</p>',
         });
     });
 
@@ -2314,8 +2322,10 @@ describe("Selection not collapsed", () => {
         await testEditor({
             contentBefore: '<p>a<span class="style-class">[bcde]</span>f</p>',
             stepFunction: deleteBackward,
-            contentAfter:
+            contentAfterEdit:
                 '<p>a<span class="style-class" data-oe-zws-empty-inline="">[]\u200B</span>f</p>',
+            contentAfter:
+                '<p>a<span class="style-class" data-oe-zws-empty-inline="">[]</span>f</p>',
         });
     });
 
@@ -2741,4 +2751,21 @@ test("should remove character before unremovable (2)", async () => {
         stepFunction: deleteBackward,
         contentAfter: `<p>a[]<span class="oe_unremovable">x</span>b</p>`,
     });
+});
+
+test("should preserve formatting element wrapping an empty unremovable element", async () => {
+    const { editor, el } = await setupEditor(
+        '<p>ab<b><span class="oe_unremovable">[cd]</span></b>ef</p>'
+    );
+    deleteBackward(editor);
+    await tick();
+    expect(getContent(el)).toBe(
+        '<p>ab<b><span class="oe_unremovable" data-oe-zws-empty-inline="">[]\u200B</span></b>ef</p>'
+    );
+
+    await simulateArrowKeyPress(editor, "ArrowLeft");
+    await tick();
+    expect(getContent(el)).toBe(
+        '<p>a[]b<b><span class="oe_unremovable" data-oe-zws-empty-inline="">\u200B</span></b>ef</p>'
+    );
 });

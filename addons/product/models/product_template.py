@@ -4,6 +4,7 @@ import itertools
 import logging
 
 from collections import defaultdict
+from copy import deepcopy
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -828,7 +829,7 @@ class ProductTemplate(models.Model):
         ''' Store the initial standard price in order to be able to retrieve the cost of a product template for a given date'''
         templates = super().create(vals_list)
         if self.env.context.get("create_product_product", True):
-            templates._create_variant_ids()
+            templates.with_context(with_warning_too_many_combination=True)._create_variant_ids()
 
         # This is needed to set given values to first variant after creation
         for template, vals in zip(templates, vals_list):
@@ -850,7 +851,7 @@ class ProductTemplate(models.Model):
             products.sudo().with_context(skip_uom_conversion=True)._update_uom(vals['uom_id'])
         res = super().write(vals)
         if (self.env.context.get("create_product_product", True) and 'attribute_line_ids' in vals) or (vals.get('active') and len(self.product_variant_ids) == 0):
-            self._create_variant_ids()
+            self.with_context(with_warning_too_many_combination=True)._create_variant_ids()
         if 'active' in vals and not vals.get('active'):
             self.with_context(active_test=False).mapped('product_variant_ids').write({'active': vals.get('active')})
         if 'image_1920' in vals:
@@ -1322,13 +1323,13 @@ class ProductTemplate(models.Model):
         e.g: Black excludes XL and L
         -> XL excludes Black
         -> L excludes Black"""
-        result = dict(exclusions)
+        result = deepcopy(exclusions)
         for key, value in exclusions.items():
             for exclusion in value:
-                if exclusion in result and key not in result[exclusion]:
-                    result[exclusion].append(key)
-                else:
+                if exclusion not in result:
                     result[exclusion] = [key]
+                elif key not in result[exclusion]:
+                    result[exclusion].append(key)
 
         return result
 
