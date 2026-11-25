@@ -17,8 +17,17 @@ class TestSurveyInvite(common.TestSurveyCommon, MailCommon):
     def setUp(self):
         res = super(TestSurveyInvite, self).setUp()
         # by default signup not allowed
-        self.env["ir.config_parameter"].set_param('auth_signup.invitation_scope', 'b2b')
+        self._set_signup_invitation_scope('b2b')
         return res
+
+    def _set_signup_invitation_scope(self, scope):
+        """ Set the signup invitation scope used by the invite wizard. When
+        website is installed, the scope of the current website takes precedence
+        over the 'auth_signup.invitation_scope' config parameter (see
+        res.users._get_signup_invitation_scope), so set it there as well. """
+        self.env["ir.config_parameter"].sudo().set_param('auth_signup.invitation_scope', scope)
+        if 'website' in self.env:
+            self.env['website'].sudo().search([]).write({'auth_signup_uninvited': scope})
 
     @users('survey_manager')
     def test_survey_invite_action(self):
@@ -112,7 +121,7 @@ class TestSurveyInvite(common.TestSurveyCommon, MailCommon):
 
     @users('survey_manager')
     def test_survey_invite_authentication_signup(self):
-        self.env["ir.config_parameter"].sudo().set_param('auth_signup.invitation_scope', 'b2c')
+        self._set_signup_invitation_scope('b2c')
         self.survey.invalidate_cache()
         Answer = self.env['survey.user_input']
 
