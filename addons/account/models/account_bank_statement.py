@@ -1014,6 +1014,8 @@ class AccountBankStatementLine(models.Model):
 
         for st_line in self.with_context(skip_account_move_synchronization=True):
             liquidity_lines, suspense_lines, other_lines = st_line._seek_for_lines()
+            if not liquidity_lines:
+                continue
             company_currency = st_line.journal_id.company_id.currency_id
             journal_currency = st_line.journal_id.currency_id if st_line.journal_id.currency_id != company_currency else False
 
