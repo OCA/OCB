@@ -1,18 +1,18 @@
 import base64
 import contextlib
 import logging
+import os
 import re
 from xml.dom.minidom import parseString
 
 from dateutil.relativedelta import relativedelta
 from hashlib import sha256
 from lxml import etree
-from stdnum.pl.nip import compact
 from decimal import Decimal
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools import float_compare, float_is_zero, float_repr, mute_logger, OrderedSet
+from odoo.tools import float_compare, float_is_zero, float_repr, format_date, mute_logger, OrderedSet
 from odoo.tools.business_data import split_vat
 from odoo.tools.image import image_data_uri
 
@@ -70,6 +70,13 @@ class AccountMove(models.Model):
             errors['vat_missing'] = {'message': self.env._("You must have a VAT number to be able to issue e-invoices\n")}
         if not company.country_id or not company.street or not company.city:
             errors['address_problem'] = {'message': self.env._("Please complete the address of your company\n")}
+        untaxed_lines = self.invoice_line_ids.filtered(lambda line: line.display_type == 'product' and not line.tax_tag_ids)
+        if untaxed_lines:
+            errors['tax_missing'] = {'message': self.env._(
+                "These lines have no tax mapped to a KSeF tax rate: %(lines)s\n"
+                "If no VAT applies, use the 0%% or the exempt tax.\n",
+                lines=", ".join(untaxed_lines.mapped(lambda line: line.name or line.product_id.display_name or ''))
+            )}
         return errors
 
     def _l10n_pl_edi_get_ksef_invoice_type(self):
@@ -175,7 +182,13 @@ class AccountMove(models.Model):
             return -self.direction_sign * sum(lines.mapped('price_subtotal'))
 
         def get_base_amount_reverse_charge():
-            return get_base_amounts_from_tag("K_12") + get_base_amounts_from_tag("K_31")
+            return get_base_amounts_from_tag("K_31")
+
+        def get_base_amount_outside_country():
+            # P_13_8 excludes the amounts already reported in P_13_5 (OSS) and P_13_9 (np II)
+            excluded_tags = get_tags('K_12') | get_tags('OSS_Base')
+            lines = self.line_ids.filtered(lambda line: line.tax_tag_ids & get_tags('K_11') and not line.tax_tag_ids & excluded_tags)
+            return -self.direction_sign * sum(lines.mapped('price_subtotal'))
 
         def compute_p_12(tag_names):
             """
@@ -280,6 +293,7 @@ class AccountMove(models.Model):
             'get_amounts_from_tag_in_PLN_currency': get_amounts_from_tag_in_PLN_currency,
             'get_base_amounts_from_tag': get_base_amounts_from_tag,
             'get_base_amount_reverse_charge': get_base_amount_reverse_charge,
+            'get_base_amount_outside_country': get_base_amount_outside_country,
             'invoice_type': ksef_type,
             'related_invoices': self._l10n_pl_edi_get_related_invoices(),
             'correction_info': correction_info,
@@ -299,18 +313,50 @@ class AccountMove(models.Model):
         xml_content = self.env['ir.qweb']._render(qweb_template.id, ksef_values)
         return "\n".join([line for line in xml_content.splitlines() if line.strip()])
 
+    def _l10n_pl_edi_get_qr_host(self):
+        mode = self.env['ir.config_parameter'].sudo().get_str(
+            'l10n_pl_edi_ksef.mode', 'prod'
+        )
+        return f"qr{'' if mode == 'prod' else '-test'}.ksef.mf.gov.pl"
+
+    def _l10n_pl_edi_get_qr_hash(self):
+        self.ensure_one()
+        xml_content = self._l10n_pl_edi_get_xml_bytes()
+        return base64.urlsafe_b64encode(
+            sha256(xml_content).digest()
+        ).decode().rstrip('=') if xml_content else ''
+
+    def _l10n_pl_edi_get_xml_bytes(self):
+        self.ensure_one()
+        return self.l10n_pl_edi_attachment_file.content if self.l10n_pl_edi_attachment_file else b''
+
+    def _l10n_pl_edi_get_qr_xml_values(self):
+        """ Return the seller NIP and the issue date (P_1) of the stored KSeF XML.
+
+        The QR codes must match the XML they are hashed from, not the current Odoo records.
+        """
+        self.ensure_one()
+        xml_content = self._l10n_pl_edi_get_xml_bytes()
+        if not xml_content:
+            return None, None
+        try:
+            root = etree.fromstring(xml_content)
+        except etree.XMLSyntaxError:
+            return None, None
+        seller_nip = root.findtext('{*}Podmiot1/{*}DaneIdentyfikacyjne/{*}NIP')
+        invoice_date = root.findtext('{*}Fa/{*}P_1')
+        return seller_nip, fields.Date.to_date(invoice_date) if invoice_date else None
+
     def _l10n_pl_edi_generate_qr_link(self):
         self.ensure_one()
-        if self.l10n_pl_edi_attachment_file:
-            mode = self.env['ir.config_parameter'].sudo().get_str('l10n_pl_edi_ksef.mode', 'prod')
-            base_link = "https://qr.ksef.mf.gov.pl/invoice/" if mode == 'prod' else "https://qr-test.ksef.mf.gov.pl/invoice/"
-            return (
-                f"{base_link}"
-                f"{compact(self.company_id.vat)}/"
-                f"{self.invoice_date.strftime('%d-%m-%Y')}/"
-                f"{base64.urlsafe_b64encode(sha256(self.l10n_pl_edi_attachment_file).digest()).decode()}"
-            )
-        return ""
+        if self.country_code != 'PL':
+            return ''
+        invoice_hash = self._l10n_pl_edi_get_qr_hash()
+        seller_nip, invoice_date = self._l10n_pl_edi_get_qr_xml_values()
+        if not invoice_hash or not seller_nip or not invoice_date:
+            return ''
+        host = self._l10n_pl_edi_get_qr_host()
+        return f"https://{host}/invoice/{seller_nip}/{invoice_date:%d-%m-%Y}/{invoice_hash}"
 
     def _l10n_pl_edi_generate_qr(self):
         self.ensure_one()
@@ -321,6 +367,19 @@ class AccountMove(models.Model):
             height=180,
             quiet=0,
         ))
+
+    def _l10n_pl_edi_handle_ksef_unavailable(self, error, xml_content=None, session_id=None):
+        """ Hook called when the online sending of the invoice failed because KSeF is unavailable
+        (connection error, timeout or 5xx answer, see KSeFUnavailableError).
+
+        :param error: the KSeFUnavailableError raised.
+        :param xml_content: the XML bytes sent to KSeF when the sending itself failed (KSeF may have
+            received them), None when the session could not be opened.
+        :param session_id: the KSeF session used by that sending, None when it could not be opened.
+        :return: True if the invoice was handled otherwise, False to report the sending error.
+        """
+        self.ensure_one()
+        return False
 
     def _l10n_pl_edi_get_status_mapping(self):
         """
@@ -338,12 +397,18 @@ class AccountMove(models.Model):
             440: ('rejected', self.env._("KSeF Status: Rejected (Code: 440). Duplicate invoice.")),
             450: ('rejected', self.env._("KSeF Status: Rejected (Code: 450). Invoice document semantics verification error.")),
             500: ('rejected', self.env._("KSeF Status: Error (Code: 500). Unknown error.")),
+            550: ('rejected', self.env._("KSeF Status: Rejected (Code: 550). Processing was canceled by KSeF.")),
         }
 
     def action_l10n_pl_edi_update_invoice_status(self):
         self.ensure_one()
 
         self.env['res.company']._with_locked_records(self)
+        if self.l10n_pl_edi_status != 'sent':
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'reload',
+            }
 
         def ask_status_api():
 
@@ -394,10 +459,49 @@ class AccountMove(models.Model):
             self.with_context(no_new_invoice=True).sudo().message_post(body=message)
 
         self.update(res)
+        # Only refresh an existing PDF: storing a first one would make Send & Print skip its own
+        # rendering, which flags the invoice as sent. The report already shows the KSeF QR codes.
+        if self.l10n_pl_edi_status == 'accepted' and self.invoice_pdf_report_id:
+            try:
+                self._l10n_pl_edi_store_pdf()
+            except Exception:  # noqa: BLE001
+                _logger.exception("Could not render the KSeF invoice visualization for %s", self.display_name)
+                self.message_post(body=self.env._("The KSeF invoice was accepted, but its PDF visualization could not be generated."))
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
+
+    def _l10n_pl_edi_store_pdf(self):
+        self.ensure_one()
+        old_pdf = self.invoice_pdf_report_id
+        content = self.env['ir.actions.report'].with_company(self.company_id)._render_qweb_pdf(
+            'account.account_invoices', res_ids=self.ids,
+        )[0]
+        if old_pdf:
+            # Detach the old PDF like a reset to draft does, but leave the KSeF XML linked.
+            attachment_name, attachment_extension = os.path.splitext(old_pdf.name)
+            old_pdf.sudo().write({
+                'res_field': False,
+                'name': self.env._(
+                    '%(attachment_name)s (detached by %(user)s on %(date)s)%(attachment_extension)s',
+                    attachment_name=attachment_name,
+                    attachment_extension=attachment_extension,
+                    user=self.env.user.name,
+                    date=format_date(self.env, fields.Date.context_today(self)),
+                ),
+            })
+        new_pdf = self.env['ir.attachment'].sudo().create({
+            'name': self._get_invoice_report_filename(),
+            'raw': content,
+            'mimetype': 'application/pdf',
+            'res_model': self._name,
+            'res_id': self.id,
+            'res_field': 'invoice_pdf_report_file',
+        })
+        self.invalidate_recordset(fnames=['invoice_pdf_report_id', 'invoice_pdf_report_file'])
+        if old_pdf and self.message_main_attachment_id == old_pdf:
+            self.message_main_attachment_id = new_pdf
 
     def action_l10n_pl_edi_get_invoice_UPO(self):
         self.ensure_one()
@@ -784,7 +888,7 @@ class AccountMove(models.Model):
                 bill.message_post(body=self.env._("KSeF XML failed. Something went wrong"))
             finally:
                 if response.get('xml_content'):
-                    self.env['ir.attachment'].sudo().create({
+                    attachment = self.env['ir.attachment'].sudo().create({
                         'description': self.env._('KSeF Fetched Invoice XML'),
                         'name': f"KSeF-{bill.l10n_pl_edi_number.replace('/', '_')}.xml",
                         'type': 'binary',
@@ -792,7 +896,24 @@ class AccountMove(models.Model):
                         'raw': response['xml_content'],
                         'res_id': bill.id,
                         'res_model': bill._name,
+                        'res_field': 'l10n_pl_edi_attachment_file',
                     })
+                    bill.invalidate_recordset(fnames=[
+                        'l10n_pl_edi_attachment_id',
+                        'l10n_pl_edi_attachment_file',
+                    ])
+                    bill.sudo().with_context(no_new_invoice=True).message_post(
+                        body=self.env._("The fetched KSeF XML has been attached."),
+                        attachment_ids=attachment.ids,
+                    )
+            if bill.l10n_pl_edi_status == 'fetched':
+                try:
+                    bill._l10n_pl_edi_store_pdf()
+                except Exception:  # noqa: BLE001
+                    _logger.exception("Could not render the KSeF bill visualization for %s", bill.display_name)
+                    bill.message_post(body=self.env._(
+                        "The KSeF XML was imported, but its PDF visualization could not be generated."
+                    ))
 
     def _decode_fa3_ksef(self, invoice, file_data, new):
         xml_content = file_data.get('content')

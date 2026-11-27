@@ -64,8 +64,13 @@ class GoogleEventSync(models.AbstractModel):
                         record._google_values(),
                         timeout=3
                     )
-                elif vals.get('is_draft') is False:
-                    record.with_user(record._get_event_owner())._google_insert(google_service, record._google_values(), timeout=3)
+                elif vals.get('is_draft') is False and record._should_be_synced():
+                    record.with_user(record._get_event_owner())._google_insert(
+                        google_service,
+                        record._get_google_calendar_path(),
+                        record._google_values(),
+                        timeout=3,
+                    )
 
         return result
 
@@ -164,7 +169,8 @@ class GoogleEventSync(models.AbstractModel):
         cancelled_records = self - records_to_sync
 
         updated_records = records_to_sync.filtered('google_id')
-        new_records = records_to_sync - updated_records
+        # draft events are inserted once confirmed
+        new_records = (records_to_sync - updated_records).filtered(lambda record: not record._is_draft())
         for record in cancelled_records:
             if record.google_id and record.need_sync:
                 record.with_user(record._get_event_user())._google_delete(google_service, record._get_google_calendar_path(), record.google_id)
@@ -212,7 +218,7 @@ class GoogleEventSync(models.AbstractModel):
             dict(self._odoo_values(e, calendar, default_reminders), need_sync=False)
             for e in new
         ]
-        new_odoo = self.with_context(dont_notify=True, skip_contact_description=True)._create_from_google(new, calendar,
+        new_odoo = self.with_context(dont_notify=True, skip_contact_description=True, no_mail_to_attendees=True)._create_from_google(new, calendar,
                                                                                                           odoo_values)
         cancelled = existing.cancelled()
         cancelled_odoo = self.browse(cancelled.odoo_ids(self.env))
@@ -245,7 +251,7 @@ class GoogleEventSync(models.AbstractModel):
             # Migration from 13.4 does not fill write_date. Therefore, we force the update from Google.
             if not odoo_record_write_date or updated >= odoo_record_write_date.replace(tzinfo=datetime.UTC):
                 vals = dict(self._odoo_values(gevent, calendar, default_reminders), need_sync=False)
-                odoo_record.with_context(dont_notify=True)._write_from_google(gevent, vals, calendar)
+                odoo_record.with_context(dont_notify=True, no_mail_to_attendees=True)._write_from_google(gevent, vals, calendar)
                 synced_records |= odoo_record
 
         return synced_records

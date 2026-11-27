@@ -1,13 +1,21 @@
+import base64
+import json
 from datetime import datetime, timedelta
+from hashlib import sha256
 
+import requests
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from lxml import etree
 
 from odoo import Command, fields, tools
 from odoo.exceptions import UserError
 from odoo.tests import freeze_time, patch, tagged
+from odoo.tools import BinaryBytes, mute_logger
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.base.tests.test_ir_cron import CronMixinCase
+from odoo.addons.l10n_pl_edi.exceptions import KSeFRateLimitError, KSeFTimeoutError, KSeFUnavailableError
 from odoo.addons.l10n_pl_edi.models.account_move import AccountMove
 from odoo.addons.l10n_pl_edi.tools.ksef_api_service import KsefApiService
 
@@ -16,8 +24,7 @@ def attachment_to_dict(attachment):
     return {'name': attachment.name, 'raw': attachment.raw}
 
 
-@tagged('post_install', '-at_install', 'post_install_l10n')
-class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
+class TestL10nPlEdiCommon(AccountTestInvoicingCommon, CronMixinCase):
 
     _test_user_groups = None  # FIXME list needed groups
 
@@ -144,6 +151,10 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
             ae.args = (ae.args[0] + f"\nFile used for comparison: {filename}", )
             raise
 
+
+@tagged('post_install', '-at_install', 'post_install_l10n')
+class TestL10nPlEdi(TestL10nPlEdiCommon):
+
     @freeze_time('2026-01-23')
     def test_ksef_fa3_standard_vat(self):
         """
@@ -204,15 +215,62 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         self._assert_export_invoice(credit_note, 'standerd_fa3_credit_note.xml')
 
     @freeze_time('2026-01-23')
-    def test_ksef_fa3_reverse_charge(self):
-        K_12_tax = self.env['account.chart.template'].ref('vs_dostu')
-        K_31_tax = self.env['account.chart.template'].ref('vs_stal')
+    def test_ksef_fa3_reverse_charge_np_ii(self):
+        """
+        Intra-EU B2B service (np II, art. 100 ust. 1 pkt 4):
+        - the invoice is flagged as reverse charge (P_18 = 1)
+        - the base is reported only in P_13_9, since P_13_8 excludes it.
+        - P_13_10 must not be present: it is reserved for domestic reverse charge.
+        """
+        partner_be = self.env['res.partner'].create({
+            'name': 'Test Customer BE',
+            'is_company': True,
+            'country_id': self.env.ref('base.be').id,
+            'vat': 'BE0477472701',
+            'street': 'Rue de la Loi 16',
+            'city': 'Brussels',
+            'zip': '1000',
+        })
+        eu_service_tax = self.env['account.chart.template'].ref('vs_dostu')
+        service_product = self._create_product(name='EU Service', type='service', taxes_id=[Command.set(eu_service_tax.ids)])
+        invoice = self._create_invoice(
+            invoice_date=fields.Date.today(),
+            partner_id=partner_be,
+            invoice_line_ids=[
+                Command.create({'product_id': service_product.id, 'quantity': 1, 'price_unit': 500.0, 'tax_ids': eu_service_tax.ids}),
+            ],
+            post=True)
+        self._assert_export_invoice(invoice, 'standard_fa3_format_invoice_reverse_charge_only_np_II.xml')
+
+    @freeze_time('2026-01-23')
+    def test_ksef_fa3_reverse_charge_domestic(self):
+        """
+        Domestic reverse charge (oo, K_31) is the only base reported in P_13_10, even when the invoice
+        also contains an np II line.
+        """
+        k_31 = self.env['account.account.tag']._get_tax_tags('K_31', self.country_pl.id)
+        domestic_reverse_charge_tax = self.env['account.tax'].create({
+            'name': '0% oo',
+            'amount': 0.0,
+            'amount_type': 'percent',
+            'type_tax_use': 'sale',
+            'country_id': self.country_pl.id,
+            'invoice_repartition_line_ids': [
+                Command.create({'repartition_type': 'base', 'tag_ids': k_31.ids}),
+                Command.create({'repartition_type': 'tax'}),
+            ],
+            'refund_repartition_line_ids': [
+                Command.create({'repartition_type': 'base', 'tag_ids': k_31.ids}),
+                Command.create({'repartition_type': 'tax'}),
+            ],
+        })
+        eu_service_tax = self.env['account.chart.template'].ref('vs_dostu')
         invoice = self._create_invoice(
             invoice_date=fields.Date.today(),
             partner_id=self.partner_pl,
             invoice_line_ids=[
-                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 1000.0, 'tax_ids': K_12_tax.ids}),
-                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 500.0, 'tax_ids': K_31_tax.ids}),
+                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 1000.0, 'tax_ids': eu_service_tax.ids}),
+                Command.create({'product_id': self.product_a.id, 'quantity': 1, 'price_unit': 500.0, 'tax_ids': domestic_reverse_charge_tax.ids}),
             ],
             post=True)
         self._assert_export_invoice(invoice, 'standard_fa3_format_invoice_reverse_charge.xml')
@@ -306,7 +364,7 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
                 'product_id': self.product_a.id,
                 'quantity': 1,
                 'price_unit': 1000.0,
-                'tax_ids': [],
+                'tax_ids': [self.env['account.chart.template'].ref('vs_kraj_0').id],
             })],
         })
         invoice.action_post()
@@ -485,6 +543,43 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         })
         invoice.action_post()
         self._assert_export_invoice(invoice, 'fa3_invoice_foreign_currency.xml')
+
+    @freeze_time('2026-01-23')
+    def test_advance_invoice_in_foreign_currency(self):
+        """
+        KursWalutyZ must be present for ZAL and KOR_ZAL invoices in a foreign
+        currency, since the FA(3) schema requires the exchange rate on both the
+        advance invoice and its correction.
+        """
+        self.env.ref('base.EUR').active = True
+
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_pl.id,
+            'invoice_date': fields.Date.today(),
+            'currency_id': self.env.ref('base.EUR').id,
+            'invoice_line_ids': [Command.create({
+                'product_id': self.product_a.id,
+                'quantity': 1,
+                'price_unit': 10.0,
+            })],
+            'invoice_currency_rate': '2',
+        })
+        invoice.action_post()
+
+        # ZAL + foreign currency: KursWalutyZ must be present.
+        # l10n_pl_edi doesn't depend on sale, so a real down-payment invoice can't be created here.
+        with patch.object(self.env.registry['account.move'], '_l10n_pl_edi_get_ksef_invoice_type', return_value='ZAL'):
+            xml_zal = invoice._l10n_pl_edi_render_xml()
+        self.assertEqual(self._get_xml_value(xml_zal, "//ns:Fa/ns:RodzajFaktury"), 'ZAL')
+        self.assertEqual(self._get_xml_value(xml_zal, "//ns:Fa/ns:KodWaluty"), 'EUR')
+        self.assertEqual(self._get_xml_value(xml_zal, "//ns:Fa/ns:KursWalutyZ"), '0.50000')
+
+        # KOR_ZAL + foreign currency: KursWalutyZ must also be present (rate after correction).
+        with patch.object(self.env.registry['account.move'], '_l10n_pl_edi_get_ksef_invoice_type', return_value='KOR_ZAL'):
+            xml_kor_zal = invoice._l10n_pl_edi_render_xml()
+        self.assertEqual(self._get_xml_value(xml_kor_zal, "//ns:Fa/ns:RodzajFaktury"), 'KOR_ZAL')
+        self.assertEqual(self._get_xml_value(xml_kor_zal, "//ns:Fa/ns:KursWalutyZ"), '0.50000')
 
     @freeze_time('2026-01-23')
     def test_prefiks_podatnika_for_eu_transactions(self):
@@ -741,11 +836,9 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
             ).ids,
         )
 
-        created_move_attachment = self.env['ir.attachment'].search([
-            ('res_model', '=', 'account.move'),
-            ('res_id', '=', created_move.id),
-        ], limit=1)
+        created_move_attachment = created_move.l10n_pl_edi_attachment_id
         self.assertTrue(created_move_attachment)
+        self.assertIn(created_move_attachment, created_move.message_ids.attachment_ids)
         with tools.file_open('l10n_pl_edi/tests/export_xmls/fa3_bill.xml', mode='rb') as file:
             self.assertEqual(bytes(created_move_attachment.raw), file.read())
 
@@ -787,10 +880,7 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
 
         bill_1 = self.env['account.move'].search([('l10n_pl_edi_status', '=', 'fetched')])
         self.assertTrue(bill_1)
-        bill_1_attachment = self.env['ir.attachment'].search([
-            ('res_model', '=', 'account.move'),
-            ('res_id', '=', bill_1.id),
-        ], limit=1)
+        bill_1_attachment = bill_1.l10n_pl_edi_attachment_id
         self.assertTrue(bill_1_attachment)
         with tools.file_open('l10n_pl_edi/tests/export_xmls/fa3_bill.xml', mode='rb') as file:
             self.assertEqual(bytes(bill_1_attachment.raw), file.read())
@@ -812,7 +902,7 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
             }
 
         def get_invoice_by_ksef_number(ksef_number):
-            return {'xml_content': b'foo'}
+            return {'xml_content': b'<Faktura/>'}
 
         call_count = 0
 
@@ -831,10 +921,7 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
             self.env['account.move'].with_company(self.company)._l10n_pl_edi_download_bills_from_ksef()
 
         bills = self.env['account.move'].search([('l10n_pl_edi_number', 'in', ('KSEF-BILL-001', 'KSEF-BILL-002'))])
-        bills_attachments = self.env['ir.attachment'].search([
-            ('res_model', '=', 'account.move'),
-            ('res_id', 'in', bills.ids),
-        ])
+        bills_attachments = bills.l10n_pl_edi_attachment_id
         self.assertEqual(len(bills), 2)
         self.assertEqual(len(bills_attachments), 2)
         self.assertTrue(bills.filtered(lambda b: b.l10n_pl_edi_status == 'fetch_failed'))
@@ -1166,3 +1253,212 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         self.assertEqual(self._get_xml_value(xml, "//ns:DaneFaKorygowanej/ns:NrKSeF"), '1')
         self.assertEqual(self._get_xml_value(xml, "//ns:DaneFaKorygowanej/ns:NrKSeFFaKorygowanej"), fake_ksef_number)
         self.assertFalse(self._get_xml_nodes(xml, "//ns:DaneFaKorygowanej/ns:NrKSeFN"))
+
+    @staticmethod
+    def _ksef_response(status_code, json_data=None):
+        response = requests.Response()
+        response.status_code = status_code
+        response._content = json.dumps(json_data or {}).encode()
+        return response
+
+    def test_send_invoice_offline_mode(self):
+        service = KsefApiService(self.company)
+        service.raw_symmetric_key = b'0' * 32
+        service.raw_iv = b'0' * 16
+
+        with patch(
+            'odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.request',
+            return_value=self._ksef_response(202, {'referenceNumber': 'REF'}),
+        ) as request:
+            service.send_invoice(b'<Invoice/>')
+            service.send_invoice(b'<Invoice/>', offline_mode=True)
+
+        online_payload, offline_payload = (call.kwargs['json'] for call in request.call_args_list)
+        self.assertNotIn('offlineMode', online_payload)
+        self.assertIs(offline_payload['offlineMode'], True)
+
+    @mute_logger('odoo.addons.l10n_pl_edi.tools.ksef_api_service')
+    def test_ksef_request_errors_are_typed(self):
+        service = KsefApiService(self.company)
+
+        def request_error(**kwargs):
+            with patch('odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.request', **kwargs):
+                try:
+                    service._make_request('GET', 'https://ksef.invalid')
+                except UserError as error:
+                    return error
+            return None
+
+        self.assertIsInstance(request_error(side_effect=requests.Timeout), KSeFTimeoutError)
+        self.assertIsInstance(request_error(side_effect=requests.ConnectionError), KSeFUnavailableError)
+        self.assertNotIsInstance(request_error(side_effect=requests.ConnectionError), KSeFTimeoutError)
+        self.assertIsInstance(request_error(return_value=self._ksef_response(503)), KSeFUnavailableError)
+        self.assertIsInstance(request_error(return_value=self._ksef_response(429)), KSeFRateLimitError)
+        rejection = request_error(return_value=self._ksef_response(400, {'exception': 'Invalid'}))
+        self.assertIsInstance(rejection, UserError)
+        self.assertNotIsInstance(rejection, KSeFUnavailableError)
+
+    @mute_logger('odoo.addons.l10n_pl_edi.tools.ksef_api_service')
+    def test_open_session_keeps_the_unavailable_error(self):
+        service = KsefApiService(self.company)
+        public_key = rsa.generate_private_key(public_exponent=65537, key_size=2048).public_key()
+        public_key_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        ).decode()
+
+        with (
+            patch('odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.get', side_effect=requests.ConnectionError),
+            self.assertRaises(KSeFUnavailableError),
+        ):
+            service.open_ksef_session()
+
+        with (
+            patch.object(KsefApiService, '_get_public_keys', return_value={'symmetric': public_key_pem}),
+            patch('odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.request', side_effect=requests.Timeout),
+            self.assertRaisesRegex(KSeFTimeoutError, 'Failed to open KSeF session'),
+        ):
+            service.open_ksef_session()
+
+        with (
+            patch.object(KsefApiService, '_get_public_keys', return_value={'symmetric': public_key_pem}),
+            patch(
+                'odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.request',
+                return_value=self._ksef_response(400, {'exception': 'Invalid'}),
+            ),
+            self.assertRaisesRegex(UserError, 'Failed to open KSeF session') as error,
+        ):
+            service.open_ksef_session()
+        self.assertNotIsInstance(error.exception, KSeFUnavailableError)
+
+    def test_open_session_keeps_the_rate_limit_error(self):
+        service = KsefApiService(self.company)
+        public_key = rsa.generate_private_key(public_exponent=65537, key_size=2048).public_key()
+        public_key_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        ).decode()
+        response = self._ksef_response(429)
+        response.headers['Retry-After'] = '30'
+
+        with (
+            patch.object(KsefApiService, '_get_public_keys', return_value={'symmetric': public_key_pem}),
+            patch('odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.request', return_value=response),
+            self.assertRaisesRegex(KSeFRateLimitError, 'Failed to open KSeF session') as error,
+        ):
+            service.open_ksef_session()
+        self.assertEqual(error.exception.retry_after, 30)
+
+    def test_find_invoice_in_session_uses_the_xml_hash(self):
+        service = KsefApiService(self.company)
+        expected = {'invoiceHash': 'EXPECTED', 'status': {'code': 200}}
+
+        with patch('odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.request', side_effect=[
+            self._ksef_response(200, {'invoices': [{'invoiceHash': 'OTHER'}], 'continuationToken': 'NEXT'}),
+            self._ksef_response(200, {'invoices': [expected]}),
+        ]) as request:
+            invoice = service.find_invoice_in_session('EXPECTED', session_id='SESSION-REF')
+
+        self.assertEqual(invoice, expected)
+        first_call, second_call = request.call_args_list
+        self.assertEqual(first_call.args, ('GET', 'https://api-test.ksef.mf.gov.pl/v2/sessions/SESSION-REF/invoices'))
+        self.assertNotIn('x-continuation-token', first_call.kwargs['headers'])
+        self.assertEqual(second_call.kwargs['headers']['x-continuation-token'], 'NEXT')
+
+    def test_find_invoice_in_session_stops_at_the_match(self):
+        service = KsefApiService(self.company)
+        expected = {'invoiceHash': 'EXPECTED', 'status': {'code': 200}}
+
+        with patch('odoo.addons.l10n_pl_edi.tools.ksef_api_service.requests.request', side_effect=[
+            self._ksef_response(200, {'invoices': [expected], 'continuationToken': 'NEXT'}),
+        ]) as request:
+            invoice = service.find_invoice_in_session('EXPECTED', session_id='SESSION-REF')
+
+        self.assertEqual(invoice, expected)
+        request.assert_called_once()
+
+    def test_qr_link_uses_the_stored_xml_without_padding(self):
+        invoice = self.standard_invoice
+        invoice.action_post()
+        xml_content = invoice._l10n_pl_edi_render_xml().encode()
+        invoice.l10n_pl_edi_attachment_file = BinaryBytes(xml_content)
+        invoice_hash = base64.urlsafe_b64encode(sha256(xml_content).digest()).decode()
+
+        qr_link = invoice._l10n_pl_edi_generate_qr_link()
+
+        self.assertTrue(invoice_hash.endswith('='))
+        self.assertEqual(
+            qr_link,
+            f"https://qr-test.ksef.mf.gov.pl/invoice/1234567883/23-01-2026/{invoice_hash.rstrip('=')}",
+        )
+        invoice.company_id.vat = 'PL1111111111'
+        self.assertEqual(invoice._l10n_pl_edi_generate_qr_link(), qr_link)
+
+    def test_status_550_rejects_the_invoice(self):
+        invoice = self.standard_invoice
+        invoice.action_post()
+        invoice.write({
+            'l10n_pl_edi_status': 'sent',
+            'l10n_pl_edi_ref': 'INVOICE-REF',
+            'l10n_pl_edi_session_id': 'SESSION-REF',
+        })
+
+        with patch.object(KsefApiService, 'get_invoice_status', return_value={
+            'status': {'code': 550, 'description': 'Canceled by KSeF'},
+        }):
+            invoice.action_l10n_pl_edi_update_invoice_status()
+
+        self.assertEqual(invoice.l10n_pl_edi_status, 'rejected')
+        self.assertIn('Code: 550', str(invoice.l10n_pl_edi_header))
+
+    def test_l10n_pl_edi_send_ksef_unavailable_keeps_the_error(self):
+        invoice = self.standard_invoice
+        invoice.action_post()
+        invoices_data = {invoice: {'extra_edis': {'pl_ksef'}, 'invoice_edi_format': None}}
+
+        with (
+            patch.object(KsefApiService, 'open_ksef_session', side_effect=KSeFUnavailableError('KSeF API Error: 503')),
+            patch.object(KsefApiService, 'send_invoice') as send_invoice,
+        ):
+            self.env['account.move.send']._call_web_service_before_invoice_pdf_render(invoices_data)
+
+        send_invoice.assert_not_called()
+        self.assertEqual(invoices_data[invoice]['error']['errors'], ['KSeF API Error: 503'])
+        self.assertFalse(invoice.l10n_pl_edi_status)
+
+        invoices_data = {invoice: {'extra_edis': {'pl_ksef'}, 'invoice_edi_format': None}}
+        with (
+            patch.object(KsefApiService, 'open_ksef_session'),
+            patch.object(KsefApiService, 'send_invoice', side_effect=KSeFTimeoutError('KSeF API Error: timeout')),
+        ):
+            self.env['account.move.send']._call_web_service_before_invoice_pdf_render(invoices_data)
+
+        self.assertEqual(invoices_data[invoice]['error']['errors'], ['KSeF API Error: timeout'])
+        self.assertFalse(invoice.l10n_pl_edi_status)
+
+    def test_export_error_with_no_tax(self):
+        """
+        Test that the export raises an error if an invoice line does not have a tax.
+        """
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_pl.id,
+            'invoice_date': fields.Date.today(),
+            'currency_id': self.env.ref('base.PLN').id,
+            'invoice_line_ids': [
+                Command.create({
+                    'product_id': self.product_a.id,
+                    'quantity': 1,
+                    'price_unit': 1000.0,
+                    'tax_ids': []
+                }),
+                Command.create({
+                    'display_type': 'line_note',
+                    'name': 'note line 1'
+                })
+            ],
+        })
+        invoice.action_post()
+
+        wizard = self.env['account.move.send.wizard'].create({'move_id': invoice.id})
+        self.assertEqual(set(wizard.alerts), {'tax_missing'})

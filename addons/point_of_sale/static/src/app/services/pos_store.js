@@ -34,6 +34,7 @@ import { WithLazyGetterTrap } from "@point_of_sale/lazy_getter";
 import { debounce } from "@web/core/utils/timing";
 import DevicesSynchronisation from "../utils/devices_synchronisation";
 import { formatDate, serializeDateTime } from "@web/core/l10n/dates";
+import { downloadFile } from "@web/core/network/download";
 import { ProductInfoPopup } from "@point_of_sale/app/components/popups/product_info_popup/product_info_popup";
 import { PresetSlotsPopup } from "@point_of_sale/app/components/popups/preset_slots_popup/preset_slots_popup";
 import { DebugWidget } from "../utils/debug/debug_widget";
@@ -455,6 +456,12 @@ export class PosStore extends WithLazyGetterTrap {
         }?access_token=${this.config.access_token}&theme=${getColorScheme()}`;
     }
 
+    async exportLocalData() {
+        const data = await this.data.synchronizeLocalDataInIndexedDB();
+        const date = serializeDateTime(DateTime.now()).replace(/:|\s/gi, "-");
+        downloadFile(JSON.stringify(data), `pos_data${date}.json`, "application/json");
+    }
+
     async reloadData(showWarning = false) {
         try {
             await this.syncAllOrders();
@@ -462,14 +469,22 @@ export class PosStore extends WithLazyGetterTrap {
             logPosMessage("Store", "reloadData", "Failed to sync orders", CONSOLE_COLOR, [error]);
         }
         // Reloading wipes the local orders, a paid order must never be lost that way
-        if (this.models["pos.order"].some((o) => o.isUnsyncedPaid && o.state !== "cancel")) {
-            this.dialog.add(AlertDialog, {
+        if (
+            this.models["pos.order"].some(
+                (o) => o.isUnsyncedPaid && o.state !== "cancel" && this.shouldCreatePendingOrder(o)
+            )
+        ) {
+            const exportData = await ask(this.dialog, {
                 title: _t("Reload Data"),
                 body: _t(
                     "Some paid orders have not been synced to the server yet. Closing or reloading now may cause data loss."
                 ),
+                confirmLabel: _t("Export data"),
             });
-            return;
+            if (!exportData) {
+                return;
+            }
+            await this.exportLocalData();
         }
         const reloadData = async () => {
             const orders = this.models["pos.order"].getAll();
@@ -2774,24 +2789,14 @@ export class PosStore extends WithLazyGetterTrap {
         const results = [];
         const searchWord = this.searchProductWord.trim();
         const byCateg = this.models["product.template"].toRaw().getAllBy("pos_categ_ids");
-        const selectedCategoryIds = !this.selectedCategory
-            ? this.models["pos.category"].map((c) => c.id)
-            : this.selectedCategory.getAllChildren().map((c) => c.id);
-
-        // Sorting in place the categories according to their sequence in the database
-        selectedCategoryIds.sort((a, b) => {
-            const categA = this.models["pos.category"].get(a);
-            const categB = this.models["pos.category"].get(b);
-
-            // All category with a parent will be at the end
-            if (categA.parent_id && !categB.parent_id) {
-                return 1;
-            } else if (!categA.parent_id && categB.parent_id) {
-                return -1;
-            }
-
-            return categA.sequence - categB.sequence;
-        });
+        const rootCategories = this.selectedCategory
+            ? [this.selectedCategory]
+            : this.models["pos.category"]
+                  .filter((c) => !c.parent_id)
+                  .sort((a, b) => a.sequence - b.sequence);
+        const selectedCategoryIds = rootCategories.flatMap((c) =>
+            c.getAllChildren().map((child) => child.id)
+        );
 
         if (!this.selectedCategory) {
             // In case of no category selected, we want to display products without category in
@@ -2947,6 +2952,9 @@ export class PosStore extends WithLazyGetterTrap {
 
     async validateOrderFast(paymentMethod) {
         const order = this.getOrder();
+        if (!order.canPay()) {
+            return;
+        }
         const validation = new OrderPaymentValidation({
             pos: this,
             orderUuid: order.uuid,
