@@ -2330,6 +2330,7 @@ class MailThread(models.AbstractModel):
             for recipients_ids_chunk in split_every(recipients_max, recipients_ids):
                 recipient_values = self._notify_email_recipient_values(recipients_ids_chunk)
                 email_to = recipient_values['email_to']
+                email_cc = recipient_values['email_cc']
                 recipient_ids = recipient_values['recipient_ids']
 
                 create_values = {
@@ -2339,6 +2340,8 @@ class MailThread(models.AbstractModel):
                 }
                 if email_to:
                     create_values['email_to'] = email_to
+                if email_cc:
+                    create_values['email_cc'] = email_cc
                 create_values.update(base_mail_values)  # mail_message_id, mail_server_id, auto_delete, references, headers
                 email = SafeMail.create(create_values)
 
