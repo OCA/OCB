@@ -925,18 +925,21 @@ class MrpProduction(models.Model):
         is used within onchanges.
         """
         # keep manual entries
-        list_move_finished = [(4, move.id) for move in self.move_finished_ids.filtered(
-            lambda m: not m.byproduct_id and m.product_id != self.product_id)]
         list_move_finished = []
         moves_finished_values = self._get_moves_finished_values()
         moves_byproduct_dict = {move.byproduct_id.id: move for move in self.move_finished_ids.filtered(lambda m: m.byproduct_id)}
-        move_finished = self.move_finished_ids.filtered(lambda m: m.product_id == self.product_id)
+        move_finished = self.move_finished_ids.filtered(
+            lambda m: m.product_id == self.product_id
+            and m.state not in ("done", "cancel")
+        )
         for move_finished_values in moves_finished_values:
             if move_finished_values.get('byproduct_id') in moves_byproduct_dict:
                 # update existing entries
                 list_move_finished += [(1, moves_byproduct_dict[move_finished_values['byproduct_id']].id, move_finished_values)]
             elif move_finished_values.get('product_id') == self.product_id.id and move_finished:
-                list_move_finished += [(1, move_finished.id, move_finished_values)]
+                # Note that there might be multiple moves for the same product.
+                # Therefore we take the first,
+                list_move_finished += [(1, move_finished[0].id, move_finished_values)]
             else:
                 # add new entries
                 list_move_finished += [(0, 0, move_finished_values)]
