@@ -1299,7 +1299,7 @@ class HrExpenseSheet(models.Model):
             move_lines.append(base_move_line)
             total_tax_line_balance = 0.0
             for tax_line_data in tax_data['tax_lines_to_add']:  # Add tax lines
-                tax_line_balance = expense.currency_id.round(tax_line_data['tax_amount'] / rate)
+                tax_line_balance = expense.company_currency_id.round(tax_line_data['tax_amount_currency'] / rate)
                 total_tax_line_balance += tax_line_balance
                 tax_line = {
                     'name': self.env['account.tax'].browse(tax_line_data['tax_id']).name,
@@ -1308,8 +1308,8 @@ class HrExpenseSheet(models.Model):
                     'expense_id': expense.id,
                     'tax_tag_ids': tax_line_data['tax_tag_ids'],
                     'balance': tax_line_balance,
-                    'amount_currency': tax_line_data['tax_amount'],
-                    'tax_base_amount': expense.currency_id.round(tax_line_data['base_amount'] / rate),
+                    'amount_currency': tax_line_data['tax_amount_currency'],
+                    'tax_base_amount': expense.company_currency_id.round(tax_line_data['base_amount'] / rate),
                     'currency_id': currency.id,
                     'tax_repartition_line_id': tax_line_data['tax_repartition_line_id'],
                 }
