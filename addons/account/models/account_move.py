@@ -1655,7 +1655,7 @@ class AccountMove(models.Model):
                     continue
 
                 payments_widget_vals['content'].append({
-                    'journal_name': line.ref or line.move_id.name,
+                    'journal_name': ': '.join(filter(None, (line.move_id.name, line.ref))),
                     'amount': amount,
                     'currency': move.currency_id.symbol,
                     'id': line.id,
