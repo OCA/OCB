@@ -82,6 +82,7 @@ class ProductProduct(models.Model):
             'id', 'display_name', 'lst_price', 'standard_price', 'categ_id', 'pos_categ_ids', 'taxes_id', 'barcode', 'name',
             'default_code', 'to_weight', 'uom_id', 'description_sale', 'description', 'product_tmpl_id', 'tracking', 'type', 'service_tracking', 'is_storable',
             'write_date', 'color', 'available_in_pos', 'attribute_line_ids', 'active', 'image_128', 'combo_ids', 'product_template_variant_value_ids', 'product_tag_ids',
+            'price_extra',
         ]
 
     def _load_pos_data(self, data):
@@ -154,6 +155,7 @@ class ProductProduct(models.Model):
             if different_currency:
                 product['lst_price'] = self.env.company.currency_id._convert(product['lst_price'], config_id.currency_id, self.env.company, fields.Date.today())
                 product['standard_price'] = self.env.company.currency_id._convert(product['standard_price'], config_id.currency_id, self.env.company, fields.Date.today())
+                product['price_extra'] = self.env.company.currency_id._convert(product['price_extra'], config_id.currency_id, self.env.company, fields.Date.today())
             product['image_128'] = bool(product['image_128'])
 
             if len(taxes_by_company) > 1 and len(product['taxes_id']) > 1:

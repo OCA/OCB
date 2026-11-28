@@ -184,6 +184,12 @@ export class ProductProduct extends Base {
 
         if (rule.compute_price === "fixed") {
             price = rule.fixed_price;
+            // A fixed price set on this specific variant already includes its own
+            // attribute extra price: only no_variant attributes extra price is added.
+            const isVariantSpecificRule = rule.product_id?.id === this.id;
+            price += isVariantSpecificRule
+                ? price_extra || 0
+                : (this.price_extra || 0) + (price_extra || 0);
         } else if (rule.compute_price === "percentage") {
             price = price - price * (rule.percent_price / 100);
         } else {

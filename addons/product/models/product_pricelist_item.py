@@ -552,6 +552,21 @@ class PricelistItem(models.Model):
 
         if self.compute_price == 'fixed':
             price = convert(self.fixed_price)
+
+            if self.applied_on == '0_product_variant':
+                # If a fixed price was defined for a specific variant, only extra prices from
+                # no variant attributes have to be considered.
+                extra_price = self.env.context.get('no_variant_attributes_price_extra', 0)
+            else:
+                # Variant -> add variant extra price + no_variant attributes extra price
+                # Template -> add extra prices from selected combination (if any)
+                extra_price = product._get_attributes_extra_price()
+            extra_price = convert(extra_price)
+            if product.currency_id != currency:
+                extra_price = product.currency_id._convert(
+                    extra_price, currency, self.env.company, date, round=False
+                )
+            price += extra_price
         elif self.compute_price == 'percentage':
             base_price = self._compute_base_price(product, quantity, uom, date, currency)
             price = (base_price - (base_price * (self.percent_price / 100))) or 0.0
