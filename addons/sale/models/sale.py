@@ -9,8 +9,7 @@ from odoo import api, fields, models, SUPERUSER_ID, _
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.misc import formatLang, get_lang
 from odoo.osv import expression
-from odoo.tools import float_is_zero, float_compare
-
+from odoo.tools import float_is_zero, float_compare, float_round
 
 
 from werkzeug.urls import url_encode
@@ -1881,6 +1880,13 @@ class SaleOrderLine(models.Model):
 
     def _onchange_product_id_set_customer_lead(self):
         pass
+
+    @api.onchange('price_unit')
+    def _onchange_price_unit(self):
+        self.price_unit = float_round(
+            self.price_unit,
+            precision_digits=self.env['decimal.precision'].precision_get('Product Price')
+        )
 
     @api.onchange('product_id', 'price_unit', 'product_uom', 'product_uom_qty', 'tax_id')
     def _onchange_discount(self):
